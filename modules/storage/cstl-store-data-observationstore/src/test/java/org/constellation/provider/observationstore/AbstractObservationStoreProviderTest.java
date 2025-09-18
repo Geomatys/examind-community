@@ -3714,6 +3714,21 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertEquals(9L, count); // + 1 becuase of the double foi for  urn:ogc:object:observation:template:GEOM:10
     }
     
+    protected void getObservationTemplate6Test() throws Exception {
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
+        
+        ResourceId idFilter = ff.resourceId("urn:ogc:object:observation:template:GEOM:test-1");
+        query.setSelection(idFilter);
+        query.setIncludeFoiInTemplate(false);
+        query.setIncludeTimeInTemplate(false);
+
+        // by ommiting FOI in template, it returns only one template
+        query.setIncludeFoiInTemplate(false);
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+        Observation template1 = (Observation) results.get(0);
+    }
+    
     public void getMeasurementTemplateTest() throws Exception {
         assertNotNull(omPr);
 
@@ -3905,6 +3920,17 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         query.setIncludeFoiInTemplate(false);
 
         ResourceId idFilter = ff.resourceId("urn:ogc:object:observation:template:GEOM:test-1-2");
+        query.setSelection(idFilter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+        
+         /*
+        * filter on template id (special case for template id for operation)
+        */
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        query.setIncludeFoiInTemplate(false);
+
+        idFilter = ff.resourceId("urn:ogc:object:observation:template:GEOM:test-1-2-operation");
         query.setSelection(idFilter);
         results = omPr.getObservations(query);
         assertEquals(1, results.size());
@@ -5186,6 +5212,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertEquals(1, results.size());
 
         Observation result = results.get(0);
+        assertNotNull(result.getName());
         assertEquals("urn:ogc:object:observation:GEOM:4001", result.getName().getCode());
 
         assertNotNull(result.getObservedProperty());
@@ -5263,6 +5290,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
 
         Set<String> resultIds = new LinkedHashSet<>();
         for (Observation p : results) {
+            assertNotNull(p.getName());
             resultIds.add(p.getName().getCode());
         }
 
@@ -5741,6 +5769,56 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         }
     }
     
+    /**
+     *  TODO this in fact will fail if multiple observation exist
+     */
+    protected void getObservationSelectOperationAvgTestTS() throws Exception {
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:8"));
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        query.setProjection("avg(result)");
+        query.setSelection(filter);
+        query.setSeparatedMeasure(true);
+
+        List<Observation>results = omPr.getObservations(query);
+        assertEquals(2, results.size());
+
+        Observation result = results.get(0);
+        assertEquals("urn:ogc:object:observation:template:GEOM:8-2-operation", result.getName().getCode());
+        assertNotNull(result.getObservedProperty());
+        assertEquals("depth", getPhenomenonId(result));
+        assertTrue(result.getResult() instanceof MeasureResult);
+        MeasureResult mr = (MeasureResult) result.getResult();
+        assertEquals(6.56, mr.getValue());
+        
+        result = results.get(1);
+        assertEquals("urn:ogc:object:observation:template:GEOM:8-3-operation", result.getName().getCode());
+        assertTrue(result.getResult() instanceof MeasureResult);
+        mr = (MeasureResult) result.getResult();
+        assertEquals(14.0, mr.getValue());
+    }
+    
+    protected void getObservationSelectOperationAvgTestPR() throws Exception {
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:2"));
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        query.setProjection("avg(result)");
+        query.setSelection(filter);
+        query.setSeparatedMeasure(true);
+
+        List<Observation>results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        Observation result = results.get(0);
+        assertEquals("urn:ogc:object:observation:template:GEOM:2-2-operation", result.getName().getCode());
+        assertNotNull(result.getObservedProperty());
+        assertEquals("temperature", getPhenomenonId(result));
+        assertTrue(result.getResult() instanceof MeasureResult);
+        MeasureResult mr = (MeasureResult) result.getResult();
+        assertEquals(23.666666666666668, mr.getValue());
+        
+    }
+    
     protected void getObservationsNanTest() throws Exception {
         assertNotNull(omPr);
 
@@ -5804,6 +5882,33 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertEquals(3, resultArray.getDataArray().size());
     }
     
+    protected void getObservationsNan2Test() throws Exception {
+        assertNotNull(omPr);
+        
+        // data array version with no extra field
+        ResultQuery resSubquery = new ResultQuery(MEASUREMENT_QNAME, INLINE, null, null);
+        resSubquery.setIncludeTimeForProfile(true);
+        resSubquery.setIncludeIdInDataBlock(true);
+        resSubquery.setResponseFormat(DATA_ARRAY);
+        resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:13");
+
+        Object o = omPr.getResults(resSubquery);
+        assertTrue(o instanceof ComplexResult);
+
+        ComplexResult resultArray = (ComplexResult) o;
+
+        assertEquals(13, resultArray.getDataArray().size());
+        assertTrue(resultArray.getDataArray().get(0) instanceof List);
+        
+        List resultLine = (List) resultArray.getDataArray().get(0);
+        assertEquals(5, resultLine.size());
+        assertEquals("urn:ogc:object:observation:GEOM:4001-<field-id>-1", resultLine.get(0));
+        // time assertEquals("",resultLine.get(1) );
+        assertEquals(4.5, resultLine.get(2));
+        assertEquals(98.5, resultLine.get(3));
+        assertEquals(Double.NaN, resultLine.get(4));
+     }
+    
     protected void getObservationsNanProfileTest() throws Exception {
         assertNotNull(omPr);
 
@@ -5853,6 +5958,14 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         resultArray = (ComplexResult) o;
 
         assertEquals(14, resultArray.getDataArray().size());
+        assertTrue(resultArray.getDataArray().get(0) instanceof List);
+        
+        List resultLine = (List) resultArray.getDataArray().get(0);
+        assertEquals(3, resultLine.size());
+        assertEquals("urn:ogc:object:observation:GEOM:5003-3-1", resultLine.get(0));
+        // time assertEquals("",resultLine.get(1) );
+        assertEquals(5.1, resultLine.get(2));
+        
     }
     
     protected void getResultsProfileSingleMainFieldTest() throws Exception {
@@ -6342,17 +6455,48 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         String result = cr.getValues();
 
         String expectedResult =
-            "time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter\n" +
-            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;\n" +
-            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;;12.0;;\n" +
-            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;\n" +
-            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;;13.0;;\n" +
-            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;\n" +
-            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;;14.0;;\n" +
-            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;\n" +
-            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;;15.0;;\n" +
-            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;\n" +
-            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;;16.0;;\n";
+            """
+            time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter
+            2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;12.0;;
+            2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;13.0;;
+            2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;14.0;;
+            2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;15.0;;
+            2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;16.0;;
+            """;
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 8
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "text/csv-flat");
+        // include this flags to match sts worker behaviour
+        query.setIncludeIdInDataBlock(true);
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+            """
+            time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter
+            2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;12.0;;
+            2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;13.0;;
+            2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;14.0;;
+            2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;15.0;;
+            2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;phen-category:[biological,organics]|phen-usage:production;;6.56;;
+            2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;;16.0;;
+            """;
 
         assertEquals(expectedResult, result);
     }
@@ -6368,16 +6512,18 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         String result = cr.getValues();
 
         String expectedResult =
-                            "time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter\n" +
-                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;12.0;18.5;;\n" +
-                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;24.0;19.7;;\n" +
-                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;48.0;21.2;;\n" +
-                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;96.0;23.9;;\n" +
-                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;192.0;26.2;;\n" +
-                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;384.0;31.4;;\n" +
-                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;768.0;35.1;;\n" +
-                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;12.0;18.5;;\n" +
-                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;12.0;18.5;;\n";
+                            """
+                            time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter
+                            2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;12.0;18.5;;
+                            2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;24.0;19.7;;
+                            2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;48.0;21.2;;
+                            2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;96.0;23.9;;
+                            2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;192.0;26.2;;
+                            2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;384.0;31.4;;
+                            2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;768.0;35.1;;
+                            2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;12.0;18.5;;
+                            2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;bss-code:[10972X0137/PONT,BSS10972X0137]|supervisor-code:00ARGLELES;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;12.0;18.5;;
+                            """;
 
         assertEquals(expectedResult, result);
         
@@ -6390,49 +6536,51 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         result = cr.getValues();
 
         expectedResult =
-                    "time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter\n" +
-                    "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;18.5;12.8;;\n" +
-                    "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;19.7;12.7;;\n" +
-                    "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;21.2;12.6;;\n" +
-                    "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;23.9;12.5;;\n" +
-                    "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;24.2;12.4;;\n" +
-                    "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;29.4;12.3;;\n" +
-                    "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;31.1;12.2;;\n" +
-                    "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;18.5;12.8;;\n" +
-                    "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;19.7;12.9;;\n" +
-                    "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;21.2;13.0;;\n" +
-                    "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;23.9;13.1;;\n" +
-                    "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;24.2;13.2;;\n" +
-                    "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;29.4;13.3;;\n" +
-                    "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;31.1;13.4;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;18.5;5.1;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;18.5;12.8;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;19.7;5.2;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;19.7;12.7;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;21.2;5.3;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;21.2;12.6;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;23.9;5.4;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;23.9;12.5;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;24.2;5.5;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;24.2;12.4;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;29.4;5.6;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;29.4;12.3;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;31.1;5.7;;\n" +
-                    "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;31.1;12.2;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;18.5;5.1;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;18.5;12.8;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;19.7;5.0;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;19.7;12.9;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;21.2;4.9;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;21.2;13.0;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;23.9;4.8;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;23.9;13.1;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;24.2;4.7;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;24.2;13.2;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;29.4;4.6;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;29.4;13.3;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;31.1;4.5;;\n" +
-                    "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;phen-category:biological;31.1;13.4;;\n";
+                    """
+                    time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter
+                    2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;18.5;12.8;;
+                    2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;19.7;12.7;;
+                    2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;21.2;12.6;;
+                    2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;23.9;12.5;;
+                    2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;24.2;12.4;;
+                    2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;29.4;12.3;;
+                    2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;31.1;12.2;;
+                    2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;18.5;12.8;;
+                    2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;19.7;12.9;;
+                    2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;21.2;13.0;;
+                    2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;23.9;13.1;;
+                    2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;24.2;13.2;;
+                    2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;29.4;13.3;;
+                    2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;31.1;13.4;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;18.5;5.1;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;18.5;12.8;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;19.7;5.2;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;19.7;12.7;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;21.2;5.3;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;21.2;12.6;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;23.9;5.4;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;23.9;12.5;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;24.2;5.5;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;24.2;12.4;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;29.4;5.6;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;29.4;12.3;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;31.1;5.7;;
+                    2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;31.1;12.2;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;18.5;5.1;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;18.5;12.8;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;19.7;5.0;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;19.7;12.9;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;21.2;4.9;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;21.2;13.0;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;23.9;4.8;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;23.9;13.1;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;24.2;4.7;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;24.2;13.2;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;29.4;4.6;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;29.4;13.3;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;;31.1;4.5;;
+                    2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;\u00b0C;phen-category:biological;31.1;13.4;;
+                    """;
 
         assertEquals(expectedResult, result);
     }
@@ -6448,43 +6596,45 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         String result = cr.getValues();
 
         String expectedResult =
-                "time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;1.0;country:[fr];;metadata_param:country:[France]\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;1.0;blue;color_qual:good;\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;1.0;false;isHot_qual:false;\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;1.0;27.0;age_qual:37.0;age_slice:2.0|age_param:almost 30\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;2.0;country:[en];;metadata_param:country:[England]\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;2.0;green;color_qual:fade;\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;2.0;true;isHot_qual:false;\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;2.0;28.0;age_qual:38.0;age_slice:2.0|age_param:almost 30\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;3.0;country:[fr];;metadata_param:country:[France]\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;3.0;red;color_qual:bad;\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;3.0;false;isHot_qual:true;\n" +
-                "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;3.0;29.0;age_qual:39.1;age_slice:2.0|age_param:almost 30\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;1.0;country:[fr];;metadata_param:country:[France]\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;1.0;yellow;color_qual:good;\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;1.0;true;isHot_qual:true;\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;1.0;16.3;age_qual:16.3;age_slice:1.0|age_param:teenager\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;2.0;country:[sp];;metadata_param:country:[Spain]\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;2.0;yellow;color_qual:good;\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;2.0;true;isHot_qual:true;\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;2.0;26.4;age_qual:25.4;age_slice:2.0|age_param:still young\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;3.0;country:[fr];;metadata_param:country:[France]\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;3.0;yellow;color_qual:good;\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;3.0;true;isHot_qual:true;\n" +
-                "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;3.0;30.0;age_qual:28.1;age_slice:2.0|age_param:thirty\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;1.0;country:[fr];;metadata_param:country:[France]\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;1.0;brown;color_qual:bad;\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;1.0;false;isHot_qual:false;\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;1.0;11.0;age_qual:0.0;age_slice:1.0|age_param:child\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;2.0;country:[fr];;metadata_param:country:[France]\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;2.0;black;color_qual:fade;\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;2.0;false;isHot_qual:false;\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;2.0;22.0;age_qual:0.0;age_slice:1.0|age_param:young\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;3.0;country:[de];;metadata_param:country:[Germany]\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;3.0;black;color_qual:fade;\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;3.0;false;isHot_qual:false;\n" +
-                "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;3.0;33.0;age_qual:0.0;age_slice:2.0|age_param:thirty\n";
+                """
+                time;sensor_id;sensor_name;sensor_description;sensor_properties;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;obsprop_properties;z_value;value;value_quality;value_parameter
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;1.0;country:[fr];;metadata_param:country:[France]
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;1.0;blue;color_qual:good;
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;1.0;false;isHot_qual:false;
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;1.0;27.0;age_qual:37.0;age_slice:2.0|age_param:almost 30
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;2.0;country:[en];;metadata_param:country:[England]
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;2.0;green;color_qual:fade;
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;2.0;true;isHot_qual:false;
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;2.0;28.0;age_qual:38.0;age_slice:2.0|age_param:almost 30
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;3.0;country:[fr];;metadata_param:country:[France]
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;3.0;red;color_qual:bad;
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;3.0;false;isHot_qual:true;
+                2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;3.0;29.0;age_qual:39.1;age_slice:2.0|age_param:almost 30
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;1.0;country:[fr];;metadata_param:country:[France]
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;1.0;yellow;color_qual:good;
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;1.0;true;isHot_qual:true;
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;1.0;16.3;age_qual:16.3;age_slice:1.0|age_param:teenager
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;2.0;country:[sp];;metadata_param:country:[Spain]
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;2.0;yellow;color_qual:good;
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;2.0;true;isHot_qual:true;
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;2.0;26.4;age_qual:25.4;age_slice:2.0|age_param:still young
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;3.0;country:[fr];;metadata_param:country:[France]
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;3.0;yellow;color_qual:good;
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;3.0;true;isHot_qual:true;
+                2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;3.0;30.0;age_qual:28.1;age_slice:2.0|age_param:thirty
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;1.0;country:[fr];;metadata_param:country:[France]
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;1.0;brown;color_qual:bad;
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;1.0;false;isHot_qual:false;
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;1.0;11.0;age_qual:0.0;age_slice:1.0|age_param:child
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;2.0;country:[fr];;metadata_param:country:[France]
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;2.0;black;color_qual:fade;
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;2.0;false;isHot_qual:false;
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;2.0;22.0;age_qual:0.0;age_slice:1.0|age_param:young
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;;3.0;country:[de];;metadata_param:country:[Germany]
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;color;color;urn:ogc:def:phenomenon:GEOM:color;;;3.0;black;color_qual:fade;
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;;3.0;false;isHot_qual:false;
+                2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;;age;age;urn:ogc:def:phenomenon:GEOM:age;;;3.0;33.0;age_qual:0.0;age_slice:2.0|age_param:thirty
+                """;
 
         assertEquals(expectedResult, result);
     }
@@ -7891,9 +8041,12 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertEquals((Integer)5, cr.getNbValues());
     }
     
-    protected void getResultSelectOperationTest() throws Exception {
+    protected void getResultSelectOperationAvgTestTS() throws Exception {
         assertNotNull(omPr);
 
+        /**
+         * TS sensor with one field
+         */
         ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", null);
         query.setProjection("avg(result)");
 
@@ -7903,23 +8056,227 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertNotNull(cr.getValues());
         String result = cr.getValues();
 
-        String expected = "2007-05-01T02:59:00.0,6.56@@"
-                        + "2007-05-01T03:59:00.0,6.56@@"
-                        + "2007-05-01T04:59:00.0,6.56@@"
-                        + "2007-05-01T05:59:00.0,6.56@@"
-                        + "2007-05-01T06:59:00.0,6.56@@"
-                        + "2007-05-01T07:59:00.0,6.56@@"
-                        + "2007-05-01T08:59:00.0,6.56@@"
-                        + "2007-05-01T09:59:00.0,6.56@@"
-                        + "2007-05-01T10:59:00.0,6.56@@"
-                        + "2007-05-01T11:59:00.0,6.56@@"
-                        + "2007-05-01T17:59:00.0,6.56@@"
-                        + "2007-05-01T18:59:00.0,6.55@@"
-                        + "2007-05-01T19:59:00.0,6.55@@"
-                        + "2007-05-01T20:59:00.0,6.55@@"
-                        + "2007-05-01T21:59:00.0,6.55@@";
+        String expected = "N/D,6.557333333333333@@";
 
         assertEquals(expected, result);
+        
+        /**
+         * TS sensor with multiple field
+         */
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", null);
+        query.setProjection("avg(result)");
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expected = "N/D,6.56,14.0@@";
+        
+        assertEquals(expected, result);
+        
+        // data array version as is it executed in the STSWorker (MultiDatastream)
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", null);
+        query.setProjection("avg(result)");
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        query.setResponseFormat(DATA_ARRAY);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertEquals(1, cr.getDataArray().size());
+        assertTrue(cr.getDataArray().get(0) instanceof List);
+        List aresults = (List) cr.getDataArray().get(0);
+        assertEquals(4, aresults.size());
+        assertEquals("urn:ogc:object:observation:template:GEOM:8-operation", aresults.get(0));
+        assertEquals("N/D", aresults.get(1));
+        assertEquals(6.56, aresults.get(2));
+        assertEquals(14.0, aresults.get(3));
+        
+        // data array version as is it executed in the STSWorker (Datastream)
+        query = new ResultQuery(MEASUREMENT_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", null);
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:8-2"));
+        query.setProjection("avg(result)");
+        query.setSelection(filter);
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        query.setResponseFormat(DATA_ARRAY);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertEquals(1, cr.getDataArray().size());
+        assertTrue(cr.getDataArray().get(0) instanceof List);
+        aresults = (List) cr.getDataArray().get(0);
+        assertEquals(3, aresults.size());
+        assertEquals("urn:ogc:object:observation:template:GEOM:8-2-operation", aresults.get(0));
+        assertEquals("N/D", aresults.get(1));
+        assertEquals(6.56, aresults.get(2));
+    }
+    
+    /**
+     * issue in this test, we lose the main field
+     * @throws Exception 
+     */
+    protected void getResultSelectOperationAvgTestPR() throws Exception {
+        /**
+         * profile
+         */
+        ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("avg(result)");
+
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        // main field has been removed... do we want this?
+        String expected = "N/D,23.666666666666668@@";
+
+        assertEquals(expected, result);
+        
+        // data array version as is it executed in the STSWorker (MultiDatastream)
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("avg(result)");
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        query.setResponseFormat(DATA_ARRAY);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertEquals(1, cr.getDataArray().size());
+        assertTrue(cr.getDataArray().get(0) instanceof List);
+        List aresults = (List) cr.getDataArray().get(0);
+        assertEquals(4, aresults.size());
+        assertEquals("urn:ogc:object:observation:template:GEOM:2-operation", aresults.get(0));
+        assertEquals("N/D", aresults.get(1));
+        assertEquals("N/D", aresults.get(2));
+        assertEquals(23.666666666666668, aresults.get(3));
+        
+        // data array version as is it executed in the STSWorker (Datastream)
+        query = new ResultQuery(MEASUREMENT_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:2-2"));
+        query.setProjection("avg(result)");
+        query.setSelection(filter);
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        query.setResponseFormat(DATA_ARRAY);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertEquals(1, cr.getDataArray().size());
+        assertTrue(cr.getDataArray().get(0) instanceof List);
+        aresults = (List) cr.getDataArray().get(0);
+        assertEquals(3, aresults.size());
+        assertEquals("urn:ogc:object:observation:template:GEOM:2-2-operation", aresults.get(0));
+        assertEquals("N/D", aresults.get(1));
+        assertEquals(23.666666666666668, aresults.get(2));
+        
+    }
+    
+    protected void getResultSelectOperationMinMaxTestTS() throws Exception {
+        assertNotNull(omPr);
+
+        /**
+         * TS sensor with one field
+         */
+        ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", null);
+        query.setProjection("min(result)");
+
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expected = "N/D,6.55@@";
+
+        assertEquals(expected, result);
+        
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", null);
+        query.setProjection("max(result)");
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expected = "N/D,6.56@@";
+
+        assertEquals(expected, result);
+        
+        /**
+         * TS sensor with multiple field
+         */
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", null);
+        query.setProjection("min(result)");
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expected = "N/D,6.56,12.0@@";
+        
+        assertEquals(expected, result);
+        
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", null);
+        query.setProjection("max(result)");
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expected = "N/D,6.56,16.0@@";
+        
+        assertEquals(expected, result);
+    }
+        
+    protected void getResultSelectOperationMinMaxTestPR() throws Exception {
+        /**
+         * profile
+         */
+        ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("min(result)");
+
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        // main field has been removed... do we want this?
+        String expected = "N/D,18.5@@";
+
+        assertEquals(expected, result);
+        
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("max(result)");
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        // main field has been removed... do we want this?
+        expected = "N/D,35.1@@";
+
+        assertEquals(expected, result);
+        
     }
     
     protected void getResultsobsPropPropertiesTest() throws Exception {

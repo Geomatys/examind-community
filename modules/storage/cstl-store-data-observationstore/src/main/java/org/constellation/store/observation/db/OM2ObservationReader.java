@@ -49,9 +49,11 @@ import org.apache.sis.temporal.TemporalObjects;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
+import org.constellation.store.observation.db.model.DbField;
 import static org.constellation.util.OMSQLDialect.DUCKDB;
 import static org.constellation.util.OMSQLDialect.POSTGRES;
 import org.constellation.store.observation.db.model.ProcedureInfo;
+import org.constellation.store.observation.db.model.SelectionField;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.jts.JTS;
@@ -463,7 +465,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 if (fieldIndex == null) {
                     throw new DataStoreException("Measurement extraction need a field index specified");
                 }
-                Field selectedField = getFieldByIndex(procedure, fieldIndex, true, c);
+                DbField selectedField = getFieldByIndex(procedure, fieldIndex, true, c);
                 if (phen instanceof CompositePhenomenon) {
                     resultPhen = getPhenomenon(selectedField.name, c);
                 } else {
@@ -526,7 +528,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * @throws SQLException
      */
     private TemporalPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, Long oid, final Connection c, int measureId, int fieldId) throws SQLException {
-        FilterSQLRequest query  = buildMesureRequests(pti, List.of(pti.mainField), null, oid, true, NONE);
+        FilterSQLRequest query  = buildMesureRequests(pti, List.of(new SelectionField(pti.mainField, true)), null, oid, true, NONE);
         String obsId = identifier;
         if (obsId.startsWith(observationIdBase)) {
             obsId = obsId.substring(observationIdBase.length());
@@ -547,11 +549,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     /*
     * Not optimal at all. should be merged with buildResult
     */
-    private List<Element> buildResultQuality(ProcedureInfo pti, final Long oid, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
+    private List<Element> buildResultQuality(ProcedureInfo pti, final Long oid, final Integer measureId, final DbField selectedField, final Connection c) throws SQLException, DataStoreException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, oid, true, NONE);
+        FilterSQLRequest query = buildMesureRequests(pti, List.of(new SelectionField(selectedField, true)), null, oid, true, NONE);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");
         }
@@ -567,11 +569,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         return new ArrayList<>();
     }
     
-    private Map<String, Object> buildParameters(ProcedureInfo pti, final Long oid, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
+    private Map<String, Object> buildParameters(ProcedureInfo pti, final Long oid, final Integer measureId, final DbField selectedField, final Connection c) throws SQLException, DataStoreException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, oid, true, NONE);
+        FilterSQLRequest query = buildMesureRequests(pti, List.of(new SelectionField(selectedField, true)), null, oid, true, NONE);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");
         }

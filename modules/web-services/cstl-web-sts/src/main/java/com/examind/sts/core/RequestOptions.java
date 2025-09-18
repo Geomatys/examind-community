@@ -129,6 +129,12 @@ public class RequestOptions {
                 
                 return true;
             }
+            // special case for operation like op(attribute)
+            int st = sel.indexOf('(');
+            int en = sel.indexOf(')');
+            if (st != -1 && en != -1 && sel.substring(st + 1, en).equalsIgnoreCase(attribute)) {
+                return true;
+            }
         }
         return false;
     }

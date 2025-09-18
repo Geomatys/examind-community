@@ -297,6 +297,12 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getObservationTemplate5Test() throws Exception {
         super.getObservationTemplate5Test();
     }
+    
+    @Test
+    @Override
+    public void getObservationTemplate6Test() throws Exception {
+        super.getObservationTemplate5Test();
+    }
 
     @Test
     @Override
@@ -466,10 +472,26 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         super.getObservationsFilter5Test();
     }
     
+    public void getObservationSelectOperationAvgTestTS() throws Exception {
+        super.getObservationSelectOperationAvgTestTS();
+    }
+    
+    @Test
+    @Override
+    public void getObservationSelectOperationAvgTestPR() throws Exception {
+        super.getObservationSelectOperationAvgTestPR();
+    }
+    
     @Test
     @Override
     public void getObservationsNanTest() throws Exception {
         super.getObservationsNanTest();
+    }
+    
+    @Test
+    @Override
+    public void getObservationsNan2Test() throws Exception {
+        super.getObservationsNan2Test();
     }
 
     @Test
@@ -618,8 +640,26 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     
     @Test
     @Override
-    public void getResultSelectOperationTest() throws Exception {
-        super.getResultSelectOperationTest();
+    public void getResultSelectOperationAvgTestTS() throws Exception {
+        super.getResultSelectOperationAvgTestTS();
+    }
+    
+    @Test
+    @Override
+    public void getResultSelectOperationAvgTestPR() throws Exception {
+        super.getResultSelectOperationAvgTestPR();
+    }
+    
+   @Test
+    @Override
+    public void getResultSelectOperationMinMaxTestTS() throws Exception {
+        super.getResultSelectOperationMinMaxTestTS();
+    }
+    
+    @Test
+    @Override
+    public void getResultSelectOperationMinMaxTestPR() throws Exception {
+        super.getResultSelectOperationMinMaxTestPR();
     }
     
     @Test

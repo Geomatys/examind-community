@@ -52,9 +52,9 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
     protected Map<Object, long[]> times = null;
 
-    public DefaultResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
+    public DefaultResultDecimator(List<? extends DbField> fields, int width, ProcedureInfo procedure) {
         // as this algorithm may produce two point by cell, we cut the size in 2
-        super(fields, includeId, width / 2, procedure);
+        super(fields, width / 2, procedure);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             }
 
             for (int i = 0; i < fields.size(); i++) {
-                DbField field = (DbField) fields.get(i);
+                DbField field = fields.get(i);
                 int rsIndex = field.tableNumber;
 
                 // already extracted
@@ -153,13 +153,13 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         public final long step;
         public final long start;
 
-        public final List<Field> fields;
+        public final List<? extends DbField> fields;
 
         final Map<String, double[]> mapValues;
 
         private final boolean profile;
 
-        public StepValues(long start, long step, final List<Field> fields, boolean profile) {
+        public StepValues(long start, long step, final List<? extends DbField> fields, boolean profile) {
             this.profile = profile;
             this.start = start;
             this.step = step;

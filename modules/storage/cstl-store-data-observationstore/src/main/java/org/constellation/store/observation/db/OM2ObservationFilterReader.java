@@ -29,7 +29,9 @@ import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
@@ -47,7 +50,11 @@ import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
-import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
+import static org.constellation.store.observation.db.OM2Utils.MEASURE_ID_FIELD_NAME;
+import org.constellation.store.observation.db.model.Aggregation;
+import org.constellation.store.observation.db.model.AggregationField;
+import org.constellation.store.observation.db.model.FixedValueField;
+import org.constellation.store.observation.db.model.PrefixedDbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
@@ -78,6 +85,9 @@ import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
+import static org.constellation.store.observation.db.OM2Utils.OBSERVATION_ID_FIELD_NAME;
+import org.constellation.store.observation.db.model.CompositeTextField;
+import org.constellation.store.observation.db.model.SelectionField;
 
 
 /**
@@ -106,7 +116,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         switch (responseMode) {
             case RESULT_TEMPLATE -> {
                 if (MEASUREMENT_QNAME.equals(resultModel)) {
-                return getMesurementTemplates();
+                    return getMesurementTemplates();
                 } else {
                     return getObservationTemplates();
                 }
@@ -200,12 +210,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
-                    boolean timeseries       = pti.type == ObservationType.TIMESERIES;
-                    final int fieldOffset = getFieldsOffset(!timeseries, false, false); // this will be better handled in a future pach
                     // apply the filter only on selected fields
-                    final List<Field> queryFields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true);
-                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, queryFields, pti);
-                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, null, false, false, true, EXIST);
+                    final List<SelectionField> queryFields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true).stream().map(f -> new SelectionField(f, true)).toList();
+                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(queryFields, pti);
+                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, queryFields, measureFilter, null, false, EXIST);
                     try (final SQLResult rs2 = measureRequests.execute(c, SQLResult.NextMode.UNION, dialect)) {
                         boolean hasResults = rs2.nextOnField("id", SQLResult.NextMode.UNION);
                         // TODO pagination broken
@@ -309,11 +317,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     procedureID = procedure;
                 }
-                final String obsID = "obs-" + procedureID;
-                final String name = observationTemplateIdBase + procedureID;
+                final String obsID            = "obs-" + procedureID;
+                final String name             = observationTemplateIdBase + procedureID;
                 final String observedProperty = rs.getString("obsprop");
-                final int fieldIndex  = rs.getInt("order");
-                final DbField field   = getFieldByIndex(procedure, fieldIndex, true, c);
+                final int fieldIndex          = rs.getInt("order");
+                final SelectionField field    = new SelectionField(getFieldByIndex(procedure, fieldIndex, true, c), true);
 
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
@@ -399,10 +407,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private List<Observation> getComplexObservations() throws DataStoreException {
-        final Map<String, Observation> observations = new LinkedHashMap<>();
-        final Map<String, Procedure> processMap     = new LinkedHashMap<>();
-        final Map<String, List<Field>> fieldMap     = new LinkedHashMap<>();
-        final Map<String, ProcedureInfo> ptiMap     = new HashMap<>();
+        final Map<String, Observation> observations      = new LinkedHashMap<>();
+        final Map<String, Procedure> processMap          = new LinkedHashMap<>();
+        final Map<String, List<SelectionField>> fieldMap = new LinkedHashMap<>();
+        final Map<String, ProcedureInfo> ptiMap          = new HashMap<>();
         if (resultMode == null) {
             resultMode = ResultMode.CSV;
         }
@@ -431,22 +439,22 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 ProcedureInfo pti        = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                 boolean timeseries       = pti.type == ObservationType.TIMESERIES;
                 final boolean includeObservationTime = (!timeseries) && includeTimeForProfile;
-
+                
                /*
                 * Compute procedure fields
                 */
-                List<Field> fields = fieldMap.get(procedure);
+                List<SelectionField> fields = fieldMap.get(procedure);
                 if (fields == null) {
                     
-                    fields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true);
+                    fields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true).stream().map(f -> new SelectionField(f, true)).collect(Collectors.toCollection(ArrayList::new));
 
                     // add the time for profile in the dataBlock if requested
                     if (includeObservationTime) {
-                        fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1));
+                        fields.add(0, buildProfileTimeField(NONE));
                     }
                     // add the result id in the dataBlock if requested
                     if (includeIDInDataBlock) {
-                        fields.add(0, new DbField(0, FieldDataType.TEXT, IDENTIFIER_FIELD_NAME, "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
+                        fields.add(0, new PrefixedDbField(0, FieldDataType.TEXT, MEASURE_ID_FIELD_NAME, "measure identifier", "measure identifier", null, FieldType.METADATA, -1, true,null));
                     }
                     fieldMap.put(procedure, fields);
                 }
@@ -459,6 +467,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 LOGGER.fine(measureRequests.toString());
                 
                 final String obsName = rs.getString("identifier");
+                OM2Utils.updatePrefixField(MEASURE_ID_FIELD_NAME, obsName + '-', fields);
                 final FieldParser parser = buildFieldParser(fields, includeObservationTime, obsName);
 
                 // profile oservation are instant
@@ -494,6 +503,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     */
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         parser.completeObservation(rs2, pti, observation);
+                    } catch (SQLException ex) {
+                        LOGGER.log(Level.SEVERE, "SQLException while executing the measure query: {0}", measureRequests.toString());
+                        throw new DataStoreException("the service has throw a SQL Exception.", ex);
                     }
                 }
                 parser.clear();
@@ -517,11 +529,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * 
      * @return A field parser. 
      */
-    protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName) {
-        return new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName);
+    protected FieldParser buildFieldParser(List<? extends DbField> fields, boolean profileWithTime, String obsName) {
+        return new FieldParser(fields, resultMode, profileWithTime, includeQualityFields, includeParameterFields, obsName);
     }
 
     protected List<Observation> getMesurements() throws DataStoreException {
+        final boolean aggregate = isAggregate();
         if (phenPropJoin) {
             sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
         }
@@ -531,14 +544,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (foiPropJoin) {
             sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
-        // add orderby to the query
-        sqlRequest.append(" ORDER BY o.\"time_begin\"");
+        if (aggregate) {
+            sqlRequest.append("GROUP BY \"procedure\", \"observed_property\"");
+        } else {
+            // add orderby to the query
+            sqlRequest.append(" ORDER BY o.\"time_begin\"");
+        }
         sqlRequest.cleanupWhere();
 
-        final List<Observation> observations = new ArrayList<>();
-        final Map<String, Procedure> processMap = new HashMap<>();
-        final Map<String, Map<Field, Phenomenon>> phenMap = new HashMap<>();
-        final Map<String, ProcedureInfo> ptiMap = new HashMap<>();
+        final List<Observation> observations                = new ArrayList<>();
+        final Map<String, Procedure> processMap             = new HashMap<>();
+        final Map<String, Map<DbField, Phenomenon>> phenMap = new HashMap<>();
+        final Map<String, ProcedureInfo> ptiMap             = new HashMap<>();
+        final MesureRequestMode mode                        = aggregate ? AGGREGATE : MEASURE;
         FilterSQLRequest curExec = sqlRequest; // for error log
         LOGGER.fine(sqlRequest.toString());
         try(final Connection c = source.getConnection();
@@ -547,13 +565,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String procedure = rs.getString("procedure");
                 final Date startTime   = dateFromTS(rs.getTimestamp("time_begin"));
                 final Date endTime     = dateFromTS(rs.getTimestamp("time_end"));
-                final long oid         = rs.getLong("id");
-                final String name      = rs.getString("identifier");
-                final String obsID     = "obs-" + oid;
-                final String featureID = rs.getString("foi");
+                final Long oid         = aggregate ? null : rs.getLong("id");
+                final String name      = aggregate ? "" : rs.getString("identifier")  + "-";
+                final String obsID     = "obs-" + oid + "-";
+                final String featureID = aggregate ? null : rs.getString("foi");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
-                final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
+                final Map<DbField, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
                 // TODO sub selection?
                 final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, new Selection(), c));
                 final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
@@ -564,10 +582,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 boolean timeseries = (pti.type == ObservationType.TIMESERIES);
 
                 Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type.name());
-                List<Field> fields = new ArrayList<>(fieldPhen.keySet());
+                properties.put("type", pti.type.name().toLowerCase());
+                 final List<SelectionField> fields        = applySelection(fieldPhen.keySet(), pti);
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
-                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, MEASURE);
+                final FilterSQLRequest measureRequest     = buildMesureRequests(pti, fields, measureFilter, oid, false, mode);
+                final DbField mainField                   = aggregate ? new FixedValueField(pti.mainField, "N/D") : pti.mainField;
+                final DbField nameField                   = buildIdentifierField(mode, pti, fields, name);
+                final DbField identifierField             = buildIdentifierField(mode, pti, fields, obsID);
 
                 /**
                  * coherence verification
@@ -576,38 +597,37 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 LOGGER.fine(measureRequest.toString());
                 try (final SQLResult rs2 = measureRequest.execute(c, SQLResult.NextMode.UNION, dialect)) {
             
-                    while (rs2.nextOnField(pti.mainField.name, SQLResult.NextMode.UNION)) {
+                    while (rs2.nextOnField(mainField.name, SQLResult.NextMode.UNION)) {
                         // get the first for now
                         int tableNum = rs2.getFirstTableNumber();
-                        final Long rid = rs2.getLong("id", tableNum);
-                        if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                        final Long rid = aggregate ? null : rs2.getLong("id", tableNum);
+                        if (rid == null || measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalPrimitive measureTime;
                             Date mt = null;
                             if (timeseries) {
-                                mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, tableNum));
+                                Object mainValue = mainField.getValueFromResult(rs2);
+                                if (mainValue instanceof Timestamp ts) {
+                                    mt = dateFromTS(ts);
+                                }
                             }
 
-                            for (Entry<Field, Phenomenon> entry : fieldPhen.entrySet()) {
-                                Phenomenon fphen    = entry.getValue();
-                                DbField field       = (DbField) entry.getKey();
-                                FieldDataType fType = field.dataType;
-                                String fName        = field.name;
-                                int rsIndex         = field.tableNumber;
-                                final String observationType = getOmTypeFromFieldType(fType);
-                                final String value = rs2.getString(fName, rsIndex);
-                                if (value != null) {
-                                    Object resultValue;
-                                    switch (fType) {
-                                        case QUANTITY: resultValue = rs2.getDouble(fName, rsIndex); break;
-                                        case BOOLEAN:  resultValue = rs2.getBoolean(fName, rsIndex); break;
-                                        case TIME:     resultValue = new Date(rs2.getTimestamp(fName, rsIndex).getTime()); break;
-                                        case JSON:     resultValue = readJsonMap(value); break;
-                                        case TEXT:
-                                        default: resultValue = value; break;
-                                    }
-                                    MeasureResult result = new MeasureResult(field, resultValue);
-                                    final String measId =  obsID + '-' + field.index + '-' + rid;
-                                    final String measName = name + '-' + field.index + '-' + rid;
+                            for (Entry<DbField, Phenomenon> entry : fieldPhen.entrySet()) {
+                                Phenomenon fphen     = entry.getValue();
+                                DbField field        = entry.getKey();
+                                final String obsType = getOmTypeFromFieldType(field.dataType);
+                                Object resultValue = null;
+                                try {
+                                    resultValue   = field.getValueFromResult(rs2);
+                                    
+                                // for some case in profile AGGREGATE mode TODO
+                                } catch (SQLException ex) {
+                                    LOGGER.fine("error while geting field value in measurement");
+                                }
+                                
+                                if (resultValue != null && !(resultValue instanceof Double d && d.isNaN())) {
+                                    MeasureResult result  = new MeasureResult(field, resultValue);
+                                    final String measId   = ((String) identifierField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
+                                    final String measName = ((String) nameField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
                                     if (!timeseries) {
                                         measureTime = time;
                                     } else {
@@ -618,7 +638,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     Observation observation = new Observation(measId,
                                                                               measName,
                                                                               null, null,
-                                                                              observationType,
+                                                                              obsType,
                                                                               proc,
                                                                               measureTime,
                                                                               feature,
@@ -645,6 +665,85 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return applyPostPagination(observations);
     }
     
+    protected List<SelectionField> applySelection(Collection<DbField> fields, ProcedureInfo proc) {
+        Aggregation agg = selection != null ? selection.isAgregated() : null;
+        
+        // select all by default
+        if (selection == null || agg == null) return fields.stream().map(f -> new SelectionField(f, true)).collect(Collectors.toCollection(ArrayList::new));
+        
+        // TODO handle by field
+        boolean nonTimeseries = proc.type.equals(ObservationType.TIMESERIES);
+        List<SelectionField> overriden = new ArrayList<>();
+        for (DbField f : fields) {
+            // replace main field by a fixed one
+            if (f.type.equals(FieldType.MAIN)) {
+                overriden.add(new FixedValueField(f, "N/D"));
+
+            // replace measure fields by aggregated one    
+            } else if (OM2Utils.isMeasureField(f, currentProcedure)) {
+                overriden.add(new AggregationField(f, agg));
+
+            // replace some metadata fields wth fixed value
+            } else if (f.type.equals(FieldType.METADATA)) {
+                if (nonTimeseries && f.label.equals("time")) {
+                    overriden.add(new FixedValueField(f, "N/D"));
+                }
+            } else {
+                overriden.add(new SelectionField(f, true));
+            }
+        }
+        return overriden;
+    }
+    
+    protected SelectionField buildProfileTimeField(final MesureRequestMode mode) {
+        if (mode == AGGREGATE) {
+            return new FixedValueField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, "N/D");
+        } else {
+            return new SelectionField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1, true);
+        }
+    }
+    
+    protected SelectionField buildIdentifierField(final MesureRequestMode mode, final ProcedureInfo procedure, final List<SelectionField> fields, String idPrefix) {
+        if (idPrefix == null) idPrefix = "";
+        
+        /*
+         * Observation identifier exist in two pattern depending on result model:
+         *   - Observation model => <observation base> <observation id> - <measure id>
+         *   - Measurement model => <observation base> <observation id> - <field id> - <measure id>
+         * 
+         * in a measurement context, we should have only one measure field present, but if don't set a filter for the field index / observed property
+         * it will result in an array of result instead of just one.
+         * so the field id will be impossible to compute. we set instead a "marker" <field-id> so the identifier can be updated afterward.
+         */
+        if (MEASUREMENT_QNAME.equals(resultModel)) {
+            List<? extends DbField> measureFields = OM2Utils.getMeasureFields(fields, procedure);
+            if (measureFields.size() > 1) {
+                idPrefix = idPrefix + "<field-id>"; // will be replaced lated
+            } else {
+                idPrefix = idPrefix + measureFields.get(0).index;
+            }
+        }
+        if (mode == AGGREGATE) {
+            idPrefix = idPrefix.isEmpty() ? idPrefix : "-" + idPrefix;
+            return new FixedValueField(0, FieldDataType.TEXT, "result identifier", "result identifier", null, null, FieldType.METADATA, observationTemplateIdBase + procedure.pid  + idPrefix + "-operation");
+        }
+        CompositeTextField idField;
+        if (mode == MEASURE) {
+            List<SelectionField> components = List.of(
+            new FixedValueField(0, FieldDataType.TEXT, OBSERVATION_ID_FIELD_NAME, "observation identifier", "observation identifier", null, FieldType.METADATA, idPrefix),
+            new SelectionField(0, FieldDataType.TEXT, MEASURE_ID_FIELD_NAME,     "measure identifier",     "measure identifier",     null, FieldType.METADATA, -1, true));
+            idField = new CompositeTextField(0, FieldDataType.TEXT, "result identifier", "result identifier",  null, FieldType.METADATA, true, "-", components);
+        } else {
+            boolean selectable = mode != DECIMATE;
+            idPrefix = idPrefix.isEmpty() ? idPrefix : idPrefix + "-";
+            List<SelectionField> components = List.of(
+                new SelectionField(0, FieldDataType.TEXT, OBSERVATION_ID_FIELD_NAME, "observation identifier", "observation identifier", null, FieldType.METADATA, -1, selectable),
+                new PrefixedDbField(0, FieldDataType.TEXT, MEASURE_ID_FIELD_NAME,     "measure identifier",     "measure identifier",     null, FieldType.METADATA, -1, false, idPrefix));
+             idField = new CompositeTextField(0, FieldDataType.TEXT, "result identifier", "result identifier",  null, FieldType.METADATA, selectable, "-", components);
+        }
+        return idField;
+    }
+    
     @Override
     public Result getResults() throws DataStoreException {
         if (ResponseMode.OUT_OF_BAND.equals(responseMode)) {
@@ -655,13 +754,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final boolean decimate              = !countRequest && decimationSize != null;
         final boolean nonTimeseries         = currentProcedure.type != ObservationType.TIMESERIES;
         final boolean ntsWithTime           = nonTimeseries && includeTimeForNTS;
+        final boolean aggregate             = isAggregate();
+        final MesureRequestMode mode        = decimate ? DECIMATE : aggregate ? AGGREGATE : RESULTS;
 
         MultiFilterSQLRequest measureRequest = null;
         try (final Connection c = source.getConnection()) {
             /**
              *  1) build field list.
              */
-            final List<Field> fields = readFields(currentProcedure.id, false, c, fieldIndexFilters, fieldIdFilters, true);
+            final List<SelectionField> fields = applySelection(readFields(currentProcedure.id, false, c, fieldIndexFilters, fieldIdFilters, true), currentProcedure);
             
             if (fields.isEmpty()) {
                 throw new DataStoreException("The sensor: " + currentProcedure + " has no fields.");
@@ -669,11 +770,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             // add the time for profile in the dataBlock if requested
             if (ntsWithTime) {
-                fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1));
+                fields.add(0, buildProfileTimeField(mode));
             }
+            
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new DbField(0, FieldDataType.TEXT, "identifier", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
+                fields.add(0, buildIdentifierField(mode, currentProcedure, fields, ""));
             }
 
             /**
@@ -698,7 +800,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 measureFilter.append(" AND ").append(sqlRequest);
             }
 
-            MesureRequestMode mode = decimate ? DECIMATE : RESULTS;
             measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, mode);
             
             ResultProcessor processor = chooseResultProcessor(decimate, fields, c);
@@ -713,8 +814,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 processor.processResults(rs);
             }
             switch (values.getMode()) {
-                case DATA_ARRAY:  return new ComplexResult(fields, values.getDataArray(), null);
-                case CSV:         return new ComplexResult(fields, values.getEncoding(), values.getStringValues(), null);
+                case DATA_ARRAY:  return new ComplexResult(fields.stream().map(f -> (Field)f).toList(), values.getDataArray(), null);
+                case CSV:         return new ComplexResult(fields.stream().map(f -> (Field)f).toList(), values.getEncoding(), values.getStringValues(), null);
                 case COUNT:       return new ComplexResult(values.getCount());
                 default: throw new IllegalArgumentException("Unexpected result mode");
             }
@@ -724,7 +825,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
     
-    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, Connection c) throws SQLException {
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<? extends DbField> fields, Connection c) throws SQLException {
         ResultProcessor processor;
         if (decimate) {
             // remove quality / parameters fields
@@ -740,29 +841,24 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 * asap_smooth (lttb todo)
                 */
                if (singleField && smoothAvailable && !decimationAlgorithm.equals("time_bucket")) {
-                   processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, currentProcedure);
+                   processor = new ASMTimeScaleResultDecimator(fields, decimationSize, currentProcedure);
 
                /**
                 * otherwise we use time bucket method.
                 * This methods seems not to be so fast with very large group of data.
                 */
                } else {
-                   processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, currentProcedure);
+                   processor = new BucketTimeScaleResultDecimator(fields, decimationSize, currentProcedure);
                }
             } else {
                 /**
                  * default java bucket decimation.
                  * no algorithm change possible yet
                  */
-                processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize,  currentProcedure);
+                processor = new DefaultResultDecimator(fields, decimationSize,  currentProcedure);
             }
         } else {
-            // in a measurement context, the last field is the one we look want to use for identifier construction.
-            String idSuffix = "";
-            if (MEASUREMENT_QNAME.equals(resultModel)) {
-                idSuffix = "-" + fields.get(fields.size() - 1).index;
-            }
-            processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, currentProcedure, idSuffix);
+            processor = new ResultProcessor(fields, includeQualityFields, includeParameterFields, currentProcedure);
         }
         if (CommonConstants.CSV_FLAT.equals(responseFormat)) {
             processor.setPhenomenons(getPhenomenonFields(fields, c));
@@ -957,9 +1053,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 String procedure = rs.getString(1);
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = getPIDFromProcedureSafe(procedure, c).orElseThrow(); // we know that the procedure exist
-                    List<Field> fields = readFields(procedure, true, c, fieldIndexFilters, fieldIdFilters, true);
-                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
-                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, null, false, false, true, EXIST);
+                    List<SelectionField> fields = readFields(procedure, true, c, fieldIndexFilters, fieldIdFilters, true).stream().map(f -> new SelectionField(f, true)).toList();
+                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
+                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, null, false, EXIST);
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         boolean hasResults = rs2.next();
                         // TODO pagination broken

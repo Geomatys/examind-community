@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.store.observation.db.model.DbField;
+import org.constellation.store.observation.db.model.PrefixedDbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
@@ -67,6 +68,10 @@ public class OM2Utils {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
     public static final Field DEFAULT_TIME_FIELD = new Field(-1, FieldDataType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null, FieldType.MAIN);
+
+    public static final String OBSERVATION_ID_FIELD_NAME = "identifier";
+    public static final String MEASURE_ID_FIELD_NAME = "id";
+    public static final String FIELD_ID_FIELD_NAME = "field-id";
     
     public static final String IDENTIFIER_FIELD_NAME = "identifier";
 
@@ -273,7 +278,7 @@ public class OM2Utils {
      *  - the mnimal value
      *  - the step value
      */
-    public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<Field> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
+    public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<? extends DbField> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
         final boolean getLoc  = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
         final Boolean profile = getLoc ? null : proc.type == ObservationType.PROFILE;
@@ -293,16 +298,13 @@ public class OM2Utils {
             Map<Integer, List<String>> tableConditions = new HashMap<>();
             
             // 1. we sort the field identified as measure field along their table number
-            for (Field f : measureFields) {
-                if (f instanceof DbField df) {
-                    // index 0 are non measure fields
-                    if (df.index != 0 && !df.name.equals(mainField.name)) {
-                        List<String> tf = tableConditions.computeIfAbsent(df.tableNumber, k -> new ArrayList<>());
-                        tf.add(df.name);
-                    }
-                } else {
-                    throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
+            for (DbField f : measureFields) {
+                // index 0 are non measure fields
+                if (f.index != 0 && !f.name.equals(mainField.name)) {
+                    List<String> tf = tableConditions.computeIfAbsent(f.tableNumber, k -> new ArrayList<>());
+                    tf.add(f.name);
                 }
+                
             }
             // 2. we add the filter to each table request
             for (Entry<Integer, List<String>> entry : tableConditions.entrySet()) {
@@ -382,7 +384,16 @@ public class OM2Utils {
        return (field.type == FieldType.MEASURE || (field.type == FieldType.MAIN && pti.type != ObservationType.TIMESERIES));
     }
     
-    public static List<DbField> getMeasureFields(List<Field> fields, ProcedureInfo pti) {
-        return fields.stream().filter(f -> isMeasureField(f, pti)).map(f -> (DbField)f).toList();
+    public static List<? extends DbField> getMeasureFields(List<? extends DbField> fields, ProcedureInfo pti) {
+        return fields.stream().filter(f -> isMeasureField(f, pti)).toList();
+    }
+    
+    public static boolean updatePrefixField(String fieldName, String newPrefix, List<? extends Field> fields) {
+        for (Field f : fields) {
+             if (f.name.equals(fieldName) && f instanceof PrefixedDbField pf) {
+                 pf.updatePrefix(newPrefix);
+             }
+        }
+        return false;
     }
 }

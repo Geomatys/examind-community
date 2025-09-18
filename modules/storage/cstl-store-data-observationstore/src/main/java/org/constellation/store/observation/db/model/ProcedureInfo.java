@@ -32,9 +32,9 @@ public class ProcedureInfo {
     public final String name;
     public final String description;
     public final ObservationType type;
-    public final Field mainField;
+    public final DbField mainField;
 
-    public ProcedureInfo(int pid, int nbTable, String id, String name, String description, ObservationType type, Field mainField) {
+    public ProcedureInfo(int pid, int nbTable, String id, String name, String description, ObservationType type, DbField mainField) {
         this.pid = pid;
         this.nbTable = nbTable;
         this.id = id;

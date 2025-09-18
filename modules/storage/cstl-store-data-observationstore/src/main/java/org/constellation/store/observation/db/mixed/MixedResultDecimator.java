@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.store.observation.db.OM2Utils.DEFAULT_TIME_FIELD;
 import org.constellation.store.observation.db.decimation.DefaultResultDecimator;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
@@ -52,8 +53,8 @@ public class MixedResultDecimator extends DefaultResultDecimator {
     // used for case like "only-main"
     private final Set<String> includedFields; 
     
-    public MixedResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
-        super(fields, includeId, width, procedure);
+    public MixedResultDecimator(List<? extends DbField> fields, int width, ProcedureInfo procedure) {
+        super(fields, width, procedure);
         includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
     }
     
@@ -64,7 +65,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         times = getMainFieldStep(fieldRequest, fields, c, width, OMEntity.RESULT, procedure);
     }
     
-    public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<Field> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
+    public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<? extends DbField> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
         final boolean getLoc  = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
         final Boolean profile = getLoc ? null : proc.type == ObservationType.PROFILE;

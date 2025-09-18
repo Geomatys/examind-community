@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.constellation.store.observation.db.model.Aggregation;
 import org.constellation.util.SQLResult;
 
 /**
@@ -49,6 +50,15 @@ public class Selection {
     
     public boolean isSelected(String s) {
         return (selection.isEmpty() || selection.contains(s));
+    }
+    
+    public Aggregation isAgregated() {
+        for (Aggregation agg : Aggregation.values()) {
+            for (String sel : selection) {
+                if (sel.startsWith(agg.sqlFunction + "(result)")) return agg;
+            }
+        }
+        return null;
     }
     
     public String getIfSelected(SQLResult rs, String propertyName) throws SQLException {

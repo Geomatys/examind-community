@@ -2081,14 +2081,13 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
 
         ComplexResult cr = (ComplexResult) result.getResult();
 
-        // TODO problem here with an empty field?
-        String expectedValues = "2009-05-01T13:47:00.0,15.5,,15.5@@" +
-                                "2009-05-01T13:47:00.0,17.1,,17.1@@" +
-                                "2009-05-01T13:47:00.0,18.4,,18.4@@" +
-                                "2009-05-01T13:47:00.0,19.7,,19.7@@" +
-                                "2009-05-01T13:47:00.0,21.2,,21.2@@" +
-                                "2009-05-01T13:47:00.0,22.2,,22.2@@" +
-                                "2009-05-01T13:47:00.0,23.9,,23.9@@";
+        String expectedValues = "2009-05-01T13:47:00.0,15.5,15.5@@" +
+                                "2009-05-01T13:47:00.0,17.1,17.1@@" +
+                                "2009-05-01T13:47:00.0,18.4,18.4@@" +
+                                "2009-05-01T13:47:00.0,19.7,19.7@@" +
+                                "2009-05-01T13:47:00.0,21.2,21.2@@" +
+                                "2009-05-01T13:47:00.0,22.2,22.2@@" +
+                                "2009-05-01T13:47:00.0,23.9,23.9@@";
 
         assertEquals(expectedValues, cr.getValues());
     }
@@ -2545,6 +2544,34 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
 
         assertEquals(3, resultArray.getDataArray().size());
     }
+    
+    @Override
+    protected void getObservationsNan2Test() throws Exception {
+        assertNotNull(omPr);
+        
+        // data array version with no extra field
+        ResultQuery resSubquery = new ResultQuery(MEASUREMENT_QNAME, INLINE, null, null);
+        resSubquery.setIncludeTimeForProfile(true);
+        resSubquery.setIncludeIdInDataBlock(true);
+        resSubquery.setResponseFormat(DATA_ARRAY);
+        resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:13");
+
+        Object o = omPr.getResults(resSubquery);
+        assertTrue(o instanceof ComplexResult);
+
+        ComplexResult resultArray = (ComplexResult) o;
+
+        assertEquals(13, resultArray.getDataArray().size());
+        assertTrue(resultArray.getDataArray().get(0) instanceof List);
+        
+        List resultLine = (List) resultArray.getDataArray().get(0);
+        assertEquals(5, resultLine.size());
+        assertEquals("urn:ogc:object:observation:GEOM:13-<field-id>-946684800", resultLine.get(0));
+        // time assertEquals("",resultLine.get(1) );
+        assertEquals(4.5, resultLine.get(2));
+        assertEquals(98.5, resultLine.get(3));
+        assertEquals(null, resultLine.get(4)); // TODO null instead of NaN issue?
+     }
 
     
     @Override
@@ -4625,4 +4652,105 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
         assertEquals(4L, count); 
     }
 
+    
+    /**
+     * issue in this test, we lose the main field
+     * @throws Exception 
+     */
+    @Override
+    protected void getResultSelectOperationAvgTestPR() throws Exception {
+        /**
+         * profile
+         */
+        ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("avg(result)");
+
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        // main field has been removed... do we want this?
+        String expected = "N/D,172.0,23.666666666666668@@";
+
+        assertEquals(expected, result);
+        
+        // data array version as is it executed in the STSWorker (MultiDatastream)
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("avg(result)");
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        query.setResponseFormat(DATA_ARRAY);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertEquals(1, cr.getDataArray().size());
+        assertTrue(cr.getDataArray().get(0) instanceof List);
+        List aresults = (List) cr.getDataArray().get(0);
+        assertEquals(5, aresults.size());
+        assertEquals("urn:ogc:object:observation:template:GEOM:2-operation", aresults.get(0));
+        assertEquals("N/D", aresults.get(1));
+        assertEquals("N/D", aresults.get(2));
+        assertEquals(172.0, aresults.get(3));
+        assertEquals(23.666666666666668, aresults.get(4));
+        
+        // data array version as is it executed in the STSWorker (Datastream)
+        query = new ResultQuery(MEASUREMENT_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:2-3"));
+        query.setProjection("avg(result)");
+        query.setSelection(filter);
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        query.setResponseFormat(DATA_ARRAY);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertEquals(1, cr.getDataArray().size());
+        assertTrue(cr.getDataArray().get(0) instanceof List);
+        aresults = (List) cr.getDataArray().get(0);
+        assertEquals(3, aresults.size());
+        assertEquals("urn:ogc:object:observation:template:GEOM:2-3-operation", aresults.get(0));
+        assertEquals("N/D", aresults.get(1));
+        assertEquals(23.666666666666668, aresults.get(2));
+    }
+    
+    @Override
+    protected void getResultSelectOperationMinMaxTestPR() throws Exception {
+        /**
+         * profile
+         */
+        ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("min(result)");
+
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        // main field has been removed... do we want this?
+        String expected = "N/D,12.0,18.5@@";
+
+        assertEquals(expected, result);
+        
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:2", null);
+        query.setProjection("max(result)");
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        // main field has been removed... do we want this?
+        expected = "N/D,768.0,35.1@@";
+
+        assertEquals(expected, result);
+        
+    }
 }

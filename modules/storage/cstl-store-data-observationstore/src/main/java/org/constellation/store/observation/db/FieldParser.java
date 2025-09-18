@@ -21,6 +21,7 @@ package org.constellation.store.observation.db;
 import org.constellation.store.observation.db.model.DbField;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,8 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
-import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.constellation.store.observation.db.model.ProcedureInfo;
+import org.constellation.store.observation.db.model.SelectionField;
 import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
@@ -61,9 +62,8 @@ public class FieldParser {
     protected Date lastTime  = null;
     protected int nbParsed  = 0;
     
-    protected final List<Field> fields;
+    protected final List<? extends DbField> fields;
     protected final boolean profileWithTime;
-    protected final boolean includeID;
     protected final boolean includeQuality;
     protected final boolean includeParameter;
     protected final ResultBuilder values;
@@ -79,12 +79,11 @@ public class FieldParser {
      * @param fields List of available fields in the SQL result.
      * @param values Result builder that will be append.
      * @param profileWithTime A flag indicating if we are building profile measure and if we must add time.
-     * @param includeID A flag indicating if we must include measure identifier.
      * @param includeQuality A flag indicating if we must include quality field for measure.
      * @param includeParameter A flag indicating if we must include parameter field for measure.
      * @param obsName Main observation identifier (used to build measure identifier).
      */
-    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName) {
+    public FieldParser(List<? extends DbField> fields, ResultBuilder values, boolean profileWithTime, boolean includeQuality, boolean includeParameter, String obsName) {
         this.onlyMain = true;
         for (Field f : fields) {
             if (f.type == FieldType.MEASURE)  {
@@ -94,7 +93,6 @@ public class FieldParser {
         }
         this.profileWithTime = profileWithTime;
         this.fields = fields;
-        this.includeID = includeID;
         this.includeQuality = includeQuality;
         this.includeParameter = includeParameter;
         this.obsName = obsName;
@@ -107,13 +105,12 @@ public class FieldParser {
      * @param fields List of available fields in the SQL result.
      * @param resultMode Result mode in order to build a ResultBuilder.
      * @param profileWithTime A flag indicating if we are building profile measure and if we must add time.
-     * @param includeID A flag indicating if we must include measure identifier.
      * @param includeQuality A flag indicating if we must include quality field for measure.
      * @param includeParameter A flag indicating if we must include parameter field for measure.
      * @param obsName Main observation identifier (used to build measure identifier).
      */
-    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName) {
-        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName);
+    public FieldParser(List<? extends DbField> fields, ResultMode resultMode, boolean profileWithTime, boolean includeQuality, boolean includeParameter, String obsName) {
+        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeQuality, includeParameter, obsName);
     }
 
     public void setName(String name) {
@@ -133,9 +130,8 @@ public class FieldParser {
      */
     public void parseLine(SQLResult rs) throws SQLException {
         values.newBlock();
-        for (int i = 0; i < fields.size(); i++) {
+        for (DbField field : fields) {
 
-            DbField field = (DbField) fields.get(i);
             parseField(field, rs, null, null);
 
             if (includeQuality && field.qualityFields != null) {
@@ -162,69 +158,66 @@ public class FieldParser {
            fieldName = field.name;
            isMeasureField = (field.type == FieldType.MEASURE) || (onlyMain && field.type == FieldType.MAIN );
         }
-        int rsIndex = field.tableNumber;
+        
+        // main field is present in every table request so we set the table number to -1 (meaning any table)
+        int tableNumber = (field.type == FieldType.MAIN) ? -1 : field.tableNumber;
         switch (field.dataType) {
             case TIME:
                 // profile with time field whth value set externally
                 if (profileWithTime && field.type.equals(FieldType.METADATA)) {
                     values.appendTime(firstTime, isMeasureField, field);
                 } else {
-                    Date t;
+                    Object time;
                     // main timeseries field or joined profile time field 
                     if (field.type == FieldType.MAIN || field.type.equals(FieldType.METADATA)) {
-                        t = dateFromTS(rs.getTimestamp(fieldName)); // main field is present in every table request
-                        if (first) {
-                            firstTime = t;
-                            first = false;
+                        time = field.getValueFromResult(rs, tableNumber);
+                        
+                        if (time instanceof Timestamp ts) {
+                            Date t = dateFromTS(ts);
+                            if (first) {
+                                firstTime = t;
+                                first = false;
+                            }
+                            lastTime = t;
                         }
-                        lastTime = t;
                     } else {
-                        t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
+                        time = dateFromTS(rs.getTimestamp(fieldName, tableNumber));
                     }
-                    values.appendTime(t, isMeasureField, field);
+                    values.appendValue(time, isMeasureField, field);
                 }
                 break;
             case QUANTITY:
-                Double d;
-                // profile main field
-                if (field.type == FieldType.MAIN) {
-                    d =  rs.getDouble(fieldName); // main field is present in every table request
-                    if (rs.wasNull()) {
-                        d = Double.NaN;
-                    }
+                Object obj = field.getValueFromResult(rs, tableNumber);
+                if (obj instanceof Double d && d.isNaN()) {
+                    // because of a bug in appendValue with Nan double
+                    values.appendDouble(Double.NaN, isMeasureField, field);
                 } else {
-                    d =  rs.getDouble(fieldName, rsIndex);
-                    if (rs.wasNull(rsIndex)) {
-                        d = Double.NaN;
-                    }
+                    values.appendValue(obj, isMeasureField, field);
                 }
-                
-                values.appendDouble(d, isMeasureField, field);
                 break;
             case BOOLEAN:
-                boolean bvalue = rs.getBoolean(fieldName, rsIndex);
-                values.appendBoolean(bvalue, isMeasureField, field);
+                Object bo = field.getValueFromResult(rs, tableNumber);
+                values.appendValue(bo, isMeasureField, field);
                 break;
             case JSON:
-                String sValue = rs.getString(fieldName, rsIndex);
-                Map m = OMUtils.readJsonMap(sValue);
-                values.appendMap(m, isMeasureField, field);
+                Object om = field.getValueFromResult(rs, tableNumber);
+                
+                // map is not yet handled by values.appendValue
+                if (om instanceof Map m) {
+                    values.appendMap(m, isMeasureField, field);
+                } else {
+                    values.appendValue(om, isMeasureField, field);
+                }
                 break;
             default:
-                String svalue;
-                // id field is present in all th resultSets
-                if (includeID && fieldName.equals(IDENTIFIER_FIELD_NAME)) {
-                    svalue =  obsName + '-' + rs.getString("id");
-                } else {
-                    svalue = rs.getString(fieldName, rsIndex);
-                }
-                values.appendString(svalue, isMeasureField, field);
+                Object svalue = field.getValueFromResult(rs, tableNumber);
+                values.appendValue(svalue, isMeasureField, field);
                 break;
         }
     }
     
     public ComplexResult buildComplexResult() {
-        return OMUtils.buildComplexResult(fields, nbParsed, values);
+        return OMUtils.buildComplexResult(fields.stream().map(f -> (Field) f).toList(), nbParsed, values);
     }
     
     public void clear() {

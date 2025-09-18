@@ -28,7 +28,7 @@ import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.CSV;
 import static org.constellation.api.CommonConstants.CSV_FLAT;
-import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.store.observation.db.result.CsvFlatResultBuilder;
 import org.constellation.util.FilterSQLRequest;
@@ -52,28 +52,24 @@ public class ResultProcessor {
     protected final static TextEncoderProperties CSV_FLAT_ENCODING = new TextEncoderProperties(".", ";", "\n");
     
     protected ResultBuilder values = null;
-    protected final List<Field> fields;
+    protected final List<? extends DbField> fields;
     protected final boolean nonTimeseries;
-    protected final boolean includeId;
     protected final boolean includeQuality;
     protected final boolean includeParameter;
     protected final ProcedureInfo procedure;
-    protected final String idSuffix;
     
     /**
      * loaded only for some mode.
      */
-    protected Map<Field, Phenomenon> phenomenons;
+    protected Map<DbField, Phenomenon> phenomenons;
     protected Map<String, Object> procedureProperties;
 
-    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, ProcedureInfo procedure, String idSuffix) {
+    public ResultProcessor(List<? extends DbField> fields, boolean includeQuality, boolean includeParameter, ProcedureInfo procedure) {
         this.fields = fields;
         this.nonTimeseries = procedure.type != ObservationType.TIMESERIES;
-        this.includeId = includeId;
         this.includeQuality = includeQuality;
         this.includeParameter = includeParameter;
         this.procedure = procedure;
-        this.idSuffix = idSuffix == null ? "" : idSuffix;
     }
 
     
@@ -83,11 +79,11 @@ public class ResultProcessor {
         } else if (CSV.equals(responseFormat)) {
             values = new ResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
             // Add the header
-            values.appendHeaders(fields);
+            values.appendHeaders(fields.stream().map(f -> (Field)f).toList());
         } else if (CSV_FLAT.equals(responseFormat)) {
             values = new CsvFlatResultBuilder(procedure, fields, phenomenons, procedureProperties, CSV_FLAT_ENCODING);
             // Add the header
-            values.appendHeaders(fields);
+            values.appendHeaders(fields.stream().map(f -> (Field)f).toList());
         } else if (countRequest) {
             values = new ResultBuilder(ResultMode.COUNT, null, false);
         } else {
@@ -104,17 +100,13 @@ public class ResultProcessor {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
-        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, includeParameter, null);
+        FieldParser parser = new FieldParser(fields, values, false, includeQuality, includeParameter, null);
         while (rs.nextOnField(procedure.mainField.name)) {
-            if (includeId) {
-                String name = rs.getString(IDENTIFIER_FIELD_NAME);
-                parser.setName(name + idSuffix);
-            }
             parser.parseLine(rs);
         }
     }
     
-    public void setPhenomenons(Map<Field, Phenomenon> phenomenons) {
+    public void setPhenomenons(Map<DbField, Phenomenon> phenomenons) {
         this.phenomenons = phenomenons;
     }
     

@@ -765,8 +765,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 id = oid + "-" + j;
             }
 
-            // time
-            Date d = (Date) arrayLine.get(col);
+            // time (may be a string (N/D) in some case like aggregation)
+            Object d = arrayLine.get(col);
             col++;
 
             List measures     = new ArrayList<>();
@@ -794,7 +794,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 // build a new single line
                 if (!forMds) {
                     if (!forDs) {
-                        newLine.add(id + "-" + f.index);
+                        String mid = id.toString().replace("<field-id>", f.index.toString());
+                        newLine.add(mid);
                     } else {
                         newLine.add(id);
                     }

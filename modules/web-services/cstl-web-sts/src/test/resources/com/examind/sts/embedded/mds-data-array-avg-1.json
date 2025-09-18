@@ -1,0 +1,6 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
+            "dataArray": [["urn:ogc:object:observation:template:GEOM:8-operation", "N/D", "N/D", [6.56, 14.0], [], {}]]
+        }]
+}

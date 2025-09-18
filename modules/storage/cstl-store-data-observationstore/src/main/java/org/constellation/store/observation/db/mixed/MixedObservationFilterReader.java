@@ -20,6 +20,7 @@ package org.constellation.store.observation.db.mixed;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,11 +40,20 @@ import org.constellation.store.observation.db.FieldParser;
 import org.constellation.store.observation.db.OM2FilterAppend;
 import org.constellation.store.observation.db.OM2ObservationFilter;
 import org.constellation.store.observation.db.OM2ObservationFilterReader;
+import org.constellation.store.observation.db.OM2Utils;
+import static org.constellation.store.observation.db.OM2Utils.MEASURE_ID_FIELD_NAME;
+import static org.constellation.store.observation.db.OM2Utils.OBSERVATION_ID_FIELD_NAME;
 import static org.constellation.store.observation.db.OM2Utils.isMeasureField;
 import org.constellation.store.observation.db.ResultProcessor;
 import org.constellation.store.observation.db.Selection;
+import org.constellation.store.observation.db.model.Aggregation;
+import org.constellation.store.observation.db.model.AggregationField;
+import org.constellation.store.observation.db.model.CompositeTextField;
 import org.constellation.store.observation.db.model.DbField;
+import org.constellation.store.observation.db.model.FixedValueField;
+import org.constellation.store.observation.db.model.PrefixedDbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
+import org.constellation.store.observation.db.model.SelectionField;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.OMSQLDialect;
@@ -59,6 +69,7 @@ import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TEXT;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
@@ -93,6 +104,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         this.responseMode          = query.getResponseMode();
         this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
         this.includeQualityFields  = query.isIncludeQualityFields();
+        this.includeQualityFields  = query.isIncludeParameterFields();
         this.responseFormat        = query.getResponseFormat();
         this.decimationSize        = query.getDecimationSize();
         this.resultModel           = query.getResultModel();
@@ -115,7 +127,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, Connection c) throws SQLException {
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<? extends DbField> fields, Connection c) throws SQLException {
         // for now we don't handle timescaledb case, has we assume we are in a duckdb context
         ResultProcessor processor;
         if (decimate) {
@@ -123,15 +135,10 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
              * default java bucket decimation.
              * no algorithm change possible yet
              */
-            processor = new MixedResultDecimator(fields, includeIDInDataBlock, decimationSize, currentProcedure);
+            processor = new MixedResultDecimator(fields, decimationSize, currentProcedure);
             
         } else {
-            // in a measurement context, the last field is the one we look want to use for identifier construction.
-            String idSuffix = "";
-            if (MEASUREMENT_QNAME.equals(resultModel)) {
-                idSuffix = "-" + fields.get(fields.size() - 1).index;
-            }
-            processor = new MixedResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, currentProcedure, idSuffix);
+            processor = new MixedResultProcessor(fields, includeQualityFields, includeParameterFields, currentProcedure);
         }
         if (CommonConstants.CSV_FLAT.equals(responseFormat)) {
             processor.setPhenomenons(getPhenomenonFields(fields, c));
@@ -141,7 +148,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected void extractObservationIds(SQLResult rs2, List<DbField> fields, final CountOrIdentifiers results, String name) throws SQLException {
+    protected void extractObservationIds(SQLResult rs2, List<? extends DbField> fields, final CountOrIdentifiers results, String name) throws SQLException {
         int tNum = rs2.getFirstTableNumber();
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             Map<String, Integer> fieldIndex = new HashMap<>();
@@ -168,6 +175,58 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         }
     }
     
+    @Override
+    protected SelectionField buildProfileTimeField(final MesureRequestMode mode) {
+        if (mode == AGGREGATE) {
+            return new FixedValueField(0, FieldDataType.TIME, "time", "time", "time", null, FieldType.METADATA, "N/D");
+        } else {
+            return new SelectionField(0, FieldDataType.TIME, "time", "time", "time", null, FieldType.METADATA, -1, true);
+        }
+    }
+
+    @Override
+    protected SelectionField buildIdentifierField(final MesureRequestMode mode, ProcedureInfo procedure, List<SelectionField> fields, String idPrefix) {
+        if (idPrefix == null) idPrefix = "";
+        /*
+         * Observation identifier exist in two pattern depending on result model:
+         *   - Observation model => <observation base> <observation id> - <measure id>
+         *   - Measurement model => <observation base> <observation id> - <field id> - <measure id>
+         * 
+         * in a measurement context, we should have only one measure field present, but if don't set a filter for the field index / observed property
+         * it will result in an array of result instead of just one.
+         * so the field id will be impossible to compute. we set instead a "marker" <field-id> so the identifier can be updated afterward.
+         */
+        if (MEASUREMENT_QNAME.equals(resultModel)) {
+            List<? extends DbField> measureFields = OM2Utils.getMeasureFields(fields, procedure);
+            if (measureFields.size() > 1) {
+                idPrefix = idPrefix + "<field-id>"; // will be replaced lated
+            } else {
+                idPrefix = idPrefix + measureFields.get(0).index;
+            }
+        }
+        if (mode == AGGREGATE) {
+            idPrefix = idPrefix.isEmpty() ? idPrefix : idPrefix + "-";
+            return new FixedValueField(0, FieldDataType.TEXT, "result identifier", "result identifier", null, null, FieldType.METADATA, observationTemplateIdBase + procedure.pid + '-' + idPrefix + "operation");
+        }
+        CompositeTextField idField;
+        if (mode == MEASURE) {
+             List<SelectionField> components = List.of(
+            new FixedValueField(0, FieldDataType.TEXT, OBSERVATION_ID_FIELD_NAME, "observation identifier", "observation identifier", null, FieldType.METADATA, idPrefix),
+            new PrefixedDbField(0, FieldDataType.TEXT, MEASURE_ID_FIELD_NAME,     "measure identifier",     "measure identifier",     null, FieldType.METADATA, -1, false, ""));
+            idField = new CompositeTextField(0, FieldDataType.TEXT, "result identifier", "result identifier",  null, FieldType.METADATA, true, "-", components);
+        } else {
+            boolean selectable = mode != DECIMATE;
+            idPrefix = idPrefix.isEmpty() ? idPrefix : idPrefix + "-";
+            List<SelectionField> components = List.of(
+            new FixedValueField(0, FieldDataType.TEXT, OBSERVATION_ID_FIELD_NAME, "observation identifier", "observation identifier", null, FieldType.METADATA, observationIdBase + procedure.pid),
+            new PrefixedDbField(0, FieldDataType.TEXT, MEASURE_ID_FIELD_NAME,     "measure identifier",     "measure identifier",     null, FieldType.METADATA, -1, false, idPrefix));
+            idField = new CompositeTextField(0, FieldDataType.TEXT, "result identifier", "result identifier",  null, FieldType.METADATA, selectable, "-", components);
+        }
+        return idField;
+    }
+    
+    
+    
     /**
      * Build one or more SQL request on the measure(s) tables.
      * The point of this mecanism is to bypass the issue of selecting more than 1664 columns in a select.
@@ -184,7 +243,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @return A Multi filter request on measure tables.
      */
     @Override
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, MesureRequestMode mode) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<SelectionField> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, MesureRequestMode mode) {
         final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
@@ -212,12 +271,17 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 select = "\"" + schemaPrefix + "mesures\".getmesureidts(\"time\") as \"id\"";
             }
         } else {
-            if (nonTimeseries) {
-                select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\", m.\"time\" ";
+            if (mode != AGGREGATE) {
+                if (nonTimeseries) {
+                    select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\", m.\"time\" ";
+                } else {
+                    select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\" ";
+                }
             } else {
-                select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\" ";
+                Aggregation agg = extractSelectAggregation(queryFields);
+                select = "m.\"obsprop_id\", " + agg.sqlFunction + "(m.\"result\") as result";
             }
-            if (mode != DECIMATE) {
+            if (!(mode == DECIMATE || mode == AGGREGATE)) {
                 if (nonTimeseries) {
                     // probably an issue here for non profile
                     select = select + ", \"" + schemaPrefix + "mesures\".getmesureidpr(m.\"z_value\", m.\"time\") as \"id\" ";
@@ -285,12 +349,29 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 measureRequests.append("m.\"time\",");
             }
             measureRequests.append("m.\"" + pti.mainField.name + "\"");
+        } else if (mode == AGGREGATE) {
+            measureRequests.append("GROUP BY  m.\"obsprop_id\"");
         }
         return measureRequests;
     }
     
+    private Aggregation extractSelectAggregation(List<SelectionField> fields) {
+        Aggregation result = null;
+        for (Field f : fields) {
+            if (f instanceof AggregationField af) {
+                if (result != null && !result.equals(af.aggregation)) {
+                    throw new IllegalStateException("Mixed aggregation not supported in mixed mode");
+                }
+                result = af.aggregation;
+            }
+        }
+        if (result == null) throw new IllegalStateException("Aggregation requested but no aggregated field found");
+        return result;
+    }
+    
     @Override
     protected List<Observation> getMesurements() throws DataStoreException {
+        final boolean aggregate = isAggregate();
         if (phenPropJoin) {
             sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
         }
@@ -300,14 +381,19 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         if (foiPropJoin) {
             sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
-        // add orderby to the query
-        sqlRequest.append(" ORDER BY o.\"time_begin\"");
+        if (aggregate) {
+            sqlRequest.append("GROUP BY \"procedure\", \"observed_property\"");
+        } else {
+            // add orderby to the query
+            sqlRequest.append(" ORDER BY o.\"time_begin\"");
+        }
         sqlRequest.cleanupWhere();
 
-        final List<Observation> observations = new ArrayList<>();
-        final Map<String, Procedure> processMap = new HashMap<>();
-        final Map<String, Map<Field, Phenomenon>> phenMap = new HashMap<>();
-        final Map<String, ProcedureInfo> ptiMap = new HashMap<>();
+        final List<Observation> observations                = new ArrayList<>();
+        final Map<String, Procedure> processMap             = new HashMap<>();
+        final Map<String, Map<DbField, Phenomenon>> phenMap = new HashMap<>();
+        final Map<String, ProcedureInfo> ptiMap             = new HashMap<>();
+        final MesureRequestMode mode                        = aggregate ? AGGREGATE : MEASURE;
         LOGGER.fine(sqlRequest.toString());
         try(final Connection c = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
@@ -315,13 +401,13 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 final String procedure = rs.getString("procedure");
                 final Date startTime   = dateFromTS(rs.getTimestamp("time_begin"));
                 final Date endTime     = dateFromTS(rs.getTimestamp("time_end"));
-                final long oid         = rs.getLong("id");
-                final String name      = rs.getString("identifier");
+                final Long oid         = aggregate ? null : rs.getLong("id");
+                final String name      = aggregate ? "" : rs.getString("identifier")  + "-";
                 final String obsID     = "obs-" + oid;
-                final String featureID = rs.getString("foi");
+                final String featureID = aggregate ? null : rs.getString("foi");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
-                final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
+                final Map<DbField, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
                 // TODO sub selection?
                 final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, new Selection(), c));
                 final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
@@ -332,10 +418,13 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 boolean timeseries = (pti.type == ObservationType.TIMESERIES);
 
                 Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type.name());
-                List<Field> fields = new ArrayList<>(fieldPhen.keySet());
+                properties.put("type", pti.type.name().toLowerCase());
+                final List<SelectionField> fields         = applySelection(fieldPhen.keySet(), pti);
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
-                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, MEASURE);
+                final FilterSQLRequest measureRequest     = buildMesureRequests(pti, fields, measureFilter, oid, false, mode);
+                final DbField mainField                   = aggregate ? new FixedValueField(pti.mainField, "N/D") : pti.mainField;
+                final DbField nameField                   = buildIdentifierField(mode, pti, fields, name);
+                final DbField identifierField             = buildIdentifierField(mode, pti, fields, obsID);
 
                 /**
                  * coherence verification
@@ -345,37 +434,40 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                     // get the first for now
                     int tableNum = rs2.getFirstTableNumber();
             
-                    while (rs2.nextOnField(pti.mainField.name)) {
-                        final Long rid = rs2.getLong("id", tableNum);
+                    while (rs2.nextOnField(mainField.name)) {
+                        final Long rid = aggregate ? null : rs2.getLong("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                            TemporalPrimitive measureTime;
+                            TemporalPrimitive measureTime = null;
                             if (timeseries) {
-                                final Date mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, tableNum));
-                                measureTime = buildTime(oid + "-" + rid, mt, null);
+                                Object mainValue = mainField.getValueFromResult(rs2);
+                                if (mainValue instanceof Timestamp ts) {
+                                    measureTime = buildTime(oid + "-" + rid, dateFromTS(ts), null);
+                                }
+                                
                             } else {
                                 measureTime = time;
                             }
                             String currentFname = rs2.getString("obsprop_id");
                             
-                            Entry<Field, Phenomenon> entry = getPhenomenonFromFieldName(currentFname, fieldPhen);
+                            Entry<DbField, Phenomenon> entry = getPhenomenonFromFieldName(currentFname, fieldPhen);
                             Phenomenon fphen    = entry.getValue();
-                            DbField field       = (DbField) entry.getKey();
+                            DbField field       = entry.getKey();
                             FieldDataType fType = field.dataType;
-                            int rsIndex         = field.tableNumber;
                             final String observationType = getOmTypeFromFieldType(fType);
-                            final String value = rs2.getString("result", rsIndex);
+                            final String value = rs2.getString("result");
                             if (value != null) {
                                 Object resultValue = 
                                     switch (fType) {
-                                        case QUANTITY -> rs2.getDouble("result", rsIndex);
-                                        case BOOLEAN  -> rs2.getBoolean("result", rsIndex);
-                                        case TIME     -> new Date(rs2.getTimestamp("result", rsIndex).getTime());
+                                        case QUANTITY -> rs2.getDouble("result");
+                                        case BOOLEAN  -> rs2.getBoolean("result");
+                                        case TIME     -> new Date(rs2.getTimestamp("result").getTime());
                                         case TEXT     -> value;
                                         case JSON     -> OMUtils.readJsonMap(value);
                                     };
-                                MeasureResult result = new MeasureResult(field, resultValue);
-                                final String measId =  obsID + '-' + field.index + '-' + rid;
-                                final String measName = name + '-' + field.index + '-' + rid;
+                                final MeasureResult result = new MeasureResult(field, resultValue);
+                                final String measId   = ((String) identifierField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
+                                final String measName = ((String) nameField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
+                                    
                                 List<Element> resultQuality = buildResultQuality(field, rs2);
                                 Map<String, Object> parameters = buildParameters(field, rs2);
                                 Observation observation = new Observation(measId,
@@ -411,8 +503,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         return applyPostPagination(observations);
     }
     
-    private static Entry<Field, Phenomenon> getPhenomenonFromFieldName(String name, Map<Field, Phenomenon> fieldPhen) {
-        for (Entry<Field, Phenomenon> entry : fieldPhen.entrySet()) {
+    private static Entry<DbField, Phenomenon> getPhenomenonFromFieldName(String name, Map<DbField, Phenomenon> fieldPhen) {
+        for (Entry<DbField, Phenomenon> entry : fieldPhen.entrySet()) {
             if (entry.getKey().name.equals(name)) {
                 return entry;
             }
@@ -422,7 +514,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<Field> fields, ProcedureInfo pti) {
+    protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<? extends DbField> fields, ProcedureInfo pti) {
         
         final String allPhenKeyword = "${allphen ";
         List<SingleFilterSQLRequest.Param> allPhenParams = single.getParamsByName("allphen");
@@ -511,8 +603,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
 
     @Override
-    protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName) {
-        return new MixedFieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName);
+    protected FieldParser buildFieldParser(List<? extends DbField> fields, boolean profileWithTime, String obsName) {
+        return new MixedFieldParser(fields, resultMode, profileWithTime, includeQualityFields, includeParameterFields, obsName);
     }
     
   @Override

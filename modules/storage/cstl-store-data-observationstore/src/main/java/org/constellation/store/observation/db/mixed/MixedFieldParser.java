@@ -31,16 +31,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import org.constellation.store.observation.db.FieldParser;
-import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldDataType;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -61,8 +61,8 @@ public class MixedFieldParser extends FieldParser {
     
     private final Set<String> includedFields; 
     
-    public MixedFieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName) {
-        super(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName);
+    public MixedFieldParser(List<? extends DbField> fields, ResultMode resultMode, boolean profileWithTime, boolean includeQuality, boolean includeParameter, String obsName) {
+        super(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeQuality, includeParameter, obsName);
         includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
     }
     
@@ -72,10 +72,9 @@ public class MixedFieldParser extends FieldParser {
         final Map<String, Object> properties = new HashMap<>();
         properties.put("type", pti.type.name());
         final boolean profile = pti.type == ObservationType.PROFILE;
-        int mainFieldIndex = fields.indexOf(pti.mainField);
         Object previousKey    = null;
         Long previousMeasureId = null;
-        Map<String, Object> blocValues = createNewBlocValues(profile, mainFieldIndex);
+        Map<String, Object> blocValues = createNewBlocValues();
         
         while (rs2.nextOnField(pti.mainField.name)) {
             
@@ -105,17 +104,15 @@ public class MixedFieldParser extends FieldParser {
                 if (previousKey != null) {
                     Observation obs =  endBlock(blocValues, oid, previousMeasureId, proc, feature, phen, properties);
                     observations.put(pti.id + '-' + obsName + '-' + previousMeasureId, obs);
-                    blocValues = createNewBlocValues(profile, mainFieldIndex);
+                    blocValues = createNewBlocValues();
                 }
                 
                 values.newBlock();
                 // handle non measure fields
-                for (int i = 0; i < fields.size(); i++) {
-                    Field f = fields.get(i);
-                    if (includeID && f.name.equals(IDENTIFIER_FIELD_NAME)) {
-                        values.appendString(obsName + '-' + measureId, false, f);
-                    } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
-                        values.appendTime(dateFromTS(time), false, f);
+                for (DbField f : fields) {
+                    if (f.type.equals(FieldType.METADATA)) {
+                        Object t = f.getValueFromResult(rs2);
+                        values.appendValue(t, false, f);
                     }
                 }
                 // handle main field
@@ -154,7 +151,7 @@ public class MixedFieldParser extends FieldParser {
         values.endBlock();
     }
     
-    public Observation endBlock(Map<String, Object> blocValues, long oid, long measureID, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, final Map<String, Object> properties) {
+    private Observation endBlock(Map<String, Object> blocValues, long oid, long measureID, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, final Map<String, Object> properties) {
        endBlock(blocValues);
         
        final String singleObsID              = "obs-" + oid + '-' + measureID;
@@ -177,16 +174,14 @@ public class MixedFieldParser extends FieldParser {
        
     }
     
-    private Map<String, Object> createNewBlocValues(boolean profile, int mainFieldIndex) {
+    private Map<String, Object> createNewBlocValues() {
         Map<String, Object> results = new LinkedHashMap<>();
         // exclude non measure fields
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
-            if (!((includeID && f.name.equals(IDENTIFIER_FIELD_NAME))          || // id field
-                  (f.dataType.equals(FieldDataType.TIME) && profile)  || // time field fr profile
-                  (mainFieldIndex == i))) {                        // main field
-                results.put(fields.get(i).name, null);
-            } 
+            if (f.type.equals(FieldType.MEASURE)) {
+                results.put(f.name, null);
+            }
         }
         return results;
     }
@@ -195,12 +190,11 @@ public class MixedFieldParser extends FieldParser {
     public Map<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
         final String obsID               = "obs-" + oid;
         boolean profile                  = pti.type == ObservationType.PROFILE;
-        int mainFieldIndex               = fields.indexOf(pti.mainField);
         Object prevLineKey               = null;
         Object prevObsKey                = null;
         boolean hasData                  = false;
-        Map<String, Object> blocValues   = createNewBlocValues(profile, mainFieldIndex);
-        Map<String, Object> properties   = Map.of("type", pti.type.name());
+        Map<String, Object> properties   = Map.of("type", pti.type.name().toLowerCase());
+        Map<String, Object> blocValues   = createNewBlocValues();
         Map<String, Observation> results = new HashMap<>();
         boolean separated                = (separatedProfileObs && profile);
         
@@ -214,7 +208,6 @@ public class MixedFieldParser extends FieldParser {
             
             final String fieldName = rs2.getString("obsprop_id");
             final Double value     = rs2.getDouble("result");
-            final Long measureId   = rs2.getLong("id");
             final Timestamp time   = rs2.getTimestamp("time");
             
             if (firstTime == null) {
@@ -239,7 +232,7 @@ public class MixedFieldParser extends FieldParser {
                 // close previous block
                 if (prevLineKey != null) {
                     endBlock(blocValues);
-                    blocValues = createNewBlocValues(profile, mainFieldIndex);
+                    blocValues = createNewBlocValues();
                     
                     // close profile observation
                     if (separated && !Objects.equals(obsKey, prevObsKey)) {
@@ -252,18 +245,14 @@ public class MixedFieldParser extends FieldParser {
                 values.newBlock();
                 hasData = true;
                 // handle non measure fields
-                for (int i = 0; i < fields.size(); i++) {
-                    Field f = fields.get(i);
-                    if (includeID && f.name.equals(IDENTIFIER_FIELD_NAME)) {
-                        values.appendString(obsName + '-' + measureId, false, f);
-                    } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
-                        values.appendTime(dateFromTS(time), false, f);
+                for (DbField f : fields) {
+                    if (f.type.equals(FieldType.METADATA)) {
+                        Object t = f.getValueFromResult(rs2);
+                        values.appendValue(t, false, f);
                     }
                 }
                 // handle main field
-                //if (mainIncluded) {
-                    values.appendValue(mainValue, false, pti.mainField);
-                //}
+                values.appendValue(mainValue, false, pti.mainField);
                 
                 // handle current measure field
                 if (includedFields.contains(fieldName)) {
@@ -326,10 +315,9 @@ public class MixedFieldParser extends FieldParser {
     @Override
     public void completeObservation(final SQLResult rs2, final ProcedureInfo pti, Observation observation) throws SQLException {
         boolean profile                = pti.type == ObservationType.PROFILE;
-        int mainFieldIndex             = fields.indexOf(pti.mainField);
         boolean hasData                = false;
         Object previousKey             = null;
-        Map<String, Object> blocValues = createNewBlocValues(profile, mainFieldIndex);
+        Map<String, Object> blocValues = createNewBlocValues();
         
         while (rs2.nextOnField(pti.mainField.name)) {
             
@@ -339,10 +327,8 @@ public class MixedFieldParser extends FieldParser {
                 default       -> throw new SQLException("Unexpected main field type");
             };
             
-            
             final String fieldName = rs2.getString("obsprop_id");
             final Double value     = rs2.getDouble("result");
-            final Long measureId   = rs2.getLong("id");
             final Timestamp time   = rs2.getTimestamp("time");
             
             if (firstTime == null) {
@@ -364,24 +350,20 @@ public class MixedFieldParser extends FieldParser {
                 // close previous block
                 if (previousKey != null) {
                     endBlock(blocValues);
-                    blocValues = createNewBlocValues(profile, mainFieldIndex);
+                    blocValues = createNewBlocValues();
                 }
                 
                 values.newBlock();
                 hasData = true;
                 // handle non measure fields
-                for (int i = 0; i < fields.size(); i++) {
-                    Field f = fields.get(i);
-                    if (includeID && f.name.equals(IDENTIFIER_FIELD_NAME)) {
-                        values.appendString(obsName + '-' + measureId, false, f);
-                    } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
-                        values.appendTime(dateFromTS(time), false, f);
+                for (DbField f : fields) {
+                    if (f.type.equals(FieldType.METADATA)) {
+                        Object t = f.getValueFromResult(rs2);
+                        values.appendValue(t, false, f);
                     }
                 }
                 // handle main field
-                //if (mainIncluded) {
-                    values.appendValue(mainValue, false, pti.mainField);
-                //}
+                values.appendValue(mainValue, false, pti.mainField);
                 
                 // handle current measure field
                 if (includedFields.contains(fieldName)) {

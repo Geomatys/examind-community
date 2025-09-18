@@ -51,7 +51,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
-import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.TIMESCALEDB_VERSION;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.*;
@@ -87,6 +86,7 @@ import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
+import org.constellation.store.observation.db.model.SelectionField;
 
 /**
  *
@@ -683,11 +683,11 @@ public class OM2BaseReader {
     }
 
     protected List<Field> readFields(final String procedureID, final Connection c) {
-        return readFields(procedureID, false, c, new ArrayList<>(), new ArrayList<>(), true);
+        return readFields(procedureID, false, c, new ArrayList<>(), new ArrayList<>(), true).stream().map(f -> (Field)f).toList();
     }
 
-    protected List<Field> readFields(final String procedureID, boolean removeMainField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters, boolean fetchExtraFields) {
-        final List<Field> results = new ArrayList<>();
+    protected List<DbField> readFields(final String procedureID, boolean removeMainField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters, boolean fetchExtraFields) {
+        final List<DbField> results = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL ");
         
         StringBuilder fieldFilterQuery = new StringBuilder();
@@ -730,7 +730,7 @@ public class OM2BaseReader {
                 
                 // its just way more easy to remove it afterward instead of doing it with SQL. you are welcome to try.
                 if (removeMainField) {
-                    for (Field f : results) {
+                    for (DbField f : results) {
                         if (f.type == FieldType.MAIN) {
                             results.remove(f);
                             break;
@@ -778,7 +778,7 @@ public class OM2BaseReader {
      * @return
      * @throws SQLException
      */
-    protected Field getMainField(final String procedureID, final Connection c) throws SQLException {
+    protected DbField getMainField(final String procedureID, final Connection c) throws SQLException {
         return getFieldByIndex(procedureID, 1, false, c);
     }
 
@@ -892,7 +892,7 @@ public class OM2BaseReader {
         try (final ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
                final String procedureId = rs.getString(3);
-               final Field mainField = getMainField(procedureId, c);
+               final DbField mainField = getMainField(procedureId, c);
                return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(5), rs.getString(6), ObservationType.parse(rs.getString(4)), mainField));
             }
             return Optional.empty();
@@ -1103,7 +1103,7 @@ public class OM2BaseReader {
         return -1;
     }
 
-    protected Result getResult(final ProcedureInfo ti, Long oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+    protected Result getResult(final ProcedureInfo ti, Long oid , final QName resultModel, final Integer measureId, final DbField selectedField, final Connection c) throws DataStoreException, SQLException {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             return buildMeasureResult(ti, oid, measureId, selectedField, c);
         } else {
@@ -1111,16 +1111,18 @@ public class OM2BaseReader {
         }
     }
 
-    private ComplexResult buildComplexResult(final ProcedureInfo ti, final long oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
+    private ComplexResult buildComplexResult(final ProcedureInfo ti, final Long oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
-        final List<Field> fields    = readFields(ti.id, false, c, new ArrayList<>(), new ArrayList<>(), true);
+        final List<DbField> fields = readFields(ti.id, false, c, new ArrayList<>(), new ArrayList<>(), true);
 
         FilterSQLRequest measureFilter = null;
         if (measureId != null) {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
-        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, MEASURE);
-        final FieldParser parser            = new FieldParser(fields, ResultMode.CSV, false, false, true, true, null);
+        // selet all fields
+        List<SelectionField> sFields = fields.stream().map(f -> new SelectionField(f, true)).toList();
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, sFields, measureFilter,  oid, false, MEASURE);
+        final FieldParser parser            = new FieldParser(fields, ResultMode.CSV, false, true, true, null);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
                 parser.parseLine(rs);
@@ -1129,7 +1131,7 @@ public class OM2BaseReader {
         }
     }
 
-    private MeasureResult buildMeasureResult(final ProcedureInfo ti, final Long oid, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+    private MeasureResult buildMeasureResult(final ProcedureInfo ti, final Long oid, final Integer measureId, final DbField selectedField, final Connection c) throws DataStoreException, SQLException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
@@ -1139,7 +1141,7 @@ public class OM2BaseReader {
 
         final FieldDataType fType  = selectedField.dataType;
         String tableName = "mesure" + ti.pid;
-        int tn = ((DbField) selectedField).tableNumber;
+        int tn = selectedField.tableNumber;
         if (tn > 1) {
             tableName = tableName + "_" + tn;
         }
@@ -1171,18 +1173,14 @@ public class OM2BaseReader {
         }
     }
     
-    private static Map<Integer, List<DbField>> extractTableFields(String mainFieldName, List<Field> queryFields) {
-        final Map<Integer, List<DbField>> results = new HashMap<>();
+    private static Map<Integer, List<SelectionField>> extractTableFields(List<SelectionField> queryFields) {
+        final Map<Integer, List<SelectionField>> results = new HashMap<>();
         
         // add a special where the only measure field requested is the main (some metadata fields can be present).
-        DbField singleMain = null; 
-        for (Field f : queryFields) {
-            if (f.name.equals(mainFieldName)) {
-                if (f instanceof DbField df) {
-                    singleMain = df;
-                } else {
-                    throw new IllegalStateException("Unexpected field implementation: " + queryFields.get(0).getClass().getName());
-                }
+        SelectionField singleMain = null; 
+        for (SelectionField f : queryFields) {
+            if (f.type.equals(FieldType.MAIN)) {
+                singleMain = f;
             } else if (f.type == FieldType.MEASURE) {
                 singleMain = null;
                 break;
@@ -1192,15 +1190,10 @@ public class OM2BaseReader {
             return Map.of(singleMain.tableNumber, List.of(singleMain));
         }
         
-        for (Field f : queryFields) {
-            if (f instanceof DbField df) {
-                // index 0 are non measure fields
-                if (df.index != 0 && !df.name.equals(mainFieldName)) {
-                    List<DbField> fields = results.computeIfAbsent(df.tableNumber, tn -> new ArrayList<>());
-                    fields.add(df);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
+        for (SelectionField f : queryFields) {
+            if (!f.type.equals(FieldType.MAIN)) {
+                List<SelectionField> fields = results.computeIfAbsent(f.tableNumber, tn -> new ArrayList<>());
+                fields.add(f);
             }
         }
         return results;
@@ -1209,6 +1202,7 @@ public class OM2BaseReader {
     public static enum MesureRequestMode {
         NONE,
         RESULTS,
+        AGGREGATE,
         MEASURE,
         ID,
         COUNT,
@@ -1231,11 +1225,10 @@ public class OM2BaseReader {
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, MesureRequestMode mode) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<SelectionField> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, MesureRequestMode mode) {
         final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
-        final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
-        final Map<Integer, List<DbField>> queryTableFields = extractTableFields(mainFieldName, queryFields);
+        final Map<Integer, List<SelectionField>> queryTableFields = extractTableFields(queryFields);
         
         final boolean multiTable = pti.nbTable > 1;
         
@@ -1245,34 +1238,35 @@ public class OM2BaseReader {
             // skip the table if none query fields are requested (multi table procedure only) (what about filters???)
             if (!queryTableFields.containsKey(tableNum) && pti.nbTable > 1) continue;
             
-            // this can be null
-            List<DbField> tableFields = queryTableFields.get(tableNum);
-            
+            List<SelectionField> tableFields = queryTableFields.get(tableNum);
+              
             final String baseTableName = "mesure" + pti.pid;
-            final String tableAlias    = tableNum == 1 ? "m" : "m2";
+            final String tableAlias    = tableNum == 1 ? "m" : "m" + tableNum;
             
             final StringBuilder select;
             if (mode == ID || mode == EXIST) {
                 select = new StringBuilder("m.\"id\"");
             } else {
-                // add always id and main field
-                select = new StringBuilder("m.\"id\", m.\"" + mainFieldName + "\"");
-                if (tableFields != null) {
-                    for (DbField df : tableFields) {
-                        if (!df.name.equals(mainFieldName)) {
-                            select.append(", " + tableAlias + ".\"" + df.name + "\"");
-                            for (Field qf : df.qualityFields)   select.append(", " + tableAlias + ".\"" + df.name + "_quality_" + qf.name + "\"");
-                            for (Field pf : df.parameterFields) select.append(", " + tableAlias + ".\"" + df.name + "_parameter_" + pf.name + "\"");
-                        }
-                    }
+                // add always id and main field unless for aggregated
+                boolean first = true;
+                if (mode != AGGREGATE) {
+                    select = new StringBuilder("m.\"id\", m.\"" + pti.mainField.name + "\"");
+                    first = false;
+                } else {
+                    select = new StringBuilder();
+                }
+                for (SelectionField sf : tableFields) {
+                    if (sf.type.equals(FieldType.MAIN)) continue;
+                    if (!first) select.append(",");
+                    if (sf.isSelected) select.append(sf.getSelection());
+                    first = false;
                 }
             }
             // metadata fields treatment for RESULTS / DECIMATE mode
             if (mode == RESULTS || mode == DECIMATE) {
-                for (Field field : queryFields) {
-                    if (field.type == FieldType.METADATA && 
-                        !(mode == DECIMATE && field.name.equals(IDENTIFIER_FIELD_NAME))) {    // we exclude identifier field for decimation TODO find a cleaner way
-                        select.append(", \"" + field.name + "\"");
+                for (SelectionField sf : queryFields) {
+                    if (sf.type == FieldType.METADATA && sf.isSelected) {
+                        select.append(", ").append(sf.getSelection());
                     }
                 }
             }
@@ -1291,7 +1285,7 @@ public class OM2BaseReader {
             if (tableNum != 1) {
                 String tableName = baseTableName + "_" + tableNum;
                 measureRequest.append(", \"" + schemaPrefix + "mesures\".\"" + tableName + "\" " + tableAlias);
-                measureRequest.appendFilter(" (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
+                measureRequest.appendFilter(" (m.\"id\" = " + tableAlias + ".\"id\" AND  m.\"id_observation\" = " + tableAlias + ".\"id_observation\") ");
             }
             
             if (oid != null) {
@@ -1307,8 +1301,8 @@ public class OM2BaseReader {
               * Deactivated on multi- table for now.
               * TODO maybe add the main field on each extra table to solve this problem.
               */
-             if (!multiTable && tableFields != null) {
-                 appendNotNullFilter(tableFields, mainFieldName, measureRequest);
+             if (!multiTable) {
+                 appendNotNullFilter(tableFields, measureRequest);
              }
             
             /*
@@ -1337,7 +1331,7 @@ public class OM2BaseReader {
                 if ((mode == RESULTS || mode == DECIMATE) && nonTimeseries) {
                     measureRequest.append(" o.\"time_begin\", ");
                 }
-                measureRequest.append("m.\"" + mainFieldName + "\"");
+                measureRequest.append("m.\"" + pti.mainField.name + "\"");
             }
             
             if (mode == EXIST) {
@@ -1357,17 +1351,16 @@ public class OM2BaseReader {
      * Append NOT NULL filter for the table fields in the measure request .
      * 
      * @param tableFields Field list for a specific measure table.
-     * @param mainFieldName Name of the main field (the filter will not apply to this field).
      * @param measureRequest Appendable measure query.
      */
-    private void appendNotNullFilter(List<DbField> tableFields, String mainFieldName, SingleFilterSQLRequest measureRequest) {
+    private void appendNotNullFilter(List<? extends DbField> tableFields, SingleFilterSQLRequest measureRequest) {
          boolean nullFilterApplied = false;
 
         // 1. we sort the field identified as measure field along their table number
         StringBuilder s = new StringBuilder("(");
         for (DbField df : tableFields) {
             // index 0 are non measure fields
-            if (df.index != 0 && !df.name.equals(mainFieldName)) {
+            if (df.type.equals(FieldType.MEASURE)) {
                 s.append(" \"").append(df.name).append("\" IS NOT NULL OR ");
                 nullFilterApplied = true;
             }

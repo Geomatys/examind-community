@@ -499,10 +499,27 @@ public class MixedObservationStoreProviderTest extends AbstractMixedObservationS
         super.getObservationsFilter5Test();
     }
     
+    @Override
+    public void getObservationSelectOperationAvgTestTS() throws Exception {
+        super.getObservationSelectOperationAvgTestTS();
+    }
+    
+    @Test
+    @Override
+    public void getObservationSelectOperationAvgTestPR() throws Exception {
+        super.getObservationSelectOperationAvgTestTS();
+    }
+    
     @Test
     @Override
     public void getObservationsNanTest() throws Exception {
         super.getObservationsNanTest();
+    }
+    
+    @Test
+    @Override
+    public void getObservationsNan2Test() throws Exception {
+        super.getObservationsNan2Test();
     }
 
     @Test
@@ -665,6 +682,30 @@ public class MixedObservationStoreProviderTest extends AbstractMixedObservationS
     @Override
     public void getResultTest() throws Exception {
         super.getResultTest();
+    }
+    
+    @Test
+    @Override
+    public void getResultSelectOperationAvgTestTS() throws Exception {
+        super.getResultSelectOperationAvgTestTS();
+    }
+    
+    @Test
+    @Override
+    public void getResultSelectOperationAvgTestPR() throws Exception {
+        super.getResultSelectOperationAvgTestPR();
+    }
+    
+    @Test
+    @Override
+    public void getResultSelectOperationMinMaxTestTS() throws Exception {
+        super.getResultSelectOperationMinMaxTestTS();
+    }
+    
+    @Test
+    @Override
+    public void getResultSelectOperationMinMaxTestPR() throws Exception {
+        super.getResultSelectOperationMinMaxTestPR();
     }
     
     @Test

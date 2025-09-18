@@ -28,7 +28,6 @@ import static org.constellation.store.observation.db.OM2Utils.getTimeScalePeriod
 import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
-import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.OMEntity;
@@ -39,8 +38,8 @@ import org.geotoolkit.observation.model.OMEntity;
  */
 public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
 
-    public BucketTimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
-        super(fields, includeId, width, procedure);
+    public BucketTimeScaleResultDecimator(List<? extends DbField> fields, int width, ProcedureInfo procedure) {
+        super(fields, width, procedure);
     }
 
     @Override
@@ -70,7 +69,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
             select.append("time_bucket('").append(getTimeScalePeriod(step)).append("', \"");
         }
         select.append(procedure.mainField.name).append("\") AS \"step\"");
-        List<DbField> measureFields = OM2Utils.getMeasureFields(fields, procedure);
+        List<? extends DbField> measureFields = OM2Utils.getMeasureFields(fields, procedure);
         for (DbField f : measureFields) {
              select.append(", avg(\"").append(f.name).append("\") AS \"").append(f.name).append("\"");
         }

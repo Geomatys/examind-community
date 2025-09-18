@@ -25,14 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
-import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.constellation.store.observation.db.ResultProcessor;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.SQLResult;
-import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 
 /**
@@ -46,12 +45,12 @@ public class MixedResultProcessor extends ResultProcessor {
     private final boolean onlyMain;
     private final boolean mainIncluded;
     
-    public MixedResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, ProcedureInfo procedure, String idSuffix) {
-        super(fields, includeId, includeQuality, includeParameter, procedure, idSuffix);
+    public MixedResultProcessor(List<? extends DbField> fields, boolean includeQuality, boolean includeParameter, ProcedureInfo procedure) {
+        super(fields, includeQuality, includeParameter, procedure);
         includedFields = new HashMap<>();
         fields.forEach(f -> includedFields.put(f.name, f));
+        mainIncluded = fields.stream().anyMatch(f -> f.type.equals(FieldType.MAIN));
         if (nonTimeseries) {
-            mainIncluded = fields.stream().anyMatch(f -> f.type.equals(FieldType.MAIN));
             if (mainIncluded) {
                 onlyMain = fields.stream().noneMatch(f -> f.type.equals(FieldType.MEASURE));
             } else {
@@ -59,7 +58,6 @@ public class MixedResultProcessor extends ResultProcessor {
             }
         } else {
             onlyMain = false;
-            mainIncluded = true;
         }
     }
     
@@ -72,12 +70,27 @@ public class MixedResultProcessor extends ResultProcessor {
         Map<Field, Object> blocValues = createNewBlocValues();
         Object previousKey             = null;
         boolean hasData                = false;
-        while (rs.nextOnField(procedure.mainField.name)) {
-            final Object mainValue = switch (procedure.mainField.dataType) {
-                case TIME     -> rs.getTimestamp(procedure.mainField.name);
-                case QUANTITY -> rs.getDouble(procedure.mainField.name);
-                default       -> throw new DataStoreException("Unexpected main field type");
-            };
+        DbField mainField;
+        if (mainIncluded) {
+            mainField  = fields.stream().filter(f -> f.type.equals(FieldType.MAIN)).findFirst().orElse(null);
+        } else {
+            mainField = procedure.mainField;
+        }
+        
+        while (rs.nextOnField(mainField.name)) {
+            // in some case like aggregation, the column time, will not be available int the resultset
+            // this is not important if we only have one observation to extract
+            Object mainValue;
+            try {
+                mainValue = mainField.getValueFromResult(rs);
+            } catch (SQLException ex) {
+                if (!mainIncluded) {
+                    LOGGER.log(Level.FINE, "No main field available in mixed mode resultset", ex);
+                    mainValue = "null";
+                } else {
+                    throw ex;
+                }
+            }
             
             final String fieldName = rs.getString("obsprop_id");
             final Double value     = rs.getDouble("result");
@@ -85,8 +98,16 @@ public class MixedResultProcessor extends ResultProcessor {
             // observations for nonTimeseries are a combination of the time and the z_value
             Object mainKey;
             if (nonTimeseries) {
-                long time = rs.getTimestamp("time").getTime();
-                mainKey = time + '-' + mainValue.toString();
+                Object time;
+                // in some case like aggregation, the column time, will not be available int the resultset
+                // this is not important if we only have one observation to extract
+                try {
+                    time = rs.getTimestamp("time").getTime();
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.FINE, "No time field available in mixed mode resultset", ex);
+                    time = "null";
+                }
+                mainKey = time.toString() + '-' + mainValue.toString();
             } else {
                 mainKey = mainValue;
             }
@@ -103,12 +124,10 @@ public class MixedResultProcessor extends ResultProcessor {
                 values.newBlock();
                 hasData = true;
                 // handle non measure fields
-                for (int i = 0; i < fields.size(); i++) {
-                    Field f = fields.get(i);
-                    if (includeId && f.name.equals(IDENTIFIER_FIELD_NAME)) {
-                        values.appendString("urn:ogc:object:observation:GEOM:" + procedure.pid + idSuffix + '-' + rs.getLong("id"), false, f);
-                    } else if (f.dataType.equals(FieldDataType.TIME) && nonTimeseries) {
-                        values.appendTime(dateFromTS(rs.getTimestamp("time")), false, f);
+                for (Field f : fields) {
+                    if (f.type.equals(FieldType.METADATA) && f instanceof DbField df) {
+                        Object t = df.getValueFromResult(rs);
+                        values.appendValue(t, false, f);
                     }
                 }
                 // handle main field
@@ -146,13 +165,10 @@ public class MixedResultProcessor extends ResultProcessor {
     private Map<Field, Object> createNewBlocValues() {
         Map<Field, Object> results = new LinkedHashMap<>();
         // exclude non measure fields
-        for (int i = 0; i < fields.size(); i++) {
-            Field f = fields.get(i);
-            if (!((includeId && f.name.equals(IDENTIFIER_FIELD_NAME))       || // id field
-                  (f.dataType.equals(FieldDataType.TIME) && nonTimeseries)  || // time field fr nonTimeseries
-                  (f.type.equals(FieldType.MAIN)))) {                          // main field
+        for (Field f : fields) {
+            if (f.type.equals(FieldType.MEASURE)) {
                 results.put(f, null);
-            } 
+            }
         }
         return results;
     }

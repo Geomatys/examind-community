@@ -509,6 +509,12 @@ public class MixedObservationStoreProviderDDBTest extends AbstractMixedObservati
     public void getObservationsNanTest() throws Exception {
         super.getObservationsNanTest();
     }
+    
+    @Test
+    @Override
+    public void getObservationsNan2Test() throws Exception {
+        super.getObservationsNan2Test();
+    }
 
     @Test
     @Override

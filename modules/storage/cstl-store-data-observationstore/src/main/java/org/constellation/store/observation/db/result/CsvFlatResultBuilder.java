@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
+import org.constellation.store.observation.db.model.DbField;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
@@ -29,11 +29,11 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     private final TextEncoderProperties encoding;
     private Map<String, csvFlatLine> currentLines = new HashMap<>();
     
-    private final List<Field> fields;
-    private final Map<Field, Phenomenon> phenomenons;
+    private final List<? extends DbField> fields;
+    private final Map<DbField, Phenomenon> phenomenons;
     private final Map<String, Object> procedureProperties;
             
-    public CsvFlatResultBuilder(ProcedureInfo procedure, List<Field> fields, Map<Field, Phenomenon> phenomenons,  Map<String, Object> procedureProperties, final TextEncoderProperties encoding) {
+    public CsvFlatResultBuilder(ProcedureInfo procedure, List<? extends DbField> fields, Map<DbField, Phenomenon> phenomenons,  Map<String, Object> procedureProperties, final TextEncoderProperties encoding) {
         super(ResultMode.CSV, encoding, false);
         this.encoding = encoding;
         values = new StringBuilder();
@@ -63,7 +63,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     @Override
     public void newBlock() {
         currentLines.clear();
-        for (Field field : fields) {
+        for (DbField field : fields) {
             currentLines.put(field.name, new csvFlatLine(field, procedure, phenomenons.get(field), procedureProperties, encoding));
         }
     }
@@ -211,7 +211,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     @Override
     public void appendString(String value, boolean measureField, Field f) {
          // we don't want to add the id
-        if (!f.name.equals(IDENTIFIER_FIELD_NAME) && value != null) {
+        if (!f.type.equals(FieldType.METADATA) && value != null) {
             if (f.getParent() != null) {
                 csvFlatLine currentLine = getCurrentLine(f.getParent().name);
                 currentLine.appendSubField(f, value);

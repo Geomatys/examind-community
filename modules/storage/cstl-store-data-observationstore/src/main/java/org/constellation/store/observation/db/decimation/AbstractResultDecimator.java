@@ -23,7 +23,6 @@ import static org.constellation.store.observation.db.OM2Utils.getMeasureFields;
 import org.constellation.store.observation.db.ResultProcessor;
 import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
-import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 
 /**
@@ -37,10 +36,10 @@ public abstract class AbstractResultDecimator extends ResultProcessor {
     protected final boolean skipProfileMain;
     protected final boolean onlyProfileMain;
 
-    public AbstractResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
-        super(fields, includeId, false, false, procedure, "");
+    public AbstractResultDecimator(List<? extends DbField> fields, int width, ProcedureInfo procedure) {
+        super(fields, false, false, procedure);
         this.width = width;
-        List<DbField> measureFields = getMeasureFields(fields, procedure);
+        List<? extends DbField> measureFields = getMeasureFields(fields, procedure);
         onlyProfileMain = measureFields.size() == 1 && measureFields.get(0).type.equals(FieldType.MAIN); // main field will only be included in measure fields for profile
         skipProfileMain = nonTimeseries && !measureFields.stream().anyMatch(mf -> mf.type.equals(FieldType.MAIN));
     }

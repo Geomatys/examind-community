@@ -429,7 +429,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
 
     }
-
+    
     @Test
     public void getObservationsTest() throws Exception {
         initPool();
@@ -2580,6 +2580,100 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-2.json");
+        compareJSON(expResult, result);
+        
+        filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:2'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=dataArray&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-3.json");
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    public void getObservationsSelectOperations() throws Exception {
+        initPool();
+
+        String filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:8'))".replace(" ", "%20");
+        URL getFoiUrl = new URI(getDefaultURL() + "/Observations?$select=avg(result)&$filter=" + filter).toURL();
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs-avg.json");
+        compareJSON(expResult, result);
+        
+        filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:2'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$select=avg(result)&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-avg-2.json");
+        compareJSON(expResult, result);
+        
+        filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:8'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$select=avg(result),id,Datastreams/ObservedProperty&$expand=Datastreams/ObservedProperty&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-avg-exp.json");
+        compareJSON(expResult, result);
+        
+        filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:2'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$select=avg(result),id,Datastreams/ObservedProperty&$expand=Datastreams/ObservedProperty&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-avg-exp-2.json");
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    public void getDataArrayForObservationsSelectOperations() throws Exception {
+        initPool();
+
+        String filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:8'))".replace(" ", "%20");
+        URL getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=dataArray&$select=avg(result)&$filter=" + filter).toURL();
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-avg-1.json");
+        compareJSON(expResult, result);
+        
+        filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:2'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=dataArray&$select=avg(result)&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-avg-2.json");
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    public void getDataArrayForMultiDatastreamsSelectOperations() throws Exception {
+        initPool();
+
+        URL url = URI.create(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$select=avg(result)").toURL();
+
+        String result = getStringResponse(url) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-avg-1.json");
+        compareJSON(expResult, result);
+        
+        url = URI.create(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations?$resultFormat=dataArray&$select=avg(result)").toURL();
+
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-avg-2.json");
+        compareJSON(expResult, result);
+    }
+    
+    
+    @Test
+    public void getDataArrayForDatastreamsSelectOperations() throws Exception {
+        initPool();
+
+        URL url = URI.create(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Observations?$resultFormat=dataArray&$select=avg(result)").toURL();
+
+        String result = getStringResponse(url) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-avg-1.json");
+        compareJSON(expResult, result);
+        
+        url = URI.create(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Observations?$resultFormat=dataArray&$select=avg(result)").toURL();
+
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-avg-2.json");
         compareJSON(expResult, result);
     }
     

@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.List;
 import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.store.observation.db.TimeScaleResultDecimator;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.model.Field;
@@ -33,8 +34,8 @@ import org.geotoolkit.observation.model.Field;
  */
 public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
 
-    public ASMTimeScaleResultDecimator(List<Field> fields, boolean includeId, int width,  ProcedureInfo procedure) {
-        super(fields, includeId, width, procedure);
+    public ASMTimeScaleResultDecimator(List<? extends DbField> fields, int width,  ProcedureInfo procedure) {
+        super(fields, width, procedure);
     }
 
     @Override

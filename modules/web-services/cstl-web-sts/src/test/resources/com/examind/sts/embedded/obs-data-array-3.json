@@ -1,0 +1,24 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
+            "dataArray": [
+                ["urn:ogc:object:observation:GEOM:201-1-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 12.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 18.5, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-1-2", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 24.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-2-2", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 19.7, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-1-3", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 48.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-2-3", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 21.2, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-1-4", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 96.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-2-4", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 23.9, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-1-5", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 192.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-2-5", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 26.2, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-1-6", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 384.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-2-6", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 31.4, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-1-7", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 768.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:201-2-7", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 35.1, [], {}], 
+                ["urn:ogc:object:observation:GEOM:202-1-1", "2000-12-10T23:00:00Z", "2000-12-10T23:00:00Z", 12.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:202-2-1", "2000-12-10T23:00:00Z", "2000-12-10T23:00:00Z", 18.5, [], {}], 
+                ["urn:ogc:object:observation:GEOM:203-1-1", "2000-12-21T23:00:00Z", "2000-12-21T23:00:00Z", 12.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:203-2-1", "2000-12-21T23:00:00Z", "2000-12-21T23:00:00Z", 18.5, [], {}]]
+        }]
+}

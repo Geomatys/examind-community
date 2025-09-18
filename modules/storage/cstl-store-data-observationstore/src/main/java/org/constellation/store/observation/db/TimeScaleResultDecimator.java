@@ -27,7 +27,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
-import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 
@@ -37,8 +36,8 @@ import org.geotoolkit.observation.model.FieldType;
  */
 public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
 
-    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
-        super(fields, includeId, width, procedure);
+    public TimeScaleResultDecimator(List<? extends DbField> fields, int width, ProcedureInfo procedure) {
+        super(fields, width, procedure);
     }
 
     @Override
@@ -49,8 +48,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
         int cpt = 0;
         while (rs.nextOnField("step")) {
             values.newBlock();
-            for (int i = 0; i < fields.size(); i++) {
-                DbField field = (DbField) fields.get(i);
+            for (DbField field : fields) {
                 String fieldName = field.name;
                 int rsIndex = field.tableNumber;
 
@@ -82,11 +80,13 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                         values.appendTime(t, measureField, field);
                     }
                     case QUANTITY -> {
-                        double dvalue = rs.getDouble(fieldName, rsIndex);
-                        if (rs.wasNull(rsIndex)) {
-                            dvalue = Double.NaN;
+                        Object obj = field.getValueFromResult(rs, rsIndex);
+                        if (obj instanceof Double d && d.isNaN()) {
+                            // because of a bug in appendValue with Nan double
+                            values.appendDouble(Double.NaN, true, field);
+                        } else {
+                            values.appendValue(obj, true, field);
                         }
-                        values.appendDouble(dvalue, true, field);
                     }
                     default-> {
                         values.appendString(rs.getString(fieldName, rsIndex), true, field);
