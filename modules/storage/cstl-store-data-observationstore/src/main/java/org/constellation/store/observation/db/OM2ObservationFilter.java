@@ -50,7 +50,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
-import org.apache.sis.filter.privy.FunctionNames;
+import org.apache.sis.filter.internal.shared.FunctionNames;
 import org.apache.sis.temporal.TemporalObjects;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;

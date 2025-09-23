@@ -19,8 +19,8 @@
 package org.constellation.util;
 
 import java.util.Locale;
-import org.apache.sis.metadata.privy.Merger;
-import org.apache.sis.metadata.privy.Merger.Resolution;
+import org.apache.sis.metadata.internal.shared.Merger;
+import org.apache.sis.metadata.internal.shared.Merger.Resolution;
 import org.apache.sis.metadata.ModifiableMetadata;
 
 /**

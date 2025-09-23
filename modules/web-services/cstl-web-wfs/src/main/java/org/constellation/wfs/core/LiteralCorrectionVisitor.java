@@ -19,8 +19,8 @@
 
 package org.constellation.wfs.core;
 
-import org.apache.sis.feature.privy.FeatureProjectionBuilder;
-import org.apache.sis.feature.privy.FeatureExpression;
+import org.apache.sis.feature.internal.shared.FeatureProjectionBuilder;
+import org.apache.sis.feature.internal.shared.FeatureExpression;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.FeatureType;

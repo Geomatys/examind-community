@@ -37,7 +37,7 @@ import org.opengis.metadata.Metadata;
 import org.opengis.util.InternationalString;
 import org.opengis.util.LocalName;
 
-import org.apache.sis.metadata.privy.Merger;
+import org.apache.sis.metadata.internal.shared.Merger;
 import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.ISOMetadata;

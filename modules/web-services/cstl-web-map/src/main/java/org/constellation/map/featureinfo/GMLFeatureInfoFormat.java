@@ -34,7 +34,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
-import org.apache.sis.feature.privy.AttributeConvention;
+import org.apache.sis.feature.internal.shared.AttributeConvention;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
