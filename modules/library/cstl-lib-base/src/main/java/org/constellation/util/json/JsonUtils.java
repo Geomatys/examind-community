@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.util.StdConverter;
 import org.apache.sis.util.ObjectConverters;
-import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
 
 import java.io.ByteArrayOutputStream;
@@ -52,7 +51,7 @@ import java.util.Stack;
 /**
  * @author Quentin Boileau (Geomatys)
  */
-public class JsonUtils extends Static {
+public class JsonUtils {
 
     /**
      * Jackson JsonFactory used to create temporary JsonGenerators.

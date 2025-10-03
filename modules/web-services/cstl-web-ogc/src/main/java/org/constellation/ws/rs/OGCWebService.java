@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import jakarta.annotation.PreDestroy;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.validation.Schema;
-import org.apache.sis.util.iso.Types;
 import org.constellation.admin.SpringHelper;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
@@ -218,7 +217,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
     protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w) {
         return processExceptionResponse(exc, serviceDef, w, getExceptionMimeType());
     }
-    
+
     /**
      * Handle all exceptions returned by a web service operation in two ways:
      * <ul>
@@ -263,10 +262,10 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
      * return a specific http code correspounding to the exception code.
      * Default implementation return always 200 (OK). Sub-classes may override this method to return specific code.
      * The acting version of the service is specified because in some standard, a version send some related version http code.
-     * 
+     *
      * @param exceptionCode An ows error code.
      * @param version Acting version of the service.
-     * 
+     *
      * @return An HTTP status code.
      */
     protected int getHttpCodeFromErrorCode(final String exceptionCode, String version) {
@@ -301,7 +300,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
                 codeName = StringUtilities.transformCodeName(codeName);
             }
         }
-        final OWSExceptionCode code   = Types.forCodeName(OWSExceptionCode.class, codeName, true);
+        final OWSExceptionCode code   = OWSExceptionCode.valueOf(codeName);
         final CstlServiceException ex = new CstlServiceException(message, code, locator);
         return processExceptionResponse(ex, mainVersion, worker);
     }

@@ -66,7 +66,6 @@ import org.constellation.provider.Data;
 import org.constellation.map.util.DtoToOGCFilterTransformer;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.FeatureData;
-import org.geotoolkit.filter.FilterFactoryImpl;
 import static org.geotoolkit.filter.FilterUtilities.FF;
 
 import org.opengis.feature.FeatureType;
@@ -92,7 +91,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Guilhem Legal (Geomatys)
  */
 public class LayerCache {
-    
+
     private static final Logger LOGGER = Logger.getLogger("org.constellation.ws");
 
     private final NameInProvider nip;
@@ -164,7 +163,7 @@ public class LayerCache {
 
     /**
      * Return a reprojected data envelope.
-     * 
+     *
      * @param crs A coordinate referenceSystem
      */
     public Envelope getEnvelope(CoordinateReferenceSystem crs) throws ConstellationStoreException {
@@ -174,7 +173,7 @@ public class LayerCache {
             return data.getEnvelope(crs);
         }
     }
-    
+
     public GeographicBoundingBox getGeographicBoundingBox() throws ConstellationStoreException {
         try {
             final Envelope env = getEnvelope();
@@ -190,7 +189,7 @@ public class LayerCache {
             throw new ConstellationStoreException(ex);
         }
     }
-    
+
     public CoordinateReferenceSystem getCoordinateReferenceSystem() throws ConstellationStoreException {
         CoordinateReferenceSystem dataCRS = null;
         Envelope env = getEnvelope();
@@ -216,7 +215,7 @@ public class LayerCache {
     }
 
     private org.constellation.dto.Data dbData;
-    
+
     private org.constellation.dto.Data getDbData() throws ConstellationStoreException {
         if (dbData == null) {
             try {
@@ -231,11 +230,11 @@ public class LayerCache {
     public boolean isQueryable(ServiceDef.Query query) {
         return data.isQueryable(query);
     }
-    
+
     public DataType getDataType() {
         return data.getDataType();
     }
-    
+
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
         SortedSet<Number> elevations;
         if (getDbData().getCachedInfo()) {
@@ -249,7 +248,7 @@ public class LayerCache {
         }
         return elevations;
     }
-    
+
     public Number getFirstElevation() throws ConstellationStoreException {
         // can be optimized like times behaviour
         final SortedSet<Number> elevations = getAvailableElevations();
@@ -258,7 +257,7 @@ public class LayerCache {
         }
         return null;
     }
-    
+
     public SortedSet<Date> getAvailableTimes() throws ConstellationStoreException {
         SortedSet<Date> dates;
         if (getDbData().getCachedInfo()) {
@@ -272,7 +271,7 @@ public class LayerCache {
         }
         return dates;
     }
-    
+
     public SortedSet<Date> getDateRange() throws ConstellationStoreException {
         SortedSet<Date> dates;
         if (getDbData().getCachedInfo()) {
@@ -286,7 +285,7 @@ public class LayerCache {
         }
         return dates;
     }
-    
+
     public SortedSet<DimensionRange> getSampleValueRanges() throws ConstellationStoreException {
         final SortedSet<DimensionRange> dims;
         if (getDbData().getCachedInfo()) {
@@ -446,7 +445,7 @@ public class LayerCache {
              throw new ConstellationStoreException("Mixed exclusive and inclusive property names");
 
          } else if (!inverted.isEmpty()) {
-           
+
             if (data.getDataDescription(null, getEnvelope()) instanceof  FeatureDataDescription fd) {
                 return fd.getProperties().stream()
                                   .map(p -> p.getName())
@@ -457,7 +456,7 @@ public class LayerCache {
                 return Collections.EMPTY_LIST;
             }
         }
-        
+
         return results;
     }
 
@@ -508,7 +507,7 @@ public class LayerCache {
             final EngineeringDatum customDatum = new DefaultEngineeringDatum(Collections.singletonMap("name", crsname));
             final CoordinateSystemAxis csAxis = new DefaultCoordinateSystemAxis(Collections.singletonMap("name", crsname), "u", AxisDirection.valueOf(crsname), Units.UNITY);
             final AbstractCS customCs = new AbstractCS(Collections.singletonMap("name", crsname), csAxis);
-            dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
+            dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, null, customCs);
         }
         return new DimensionDef(dimCrs, lower, upper);
     }

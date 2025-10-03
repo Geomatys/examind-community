@@ -46,7 +46,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.DefaultInternationalString;
 import org.apache.sis.util.ObjectConverters;
-import org.apache.sis.util.Static;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
@@ -102,14 +101,13 @@ import org.opengis.style.Graphic;
 import org.opengis.style.GraphicalSymbol;
 import org.opengis.style.Mark;
 import org.opengis.style.Stroke;
-import org.opengis.style.StyleFactory;
 
 /**
  * @author Fabien Bernard (Geomatys).
  * @version 0.9
  * @since 0.9
  */
-public final class StyleUtilities extends Static {
+public final class StyleUtilities {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.json.util");
 

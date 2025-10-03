@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.Static;
 import org.constellation.util.json.ParameterDescriptorJSONSerializer;
 import org.constellation.util.json.ParameterValueJSONDeserializer;
 import org.constellation.util.json.ParameterValueJSONSerializer;
@@ -39,10 +38,7 @@ import java.io.StringWriter;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 
-/**
- *
- */
-public final class ParamUtilities extends Static {
+public final class ParamUtilities {
 
     /**
      * Reads an {@link java.io.InputStream} to build a {@link org.opengis.parameter.GeneralParameterValue}

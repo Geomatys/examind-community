@@ -15,7 +15,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
-import org.apache.sis.util.Static;
 import org.geotoolkit.feature.xml.Utils;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.util.NamesExt;
@@ -27,7 +26,7 @@ import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
 
-public class NameOverride extends Static {
+public class NameOverride {
 
     private static class SimpleDecoratedFeature extends AbstractFeature {
 

@@ -51,7 +51,6 @@ import org.opengis.util.InternationalString;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -95,11 +94,11 @@ public class ReflectionUtilitiesTest {
         DefaultCitation citation = new DefaultCitation();
         List<CitationDate> dates = new ArrayList<CitationDate>();
         long randomDate1 = 1245587454;
-        DefaultCitationDate date1 = new DefaultCitationDate(new Date(randomDate1), DateType.CREATION);
+        DefaultCitationDate date1 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate1), DateType.CREATION);
         long randomDate2 = 1253587454;
-        DefaultCitationDate date2 = new DefaultCitationDate(new Date(randomDate2), DateType.PUBLICATION);
+        DefaultCitationDate date2 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate2), DateType.PUBLICATION);
         long randomDate3 = 1266687454;
-        DefaultCitationDate date3 = new DefaultCitationDate(new Date(randomDate3), DateType.REVISION);
+        DefaultCitationDate date3 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate3), DateType.REVISION);
         dates.add(date1);
         dates.add(date2);
         dates.add(date3);
@@ -238,18 +237,18 @@ public class ReflectionUtilitiesTest {
         DefaultCitation citation = new DefaultCitation();
         List<CitationDate> dates = new ArrayList<CitationDate>();
         long randomDate1 = 1245587454;
-        DefaultCitationDate date1 = new DefaultCitationDate(new Date(randomDate1), DateType.CREATION);
+        DefaultCitationDate date1 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate1), DateType.CREATION);
         long randomDate2 = 1253587454;
-        DefaultCitationDate date2 = new DefaultCitationDate(new Date(randomDate2), DateType.PUBLICATION);
+        DefaultCitationDate date2 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate2), DateType.PUBLICATION);
         long randomDate3 = 1266687454;
-        DefaultCitationDate date3 = new DefaultCitationDate(new Date(randomDate3), DateType.REVISION);
+        DefaultCitationDate date3 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate3), DateType.REVISION);
 
         long randomDate4 = 1789587454;
-        DefaultCitationDate date4 = new DefaultCitationDate(new Date(randomDate4), DateType.CREATION);
+        DefaultCitationDate date4 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate4), DateType.CREATION);
         long randomDate5 = 1999587454;
-        DefaultCitationDate date5 = new DefaultCitationDate(new Date(randomDate5), DateType.PUBLICATION);
+        DefaultCitationDate date5 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate5), DateType.PUBLICATION);
         long randomDate6 = 1888687454;
-        DefaultCitationDate date6 = new DefaultCitationDate(new Date(randomDate6), DateType.REVISION);
+        DefaultCitationDate date6 = new DefaultCitationDate(Instant.ofEpochMilli(randomDate6), DateType.REVISION);
         dates.add(date1);
         dates.add(date2);
         dates.add(date3);

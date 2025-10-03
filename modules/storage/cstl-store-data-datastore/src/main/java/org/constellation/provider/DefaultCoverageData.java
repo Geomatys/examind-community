@@ -568,9 +568,9 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             GridGeometry gg = getGeometry();
             if (gg.isDefined(GridGeometry.EXTENT)) {
                 GridExtent extent = gg.getExtent();
-                int[] subSample = new int[extent.getDimension()];
-                subSample[0] = Math.round(extent.getSize(0) * 0.05f);
-                subSample[1] = Math.round(extent.getSize(1) * 0.05f);
+                long[] subSample = new long[extent.getDimension()];
+                subSample[0] = Math.round(extent.getSize(0) * 0.05);
+                subSample[1] = Math.round(extent.getSize(1) * 0.05);
                 for (int i = 2; i < extent.getDimension(); i++) {
                     subSample[i] = Math.toIntExact(extent.getSize(i));
                 }

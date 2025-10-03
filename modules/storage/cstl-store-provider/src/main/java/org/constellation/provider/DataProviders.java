@@ -41,7 +41,6 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.Resource.FileSet;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.style.Style;
-import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IStyleBusiness;
@@ -85,7 +84,7 @@ import org.opengis.util.GenericName;
  *
  * @author Johann Sorel (Geomatys)
  */
-public final class DataProviders extends Static{
+public final class DataProviders {
 
     /**
      * Logger used by all providers.

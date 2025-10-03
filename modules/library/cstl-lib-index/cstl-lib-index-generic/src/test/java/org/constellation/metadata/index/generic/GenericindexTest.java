@@ -43,7 +43,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -196,8 +195,7 @@ public class GenericindexTest extends AbstractGenericIndexTest {
         DefaultMetadata meta = new DefaultMetadata();
         DefaultDataIdentification ident = new DefaultDataIdentification();
         DefaultCitation citation = new DefaultCitation();
-        Date d = Date.from(Instant.EPOCH);
-        DefaultCitationDate date = new DefaultCitationDate(d, DateType.CREATION);
+        DefaultCitationDate date = new DefaultCitationDate(Instant.EPOCH, DateType.CREATION);
         citation.setDates(Arrays.asList(date));
         ident.setCitation(citation);
         meta.setIdentificationInfo(Arrays.asList(ident));
@@ -207,8 +205,7 @@ public class GenericindexTest extends AbstractGenericIndexTest {
         DefaultMetadata meta2 = new DefaultMetadata();
         DefaultDataIdentification ident2 = new DefaultDataIdentification();
         DefaultCitation citation2 = new DefaultCitation();
-        Date d2 = new Date(0);
-        DefaultCitationDate date2 = new DefaultCitationDate(d2, DateType.REVISION);
+        DefaultCitationDate date2 = new DefaultCitationDate(Instant.ofEpochMilli(0), DateType.REVISION);
         citation2.setDates(Arrays.asList(date2));
         ident2.setCitation(citation2);
         meta2.setIdentificationInfo(Arrays.asList(ident2));

@@ -535,7 +535,7 @@ public class TemplateReader extends AbstractTemplateHandler {
                 if (isCodeList || type == Locale.class || type == Charset.class || type.isEnum()) {
                     text = text.substring(text.indexOf('.') + 1).trim();
                     if (isCodeList) {
-                        value = Types.forCodeName(type.asSubclass(CodeList.class), text, false);
+                        value = Types.forCodeName(type.asSubclass(CodeList.class), text, null);
                     } else if (type.isEnum()){
                         value = Types.forEnumName(type.asSubclass(Enum.class), text);
                     } else {
@@ -600,7 +600,7 @@ public class TemplateReader extends AbstractTemplateHandler {
             throw new ParseException("Illegal date: " + value + " (property:" + identifier +")", e);
         }
     }
-    
+
     private Temporal toInstant(final Object value, final String identifier) throws ParseException {
         if (value == null) {
             return null;

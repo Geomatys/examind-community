@@ -361,7 +361,7 @@ public class MetadataFeeder {
      */
     protected void setCitationDate(final Date date, final DateType dateType) {
         final AbstractIdentification identification = (AbstractIdentification) getIdentification(eater);
-        final DefaultCitationDate citDate = new DefaultCitationDate(date, dateType);
+        final var citDate = new DefaultCitationDate(date == null ? null : date.toInstant(), dateType);
         if (identification.getCitation() == null) {
             final DefaultCitation citation = new DefaultCitation();
             citation.setDates(Collections.singletonList(citDate));
@@ -378,7 +378,7 @@ public class MetadataFeeder {
     }
 
     public void setCreationDate(final Date date) {
-        final DefaultCitationDate creationDate = new DefaultCitationDate(date, DateType.CREATION);
+        final var creationDate = new DefaultCitationDate(date == null ? null : date.toInstant(), DateType.CREATION);
         final AbstractIdentification ident = (AbstractIdentification)getIdentification(eater);
         DefaultCitation citation = (DefaultCitation) ident.getCitation();
         if (citation == null) {

@@ -322,9 +322,9 @@ public class VectorAggregationWithExtraDimensionsProvider extends ComputedResour
                 var qProj = fq.getProjection();
                 qProj = qProj == null ? null : Arrays.stream(qProj)
                         .map(expr -> {
-                            if (expr != null && expr.expression instanceof ValueReference<? super Feature,?> ref) {
+                            if (expr != null && expr.expression() instanceof ValueReference<? super Feature,?> ref) {
                                 var newExpr = conf.replaceQueryProjection.apply(ref);
-                                return new FeatureQuery.NamedExpression(newExpr, expr.alias);
+                                return new FeatureQuery.NamedExpression(newExpr, expr.alias());
                             } else return expr;
                         })
                         .toArray(FeatureQuery.NamedExpression[]::new);

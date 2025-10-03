@@ -595,7 +595,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         prop = new HashMap<>();
         prop.put(DefaultVerticalCRS.NAME_KEY, "idvertCRS");
         prop.put(ObjectDomain.SCOPE_KEY, null);
-        DefaultVerticalCRS vcrs = new DefaultVerticalCRS(prop, datum, cs);
+        DefaultVerticalCRS vcrs = new DefaultVerticalCRS(prop, datum, null, cs);
 
 
         // TODO vertical limit? var 35

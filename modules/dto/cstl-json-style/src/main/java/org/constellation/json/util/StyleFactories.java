@@ -19,7 +19,6 @@
 
 package org.constellation.json.util;
 
-import org.apache.sis.util.Static;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.sld.DefaultSLDFactory;
 import org.geotoolkit.sld.MutableSLDFactory;
@@ -32,7 +31,7 @@ import org.opengis.filter.FilterFactory;
  * @version 0.9
  * @since 0.9
  */
-public final class StyleFactories extends Static {
+public final class StyleFactories {
 
     /**
      * SLD factory.
