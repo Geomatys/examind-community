@@ -79,6 +79,7 @@ import org.geotoolkit.style.MutableStyle;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterNotFoundException;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.context.annotation.Profile;
@@ -202,14 +203,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     serviceBusiness.setConfiguration(sid, conf);
                 }
                 
-                Integer datasourceId;
+                Integer datasourceId  = null;
                 Datasource source = instance.getSource();
                 if (source != null) {
                     datasourceId = createDatasource(source);
-                } else {
-                    throw new ConstellationException("Source missing for STS service.");
                 }
-                
                 int pid = createOM2DatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                 serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
                 
@@ -367,6 +365,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return metadataBusiness.getDefaultInternalProviderID();
     }
     
+    private final List<String> skippedForOMProvider = List.of("om-implementation", "sn-implementation", "direct-provider");
+    
     private Integer createOM2DatabaseProvider(String serviceId, Map<String, String> parameters, Integer datasourceId) {
         try {
             final String providerIdentifier = "omSrc-" + serviceId;
@@ -374,25 +374,39 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
             
-            config.parameter("datasource-id").setValue(datasourceId);
-            setParameter(config, parameters, "max-field-by-table", false);
-            setParameter(config, parameters, "database-readonly", false);
-            setParameter(config, parameters, "mode", false);
-            setParameter(config, parameters, "schema-prefix", false);
+            String impl = parameters.getOrDefault("om-implementation", "observationSOSDatabase");
+            final ParameterValueGroup config = choice.addGroup(impl);
             
-            // fixed for now
-            config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-            config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-            config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-            config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+            if (datasourceId != null) {
+                config.parameter("datasource-id").setValue(datasourceId);
+            }
+            for (Entry<String, String> param : parameters.entrySet()) {
+                // skip some reserved or know parameter
+                String key = param.getKey();
+                if (skippedForOMProvider.contains(key)) continue;
+                try {
+                    ParameterValue<?> paramValue = config.parameter(param.getKey());
+                    paramValue.setValue(ObjectConverters.convert(param.getValue(), paramValue.getDescriptor().getValueClass()));
+                } catch (ParameterNotFoundException ex) {
+                    LOGGER.warning(ex.getMessage());
+                }
+            }
+            
+            // fixed for now TODO remove ? 
+            if (impl.equals("observationSOSDatabase")) {
+                config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
+                config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
+                config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
+                config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+            }
             
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
     }
+    
     
     private Integer createSensorDatabaseProvider(String serviceId, Map<String, String> parameters, Integer datasourceId) {
         try {
@@ -401,20 +415,33 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("om2sensor");
             
-            config.parameter("datasource-id").setValue(datasourceId);
+            String impl = parameters.getOrDefault("sn-implementation", "om2sensor");
+            final ParameterValueGroup config = choice.addGroup(impl);
             
-            setParameter(config, parameters, "max-field-by-table", false);
-            setParameter(config, parameters, "database-readonly", false);
-            setParameter(config, parameters, "mode", false);
-            setParameter(config, parameters, "schema-prefix", false);
+            if (datasourceId != null) {
+                config.parameter("datasource-id").setValue(datasourceId);
+            }
             
-            // fixed for now
-            config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-            config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-            config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-            config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+            for (Entry<String, String> param : parameters.entrySet()) {
+                // skip some reserved or know parameter
+                String key = param.getKey();
+                if (skippedForOMProvider.contains(key)) continue;
+                try {
+                    ParameterValue<?> paramValue = config.parameter(param.getKey());
+                    paramValue.setValue(ObjectConverters.convert(param.getValue(), paramValue.getDescriptor().getValueClass()));
+                } catch (ParameterNotFoundException ex) {
+                    LOGGER.warning(ex.getMessage());
+                }
+            }
+            
+            // fixed for now TODO remove ? 
+            if (impl.equals("om2sensor")) {
+                config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
+                config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
+                config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
+                config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+            }
             
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "sensor-store", source);
         } catch (Exception ex) {
