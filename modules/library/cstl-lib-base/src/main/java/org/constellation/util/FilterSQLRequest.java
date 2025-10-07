@@ -60,6 +60,8 @@ public interface FilterSQLRequest {
     
     FilterSQLRequest addNewFilter();
     
+    FilterSQLRequest addNewFilter(String sql);
+    
     FilterSQLRequest cleanupWhere();
 
     String getRequest();

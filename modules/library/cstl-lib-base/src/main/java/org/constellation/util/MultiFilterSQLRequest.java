@@ -140,6 +140,12 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         requests.values().forEach(r -> r.addNewFilter());
         return this;
     }
+    
+    @Override
+    public FilterSQLRequest addNewFilter(String sql) {
+        requests.values().forEach(r -> r.addNewFilter(sql));
+        return this;
+    }
 
     @Override
     public FilterSQLRequest cleanupWhere() {

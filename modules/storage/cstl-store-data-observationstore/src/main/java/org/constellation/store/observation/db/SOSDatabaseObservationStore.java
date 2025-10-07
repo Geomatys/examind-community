@@ -377,30 +377,4 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             }
         }
     }
-    
-    
-    
-    
-    @Override
-    protected FilterAppend handleLogicalFilter(final OMEntity entityType, final ObservationFilterReader localOmFilter, LogicalOperator<?> logFilter) throws DataStoreException {
-        OM2FilterAppend result = new OM2FilterAppend();
-        LogicalOperatorName type = logFilter.getOperatorType();
-        localOmFilter.startFilterBlock(type);
-        int nbFilter = logFilter.getOperands().size();
-        for (int i = 0; i < nbFilter; i++) {
-            Filter f = logFilter.getOperands().get(i);
-            
-            // if not first we append the logical operator
-            if (i > 0) localOmFilter.appendFilterOperator(type, result);
-            
-            FilterAppend fa = handleFilter(entityType, f, localOmFilter);
-            
-            // we may have to remove it
-            if (i > 0) localOmFilter.removeFilterOperator(type, result, fa);
-            
-            result = result.merge(fa);
-        }
-        localOmFilter.endFilterBlock(type, result);
-        return result;
-    }
 }

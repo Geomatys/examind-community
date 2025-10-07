@@ -228,15 +228,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (obsJoin) {
             String obsFrom = ",\"" + schemaPrefix + "om\".\"observations\" o  LEFT JOIN \"" + schemaPrefix + "om\".\"components\" c ON o.\"observed_property\" = c.\"phenomenon\"";
             sqlRequest.replaceAll("${obs-join-from}", obsFrom);
-            sqlRequest.addNewFilter();
-            sqlRequest.append(" (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
+            sqlRequest.addNewFilter(" (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
             sqlRequest.append(" AND pd.\"procedure\" = o.\"procedure\" ");
         } else {
             sqlRequest.replaceAll("${obs-join-from}", "");
             // we must add a field filter to remove the "time" field of the timeseries
-            sqlRequest.addNewFilter();
-            // we must add a field filter to remove the "time" field of the timeseries
-            sqlRequest.append(" NOT ( pd.\"field_type\" = 'Time' AND pd.\"order\" = 1 ) ");
+            sqlRequest.addNewFilter(" NOT ( pd.\"field_type\" = 'Time' AND pd.\"order\" = 1 ) ");
             // we must remove the quality fields
             sqlRequest.append(" AND (pd.\"parent\" IS NULL) ");
         }

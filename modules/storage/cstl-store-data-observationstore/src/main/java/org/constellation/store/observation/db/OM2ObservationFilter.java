@@ -291,10 +291,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     private void initFilterGetPhenomenon(ObservedPropertyQuery query) {
         this.noCompositePhenomenon = query.isNoCompositePhenomenon();
         sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT(op.\"id\") as \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
-        sqlRequest.appendAndOrWhere();
         if (noCompositePhenomenon) {
+            sqlRequest.addNewFilter();
             sqlRequest.append(" op.\"id\" NOT IN (SELECT DISTINCT(\"phenomenon\") FROM \"").append(schemaPrefix).append("om\".\"components\") AND ");
-            sqlRequest.setHasFilter();
+        } else {
+            sqlRequest.appendAndOrWhere();
         }
     }
 
@@ -1444,14 +1445,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             if (obsJoin) {
                 String obsFrom = ",\"" + schemaPrefix + "om\".\"observations\" o  LEFT JOIN \"" + schemaPrefix + "om\".\"components\" c ON o.\"observed_property\" = c.\"phenomenon\"";
                 sqlRequest.replaceAll("${obs-join-from}", obsFrom);
-                sqlRequest.addNewFilter();
-                sqlRequest.append(" (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
+                sqlRequest.addNewFilter(" (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
                 sqlRequest.append(" AND pd.\"procedure\" = o.\"procedure\" ");
             } else {
                 sqlRequest.replaceAll("${obs-join-from}", "");
-                sqlRequest.addNewFilter();
                 // we must add a field filter to remove the "time" field of the timeseries
-                sqlRequest.append(" NOT ( pd.\"field_type\" = 'Time' AND pd.\"order\" = 1 ) ");
+                sqlRequest.addNewFilter(" NOT ( pd.\"field_type\" = 'Time' AND pd.\"order\" = 1 ) ");
                 // we must remove the quality fields
                 sqlRequest.append(" AND (pd.\"parent\" IS NULL) ");
             }

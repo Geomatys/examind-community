@@ -1308,14 +1308,11 @@ public class OM2BaseReader {
                     measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
                 }
                 if (oid != null) {
-                    measureRequest.appendAndOrWhere();
+                    measureRequest.addNewFilter();
                     measureRequest.append(" m.\"id_observation\" = ").appendValue(oid);
-                    measureRequest.setHasFilter();
                 }
                 if (obsJoin) {
-                    measureRequest.appendAndOrWhere();
-                    measureRequest.append(" o.\"id\" = m.\"id_observation\" ");
-                    measureRequest.setHasFilter();
+                    measureRequest.addNewFilter(" o.\"id\" = m.\"id_observation\" ");
                 }
                 
                 /*
@@ -1360,16 +1357,13 @@ public class OM2BaseReader {
                 if (obsJoin) {
                     measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
                 }
-                measureRequest.appendAndOrWhere();
-                measureRequest.append(" (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
-                measureRequest.setHasFilter();
+                measureRequest.addNewFilter(" (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
                 if (oid != null) {
                     measureRequest.appendAndOrWhere();
                     measureRequest.append(" m2.\"id_observation\" = ").appendValue(oid);
                 }
                 if (obsJoin) {
-                    measureRequest.appendAndOrWhere();
-                    measureRequest.append(" o.\"id\" = m2.\"id_observation\" ");
+                    measureRequest.addNewFilter(" o.\"id\" = m2.\"id_observation\" ");
                 }
                 
                /*
@@ -1392,15 +1386,13 @@ public class OM2BaseReader {
                              measureFilter.isEmpty(includeConditional);
                     
             if (!isEmpty) {
-                measureRequest.appendAndOrWhere();
-                
+                measureRequest.addNewFilter();
                 FilterSQLRequest clone = measureFilter.clone();
                 if (clone instanceof MultiFilterSQLRequest mf) {
                     measureRequest.append(mf.getRequest(tableNum), includeConditional);
                 } else {
                     measureRequest.append(clone, includeConditional);
                 }
-                measureRequest.setHasFilter();
             }
             
             /*
@@ -1446,9 +1438,7 @@ public class OM2BaseReader {
         if (nullFilterApplied) {
             s.delete(s.length() - 3, s.length());
             s.append(")");
-            measureRequest.appendAndOrWhere();
-            measureRequest.append(s.toString());
-            measureRequest.setHasFilter();
+            measureRequest.addNewFilter(s.toString());
         }
     }
 }

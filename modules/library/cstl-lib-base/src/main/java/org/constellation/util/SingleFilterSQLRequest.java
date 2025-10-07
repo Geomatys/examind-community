@@ -112,15 +112,32 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     public FilterSQLRequest addNewFilter() {
         if (hasFilter.get()) {
             append(" AND ");
+        } else if (!whereSet.get()) {
+            append(" WHERE ");
+            whereSet.set(true);
         }
         hasFilter.set(true);
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest addNewFilter(String sql) {
+        if (hasFilter.get()) {
+            append(" AND ");
+        } else if (!whereSet.get()) {
+            append(" WHERE ");
+            whereSet.set(true);
+        }
+        hasFilter.set(true);
+        append(sql);
         return this;
     }
 
     @Override
     public FilterSQLRequest cleanupWhere() {
-        if (!hasFilter.get()) {
+        if (whereSet.get() && !hasFilter.get()) {
             replaceFirst("WHERE", "");
+            whereSet.set(false);
         }
         return this;
     }
