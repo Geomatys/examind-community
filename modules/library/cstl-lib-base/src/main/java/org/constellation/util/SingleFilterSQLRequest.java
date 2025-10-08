@@ -160,33 +160,29 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             this.sqlRequest.append(sf.sqlRequest);
             this.params.addAll(sf.params);
             
-            if (s instanceof SingleFilterSQLRequest cs) {
-                for (Entry<String, SingleFilterSQLRequest> entry : cs.conditionalRequests.entrySet()) {
-                    String varName = '$' + entry.getKey();
-                    int st = this.sqlRequest.indexOf(varName);
-                    if (st != -1) {
-                        int en = st + varName.length();
-                        SingleFilterSQLRequest cRequest = entry.getValue();
-                        
-                        if (includeConditional) {
-                            this.sqlRequest.replace(st, en, cRequest.getRequest());
+            for (Entry<String, SingleFilterSQLRequest> entry : sf.conditionalRequests.entrySet()) {
+                String varName = '$' + entry.getKey();
+                int st = this.sqlRequest.indexOf(varName);
+                if (st != -1) {
+                    int en = st + varName.length();
+                    SingleFilterSQLRequest cRequest = entry.getValue();
 
-                            // warning the order must be break
-                            this.params.addAll(cRequest.params);
-                            
-                        // remove conditional variable
-                        } else {
-                            this.sqlRequest.replace(st, en, "");
-                        }
-                        
+                    if (includeConditional) {
+                        this.sqlRequest.replace(st, en, cRequest.getRequest());
+
+                        // warning the order must be break
+                        this.params.addAll(cRequest.params);
+
+                    // remove conditional variable
                     } else {
-                        LOGGER.warning(" conditional variable not found");
+                        this.sqlRequest.replace(st, en, "");
                     }
+
+                } else {
+                    LOGGER.warning(" conditional variable not found");
                 }
-                cleanupFilterRequest();
-            } else {
-                throw new IllegalArgumentException("dont konw yet how to deal with this");
             }
+            cleanupFilterRequest();
             return this;
         } else {
             throw new IllegalArgumentException("append request on a singleFilterRequest can only append singleFilterRequest");
@@ -641,8 +637,8 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         if (this.contains(" ( ) ")) {
             this.replaceAll(" ( ) ", "");
         }
-        if (this.toString().equals(" ")) {
-            this.replaceAll(" ", "");
+        if (this.sqlRequest.toString().equals(" ")) {
+            this.sqlRequest.deleteCharAt(0);
         }
     }
     

@@ -417,44 +417,34 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         OM2FilterAppend result = new OM2FilterAppend();
         if (phenomenon == null  || allPhenonenon(phenomenon)) return result;
 
-        final FilterSQLRequest filter;
-        final Set<String> fields    = new HashSet<>();
+        sqlRequest.append(" (");
+        
+        
+        if (!OMEntity.FEATURE_OF_INTEREST.equals(objectType)) {
+            fieldIdFilters.addAll(getFieldsForPhenomenon(phenomenon));
+        }
         switch(objectType) {
             case OBSERVED_PROPERTY ->  {
-                final FilterSQLRequest phenoFilter = new SingleFilterSQLRequest();
-                phenoFilter.append(" op.\"id\" =").appendValue(phenomenon);
+                sqlRequest.append(" op.\"id\" =").appendValue(phenomenon);
                 // try to be flexible and allow to call this ommiting phenomenon id base
                 if (!phenomenon.startsWith(phenomenonIdBase)) {
-                    phenoFilter.append(" OR op.\"id\" =").appendValue(phenomenonIdBase + phenomenon);
+                    sqlRequest.append(" OR op.\"id\" =").appendValue(phenomenonIdBase + phenomenon);
                 }
-                fields.addAll(getFieldsForPhenomenon(phenomenon));
-                filter = phenoFilter;
+                
             }
             default -> {
                 if (singleObservedPropertyInTemplate) {
-                    final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
-                    sbPheno.append(" pd.\"field_name\" = ").appendValue(phenomenon);
-                    fields.addAll(getFieldsForPhenomenon(phenomenon));
-                    filter = sbPheno;
+                    sqlRequest.append(" pd.\"field_name\" = ").appendValue(phenomenon);
                 } else {
-                    final FilterSQLRequest phenoFilter = new SingleFilterSQLRequest();
-                    final FilterSQLRequest compoFilter = new SingleFilterSQLRequest(" OR \"observed_property\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
-                    phenoFilter.append(" \"observed_property\"=").appendValue(phenomenon);
-                    compoFilter.append(" \"component\"=").appendValue(phenomenon);
-                    fields.addAll(getFieldsForPhenomenon(phenomenon));
-                    compoFilter.append(")");
-                    filter = phenoFilter.append(compoFilter);
+                    sqlRequest.append(" \"observed_property\"=").appendValue(phenomenon);
+                    sqlRequest.append(" OR \"observed_property\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+                    sqlRequest.append(" \"component\"=").appendValue(phenomenon);
+                    sqlRequest.append(")");
                     obsJoin = true;
                 }
             }
-
         }
-        if (!OMEntity.FEATURE_OF_INTEREST.equals(objectType)) {
-            for (String field : fields) {
-                fieldIdFilters.add(field);
-            }
-        }
-        sqlRequest.append(" (").append(filter).append(") ");
+        sqlRequest.append(") ");
         sqlRequest.setHasFilter();
         result.main = true;
         return result;
