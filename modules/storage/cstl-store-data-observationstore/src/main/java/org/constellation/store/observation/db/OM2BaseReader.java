@@ -804,41 +804,6 @@ public class OM2BaseReader {
         }
     }
 
-    /**
-     * Return the positions field for trajectory.
-     * This method assume that the fields are names 'lat' or 'lon'
-     *
-     * @param procedureID
-     * @param c
-     * @return
-     * @throws SQLException
-     */
-    protected List<Field> getPosFields(final String procedureID, final Connection c) throws SQLException {
-        final List<Field> results = new ArrayList<>();
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"='lat' OR \"field_name\"='lon') AND \"parent\" IS NULL ORDER BY \"order\" DESC")) {//NOSONAR
-            stmt.setString(1, procedureID);
-            try (final ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    results.add(getFieldFromDb(rs, procedureID, c, false));
-                }
-            }
-        }
-        return results;
-    }
-
-    protected Field getProcedureField(final String procedureID, final String fieldName, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"= ?) AND \"parent\" IS NULL")) {//NOSONAR
-            stmt.setString(1, procedureID);
-            stmt.setString(2, fieldName);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return getFieldFromDb(rs, procedureID, c, true);
-                }
-                return null;
-            }
-        }
-    }
-
     protected DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchExtraFields) throws SQLException {
         final String fieldName = rs.getString("field_name");
         List<Field> parameterFields = new ArrayList<>();
