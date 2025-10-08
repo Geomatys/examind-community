@@ -284,7 +284,7 @@ public abstract class AbstractWebService implements WebService{
      *
      * @return an image or xml response.
      */
-    @RequestMapping(method = RequestMethod.GET, headers="Accept=*/*")
+    @RequestMapping(value = {"", "/"}, method = RequestMethod.GET, headers="Accept=*/*")
     public @ResponseBody ResponseEntity doGET(@PathVariable("serviceId") String serviceId) {
         putServiceIdParam(serviceId);
         try {

@@ -19,6 +19,10 @@ resources to operate a platform of sensors that feeds back information in real t
 - **Styles** ([link](https://ogcapi.ogc.org/styles/)) : Part 1 - Core
 - **Common** ([link](https://ogcapi.ogc.org/common/)) : Part 1 - Core | Part 2 - Collections
 
+#### Other supported services and APIs
+* **OpenEO** : 1.2.0 
+* **STAC** : 1.0.0 *(wip)*
+
 #### Supported input data
 * Vector :
   * Shapefiles

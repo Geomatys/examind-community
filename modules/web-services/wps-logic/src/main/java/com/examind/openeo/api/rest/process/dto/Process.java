@@ -9,6 +9,9 @@ import org.opengis.parameter.GeneralParameterDescriptor;
 
 import java.util.*;
 
+import static com.examind.openeo.api.rest.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
+import static com.examind.openeo.api.rest.process.OpenEOUtils.openEOProcessIdToExamindProcessId;
+
 /**
  * @author Quentin BIALOTA (Geomatys)
  * Based on : <a href="https://api.openeo.org/#tag/Process-Discovery">OpenEO Doc</a>
@@ -165,14 +168,73 @@ public class Process {
         this.processGraph = processGraph;
     }
 
+    public void sortProcessGraph() throws IllegalArgumentException {
+        // Build adjacency list and in-degree map
+        Map<String, Set<String>> dependencies = new HashMap<>();
+        Map<String, Integer> inDegree = new HashMap<>();
+
+        // Initialize maps
+        for (String nodeId : processGraph.keySet()) {
+            dependencies.put(nodeId, new HashSet<>());
+            inDegree.put(nodeId, 0);
+        }
+
+        // Build dependency graph
+        for (Map.Entry<String, ProcessDescription> entry : processGraph.entrySet()) {
+            String currentNode = entry.getKey();
+            ProcessDescription process = entry.getValue();
+
+            for (ProcessDescriptionArgument argument : process.getArguments().values()) {
+                if (argument.getType() == ProcessDescriptionArgument.ArgumentType.FROM_NODE) {
+                    String fromNode = argument.getValue().toString();
+                    if (!processGraph.containsKey(fromNode)) {
+                        throw new IllegalStateException("Referenced node '" + fromNode + "' not present in graph.");
+                    }
+                    dependencies.get(fromNode).add(currentNode);
+                    inDegree.put(currentNode, inDegree.get(currentNode) + 1);
+                }
+            }
+        }
+
+        // Queue of nodes with no incoming edges
+        Queue<String> queue = new LinkedList<>();
+        inDegree.forEach((node, degree) -> {
+            if (degree == 0) queue.add(node);
+        });
+
+        // Resulting sorted graph
+        LinkedHashMap<String, ProcessDescription> sortedGraph = new LinkedHashMap<>();
+
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            sortedGraph.put(current, processGraph.get(current));
+
+            for (String neighbor : dependencies.get(current)) {
+                inDegree.put(neighbor, inDegree.get(neighbor) - 1);
+                if (inDegree.get(neighbor) == 0) {
+                    queue.add(neighbor);
+                }
+            }
+        }
+
+        // Check if all nodes are processed (if not, cycle exists)
+        if (sortedGraph.size() != processGraph.size()) {
+            throw new IllegalStateException("Cyclic dependency detected in process graph.");
+        }
+
+        this.processGraph = sortedGraph;
+    }
+
     public CheckMessage isProcessGraphValid(List<ProcessDescriptor> descriptors) {
-        List<String> descriptorIds = descriptors.stream().map(d -> d.getIdentifier().getCode()).toList();
+        List<String> descriptorIds = descriptors.stream().map(d -> examindProcessIdToOpenEOProcessId(d.getIdentifier().getCode())).toList();
 
         for (Map.Entry<String, ProcessDescription> entry : processGraph.entrySet()) {
             ProcessDescription process = entry.getValue();
 
             //Process specified in the graph exist in the list of available process ?
-            if (!descriptorIds.contains(process.getProcessId().split("\\.",2)[1])) {
+            String[] processIdSplitted = process.getProcessId().split("\\.",2);
+            String processId = processIdSplitted.length == 2 ? processIdSplitted[1] : processIdSplitted[0];
+            if (!descriptorIds.contains(processId)) {
                 return new CheckMessage(false, "No available process with this id : " + process.getProcessId());
             }
 
@@ -187,7 +249,7 @@ public class Process {
 
             //Checks between "real" process, and given process
             ProcessDescriptor processDescriptor = descriptors.stream()
-                    .filter(descriptor -> descriptor.getIdentifier().getCode().equals(process.getProcessId().split("\\.",2)[1]))
+                    .filter(descriptor -> descriptor.getIdentifier().getCode().equals(openEOProcessIdToExamindProcessId(processId, false)))
                     .findFirst()
                     .orElse(null);
 
@@ -199,12 +261,21 @@ public class Process {
                 }
 
                 //Check (if possible) if the argument given is compatible with the argument needed
-                for(int i=0; i<process.getArguments().size(); i++) {
+                for (int i=0; i<processDescriptor.getInputDescriptor().descriptors().size(); i++) {
+
                     GeneralParameterDescriptor inputDescriptor = processDescriptor.getInputDescriptor().descriptors().get(i);
                     ProcessDescriptionArgument processDescriptionArgument = process.getArguments().get(inputDescriptor.getName().getCode());
-                                                                         // process.getArguments().values().stream().toList().get(i);
+
                     //Cannot find the needed argument in the list of passed arguments
                     if(processDescriptionArgument == null) {
+                        if (inputDescriptor.getMinimumOccurs() <= 0) {
+                            continue;
+                        }
+                        if (processId.equalsIgnoreCase("load_collection") && inputDescriptor.getName().getCode().equalsIgnoreCase("serviceId")) {
+                            //Special case for load_collection where the "serviceId" parameter is not mandatory in openEO, but is in examind
+                            continue;
+                        }
+
                         return new CheckMessage(false, "For the process : " + process.getProcessId() + ", no argument named " + inputDescriptor.getName().getCode() + " found");
                     }
 
@@ -231,10 +302,11 @@ public class Process {
                                         break;
 
                                     case FROM_NODE: //Check if the node output value is conform to the process input
-                                        String referencedProcessId = processGraph.get((String) processDescriptionArgument.getValue()).getProcessId().split("\\.",2)[1];
+                                        String[] referencedProcessIdSplitted = processGraph.get((String) processDescriptionArgument.getValue()).getProcessId().split("\\.",2);
+                                        String referencedProcessId = referencedProcessIdSplitted.length == 2 ? referencedProcessIdSplitted[1] : referencedProcessIdSplitted[0];
 
                                         ProcessDescriptor referencedProcess = descriptors.stream()
-                                                .filter(descriptor -> descriptor.getIdentifier().getCode().equalsIgnoreCase(referencedProcessId))
+                                                .filter(descriptor -> descriptor.getIdentifier().getCode().equalsIgnoreCase(openEOProcessIdToExamindProcessId(referencedProcessId, false)))
                                                 .findFirst()
                                                 .orElse(null);
 
@@ -362,6 +434,12 @@ public class Process {
 
     private boolean checkClassAssignation(Class<?> needed, Class<?> provided) {
         if (needed.getName().contains("Envelope") && provided.getName().contains("BoundingBox")) {
+            return true;
+        }
+        if (needed == Double.class && provided == Integer.class) {
+            return true;
+        }
+        if (needed == Float.class && provided == Integer.class) {
             return true;
         }
 

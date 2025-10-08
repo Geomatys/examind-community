@@ -7,12 +7,13 @@ import com.examind.openeo.api.rest.capabilities.dto.Endpoint;
 import com.examind.openeo.api.rest.capabilities.dto.FileFormat;
 import com.examind.openeo.api.rest.capabilities.dto.FileFormats;
 import com.examind.openeo.api.rest.capabilities.dto.SecondaryWebServices;
+import com.examind.openeo.api.rest.capabilities.dto.Service;
+import com.examind.wps.api.WPSWorker;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
-import org.constellation.coverage.core.WCSWorker;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
-import org.constellation.ws.rs.GridWebService;
+import org.constellation.ws.rs.OGCWebService;
 import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.atom.xml.Link;
 import org.springframework.http.HttpStatus;
@@ -29,16 +30,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static org.constellation.coverage.core.AtomLinkBuilder.buildDocumentLinks;
+import static com.examind.openeo.api.rest.capabilities.AtomLinkBuilder.buildDocumentLinks;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * @author Quentin BIALOTA (Geomatys)
- * TODO: When the examind refactor has been done so that there are no longer any services, transfer openEo to a dedicated module (no longer linked to wcs).
+ * TODO: When the examind refactor has been done so that there are no longer any services, transfer openEo to a dedicated module (no longer linked to wps).
  */
 @RestController
 @RequestMapping("openeo/{serviceId:.+}")
-public class OpenEOCapabilitiesAPI extends GridWebService<WCSWorker> {
+public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
 
     private static final List<String> CONFORMS = Arrays.asList(
             "https://api.openeo.org/1.2.0",
@@ -49,11 +50,11 @@ public class OpenEOCapabilitiesAPI extends GridWebService<WCSWorker> {
 
     public OpenEOCapabilitiesAPI() {
         // here we use wcs for worker retrieval purpose
-        super(ServiceDef.Specification.WCS);
+        super(ServiceDef.Specification.WPS);
     }
 
     @Override
-    protected ResponseObject treatIncomingRequest(Object objectRequest, WCSWorker worker) {
+    protected ResponseObject treatIncomingRequest(Object objectRequest, WPSWorker worker) {
         String format = "application/json";
 
         //For the moment only json format is accepted
@@ -69,7 +70,7 @@ public class OpenEOCapabilitiesAPI extends GridWebService<WCSWorker> {
         return new ResponseObject(new ErrorMessage(exc));
     }
 
-    @RequestMapping(method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping(value="/", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getCapabilities(@PathVariable("serviceId") String serviceId) {
         try {
             String format = "application/json";
@@ -96,8 +97,21 @@ public class OpenEOCapabilitiesAPI extends GridWebService<WCSWorker> {
         capabilities.setLinks(links);
 
         List<Endpoint> endpoints = new ArrayList<>();
+        endpoints.add(new Endpoint("/file_formats", List.of(Endpoint.MethodsEnum.GET)));
+        endpoints.add(new Endpoint("/service_types", List.of(Endpoint.MethodsEnum.GET)));
         endpoints.add(new Endpoint("/collections", List.of(Endpoint.MethodsEnum.GET)));
         endpoints.add(new Endpoint("/collections/{collection_id}", List.of(Endpoint.MethodsEnum.GET)));
+        endpoints.add(new Endpoint("/credentials/basic", List.of(Endpoint.MethodsEnum.GET)));
+        endpoints.add(new Endpoint("/processes", List.of(Endpoint.MethodsEnum.GET)));
+        endpoints.add(new Endpoint("/process_graphs", List.of(Endpoint.MethodsEnum.GET, Endpoint.MethodsEnum.POST)));
+        endpoints.add(new Endpoint("/process_graphs/{process_graph_id}", List.of(Endpoint.MethodsEnum.GET, Endpoint.MethodsEnum.DELETE, Endpoint.MethodsEnum.PUT)));
+        endpoints.add(new Endpoint("/validation", List.of(Endpoint.MethodsEnum.POST)));
+        endpoints.add(new Endpoint("/result", List.of(Endpoint.MethodsEnum.POST)));
+        endpoints.add(new Endpoint("/jobs", List.of(Endpoint.MethodsEnum.POST, Endpoint.MethodsEnum.GET)));
+        endpoints.add(new Endpoint("/jobs/{job_id}/results", List.of(Endpoint.MethodsEnum.POST, Endpoint.MethodsEnum.GET)));
+        endpoints.add(new Endpoint("/jobs/{job_id}/results/download", List.of(Endpoint.MethodsEnum.GET)));
+        endpoints.add(new Endpoint("/jobs/{job_id}", List.of(Endpoint.MethodsEnum.GET, Endpoint.MethodsEnum.DELETE)));
+
         capabilities.setEndpoints(endpoints);
 
         capabilities.setBilling(new Billing("EUR", null, List.of()));
@@ -126,19 +140,62 @@ public class OpenEOCapabilitiesAPI extends GridWebService<WCSWorker> {
         }
     }
 
+    @RequestMapping(value = ".well-known/openeo", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity getWellKnown(@PathVariable("serviceId") String serviceId) {
+        try {
+            putServiceIdParam(serviceId);
+            final WPSWorker worker = getWorker(serviceId);
+
+            Map<String, List<Map<String, String>>> versions = new HashMap<>();
+
+            MediaType media = MediaType.APPLICATION_JSON;
+            List<Map<String, String>> versionsList = new ArrayList<>();
+            Map<String, String> v120 = new HashMap<>();
+            v120.put("api_version", "1.2.0");
+            v120.put("url", getServiceURL() + "/openeo/" + worker.getId() + "/");
+            versionsList.add(v120);
+
+            versions.put("versions", versionsList);
+
+            return new ResponseObject(versions, media, HttpStatus.OK).getResponseEntity();
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
     @RequestMapping(value = "/file_formats", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getSupportedFileFormats() {
         try {
             MediaType media = MediaType.APPLICATION_JSON;
             Map<String, FileFormat> outputs = new HashMap<>();
+            Map<String, FileFormat> inputs  = new HashMap<>();
 
             FileFormat gtiffFormat = new FileFormat();
+            gtiffFormat.setTitle("GeoTiff");
             gtiffFormat.setDescription("Export to GeoTiff. Support of Cloud-Optimized GeoTiffs (COGs)");
             gtiffFormat.setGisDataTypes(List.of(FileFormat.GisDataTypesEnum.RASTER));
-            gtiffFormat.setLinks(List.of(new Link("https://gdal.org/drivers/raster/gtiff.html", "about", MimeType.APP_JSON, "DAL on the GeoTiff file format and storage options")));
+            gtiffFormat.setLinks(List.of(new Link("https://gdal.org/drivers/raster/gtiff.html", "about", MimeType.APP_JSON, "GDAL on the GeoTiff file format and storage options")));
             outputs.put("GTiff", gtiffFormat);
+            inputs.put("GTiff", gtiffFormat);
 
-            FileFormats fileFormats = new FileFormats(null, outputs);
+            FileFormat netcdfFormat = new FileFormat();
+            netcdfFormat.setTitle("NetCDF");
+            netcdfFormat.setDescription("Export to NetCDF.");
+            netcdfFormat.setGisDataTypes(List.of(FileFormat.GisDataTypesEnum.RASTER, FileFormat.GisDataTypesEnum.VECTOR));
+            netcdfFormat.setLinks(List.of(new Link("https://www.unidata.ucar.edu/software/netcdf/", "about", MimeType.APP_JSON, "Information about the NetCDF file format")));
+            outputs.put("NetCDF", netcdfFormat);
+            inputs.put("NetCDF", netcdfFormat);
+
+            FileFormat zarrFormat = new FileFormat();
+            zarrFormat.setTitle("Zarr");
+            zarrFormat.setDescription("Export to Zarr. Support of GeoZarr conventions.");
+            zarrFormat.setGisDataTypes(List.of(FileFormat.GisDataTypesEnum.RASTER));
+            zarrFormat.setLinks(List.of(new Link("https://zarr-specs.readthedocs.io/en/latest/specs.html", "about", MimeType.APP_JSON, "Information about the Zarr file format")));
+            outputs.put("Zarr", zarrFormat);
+            inputs.put("Zarr", zarrFormat);
+
+            FileFormats fileFormats = new FileFormats(inputs, outputs);
             return new ResponseObject(fileFormats, media, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -147,11 +204,21 @@ public class OpenEOCapabilitiesAPI extends GridWebService<WCSWorker> {
     }
 
     @RequestMapping(value = "/service_types", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity getOtherServiceTypes() {
+    public ResponseEntity getOtherServiceTypes(@PathVariable("serviceId") String serviceId) {
         try {
             MediaType media = MediaType.APPLICATION_JSON;
             SecondaryWebServices services = new SecondaryWebServices();
-            services.setServices(List.of()); //TODO: Add WCS, WMS, ...
+
+            Service wcsService = new Service();
+            wcsService.setId("WCS");
+            wcsService.setTitle("Web Coverage Service");
+            wcsService.setDescription("OGC Web Coverage Service");
+            wcsService.setUrl(new java.net.URI(getServiceURL() + "/wcs/" + serviceId));
+            wcsService.setCreated(null);
+            wcsService.setPlan("basic");
+            wcsService.setCosts(null);
+            wcsService.setBudget(null);
+            services.addServicesItem(wcsService);
 
             return new ResponseObject(services, media, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {

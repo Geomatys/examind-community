@@ -1,17 +1,20 @@
 package com.examind.openeo.api.rest.process.dto;
 
 import com.examind.openeo.api.rest.process.dto.deserializer.DataTypeSchemaTypeDeserializer;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
  * @author Quentin BIALOTA (Geomatys)
  * Based on : <a href="https://api.openeo.org/#tag/Process-Discovery">OpenEO Doc</a>
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataTypeSchema {
 
     public enum Type {
@@ -101,6 +104,32 @@ public class DataTypeSchema {
         this.type = type;
         this.subType = subType;
     }
+
+    public DataTypeSchema(String title, String description, Map<String,Object> properties, Map<String, Object> items,
+                          List<String> required, List<Type> type, String subType) {
+        this.title = title;
+        this.description = description;
+        this.properties = properties;
+        this.items = items;
+        this.required = required;
+        this.type = type;
+        this.subType = subType;
+    }
+
+    @JsonProperty("title")
+    private String title;
+
+    @JsonProperty("description")
+    private String description;
+
+    @JsonProperty("properties")
+    private Map<String, Object> properties;
+
+    @JsonProperty("items")
+    private Map<String, Object> items;
+
+    @JsonProperty("required")
+    private List<String> required;
 
     @JsonProperty("type")
     @JsonDeserialize(using = DataTypeSchemaTypeDeserializer.class) //Type can be a String or a List of String

@@ -1,7 +1,9 @@
 package com.examind.openeo.api.rest.process.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -12,13 +14,13 @@ public class ProcessParameter {
 
     public ProcessParameter() {}
 
-    public ProcessParameter(String name, String description, DataTypeSchema schema) {
+    public ProcessParameter(String name, String description, DataTypeSchema[] schema) {
         this.name = name;
         this.description = description;
         this.schema = schema;
     }
 
-    public ProcessParameter(String name, String description, DataTypeSchema schema, boolean optional, Object defaultObject) {
+    public ProcessParameter(String name, String description, DataTypeSchema[] schema, boolean optional, Object defaultObject) {
         this.name = name;
         this.description = description;
         this.schema = schema;
@@ -33,7 +35,7 @@ public class ProcessParameter {
     private String description;
 
     @JsonProperty("schema")
-    private DataTypeSchema schema;
+    private DataTypeSchema[] schema;
 
     @JsonProperty("optional")
     private boolean optional = false;
@@ -57,11 +59,11 @@ public class ProcessParameter {
         this.description = description;
     }
 
-    public DataTypeSchema getSchema() {
+    public DataTypeSchema[] getSchema() {
         return schema;
     }
 
-    public void setSchema(DataTypeSchema schema) {
+    public void setSchema(DataTypeSchema[] schema) {
         this.schema = schema;
     }
 
@@ -81,6 +83,7 @@ public class ProcessParameter {
         this.defaultObject = defaultObject;
     }
 
+    @JsonIgnore
     public boolean isValid() {
         return !((optional && defaultObject == null) || (!optional && defaultObject != null));
     }
@@ -90,12 +93,12 @@ public class ProcessParameter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProcessParameter that = (ProcessParameter) o;
-        return Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(schema, that.schema);
+        return Objects.equals(name, that.name) && Objects.equals(description, that.description) && Arrays.equals(schema, that.schema);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, schema);
+        return Objects.hash(name, description, Arrays.hashCode(schema));
     }
 
     @Override
@@ -103,7 +106,7 @@ public class ProcessParameter {
         return "ProcessParameter{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", schema=" + schema +
+                ", schema=" + Arrays.toString(schema) +
                 '}';
     }
 }

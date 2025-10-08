@@ -9,25 +9,30 @@ import com.examind.openeo.api.rest.process.dto.Jobs;
 import com.examind.openeo.api.rest.process.dto.Process;
 import com.examind.openeo.api.rest.process.dto.ProcessDescription;
 import com.examind.openeo.api.rest.process.dto.ProcessDescriptionArgument;
+import com.examind.openeo.api.rest.process.dto.ProcessHolder;
 import com.examind.openeo.api.rest.process.dto.ProcessParameter;
 import com.examind.openeo.api.rest.process.dto.ProcessReturn;
 import com.examind.openeo.api.rest.process.dto.Processes;
 import com.examind.openeo.api.rest.process.dto.Status;
 import com.examind.wps.api.WPSWorker;
 import com.examind.wps.util.WPSUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.DefaultParameterDescriptor;
 import org.apache.sis.referencing.CRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.IProcessBusiness;
+import org.constellation.business.ITokenBusiness;
 import org.constellation.dto.process.ChainProcess;
 import org.constellation.dto.process.Registry;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.ChainProcessRetriever;
+import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.rs.OGCWebService;
 import org.constellation.ws.rs.ResponseObject;
+import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.ows.xml.v200.CodeType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -54,6 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,6 +73,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,17 +82,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static com.examind.openeo.api.rest.process.OpenEOUtils.buildDataTypeSchema;
+import static com.examind.openeo.api.rest.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
+import static com.examind.openeo.api.rest.process.OpenEOUtils.openEOProcessIdToExamindProcessId;
 import static org.geotoolkit.processing.chain.model.Element.BEGIN;
 import org.opengis.util.InternationalString;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.FAILED_DEPENDENCY;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.OPTIONS;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
@@ -92,7 +106,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
  * @author Quentin BIALOTA (Geomatys)
  */
 @RestController
-@RequestMapping("openeo/process/{serviceId:.+}")
+//@RequestMapping("openeo/{serviceId:.+}")
 public class OpenEOProcessService extends OGCWebService<WPSWorker> {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.openeo.api.rest");
@@ -104,6 +118,11 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     @Autowired
     public IProcessBusiness processBusiness;
 
+    @Autowired
+    private ITokenBusiness tokenBusiness;
+
+    private Map<String, Process> jobIdToProcessMap = new HashMap<>();
+
     public OpenEOProcessService() {
         super(ServiceDef.Specification.WPS);
     }
@@ -114,11 +133,40 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     }
 
     /**
+     * Connect via basic authentication and retrieve user credentials by generating a token.
+     *
+     * @param serviceId   the ID of the service
+     * @param httpRequest the HTTP servlet request
+     * @return a response entity containing the user's token if authenticated, or an unauthorized status otherwise
+     */
+    @RequestMapping(value = {"openeo/{serviceId:.+}/credentials/basic", "openeo/{serviceId:.+}/credentials/basic/"}, method = {GET, OPTIONS}, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity getCredentials(@PathVariable("serviceId") String serviceId, HttpServletRequest httpRequest) {
+
+        if (HttpMethod.OPTIONS.matches(httpRequest.getMethod())) {
+            return ResponseEntity.ok().build();
+        }
+
+        if (SecurityManagerHolder.getInstance().isAuthenticated()) {
+            String userLogin = SecurityManagerHolder.getInstance().getCurrentUserLogin();
+            String token = tokenBusiness.createToken(userLogin);
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("user_id", SecurityManagerHolder.getInstance().getCurrentUserLogin());
+            response.put("access_token", token);
+            response.put("token_type", "Bearer");
+
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
      * Retrieves all processes.
      *
      * @return a response entity containing a list of processes
      */
-    @RequestMapping(value = "/processes", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/processes", "openeo/{serviceId:.+}/processes/"}, method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getAllProcesses() {
 
         final Processes processes = new Processes();
@@ -173,7 +221,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      *
      * @return a response entity containing a list of user-defined processes
      */
-    @RequestMapping(value = "/process_graphs", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/process_graphs", "openeo/{serviceId:.+}/process_graphs/"}, method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getUserDefinedProcesses() {
 
         final Processes processes = new Processes();
@@ -204,6 +252,50 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     }
 
     /**
+     * Retrieves a user-defined process by its ID.
+     *
+     * @param processGraphId the ID of the process to retrieve
+     * @return a response entity containing the user-defined process
+     */
+    @RequestMapping(value = {"openeo/{serviceId:.+}/process_graphs/{process_graph_id}", "openeo/{serviceId:.+}/process_graphs/{process_graph_id}/"}, method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity getUserDefinedProcess(@PathVariable("process_graph_id") String processGraphId) {
+
+        Process process = null;
+
+        ProcessingRegistry processingRegistry = ProcessFinder.getProcessFactory("examind-dynamic");
+        if (processingRegistry != null) {
+
+            String processId = processGraphId.split("\\.")[1];
+
+            Iterator<? extends Identifier> iterator = processingRegistry
+                    .getIdentification().getCitation().getIdentifiers()
+                    .iterator();
+            final Registry registry = new Registry(iterator.next().getCode());
+
+            ProcessDescriptor desc = processingRegistry.getDescriptors().stream()
+                    .filter(descriptor -> descriptor.getIdentifier().getCode().equals(processId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (desc != null && WPSUtils.isValidOpenEOProcess(desc)) {
+                process = buildProcess(registry, desc);
+            } else {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "ProcessNotFound",
+                                "The process with id " + processGraphId + " is not found", List.of()),
+                        BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity(
+                    new ResponseMessage(UUID.randomUUID().toString(), "RegistryNotFound",
+                            "The ProcessingRegistry examind-dynamic, containing all the processes is not found", List.of()),
+                    BAD_REQUEST);
+        }
+
+        return new ResponseEntity(process, OK);
+    }
+
+    /**
      * Build an OpenEO Process Object from a Geotoolkit ProcessDescriptor (Examind process)
      *
      * @param registry Registry of the source process
@@ -213,7 +305,9 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     private Process buildProcess(Registry registry, ProcessDescriptor descriptor) {
         final Process process = new Process();
 
-        process.setId(registry.getName() + "." + descriptor.getIdentifier().getCode());
+        String exaId = registry.getName() + "." + descriptor.getIdentifier().getCode();
+        String openEOId = examindProcessIdToOpenEOProcessId(exaId);
+        process.setId(openEOId);
         process.setCategories(List.of(registry.getName()));
         process.setDeprecated(false);
         process.setExperimental(false);
@@ -228,6 +322,11 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             List<ProcessParameter> parameters = new ArrayList<>();
 
             for (GeneralParameterDescriptor inputDescriptor : descriptor.getInputDescriptor().descriptors()) {
+                // HACK : for the load_collection process, we don't want to show the serviceId parameter
+                // openEO will use the same id for the wps and wcs. So the serviceId parameter will reuse the id of the current wps service
+                if (openEOId.equalsIgnoreCase("load_collection") && inputDescriptor.getName().getCode().equalsIgnoreCase("serviceId")) {
+                    continue;
+                }
 
                 String description = null;
                 InternationalString desc = inputDescriptor.getDescription().orElse(null);
@@ -239,6 +338,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 }
 
                 String type = null;
+                Class<?> clazz = null;
                 boolean isArray = false;
                 if (inputDescriptor instanceof DefaultParameterDescriptor<?> inputDefaultParameterDescriptor) {
                     try {
@@ -246,6 +346,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                             type = inputDefaultParameterDescriptor.getValueType().toString();
                         }
                         if (inputDefaultParameterDescriptor.getValueClass() != null) {
+                            clazz = inputDefaultParameterDescriptor.getValueClass();
                             isArray = inputDefaultParameterDescriptor.getValueClass().isArray();
                         }
                     } catch (NullPointerException ex) {
@@ -254,7 +355,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 }
 
                 parameters.add(new ProcessParameter(inputDescriptor.getName().getCode(), description,
-                        new DataTypeSchema(type == null ? List.of() : List.of(DataTypeSchema.Type.fromValue(type, isArray)), type),
+                        buildDataTypeSchema(descriptor, inputDescriptor.getName().getCode(), type, clazz, isArray, (inputDescriptor.getMinimumOccurs() > 0)),
                         (inputDescriptor.getMinimumOccurs() == 0), null));
             }
 
@@ -308,7 +409,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      * @param process the process to validate
      * @return a response entity containing a map of validation errors, if any
      */
-    @RequestMapping(value = "/validation", method = POST, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/validation", "openeo/{serviceId:.+}/validation/"}, method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity validateUserProcess(@RequestBody final Process process) {
 
         List<ProcessDescriptor> descriptorList = getDescriptorList();
@@ -339,7 +440,8 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      * or a response with an HTTP status code of 400 (Bad Request) and a JSON payload
      * containing an error message if the storage fails or the input is invalid
      */
-    @RequestMapping(value = "/process_graphs/{process_graph_id}", method = PUT, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/process_graphs/{process_graph_id}" ,
+            "openeo/{serviceId:.+}/process_graphs/{process_graph_id}/"}, method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity storeUserDefinedProcess(@PathVariable("process_graph_id") String processGraphId,
                                                   @RequestBody final Process process) {
 
@@ -385,7 +487,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      * or a response with an HTTP status code of 500 (Internal Server Error) and a JSON payload
      * containing an error message if the deletion fails
      */
-    @RequestMapping(value = "/process_graphs/{process_graph_id}", method = DELETE, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/process_graphs/{process_graph_id}","openeo/{serviceId:.+}/process_graphs/{process_graph_id}/" }, method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity deleteUserDefinedProcess(@PathVariable("process_graph_id") String processGraphId) {
 
         boolean result = processBusiness.deleteChainProcess("examind-dynamic", USER_DEFINED_PROCESS_PREFIX + processGraphId);
@@ -402,17 +504,24 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      * Runs a process synchronously, and get the result directly
      *
      * @param serviceId the ID of the service to use for running the process
-     * @param process the process to run
+     * @param processHolder containing the process to run
      * @return a response entity containing the result of the process execution with HTTP status code 200 (OK) or
      * if the process can't be started, an error message
      */
-    @RequestMapping(value = "/result", method = POST, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/result", "openeo/{serviceId:.+}/result/"}, method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity runProcessSynchronously(@PathVariable("serviceId") String serviceId,
-                                                  @RequestBody final Process process) {
+                                                  @RequestBody final ProcessHolder processHolder) {
         String processId = null;
+        final Process process = processHolder.process();
         try {
             putServiceIdParam(serviceId);
             final WPSWorker worker = getWorker(serviceId);
+
+            if (process.getId() == null) {
+                process.setId(UUID.randomUUID().toString());
+            } else {
+                process.setId(process.getId() + "-" + UUID.randomUUID());
+            }
 
             if (worker != null) {
                 List<ProcessDescriptor> descriptorList = getDescriptorList();
@@ -467,7 +576,9 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                         try {
                             return ResponseEntity.ok().headers(headers).contentLength(resource.contentLength()).body(resource);
                         } catch (IOException e) {
-                            return new ResponseEntity("Error with the output file " + e.getMessage(), INTERNAL_SERVER_ERROR);
+                            return new ResponseEntity(
+                                    new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : Error with the output file - " + e.getMessage(), List.of()),
+                                    INTERNAL_SERVER_ERROR);
                         }
                     }
 
@@ -476,7 +587,9 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             }
         } catch (Exception ex) {
             deleteProcess(processId);
-            return new ResponseEntity(ex.getMessage(), INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(
+                    new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : " + ex.getMessage(), List.of()),
+                    INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity("Service ID : " + serviceId + "not found", NOT_FOUND);
     }
@@ -485,18 +598,25 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      * Create a process asynchronously (call /jobs/{job_id}/results to run the process / job)
      *
      * @param serviceId the ID of the service to use for running the process
-     * @param process the process to run
+     * @param processHolder containing the process to run
      * @return a response entity containing the jobId with HTTP status code 201 (CREATED) or
      * if the process can't be created, an error message
      */
-    @RequestMapping(value = "/jobs", method = POST, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/jobs", "openeo/{serviceId:.+}/jobs/"}, method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity createProcessJobAsynchronously(@PathVariable("serviceId") String serviceId,
-                                                  @RequestBody final Process process) {
+                                                  @RequestBody final ProcessHolder processHolder) {
         putServiceIdParam(serviceId);
         final WPSWorker worker = getWorker(serviceId);
+        Process process = processHolder.process();
 
         if (worker != null) {
             List<ProcessDescriptor> descriptorList = getDescriptorList();
+
+            if (process.getId() == null) {
+                process.setId(UUID.randomUUID().toString());
+            } else {
+                process.setId(process.getId() + "-" + UUID.randomUUID());
+            }
 
             if (processAlreadyExist(process.getId(), true)) {
                 return new ResponseEntity(
@@ -533,7 +653,13 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 Object result = createProcessJob(processId, worker, process, true);
 
                 if (result instanceof StatusInfo statusInfo) {
-                    return new ResponseEntity(statusInfo.getJobID(), CREATED);
+                    Map<String, String> jobMap = new HashMap<>();
+                    jobMap.put("job_id", statusInfo.getJobID());
+
+                    // Keep track of the process associated to the jobId
+                    jobIdToProcessMap.put(statusInfo.getJobID(), process);
+
+                    return new ResponseEntity(jobMap, CREATED);
                 } else {
                     return new ResponseEntity(CREATED);
                 }
@@ -549,7 +675,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      * @param serviceId the ID of the service to use for running the process
      * @return a response entity containing the list of jobs
      */
-    @RequestMapping(value = "/jobs", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/jobs", "openeo/{serviceId:.+}/jobs/"}, method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getAllProcessJobs(@PathVariable("serviceId") String serviceId) {
         putServiceIdParam(serviceId);
         final WPSWorker worker = getWorker(serviceId);
@@ -559,11 +685,18 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             try {
                 Set<String> jobIds = worker.getJobList(null);
                 for (String jobId : jobIds) {
-                    StatusInfo statusInfo = worker.getStatus(new GetStatus(worker.getId(), "2.0.0", jobId));
+                    StatusInfo statusInfo = worker.getStatus(new GetStatus("WPS", "2.0.0", jobId));
                     Job job = new Job();
                     job.setId(jobId);
                     job.setStatus(Status.wpsStatusEquivalentTo(statusInfo.getStatus()));
                     job.setCreated(statusInfo.getCreationTime());
+                    job.setProgress(statusInfo.getPercentCompleted());
+
+                    Process assiociatedProcess = jobIdToProcessMap.get(jobId);
+                    if (assiociatedProcess != null) {
+                        job.setProcess(assiociatedProcess);
+                    }
+
                     jobs.addJobsItem(job);
                 }
 
@@ -579,13 +712,59 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     }
 
     /**
+     * Get a Job
+     *
+     * @param serviceId the ID of the service to use for running the process
+     * @param jobId the ID of the job
+     * @return a response entity containing the job
+     */
+    @RequestMapping(value = {"openeo/{serviceId:.+}/jobs/{jobId}", "openeo/{serviceId:.+}/jobs/{jobId}/"}, method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity getProcessJob(@PathVariable("serviceId") String serviceId, @PathVariable("jobId") String jobId) {
+        putServiceIdParam(serviceId);
+        final WPSWorker worker = getWorker(serviceId);
+        if (worker != null) {
+            Job job = new Job();
+
+            try {
+                StatusInfo statusInfo = worker.getStatus(new GetStatus("WPS", "2.0.0", jobId));
+                if (statusInfo == null) {
+                    return new ResponseEntity(
+                            new ResponseMessage(UUID.randomUUID().toString(), "JobNotFound", "Info : The job with the id : " + jobId + " was not found.", List.of()),
+                            NOT_FOUND);
+                }
+
+                job.setId(jobId);
+                job.setStatus(Status.wpsStatusEquivalentTo(statusInfo.getStatus()));
+                job.setCreated(statusInfo.getCreationTime());
+                job.setUpdated(statusInfo.getCreationTime());
+                job.setDescription(statusInfo.getMessage());
+
+                Process assiociatedProcess = jobIdToProcessMap.get(jobId);
+                if (assiociatedProcess != null) {
+                    job.setProcess(assiociatedProcess);
+                }
+
+                job.setProgress(statusInfo.getPercentCompleted());
+
+            } catch (CstlServiceException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "ServerError", "Info : " + ex.getMessage(), List.of()),
+                        INTERNAL_SERVER_ERROR);
+            }
+
+            return new ResponseEntity(job, OK);
+        }
+        return new ResponseEntity("Service ID : " + serviceId + "not found", NOT_FOUND);
+    }
+
+    /**
      * Run a job
      *
      * @param serviceId the ID of the service to use for running the process
      * @param jobId the ID of the job
      * @return a response entity containing the status of the job, with an HTTP status code 202 (ACCEPTED)
      */
-    @RequestMapping(value = "/jobs/{job_id}/results", method = POST, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"openeo/{serviceId:.+}/jobs/{job_id}/results", "openeo/{serviceId:.+}/jobs/{job_id}/results/"}, method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity runProcessJobAsynchronously(@PathVariable("serviceId") String serviceId, @PathVariable("job_id") String jobId) {
         putServiceIdParam(serviceId);
         final WPSWorker worker = getWorker(serviceId);
@@ -607,13 +786,81 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         return new ResponseEntity("Service ID : " + serviceId + "not found", NOT_FOUND);
     }
 
-    @RequestMapping(value = "/jobs/{job_id}/results", method = GET, produces = APPLICATION_JSON_VALUE)
+    /**
+     * Get Job Result
+     *
+     * @param serviceId the ID of the service to use for running the process
+     * @param jobId the ID of the job
+     * @return a response entity containing the job result as a STAC response structure
+     */
+    @RequestMapping(value = {"openeo/{serviceId:.+}/jobs/{job_id}/results", "openeo/{serviceId:.+}/jobs/{job_id}/results/"}, method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getProcessAsyncJobResult(@PathVariable("serviceId") String serviceId, @PathVariable("job_id") String jobId) {
+        putServiceIdParam(serviceId);
+        final WPSWorker worker = getWorker(serviceId);
+        if (worker == null)
+            return new ResponseEntity<>("Service ID: " + serviceId + " not found", NOT_FOUND);
+
+        try {
+            Object result = worker.getResult(new GetResult("WPS", "2.0.0", jobId));
+
+            if (result == null)
+                return new ResponseEntity<>(
+                        new ResponseMessage(UUID.randomUUID().toString(), "JobNotFinished", "Info : job is not finished, you can not get the result", List.of()),
+                        CONFLICT);
+
+            if (result instanceof Path filePath) {
+                // Determine MIME
+                String fileName = filePath.getFileName().toString();
+                String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+                String mimeType = switch (ext) {
+                    case "tif", "tiff" -> "image/tiff";
+                    case "nc", "netcdf" -> "application/x-netcdf";
+                    default -> "application/octet-stream";
+                };
+
+                String url = getServiceURL() + "/openeo/" + serviceId;
+                final Link link = new Link(url + "/jobs/" + jobId + "/results/download",   "canonical",  mimeType, fileName);
+
+                // Return STAC response structure
+                Map<String, Object> stacResponse = Map.of(
+                        "stac_version", "1.0.0",
+                        "type", "Feature",
+                        "id", jobId,
+                        "assets", Map.of(
+                                "result", link
+                        ),
+                        "links", List.of(link)
+                );
+
+                return ResponseEntity.ok(stacResponse);
+            }
+
+            return new ResponseEntity<>(
+                    new ResponseMessage(UUID.randomUUID().toString(), "JobResultError", "Info : Job result could not be retrieved", List.of()),
+                    FAILED_DEPENDENCY);
+
+        } catch (CstlServiceException ex) {
+            return new ResponseEntity<>(
+                    new ResponseMessage(UUID.randomUUID().toString(), "ServerError", ex.getMessage(), List.of()),
+                    INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Download Job Result File
+     *
+     * @param serviceId the ID of the service to use for running the process
+     * @param jobId the ID of the job
+     * @return a response entity containing the job result file as a downloadable resource
+     */
+    @RequestMapping(value = {"openeo/{serviceId:.+}/jobs/{job_id}/results/download", "openeo/{serviceId:.+}/jobs/{job_id}/results/download/"}, method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Resource> downloadJobResultFile(@PathVariable("serviceId") String serviceId, @PathVariable("job_id") String jobId) {
+
         putServiceIdParam(serviceId);
         final WPSWorker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                Object result = worker.getResult(new GetResult(worker.getId(), "2.0.0", jobId));
+                Object result = worker.getResult(new GetResult("WPS", "2.0.0", jobId));
 
                 HttpHeaders headers = new HttpHeaders();
                 if(result != null && result instanceof Path f) {
@@ -648,7 +895,14 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         return new ResponseEntity("Service ID : " + serviceId + "not found", NOT_FOUND);
     }
 
-    @RequestMapping(value = "/jobs/{job_id}", method = DELETE, produces = APPLICATION_JSON_VALUE)
+    /**
+     * Delete a Job
+     *
+     * @param serviceId the ID of the service to use for running the process
+     * @param jobId the ID of the job
+     * @return a response entity containing the status of the deletion with HTTP status code 200 (OK)
+     */
+    @RequestMapping(value = {"openeo/{serviceId:.+}/jobs/{job_id}", "openeo/{serviceId:.+}/jobs/{job_id}/"}, method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity deleteJob(@PathVariable("serviceId") String serviceId, @PathVariable("job_id") String jobId) {
         putServiceIdParam(serviceId);
         final WPSWorker worker = getWorker(serviceId);
@@ -656,6 +910,9 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             try {
                 String processId = worker.getProcessAssociated(jobId);
                 worker.dismiss(new Dismiss("WPS", "2.0.0", jobId));
+
+                // Remove the jobId to process mapping
+                jobIdToProcessMap.remove(jobId);
 
                 if (processId != null) {
                     //Process ID returned is like : "urn:exa:wps:examind-dynamic::temp-openeo-evi-execution"
@@ -704,6 +961,10 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      */
     private String deployUserDefinedProcess(Process process, boolean isTemporary, boolean acceptParameters) throws UnsupportedOperationException, IllegalArgumentException, ProcessException {
         String processId;
+
+        // Sort the process graph to ensure correct order of execution
+        process.sortProcessGraph();
+
         if (isTemporary) processId = TEMPORARY_USER_DEFINED_PROCESS_PREFIX + process.getId();
         else processId = USER_DEFINED_PROCESS_PREFIX + process.getId();
         final Chain chain = new Chain(processId);
@@ -720,11 +981,11 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         final Map<String, Parameter> inputs = new HashMap<>();
         for (ProcessParameter in : process.getParameters()) {
             Class<?> inputParameterClass;
-            if (in.getSchema().getType().isEmpty()) {
+            if (in.getSchema()[0].getType().isEmpty()) {
                 inputParameterClass = Object.class;
             } else {
                 //TODO : Find a way to put all "types" in input
-                inputParameterClass = in.getSchema().getType().get(0).getClassAssociated(in.getSchema().getSubType());
+                inputParameterClass = in.getSchema()[0].getType().get(0).getClassAssociated(in.getSchema()[0].getSubType());
             }
             final Parameter param = new Parameter(in.getName(), inputParameterClass, in.getName(), in.getDescription(), 1, 1);
             inputs.put(in.getName(), param);
@@ -735,15 +996,23 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         final List<Parameter> outputs = new ArrayList<>();
         //OpenEO accepts only One output
         Class<?> outputParameterClass;
-        DataTypeSchema processReturnSchema = process.getReturns().getSchema();
-        if (processReturnSchema.getType().isEmpty()) {
-            outputParameterClass = Object.class;
+        ProcessReturn returnParam = process.getReturns();
+        String description = null;
+        if (returnParam != null) {
+            description = returnParam.getDescription();
+            DataTypeSchema processReturnSchema = process.getReturns().getSchema();
+            if (processReturnSchema.getType().isEmpty()) {
+                outputParameterClass = Object.class;
+            } else {
+                //TODO : Find a way to put all "types" in output
+                DataTypeSchema.Type type = processReturnSchema.getType().stream().findFirst().orElse(DataTypeSchema.Type.OBJECT);
+                outputParameterClass = type.getClassAssociated(processReturnSchema.getSubType());
+            }
         } else {
-            //TODO : Find a way to put all "types" in output
-            DataTypeSchema.Type type = processReturnSchema.getType().stream().findFirst().orElse(DataTypeSchema.Type.OBJECT);
-            outputParameterClass = type.getClassAssociated(processReturnSchema.getSubType());
+            outputParameterClass = Object.class;
         }
-        outputs.add(new Parameter("output", outputParameterClass, "output", process.getReturns().getDescription(), 1, 1));
+
+        outputs.add(new Parameter("output", outputParameterClass, "output", description, 1, 1));
         chain.setOutputs(outputs);
 
         Integer previousElement = BEGIN.getId();
@@ -755,7 +1024,8 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             String nodeName = entry.getKey();
             ProcessDescription processDescription = entry.getValue();
 
-            String[] splitPoint = processDescription.getProcessId().split("\\.", 2);
+            String processIdParsed = openEOProcessIdToExamindProcessId(processDescription.getProcessId(), true);
+            String[] splitPoint = processIdParsed.split("\\.", 2);
 
             final ElementProcess elementProcess = chain.addProcessElement(id++, splitPoint[0], splitPoint[1]);
             elementProcessMap.put(nodeName, elementProcess);
@@ -765,6 +1035,13 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             previousElement = elementProcess.getId();
             if ((elementIndex == process.getProcessGraph().size() - 1 || processDescription.getResult()) && !resultAlreadySet) {
                 chain.addFlowLink(elementProcess.getId(), Element.END.getId());
+            }
+
+            // HACK : for the load_collection process, we need to force the use of the current serviceId
+            // We will use the service id of the current wps service
+            if (processDescription.getProcessId().equalsIgnoreCase("load_collection")) {
+                final Constant constant = chain.addConstant(id++, String.class, "test");
+                chain.addDataLink(constant.getId(), "", elementProcess.getId(), "serviceId");
             }
 
             //Data flow links
@@ -966,7 +1243,9 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         outputDefinitions.add(new OutputDefinition("urn:exa:wps:examind-dynamic::" + processId + ":output:" +
                 descriptor.getOutputDescriptor().descriptors().get(0).getName().getCode(), null));
 
-        Execute request = new Execute(worker.getId(), "2.0.0", "en", new CodeType("urn:exa:wps:examind-dynamic::" + processId),
+//        Execute request = new Execute(worker.getId(), "2.0.0", "en", new CodeType("urn:exa:wps:examind-dynamic::" + processId),
+//                dataInputs, outputDefinitions, Execute.Response.raw);
+        Execute request = new Execute("WPS", "2.0.0", "en", new CodeType("urn:exa:wps:examind-dynamic::" + processId),
                 dataInputs, outputDefinitions, Execute.Response.raw);
 
         if (isAsync) {
