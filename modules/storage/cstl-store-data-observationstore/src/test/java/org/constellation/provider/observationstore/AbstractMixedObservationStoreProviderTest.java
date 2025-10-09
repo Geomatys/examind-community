@@ -2408,6 +2408,37 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
     }
     
     @Override
+    protected void getObservationsFilter3Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter p = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        Filter ds = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:12-2"));
+        Filter d =ff.equal(ff.property("observedProperty") , ff.literal("depth"));
+        query.setSelection(ff.and(List.of(p, ds, d)));
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(5, results.size());
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getObservedProperty());
+            assertTrue(getPhenomenonId(result).equals("depth"));
+            assertTrue(result.getResult() instanceof MeasureResult);
+        }
+        
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-2-1260885720");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-2-1260540060");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-2-1259676000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-2-975628800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-2-1356134400");
+        
+        assertEquals(expectedIds, resultIds);
+        
+    }
+    
+    @Override
     public void getObservationsNanTest() throws Exception {
         assertNotNull(omPr);
 

@@ -709,7 +709,6 @@ public class OM2BaseReader {
              // always include main
             fieldFilterQuery.append(" AND ( \"order\"= 1 OR (");
 
-            if (hasIndex) fieldFilterQuery.append(" AND ");
             fieldFilterQuery.append(" ( ");
             for (String fieldFilter : fieldIdFilters) {
                 fieldFilterQuery.append("\"field_name\"= '").append(fieldFilter).append("' OR ");
