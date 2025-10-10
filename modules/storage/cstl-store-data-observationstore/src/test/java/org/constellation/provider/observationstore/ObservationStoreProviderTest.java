@@ -408,6 +408,12 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     
     @Test
     @Override
+    public void getObservationsFilter5Test() throws Exception {
+        super.getObservationsFilter5Test();
+    }
+    
+    @Test
+    @Override
     public void getObservationsNanTest() throws Exception {
         super.getObservationsNanTest();
     }

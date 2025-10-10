@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,7 +33,9 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 import org.apache.sis.xml.IdentifiedObject;
 import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.AbstractOMEntity;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
@@ -288,7 +291,28 @@ public class ObservationTestUtils {
         assertNotNull(template.getObservedProperty());
         return template.getObservedProperty().getId();
     }
-
+    
+    public static List getEntityProperties(AbstractOMEntity phen, String propName) {
+        List pls = new ArrayList();
+        Object prp = phen.getProperties().get(propName);
+        if (prp instanceof List ls) {
+            pls.addAll(ls);
+        } else if (prp instanceof String s){
+            pls.add(s);
+        }
+        if (phen instanceof CompositePhenomenon cp) {
+            for (Phenomenon compo : cp.getComponent()) {
+                Object cprp = compo.getProperties().get(propName);
+                if (cprp instanceof List ls) {
+                    pls.addAll(ls);
+                } else if (cprp instanceof String s){
+                    pls.add(s);
+                }
+            }
+        }
+        return pls;
+    }
+    
     @Deprecated
     public static String getPhenomenonId(Phenomenon phen) {
         return phen.getId();

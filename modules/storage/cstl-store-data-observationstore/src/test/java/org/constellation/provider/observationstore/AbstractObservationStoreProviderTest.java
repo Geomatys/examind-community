@@ -56,6 +56,7 @@ import org.constellation.test.SpringContextTest;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
@@ -92,6 +93,7 @@ import org.opengis.filter.TemporalOperator;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
+import static org.constellation.provider.observationstore.ObservationTestUtils.getEntityProperties;
 
 /**
  *
@@ -5394,6 +5396,49 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         
         assertEquals(expectedIds, resultIds);
         
+    }
+    
+    protected void getObservationsFilter5Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getObservedProperty());
+            List props = getEntityProperties(result.getObservedProperty(), "phen-category");
+            assertTrue("missing property biological for phen-category on observed property", props.contains("biological"));
+        }
+        
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getFeatureOfInterest());
+            List props = getEntityProperties(result.getFeatureOfInterest(), "commune");
+            assertTrue("missing property Beziers for commune on observed property", props.contains("Beziers"));
+        }
+        
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getProcedure());
+            List props = getEntityProperties(result.getProcedure(), "bss-code");
+            assertTrue("missing property 10972X0137/SER for commune on procedure", props.contains("10972X0137/SER"));
+        }
     }
     
     protected void getObservationsNanTest() throws Exception {

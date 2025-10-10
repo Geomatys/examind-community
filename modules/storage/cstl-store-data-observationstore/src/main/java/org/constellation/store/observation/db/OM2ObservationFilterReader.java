@@ -371,6 +371,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (resultMode == null) {
             resultMode = ResultMode.CSV;
         }
+        List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
+        if (phenPropJoin) {
+            sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
+        }
+        if (procPropJoin) {
+            sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
+        }
+        if (foiPropJoin) {
+            sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
+        }
+        sqlRequest.join(joins);
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         sqlRequest.cleanupWhere();
         LOGGER.fine(sqlRequest.toString());
