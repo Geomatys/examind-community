@@ -28,6 +28,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ooxml.util.PackageHelper;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
+import static org.apache.poi.ss.usermodel.CellType.FORMULA;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -101,18 +102,22 @@ public class XLSXDataFileReader implements DataFileReader {
                         for (int cn = 0; cn < lastColumn; cn++) {
                             Cell cell = row.getCell(cn, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
                             switch (cell.getCellType()) {
-                                case STRING: String value = cell.getRichStringCellValue().getString();
-                                             value = value.trim();
-                                             results[cn] = value; break;
-                                case NUMERIC:
+                                case STRING, FORMULA -> {
+                                    String value = cell.getRichStringCellValue().getString();
+                                    value = value.trim();
+                                    results[cn] = value;
+                                }
+                                case NUMERIC -> {
                                     if (DateUtil.isCellDateFormatted(cell)) {
                                         results[cn] = cell.getDateCellValue();
                                     } else {
                                         results[cn] =  cell.getNumericCellValue();
-                                    } break;
-                                case BOOLEAN: results[cn] = cell.getBooleanCellValue(); break;
-                                case FORMULA: results[cn] = cell.getCellFormula(); break;
-                                default: results[cn] = "";
+                                    }
+                                }
+                                case BOOLEAN -> {
+                                    results[cn] = cell.getBooleanCellValue(); break;
+                                }
+                                default -> results[cn] = "";
                             }
                         }
                         return results;
