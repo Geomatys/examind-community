@@ -5,3 +5,5 @@ org.constellation.process.service.FeatureToGeoJSONDescriptor
 org.constellation.process.utils.coverage.LoadCoverageDescriptor
 org.constellation.process.utils.coverage.LoadCoverageFromResourceDescriptor
 org.constellation.process.utils.coverage.SaveResultCoverageDescriptor
+org.constellation.process.utils.coverage.openeo.LoadCollectionOpenEODescriptor
+org.constellation.process.utils.coverage.openeo.LoadStacDescriptor

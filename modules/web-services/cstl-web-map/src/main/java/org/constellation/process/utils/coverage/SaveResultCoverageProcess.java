@@ -4,11 +4,12 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.setup.OptionKey;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStores;
+import org.apache.sis.storage.MemoryGridCoverageResource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.UnsupportedStorageException;
 import org.apache.sis.storage.WritableAggregate;
-import org.apache.sis.storage.MemoryGridCoverageResource;
-import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
+import org.apache.sis.storage.geotiff.GeoTiffStore;
 import org.apache.sis.storage.netcdf.NetcdfStoreProvider;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -20,8 +21,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import static org.constellation.process.utils.coverage.SaveResultCoverageDescriptor.COVERAGE;
+import static org.constellation.process.utils.coverage.SaveResultCoverageDescriptor.DATA;
 import static org.constellation.process.utils.coverage.SaveResultCoverageDescriptor.FORMAT;
+import static org.constellation.process.utils.coverage.SaveResultCoverageDescriptor.OPTIONS;
 import static org.constellation.process.utils.coverage.SaveResultCoverageDescriptor.OUTPUT;
 
 /**
@@ -36,27 +38,24 @@ public class SaveResultCoverageProcess extends AbstractCstlProcess  {
     @Override
     protected void execute() throws ProcessException {
         try {
-            GridCoverage coverage = inputParameters.getMandatoryValue(COVERAGE);
+            GridCoverage coverage = inputParameters.getMandatoryValue(DATA);
             String format = inputParameters.getMandatoryValue(FORMAT);
+
+            // Not used for the moment
+            // TODO : take into account "Options"
+            Object options = inputParameters.getValue(OPTIONS);
 
             if (format.equalsIgnoreCase("GTIFF") || format.equalsIgnoreCase("GeoTIFF")) {
                 coverage = coverage.forConvertedValues(false);
 
                 final Path f = Files.createTempFile("data", ".tiff");
-                StorageConnector cnx = new StorageConnector(f);
-                cnx.setOption(OptionKey.OPEN_OPTIONS, new StandardOpenOption[] {
-                        StandardOpenOption.WRITE,
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING
-                });
 
-                try (DataStore store = new GeoTiffStoreProvider().open(cnx)) {
-                    WritableAggregate agg = (WritableAggregate)store;
-                    agg.add(new MemoryGridCoverageResource(null, null, coverage, null));
+                try (final GeoTiffStore iowriter = (GeoTiffStore) DataStores.openWritable(f, "GeoTIFF")) {
+                    iowriter.append(coverage, null);
                 } catch (UnsupportedStorageException e) {
-                    throw new ProcessException("Geotiff storage is not supported for the moment.", this, e);
+                    throw new ProcessException("Geotiff storage is not supported for the moment. " + e.getLocalizedMessage(), this, e);
                 } catch (DataStoreException e) {
-                    throw new ProcessException("An error occurred during tiff writing.", this, e);
+                    throw new ProcessException("An error occurred during tiff writing. " + e.getLocalizedMessage(), this, e);
                 }
 
                 outputParameters.getOrCreate(OUTPUT).setValue(f);

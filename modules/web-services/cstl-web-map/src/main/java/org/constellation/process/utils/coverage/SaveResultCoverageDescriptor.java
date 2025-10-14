@@ -21,11 +21,11 @@ public class SaveResultCoverageDescriptor extends AbstractCstlProcessDescriptor 
     public static final String NAME = "coverage.save_result";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Save a coverage in a specified format");
 
-    public static final String COVERAGE_NAME = "coverage";
-    private static final String COVERAGE_REMARKS = "The coverage to save";
-    public static final ParameterDescriptor<GridCoverage> COVERAGE = BUILDER
-            .addName(COVERAGE_NAME)
-            .setRemarks(COVERAGE_REMARKS)
+    public static final String DATA_NAME = "data";
+    private static final String DATA_REMARKS = "The data to save";
+    public static final ParameterDescriptor<GridCoverage> DATA = BUILDER
+            .addName(DATA_NAME)
+            .setRemarks(DATA_REMARKS)
             .setRequired(true)
             .create(GridCoverage.class, null);
 
@@ -37,9 +37,17 @@ public class SaveResultCoverageDescriptor extends AbstractCstlProcessDescriptor 
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String OPTIONS_NAME = "options";
+    private static final String OPTIONS_REMARKS = "The file format parameters to be used to create the file(s)";
+    public static final ParameterDescriptor<Object> OPTIONS = BUILDER
+            .addName(OPTIONS_NAME)
+            .setRemarks(OPTIONS_REMARKS)
+            .setRequired(false)
+            .create(Object.class, null);
+
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(COVERAGE, FORMAT);
+            .createGroup(DATA, FORMAT, OPTIONS);
 
     public static final String OUTPUT_NAME = "result";
     private static final String OUTPUT_REMARKS = "Result";

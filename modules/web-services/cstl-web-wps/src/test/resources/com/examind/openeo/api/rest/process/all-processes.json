@@ -117,8 +117,8 @@
             "categories": ["examind"],
             "parameters": [{
                     "valid": true,
-                    "name": "coverage",
-                    "description": "The coverage to save",
+                    "name": "data",
+                    "description": "The data to save",
                     "schema": {
                         "type": ["OBJECT"],
                         "subtype": "org.apache.sis.coverage.grid.GridCoverage"
@@ -132,6 +132,16 @@
                     "schema": {
                         "type": ["STRING"],
                         "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "options",
+                    "description": "The file format parameters to be used to create the file(s)",
+                    "schema": {
+                        "type": ["OBJECT"],
+                        "subtype": "java.lang.Object"
                     },
                     "optional": true,
                     "default": null
@@ -870,6 +880,105 @@
             "links": [],
             "process_graph": {}
         }, {
+            "id": "examind.coverage.openeo.load",
+            "summary": "Load a collection.",
+            "description": "Load a collection.",
+            "categories": ["examind"],
+            "parameters": [{
+                    "valid": true,
+                    "name": "serviceId",
+                    "description": "The service Id where the coverage is",
+                    "schema": {
+                        "type": ["STRING"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": false,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "external_stac_url",
+                    "description": "The external STAC URL to use instead of using internal Examind catalog.",
+                    "schema": {
+                        "type": ["STRING"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "external_stac_custom_process",
+                    "description": "The external STAC Custom Process to use to load external STAC data.",
+                    "schema": {
+                        "type": ["STRING"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": true,
+                    "name": "id",
+                    "description": "The collection Id to load",
+                    "schema": {
+                        "type": ["STRING"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": false,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "spatial_extent",
+                    "description": "Limits the data to load from the collection to the specified bounding box.\n\nSet this parameter to `null` to set no limit for the spatial extent. Be careful with this when loading large datasets!",
+                    "schema": {
+                        "type": ["OBJECT"],
+                        "subtype": "GM_Envelope"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "temporal_extent",
+                    "description": "Limits the data to load from the collection to the specified left-closed temporal interval. The interval has to be specified as an array with exactly two elements:\n\n1. The first element is the start of the temporal interval. The specified instance in time is **included** in the interval.\n2. The second element is the end of the temporal interval. The specified instance in time is **excluded** from the interval.\n\nSet this parameter to `null` to set no limit for the temporal extent. Be careful with this when loading large datasets!",
+                    "schema": {
+                        "type": ["ARRAY"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "bands",
+                    "description": "Only adds the specified band into the data cube.\n\nThis parameter expects an array of integers or strings, where each integer specifies a band by its band index (1-based) or name. For example, to load the first and third band of a collection, set this parameter to `[\"1\", \"3\"]`. If you want to load a band named `test` set `[\"test\"]`. \n\nSet this parameter to `null` to load all bands of the collection. Be careful with this when loading large datasets!",
+                    "schema": {
+                        "type": ["ARRAY"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "properties",
+                    "description": "Limits the data by metadata properties to include only data in the data cube which all given conditions return true for (AND operation) \n\n. Specify key-value-pairs with the key being the name of the queryable (for STAC APIs implementing the Filter Extension) or the metadata property name (for static STAC catalogs or STAC APIs implementing the Query Extension). Queryables can be retrieved from the Queryables endpoint of the STAC API and are often but not always aligned with the metadata property names. The value must be a condition (user-defined process) to be evaluated against a STAC API or static catalog. This parameter throws a PropertiesUnsupported exception if querying is not implemented for static STAC catalogs or STAC APIs that don't support the Filter or Query Extension.",
+                    "schema": {
+                        "type": ["OBJECT"],
+                        "subtype": "java.lang.Object"
+                    },
+                    "optional": true,
+                    "default": null
+                }],
+            "returns": {
+                "description": "A GridCoverage containing the data of the loaded collection. This object is a data cube that will be use for further processing.",
+                "schema": {
+                    "type": ["OBJECT"],
+                    "subtype": null
+                }
+            },
+            "deprecated": false,
+            "experimental": false,
+            "exceptions": {},
+            "examples": [],
+            "links": [],
+            "process_graph": {}
+        }, {
             "id": "examind.test.echo",
             "summary": "Echo different input to output.",
             "description": "Echo different input to output.",
@@ -1165,7 +1274,17 @@
                     "description": "Bands to load",
                     "schema": {
                         "type": ["ARRAY"],
-                        "subtype": "Integer"
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "properties",
+                    "description": "Properties used to query specific data from STAC.",
+                    "schema": {
+                        "type": ["OBJECT"],
+                        "subtype": "java.lang.Object"
                     },
                     "optional": true,
                     "default": null
@@ -1201,6 +1320,85 @@
                 }],
             "returns": {
                 "description": "The GridCoverage loaded",
+                "schema": {
+                    "type": ["OBJECT"],
+                    "subtype": null
+                }
+            },
+            "deprecated": false,
+            "experimental": false,
+            "exceptions": {},
+            "examples": [],
+            "links": [],
+            "process_graph": {}
+        }, {
+            "id": "examind.coverage.openeo.load.stac",
+            "summary": "Load STAC.",
+            "description": "Load STAC.",
+            "categories": ["examind"],
+            "parameters": [{
+                    "valid": true,
+                    "name": "url",
+                    "description": "The STAC URL to a STAC collection or item.",
+                    "schema": {
+                        "type": ["STRING"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": false,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "external_stac_custom_process",
+                    "description": "The external STAC Custom Process to use to load external STAC data.",
+                    "schema": {
+                        "type": ["STRING"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "spatial_extent",
+                    "description": "Limits the data to load from the collection to the specified bounding box.\n\nSet this parameter to `null` to set no limit for the spatial extent. Be careful with this when loading large datasets!",
+                    "schema": {
+                        "type": ["OBJECT"],
+                        "subtype": "GM_Envelope"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "temporal_extent",
+                    "description": "Limits the data to load from the collection to the specified left-closed temporal interval. The interval has to be specified as an array with exactly two elements:\n\n1. The first element is the start of the temporal interval. The specified instance in time is **included** in the interval.\n2. The second element is the end of the temporal interval. The specified instance in time is **excluded** from the interval.\n\nSet this parameter to `null` to set no limit for the temporal extent. Be careful with this when loading large datasets!",
+                    "schema": {
+                        "type": ["ARRAY"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "bands",
+                    "description": "Only adds the specified band into the data cube.\n\nThis parameter expects an array of integers or strings, where each integer specifies a band by its band index (1-based) or name. For example, to load the first and third band of a collection, set this parameter to `[\"1\", \"3\"]`. If you want to load a band named `test` set `[\"test\"]`. \n\nSet this parameter to `null` to load all bands of the collection. Be careful with this when loading large datasets!",
+                    "schema": {
+                        "type": ["ARRAY"],
+                        "subtype": "CharacterString"
+                    },
+                    "optional": true,
+                    "default": null
+                }, {
+                    "valid": false,
+                    "name": "properties",
+                    "description": "Limits the data by metadata properties to include only data in the data cube which all given conditions return true for (AND operation) \n\n. Specify key-value-pairs with the key being the name of the queryable (for STAC APIs implementing the Filter Extension) or the metadata property name (for static STAC catalogs or STAC APIs implementing the Query Extension). Queryables can be retrieved from the Queryables endpoint of the STAC API and are often but not always aligned with the metadata property names. The value must be a condition (user-defined process) to be evaluated against a STAC API or static catalog. This parameter throws a PropertiesUnsupported exception if querying is not implemented for static STAC catalogs or STAC APIs that don't support the Filter or Query Extension.",
+                    "schema": {
+                        "type": ["OBJECT"],
+                        "subtype": "java.lang.Object"
+                    },
+                    "optional": true,
+                    "default": null
+                }],
+            "returns": {
+                "description": "A GridCoverage containing the data of the loaded collection. This objct is a data cube that will be use for further processing.",
                 "schema": {
                     "type": ["OBJECT"],
                     "subtype": null

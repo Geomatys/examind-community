@@ -12,6 +12,8 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
+import java.util.Map;
+
 /**
  * @author Quentin BIALOTA (Geomatys)
  */
@@ -54,15 +56,23 @@ public class LoadCoverageDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String BANDS_NAME = "bands";
     private static final String BANDS_REMARKS = "Bands to load";
-    public static final ParameterDescriptor<Integer[]> BANDS = BUILDER
+    public static final ParameterDescriptor<String[]> BANDS = BUILDER
             .addName(BANDS_NAME)
             .setRemarks(BANDS_REMARKS)
             .setRequired(false)
-            .create(Integer[].class, null);
+            .create(String[].class, null);
+
+    public static final String PROPERTIES_NAME = "properties";
+    private static final String PROPERTIES_REMARKS = "Properties used to query specific data from STAC.";
+    public static final ParameterDescriptor<Map> PROPERTIES = BUILDER
+            .addName(PROPERTIES_NAME)
+            .setRemarks(PROPERTIES_REMARKS)
+            .setRequired(false)
+            .create(Map.class, null);
 
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(SERVICE, COVERAGE_LAYER, SPATIAL_EXTENT, TEMPORAL_EXTENT, BANDS);
+            .createGroup(SERVICE, COVERAGE_LAYER, SPATIAL_EXTENT, TEMPORAL_EXTENT, BANDS, PROPERTIES);
 
     public static final String OUTPUT_NAME = "result";
     private static final String OUTPUT_REMARKS = "The GridCoverage loaded";

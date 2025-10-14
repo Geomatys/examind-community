@@ -185,7 +185,7 @@
       "process_id": "examind.coverage.save_result",
       "arguments": {
         "format": "GTIFF",
-        "coverage": {
+        "data": {
           "from_node": "p3"
         }
       },
