@@ -27,6 +27,7 @@ import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.ogc.configuration.OGCConfigurer;
 import com.examind.wps.util.WPSUtils;
+import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.ws.IWPSConfigurer;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
@@ -62,9 +63,10 @@ public class WPSConfigurer extends OGCConfigurer implements IWPSConfigurer {
 
     @Override
     public int getProcessCount(Integer id) throws ConfigurationException {
-        final ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration(id);
+        final ProcessContext context  = (ProcessContext) serviceBusiness.getConfiguration(id);
+        final Processes servProcesses = context.getProcesses();
         int count = 0;
-        if (Boolean.TRUE.equals(context.getProcesses().getLoadAll()) ) {
+        if (Boolean.TRUE.equals(servProcesses.getLoadAll()) ) {
             for (Iterator<ProcessingRegistry> it = ProcessFinder.getProcessFactories(); it.hasNext();) {
                 final ProcessingRegistry processingRegistry = it.next();
                 for (ProcessDescriptor descriptor : processingRegistry.getDescriptors()) {
@@ -74,11 +76,11 @@ public class WPSConfigurer extends OGCConfigurer implements IWPSConfigurer {
                 }
             }
         } else {
-            for (ProcessFactory pFacto : context.getProcessFactories()) {
+            for (ProcessFactory pFacto : servProcesses.getFactory()) {
                 final String autorityCode = pFacto.getAutorityCode();
                 final ProcessingRegistry processingRegistry = ProcessFinder.getProcessFactory(autorityCode);
                 if (processingRegistry == null) {
-                    LOGGER.warning("No processing registry found for "+autorityCode);
+                    LOGGER.log(Level.WARNING, "No processing registry found for {0}", autorityCode);
                     continue;
                 }
                 if (pFacto.getLoadAll()) {

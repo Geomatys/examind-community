@@ -67,6 +67,7 @@ import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
+import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConfigurationException;
@@ -277,7 +278,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                         }
                         factories.add(processFactory);
                     }
-                    conf.setProcesses(factories);
+                    conf.setProcesses(new Processes(false, factories));
                     serviceBusiness.setConfiguration(sid, conf);
                 }
             }

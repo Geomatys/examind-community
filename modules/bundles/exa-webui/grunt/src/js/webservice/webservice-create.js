@@ -192,7 +192,7 @@ angular.module('cstl-webservice-create', [
                 function(response) {
                     webserviceFactory.serviceId = response.data.id;
                     Growl('success', 'Success', 'Service ' + self.metadata.name + ' successfully created');
-                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'sts' || self.type === 'wfs' || self.type === 'wms' || self.type === 'wcs' || self.type === 'wmts') {
+                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'sts' || self.type === 'wfs' || self.type === 'wms' || self.type === 'wcs' || self.type === 'wmts' || self.type === 'wps') {
                         $location.path('/webservice/'+ self.type +'/'+ self.metadata.identifier +'/source');
                     } else {
                         $location.path('/webservice');
@@ -244,6 +244,8 @@ angular.module('cstl-webservice-create', [
             'schema':'',
             'enableDirectory':false,
             'transactional':false,
+            'transactionSecurized':false,
+            'executeSecurized':false,
             'logRequest':false,
             'dataDirectory':'',
             'cswMode':null,
@@ -308,14 +310,20 @@ angular.module('cstl-webservice-create', [
             if (self.guiConfig.transactional) {
                 if (self.type === 'sos' || self.type === 'csw' || self.type === 'sts') {
                     self.source.profile = 'transactional';
-                } else if(self.type === 'wfs') {
+                } else if(self.type === 'wfs' || self.type === 'wps') {
                     self.source.customParameters.transactional = self.guiConfig.transactional;
                 }
+            }
+            if (self.guiConfig.transactionSecurized) {
+                self.source.customParameters.transactionSecurized = self.guiConfig.transactionSecurized;
+            }
+            if (self.guiConfig.executeSecurized) {
+                self.source.customParameters.executeSecurized = self.guiConfig.executeSecurized;
             }
             if (self.guiConfig.logRequest) {
                 self.source.customParameters.printRequestParameter = self.guiConfig.logRequest;
             }
-            
+
             Examind.ogcServices.setConfig(self.type, self.id, self.source).then(function() {
                 Growl('success','Success','Service '+ self.id +' successfully updated');
                 if (self.type === 'sos' || self.type === 'sts') {

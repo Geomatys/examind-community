@@ -23,6 +23,7 @@ import org.constellation.dto.process.Registry;
 import org.constellation.dto.process.RegistryList;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
+import org.constellation.dto.service.config.wps.Processes;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.ProcessingRegistry;
@@ -34,8 +35,8 @@ import org.geotoolkit.process.ProcessingRegistry;
 public class WPSConfigurationUtils {
 
     public static ProcessContext addProcessToContext(final ProcessContext context, final RegistryList registries) {
-
-        if (Boolean.TRUE.equals(context.getProcesses().getLoadAll())) {
+        final Processes servProcesses = context.getProcesses();
+        if (Boolean.TRUE.equals(servProcesses.getLoadAll())) {
             // WPS already contains all the registries, nothing to do
         } else {
             for (Registry registry : registries.getRegistries()) {
@@ -57,13 +58,14 @@ public class WPSConfigurationUtils {
                     for (org.constellation.dto.process.Process process : registry.getProcesses()) {
                         factory.getInclude().add(process);
                     }
-                    context.getProcessFactories().add(factory);
+                    servProcesses.getFactory().add(factory);
                 }
             }
         }
         return context;
     }
     public static ProcessContext removeProcessFromContext(final ProcessContext context, final String authority, final String processId) {
+        final Processes servProcesses = context.getProcesses();
         if (Boolean.TRUE.equals(context.getProcesses().getLoadAll())) {
             context.getProcesses().setLoadAll(Boolean.FALSE);
 
@@ -74,7 +76,7 @@ public class WPSConfigurationUtils {
                         .iterator().next().getCode();
                 if (!name.equals(authority)) {
                     if (isSupportedFactory(processingRegistry)) {
-                        context.getProcessFactories().add(new ProcessFactory(name, Boolean.TRUE));
+                        servProcesses.getFactory().add(new ProcessFactory(name, Boolean.TRUE));
                     }
                 } else {
                     final ProcessFactory newFactory = new ProcessFactory(name, Boolean.FALSE);
@@ -84,7 +86,7 @@ public class WPSConfigurationUtils {
                             newFactory.getInclude().add(pid);
                         }
                     }
-                    context.getProcessFactories().add(newFactory);
+                    servProcesses.getFactory().add(newFactory);
                 }
             }
         } else {

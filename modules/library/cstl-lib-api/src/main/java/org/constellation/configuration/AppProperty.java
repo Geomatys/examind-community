@@ -249,8 +249,6 @@ public enum AppProperty {
 
     EXA_CWL_SHARED_DIR("examind.cwl.shared.dir"),
 
-    EXA_WPS_EXECUTE_SECURE("examind.wps.execute.secure", false, Boolean.class),
-
     EXA_DISABLE_NO_CACHE("examind.disable.no.cache", false, Boolean.class),
 
     EXA_CACHE_CONTROL_TIME("examind.cache.control.time", false, Integer.class),

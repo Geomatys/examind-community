@@ -20,9 +20,9 @@
 package org.constellation.dto.service.config.wps;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -80,19 +80,14 @@ public class ProcessContext extends AbstractConfigurationObject {
     }
 
     public Processes getProcesses() {
-        return processes;
-    }
-
-    /**
-     * @return the layers
-     */
-    public List<ProcessFactory> getProcessFactories() {
         if (processes == null) {
             processes = new Processes();
-            return processes.getFactory();
-        } else {
-            return processes.getFactory();
         }
+        return processes;
+    }
+    
+    public void setProcesses(Processes processes) {
+        this.processes = processes;
     }
 
     public ProcessFactory getProcessFactory(String authorityCode) {
@@ -115,13 +110,6 @@ public class ProcessContext extends AbstractConfigurationObject {
                 }
             }
         }
-    }
-
-    /**
-     * @param processes the layers to set
-     */
-    public void setProcesses(List<ProcessFactory> processes) {
-        this.processes = new Processes(processes);
     }
 
     /**
@@ -217,7 +205,7 @@ public class ProcessContext extends AbstractConfigurationObject {
 
     @Override
     public String toString() {
-        final String factoryList = getProcessFactories().stream()
+        final String factoryList = getProcesses().getFactory().stream()
                 .map(Object::toString)
                 .collect(Collectors.joining(System.lineSeparator(), String.format("Process context:%n"), System.lineSeparator()));
 

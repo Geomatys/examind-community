@@ -706,7 +706,7 @@ public class ServiceBusiness implements IServiceBusiness {
     public Object getDefaultConfiguration(final String serviceType) {
         return switch(serviceType.toLowerCase()) {
             case "csw" ->  new Automatic();
-            case "wps" -> new ProcessContext(new Processes(true));
+            case "wps" -> new ProcessContext(new Processes());
             case "sos", "sts" -> new SOSConfiguration();
             // other case assume WXS
             default -> new LayerContext(createGenericConfiguration());

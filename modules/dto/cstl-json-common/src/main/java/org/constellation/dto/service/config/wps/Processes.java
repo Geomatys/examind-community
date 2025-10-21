@@ -18,6 +18,7 @@
  */
 package org.constellation.dto.service.config.wps;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
@@ -37,16 +38,15 @@ public class Processes {
     private Boolean loadAll;
     
     @XmlElement(name="ProcessFactory")
+    @JsonProperty("factory")
     private List<ProcessFactory> factory;
 
     public Processes() {
-        
-    }
-    public Processes(final Boolean loadAll) {
-        this.loadAll = loadAll;
+        this.loadAll = true;
     }
             
-    public Processes(final List<ProcessFactory> factory) {
+    public Processes(final Boolean loadAll, final List<ProcessFactory> factory) {
+        this.loadAll = loadAll;        
         this.factory = factory;
     }
     

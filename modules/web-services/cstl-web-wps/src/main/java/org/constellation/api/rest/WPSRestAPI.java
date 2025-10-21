@@ -32,6 +32,7 @@ import org.constellation.dto.service.config.wps.Process;
 import org.constellation.dto.process.RegistryList;
 import com.examind.wps.util.WPSUtils;
 import com.examind.wps.util.WPSConfigurationUtils;
+import org.constellation.dto.service.config.wps.Processes;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.ProcessingRegistry;
@@ -113,10 +114,11 @@ public class WPSRestAPI extends AbstractRestAPI {
         try {
             final ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", id);
             final List<Registry> results = new ArrayList<>();
-            if (Boolean.TRUE.equals(context.getProcesses().getLoadAll()) ) {
+            Processes servProcesses = context.getProcesses();
+            if (Boolean.TRUE.equals(servProcesses.getLoadAll()) ) {
                 return getAllProcess();
             } else {
-                for (ProcessFactory pFacto : context.getProcessFactories()) {
+                for (ProcessFactory pFacto : servProcesses.getFactory()) {
                     final Registry registry = new Registry(pFacto.getAutorityCode());
                     final List<org.constellation.dto.process.Process> processes = new ArrayList<>();
 
@@ -194,10 +196,10 @@ public class WPSRestAPI extends AbstractRestAPI {
     public ResponseEntity removeAuthority(final @PathVariable("id") String id, final @PathVariable("code") String code) {
         if (readOnlyAPI) return readOnlyModeActivated();
         try {
-            final ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", id);
-
-            if (Boolean.TRUE.equals(context.getProcesses().getLoadAll()) ) {
-                context.getProcesses().setLoadAll(Boolean.FALSE);
+            final ProcessContext context  = (ProcessContext) serviceBusiness.getConfiguration("WPS", id);
+            final Processes servProcesses = context.getProcesses();
+            if (Boolean.TRUE.equals(servProcesses.getLoadAll()) ) {
+                servProcesses.setLoadAll(Boolean.FALSE);
 
                 for (Iterator<ProcessingRegistry> it = ProcessFinder.getProcessFactories(); it.hasNext();) {
                     final ProcessingRegistry processingRegistry = it.next();
@@ -205,7 +207,7 @@ public class WPSRestAPI extends AbstractRestAPI {
                             .getIdentification().getCitation().getIdentifiers()
                             .iterator().next().getCode();
                     if (!name.equals(code)) {
-                        context.getProcessFactories().add(new ProcessFactory(name, Boolean.TRUE));
+                        servProcesses.getFactory().add(new ProcessFactory(name, Boolean.TRUE));
                     }
                 }
 

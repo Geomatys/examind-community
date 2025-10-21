@@ -18,7 +18,6 @@
  */
 package com.examind.wps;
 
-import com.examind.openeo.api.rest.process.OpenEOProcessService;
 import com.examind.wps.api.IOParameterException;
 import com.examind.wps.api.ProcessPreConsumer;
 import com.examind.wps.api.UnknowJobException;
@@ -111,10 +110,9 @@ import java.util.Arrays;
 import org.constellation.api.WorkerState;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IProcessBusiness;
-import org.constellation.configuration.AppProperty;
-import org.constellation.configuration.Application;
 import org.constellation.dto.process.Registry;
 import org.constellation.dto.process.RegistryList;
+import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.dynamic.ExamindDynamicProcessFactory;
@@ -358,10 +356,11 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
         if (context == null || context.getProcesses() == null) {
             return;
         }
+        final Processes servProcesses = context.getProcesses();
         final Map<ProcessDescriptor, Process> overridenProperties = new HashMap<>();
         final List<ProcessDescriptor> linkedDescriptors = new ArrayList<>();
         // Load all processes from all factory
-        if (Boolean.TRUE.equals(context.getProcesses().getLoadAll())) {
+        if (Boolean.TRUE.equals(servProcesses.getLoadAll())) {
             LOGGER.info("Loading all process");
             final Iterator<ProcessingRegistry> factoryIte = ProcessFinder.getProcessFactories();
             while (factoryIte.hasNext()) {
@@ -369,7 +368,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                 linkedDescriptors.addAll(factory.getDescriptors());
             }
         } else {
-            for (final ProcessFactory processFactory : context.getProcessFactories()) {
+            for (final ProcessFactory processFactory : servProcesses.getFactory()) {
                 String authorityCode = processFactory.getAutorityCode();
                 ProcessingRegistry factory = null;
                 if (authorityCode.startsWith("http")) {
@@ -694,14 +693,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
     @Override
     public StatusInfo dismiss(Dismiss request) throws CstlServiceException {
-        if (isTransactionSecurized()) {
-            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
-                throw new UnauthorizedException("You must be authentified to perform an dismiss request.");
-            }
-            if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
-               throw new UnauthorizedException("You are not allowed to perform an dismiss request.");
-            }
-        }
+        assertExecutable("Dismiss");
         verifyBaseRequest(request, true, false);
         try {
             execInfo.dismissJob(request.getJobID());
@@ -734,16 +726,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
     }
 
     public Object execute(final Execute request, String quotationId, boolean directRun) throws CstlServiceException {
-        if (isTransactionSecurized()) {
-            if (Application.getBooleanProperty(AppProperty.EXA_WPS_EXECUTE_SECURE, false)) {
-                if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
-                    throw new UnauthorizedException("You must be authentified to perform an execute request.");
-                }
-                if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
-                   throw new UnauthorizedException("You are not allowed to perform an execute request.");
-                }
-            }
-        }
+        assertExecutable("Execute");
         verifyBaseRequest(request, true, false);
 
         final String version = request.getVersion().toString();
@@ -1297,14 +1280,8 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
     @Override
     public DeployResult deploy(Deploy request) throws CstlServiceException {
-        if (isTransactionSecurized()) {
-            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
-                throw new UnauthorizedException("You must be authentified to perform a deploy request.");
-            }
-            if (!SecurityManagerHolder.getInstance().isAllowed("deploy")) {
-               throw new UnauthorizedException("You are not allowed to perform a deploy request.");
-            }
-        }
+        assertTransactionnal("Deploy");
+        
         if (request.getProcessDescription()== null) {
             throw new CstlServiceException("Process description must be specified", MISSING_PARAMETER_VALUE);
         }
@@ -1521,14 +1498,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
     @Override
     public UndeployResult undeploy(Undeploy request) throws CstlServiceException {
-        if (isTransactionSecurized()) {
-            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
-                throw new UnauthorizedException("You must be authentified to perform an undeploy request.");
-            }
-            if (!SecurityManagerHolder.getInstance().isAllowed("deploy")) {
-               throw new UnauthorizedException("You are not allowed to perform an undeploy request.");
-            }
-        }
+        assertTransactionnal("undeploy");
         try {
             if (request.getIdentifier() == null) {
                 throw new CstlServiceException("Process identifier must be specified", MISSING_PARAMETER_VALUE);
@@ -1648,6 +1618,13 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
     public void destroy() {
         super.destroy();
         stopped();
+    }
+    
+    protected void assertExecutable(final String requestName) throws CstlServiceException {
+        boolean secure = getBooleanProperty("executeSecurized", false);
+        if (secure && !SecurityManagerHolder.getInstance().isAuthenticated()) {
+            throw new UnauthorizedException("You must be authentified to perform " + requestName + " request.");
+        }
     }
 }
 

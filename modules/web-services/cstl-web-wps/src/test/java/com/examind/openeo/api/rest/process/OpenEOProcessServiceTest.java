@@ -106,7 +106,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
             exaFacto.getInclude().add(new org.constellation.dto.service.config.wps.Process("test.echo"));
             exaFacto.getInclude().add(new org.constellation.dto.service.config.wps.Process("test.param.dependency"));
             final List<ProcessFactory> process = Arrays.asList(geotkFacto, exaFacto);
-            final Processes processes = new Processes(process);
+            final Processes processes = new Processes(false, process);
             final ProcessContext config = new ProcessContext(processes);
 
             Integer defId = serviceBusiness.create("wps", "default", config, null, null);

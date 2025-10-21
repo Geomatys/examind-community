@@ -440,7 +440,7 @@ public class ConfigurationXmlBindingTest {
         s2.setLoadAll(true);
         factories.add(s1);
         factories.add(s2);
-        ProcessContext context = new ProcessContext(new Processes(factories));
+        ProcessContext context = new ProcessContext(new Processes(null, factories));
         StringWriter sw = new StringWriter();
         marshaller.marshal(context, sw);
 
@@ -477,7 +477,7 @@ public class ConfigurationXmlBindingTest {
         s2.setAutorityCode("source2");
         factories.add(s1);
         factories.add(s2);
-        context = new ProcessContext(new Processes(factories));
+        context = new ProcessContext(new Processes(null, factories));
         sw = new StringWriter();
         marshaller.marshal(context, sw);
 
