@@ -85,6 +85,7 @@ COMPARE
 	| EQUALUNDER
 	| NOTEQUAL
 	| EQUAL
+        | LIKE
 	| ABOVE
 	| UNDER
 	;
@@ -92,6 +93,7 @@ fragment EQUALABOVE : ' ge ' ;
 fragment EQUALUNDER : ' le ' ;
 fragment NOTEQUAL   : ' ne ' ;
 fragment EQUAL      : ' eq ' ;
+fragment LIKE        : ' li ' ;
 fragment ABOVE      : ' gt ' ;
 fragment UNDER      : ' lt ' ;
 

@@ -50,6 +50,7 @@ import org.opengis.feature.Feature;
 import org.opengis.filter.Expression;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Literal;
 import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.ValueReference;
@@ -383,6 +384,12 @@ public final class ODataFilterParser {
                         return ff.before(left, right);
                     }
                     return ff.lessOrEqual(left, right);
+                } else if (" li ".equals(text)) {
+                    if (right instanceof Literal l && l.getValue() instanceof String val) {
+                        return ff.like(left, val, '*', '?', '\\', false);
+                    } else {
+                        throw new ODataParseException("Like filter require a string literal in right part.");
+                    }
                 }
             } else if (exp.IN() != null) {
                 // expression NOT? IN LPAREN (expressionFctParam )?  RPAREN

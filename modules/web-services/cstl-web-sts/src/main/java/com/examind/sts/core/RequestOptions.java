@@ -101,17 +101,31 @@ public class RequestOptions {
     }
 
 
+    /**
+     * Return {@code true} if the attribute is part of the selection.
+     * 
+     * @param attribute the attribute to search not {@code null}
+     * @return 
+     */
     public boolean isSelected(String attribute) {
         return isSelected(attribute, false);
     }
     
+    /**
+     * Return {@code true} if the attribute is part of the selection.
+     * 
+     * @param attribute the attribute to search not {@code null}
+     * @param complexAttribute If set to true, the method will search for partial selection in a complexe attribute context.
+     * @return 
+     */
     public boolean isSelected(String attribute, boolean complexAttribute) {
         if (select.isEmpty()) {
             return true;
         }
+        attribute = attribute.toLowerCase();
         for (String sel : select) {
-            if (sel.equalsIgnoreCase(attribute) || 
-               (complexAttribute && (sel.startsWith(attribute.toLowerCase()) || attribute.toLowerCase().startsWith(sel)))) {  // integrate main complex attribute
+            if (sel.equals(attribute) || 
+               (complexAttribute && (sel.startsWith(attribute) || attribute.startsWith(sel)))) {  // integrate main complex attribute
                 
                 return true;
             }

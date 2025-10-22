@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Filter;
+import org.opengis.filter.LikeOperator;
 import org.opengis.filter.Literal;
 import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.LogicalOperatorName;
@@ -379,5 +380,20 @@ public class ODataFilterParserTest {
         Assert.assertEquals(geom.getMaximum(0), 80, 0);
         Assert.assertEquals(geom.getMinimum(1), 10, 0);
         Assert.assertEquals(geom.getMaximum(1), 70, 0);
+    }
+    
+     @Test
+    public void parseLikeFilterTest() throws Exception {
+        String filterStr = "properties/commune li 'Argel%'";
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
+        Assert.assertTrue(result instanceof LikeOperator);
+        LikeOperator like = (LikeOperator) result;
+        Assert.assertEquals(2, like.getExpressions().size());
+        Assert.assertTrue(like.getExpressions().get(0) instanceof ValueReference);
+        ValueReference pName = (ValueReference) like.getExpressions().get(0);
+        Assert.assertEquals("properties/commune", pName.getXPath());
+        Assert.assertTrue(like.getExpressions().get(1) instanceof Literal);
+        Literal lit = (Literal) like.getExpressions().get(1);
+        Assert.assertEquals("Argel%", lit.getValue());
     }
 }
