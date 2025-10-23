@@ -1705,6 +1705,54 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/th-property-ct.json");
         compareJSON(expResult, result);
+        
+        filter = "(properties/bss-code li '10972X0137*')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-4.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$count=true&$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-4-ct.json");
+        compareJSON(expResult, result);
+        
+        filter = "(properties/bss-code li '10972X0137/P*' or properties/bss-code li '10972X0137/S*')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-4.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$count=true&$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-4-ct.json");
+        compareJSON(expResult, result);
+        
+        filter = "(properties/bss-code li '10972X0137/P*' or properties/bss-code li '10972X0137/S*') and not (properties/bss-code li '10972X0137/S*')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$count=true&$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-ct.json");
+        compareJSON(expResult, result);
+        
+        filter = "(properties/bss-code li '10972X0137/P*' or properties/bss-code li '10972X0137/S*' or properties/bss-code li '00ARGLELES*') and not (properties/bss-code li '10972X0137/S*' or properties/bss-code li '00ARGLELES*')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$count=true&$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-ct.json");
+        compareJSON(expResult, result);
 
         filter = "Datastream/ObservedProperty/properties/phen-category eq 'biological')".replace("'", "%27").replace(" ", "%20");
 

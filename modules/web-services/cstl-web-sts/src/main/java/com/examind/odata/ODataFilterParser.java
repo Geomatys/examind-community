@@ -299,7 +299,7 @@ public final class ODataFilterParser {
                 }
                 return ff.or(subs);
             } else if (exp.LPAREN() != null) {
-                //| LPAREN filter RPAREN
+                // left parenthesis
                 return convertFilter(entityType, exp.filter(0), ff);
             }
         } else if (tree instanceof FilterGeometryContext) {

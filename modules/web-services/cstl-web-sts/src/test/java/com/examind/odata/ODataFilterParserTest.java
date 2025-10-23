@@ -382,6 +382,134 @@ public class ODataFilterParserTest {
         Assert.assertEquals(geom.getMaximum(1), 70, 0);
     }
     
+    @Test
+    public void parseFilterNotTest() throws Exception {
+        String filterStr = "not (time ge 2007-05-01T08:59:00Z)";
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
+        Assert.assertTrue(result instanceof LogicalOperator);
+        LogicalOperator log = (LogicalOperator) result;
+        Assert.assertEquals(LogicalOperatorName.NOT, log.getOperatorType());
+        Assert.assertEquals(1, log.getOperands().size());
+        result = (Filter) log.getOperands().get(0);
+        Assert.assertTrue(result instanceof TemporalOperator);
+        TemporalOperator temp = (TemporalOperator) result;
+        Assert.assertEquals(TemporalOperatorName.AFTER, temp.getOperatorType());
+        Assert.assertEquals(2, temp.getExpressions().size());
+        Assert.assertTrue(temp.getExpressions().get(0) instanceof ValueReference);
+        ValueReference pName = (ValueReference) temp.getExpressions().get(0);
+        Assert.assertEquals("time", pName.getXPath());
+        Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
+        Literal lit = (Literal) temp.getExpressions().get(1);
+        Temporal t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T08:59:00Z", format(t));
+    }
+    
+    @Test
+    public void parseFilterNot2Test() throws Exception {
+        String filterStr = "time le 2007-05-01T08:59:00Z and not (time ge 2007-05-01T08:59:00Z)";
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
+        Assert.assertTrue(result instanceof LogicalOperator);
+        LogicalOperator log = (LogicalOperator) result;
+        Assert.assertEquals(LogicalOperatorName.AND, log.getOperatorType());
+        Assert.assertEquals(2, log.getOperands().size());
+        
+        result = (Filter) log.getOperands().get(0);
+        Assert.assertTrue(result instanceof TemporalOperator);
+        TemporalOperator temp = (TemporalOperator) result;
+        Assert.assertEquals(TemporalOperatorName.BEFORE, temp.getOperatorType());
+        Assert.assertEquals(2, temp.getExpressions().size());
+        Assert.assertTrue(temp.getExpressions().get(0) instanceof ValueReference);
+        ValueReference pName = (ValueReference) temp.getExpressions().get(0);
+        Assert.assertEquals("time", pName.getXPath());
+        Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
+        Literal lit = (Literal) temp.getExpressions().get(1);
+        Temporal t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T08:59:00Z", format(t));
+        
+        result = (Filter) log.getOperands().get(1);
+        Assert.assertTrue(result instanceof LogicalOperator);
+        log = (LogicalOperator) result;
+        Assert.assertEquals(LogicalOperatorName.NOT, log.getOperatorType());
+        Assert.assertEquals(1, log.getOperands().size());
+        
+        result = (Filter) log.getOperands().get(0);
+        Assert.assertTrue(result instanceof TemporalOperator);
+        temp = (TemporalOperator) result;
+        Assert.assertEquals(TemporalOperatorName.AFTER, temp.getOperatorType());
+        Assert.assertEquals(2, temp.getExpressions().size());
+        Assert.assertTrue(temp.getExpressions().get(0) instanceof ValueReference);
+        pName = (ValueReference) temp.getExpressions().get(0);
+        Assert.assertEquals("time", pName.getXPath());
+        Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
+        lit = (Literal) temp.getExpressions().get(1);
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T08:59:00Z", format(t));
+    }
+    
+    @Test
+    public void parseFilterNot3Test() throws Exception {
+        String filterStr = "(time le 2007-05-01T08:59:00Z or time ge 2007-05-01T08:59:00Z) and not (time ge 2007-05-01T08:59:00Z)";
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
+        Assert.assertTrue(result instanceof LogicalOperator);
+        LogicalOperator log = (LogicalOperator) result;
+        Assert.assertEquals(LogicalOperatorName.AND, log.getOperatorType());
+        Assert.assertEquals(2, log.getOperands().size());
+        
+        result = (Filter) log.getOperands().get(0);
+        
+        
+        Assert.assertTrue(result instanceof LogicalOperator);
+        LogicalOperator log2 = (LogicalOperator) result;
+        Assert.assertEquals(LogicalOperatorName.OR, log2.getOperatorType());
+        Assert.assertEquals(2, log2.getOperands().size());
+        
+        result = (Filter) log2.getOperands().get(0);
+        Assert.assertTrue(result instanceof TemporalOperator);
+        TemporalOperator temp = (TemporalOperator) result;
+        Assert.assertEquals(TemporalOperatorName.BEFORE, temp.getOperatorType());
+        Assert.assertEquals(2, temp.getExpressions().size());
+        Assert.assertTrue(temp.getExpressions().get(0) instanceof ValueReference);
+        ValueReference pName = (ValueReference) temp.getExpressions().get(0);
+        Assert.assertEquals("time", pName.getXPath());
+        Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
+        Literal lit = (Literal) temp.getExpressions().get(1);
+        Temporal t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T08:59:00Z", format(t));
+        
+        
+        result = (Filter) log2.getOperands().get(1);
+        Assert.assertTrue(result instanceof TemporalOperator);
+        temp = (TemporalOperator) result;
+        Assert.assertEquals(TemporalOperatorName.AFTER, temp.getOperatorType());
+        Assert.assertEquals(2, temp.getExpressions().size());
+        Assert.assertTrue(temp.getExpressions().get(0) instanceof ValueReference);
+        pName = (ValueReference) temp.getExpressions().get(0);
+        Assert.assertEquals("time", pName.getXPath());
+        Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
+        lit = (Literal) temp.getExpressions().get(1);
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T08:59:00Z", format(t));
+        
+        result = (Filter) log.getOperands().get(1);
+        Assert.assertTrue(result instanceof LogicalOperator);
+        log = (LogicalOperator) result;
+        Assert.assertEquals(LogicalOperatorName.NOT, log.getOperatorType());
+        Assert.assertEquals(1, log.getOperands().size());
+        
+        result = (Filter) log.getOperands().get(0);
+        Assert.assertTrue(result instanceof TemporalOperator);
+        temp = (TemporalOperator) result;
+        Assert.assertEquals(TemporalOperatorName.AFTER, temp.getOperatorType());
+        Assert.assertEquals(2, temp.getExpressions().size());
+        Assert.assertTrue(temp.getExpressions().get(0) instanceof ValueReference);
+        pName = (ValueReference) temp.getExpressions().get(0);
+        Assert.assertEquals("time", pName.getXPath());
+        Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
+        lit = (Literal) temp.getExpressions().get(1);
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T08:59:00Z", format(t));
+    }
+    
      @Test
     public void parseLikeFilterTest() throws Exception {
         String filterStr = "properties/commune li 'Argel%'";

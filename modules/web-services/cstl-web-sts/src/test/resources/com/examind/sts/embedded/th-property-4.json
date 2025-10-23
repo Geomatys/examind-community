@@ -1,0 +1,30 @@
+{
+    "value": [{
+            "name": "Sensor 2",
+            "description": "",
+            "properties": {
+                "supervisor-code": "00ARGLELES",
+                "type": "profile",
+                "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/Datastreams",
+            "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/Locations",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/MultiDatastreams"
+        }, {
+            "name": "Sensor 3",
+            "description": "",
+            "properties": {
+                "type": "timeseries",
+                "bss-code": ["10972X0137/SER", "BSS10972X0137"]
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:3",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:3)",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:3)/HistoricalLocations",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:3)/Datastreams",
+            "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:3)/Locations",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:3)/MultiDatastreams"
+        }]
+}
