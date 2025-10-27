@@ -7,7 +7,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.UnsupportedStorageException;
 import org.apache.sis.storage.WritableAggregate;
-import org.apache.sis.storage.base.MemoryGridResource;
+import org.apache.sis.storage.MemoryGridCoverageResource;
 import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
 import org.apache.sis.storage.netcdf.NetcdfStoreProvider;
 import org.constellation.process.AbstractCstlProcess;
@@ -52,7 +52,7 @@ public class SaveResultCoverageProcess extends AbstractCstlProcess  {
 
                 try (DataStore store = new GeoTiffStoreProvider().open(cnx)) {
                     WritableAggregate agg = (WritableAggregate)store;
-                    agg.add(new MemoryGridResource(null, null, coverage, null));
+                    agg.add(new MemoryGridCoverageResource(null, coverage, null));
                 } catch (UnsupportedStorageException e) {
                     throw new ProcessException("Geotiff storage is not supported for the moment.", this, e);
                 } catch (DataStoreException e) {
@@ -72,7 +72,7 @@ public class SaveResultCoverageProcess extends AbstractCstlProcess  {
 
                 try (DataStore store = new NetcdfStoreProvider().open(cnx)) {
                     WritableAggregate agg = (WritableAggregate)store;
-                    agg.add(new MemoryGridResource(null, null, coverage, null));
+                    agg.add(new MemoryGridCoverageResource(null, coverage, null));
                 } catch (UnsupportedStorageException e) {
                     throw new ProcessException("Netcdf storage is not supported for the moment.", this, e);
                 } catch (DataStoreException e) {

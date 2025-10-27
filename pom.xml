@@ -43,7 +43,7 @@
         <jettison.version>1.5.4</jettison.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <xstream.version>1.4.20</xstream.version>
-        <antlr.version>4.11.1</antlr.version>
+        <antlr.version>4.13.2</antlr.version>
         <poi.version>5.2.3</poi.version>
         <duckdb.version>1.2.2.0</duckdb.version>
         <!-- this one is blocked by other dependencies -->
