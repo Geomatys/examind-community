@@ -623,13 +623,15 @@ public class StyleBusiness implements IStyleBusiness {
         // 2. try SLD
         try {
             final StyledLayerDescriptor sld = readSLD(source, false);
-            List<MutableStyle> styles = StyleUtilities.getStylesFromSLD(sld);
-            if (!styles.isEmpty()) {
-                value = styles.remove(0);
-                if (styleName != null && !styleName.isEmpty()) value.setName(styleName);
-                LOGGER.log(Level.FINE, "{0}{1} is an SLD", new Object[] { baseErrorMsg, styleName });
-                logIgnoredStyles(styles);
-                return value;
+            if (sld != null) {
+                List<MutableStyle> styles = StyleUtilities.getStylesFromSLD(sld);
+                if (!styles.isEmpty()) {
+                    value = styles.remove(0);
+                    if (styleName != null && !styleName.isEmpty()) value.setName(styleName);
+                    LOGGER.log(Level.FINE, "{0}{1} is an SLD", new Object[] { baseErrorMsg, styleName });
+                    logIgnoredStyles(styles);
+                    return value;
+                }
             }
         } catch (ConstellationException ex) { /* no exception should be throw has we set throwEx to false*/ }
         // 3.1 try FeatureTypeStyle SE 1.1
@@ -641,7 +643,7 @@ public class StyleBusiness implements IStyleBusiness {
             LOGGER.log(Level.FINE, "{0}{1} is FeatureTypeStyle SE 1.1", new Object[] { baseErrorMsg, styleName });
             return value;
 
-        } catch (JAXBException | FactoryException ex) { /* dont log */ }
+        } catch (Exception ex) { /* dont log */ }
         // 3.2 try FeatureTypeStyle SLD 1.0
         try {
             final MutableFeatureTypeStyle fts = sldParser.readFeatureTypeStyle(source, Specification.SymbologyEncoding.SLD_1_0_0);
@@ -650,7 +652,7 @@ public class StyleBusiness implements IStyleBusiness {
             if (styleName != null && !styleName.isEmpty()) value.setName(styleName);
             LOGGER.log(Level.FINE, "{0}{1} is an FeatureTypeStyle SLD 1.0", new Object[] { baseErrorMsg, styleName });
             return value;
-        } catch (JAXBException | FactoryException ex) { /* dont log */ }
+        } catch (Exception ex) { /* dont log */ }
         // 4 try to build a style from palette
         try {
             if (fileName != null) {
@@ -743,7 +745,7 @@ public class StyleBusiness implements IStyleBusiness {
             // If a JAXBException occurs it can be because it is not parsed in the
             // good version. Let's just continue with the other version.
             LOGGER.finest(ex.getLocalizedMessage());
-        } catch (FactoryException ex) {
+        } catch (Exception ex) {
             if (throwEx) {
                 throw new ConstellationException(ex);
             }
@@ -751,7 +753,7 @@ public class StyleBusiness implements IStyleBusiness {
         if (sld == null) {
             try {
                 sld = sldParser.readSLD(sldSrc, Specification.StyledLayerDescriptor.V_1_1_0);
-            } catch (JAXBException | FactoryException ex) {
+            } catch (Exception ex) {
                 if (throwEx) {
                     throw new ConstellationException(ex);
                 }
@@ -768,7 +770,7 @@ public class StyleBusiness implements IStyleBusiness {
         try {
             Specification.StyledLayerDescriptor version = Specification.StyledLayerDescriptor.version(sldVersion);
             return sldParser.readSLD(sldSrc, version);
-        } catch (JAXBException | FactoryException ex) {
+        } catch (Exception ex) {
             throw new ConstellationException("Error while reading sld.", ex);
         }
     }
@@ -785,7 +787,7 @@ public class StyleBusiness implements IStyleBusiness {
             // If a JAXBException occurs it can be because it is not parsed in the
             // good version. Let's just continue with the other version.
             LOGGER.finest(ex.getLocalizedMessage());
-        } catch (FactoryException ex) {
+        } catch (Exception ex) {
             if (throwEx) {
                 throw new ConstellationException(ex);
             }
@@ -793,7 +795,7 @@ public class StyleBusiness implements IStyleBusiness {
         if (style == null) {
             try {
                 style = sldParser.readStyle(sldSrc, Specification.SymbologyEncoding.SLD_1_0_0);
-            } catch (JAXBException | FactoryException ex) {
+            } catch (Exception ex) {
                 if (throwEx) {
                     throw new ConstellationException(ex);
                 }
@@ -810,7 +812,7 @@ public class StyleBusiness implements IStyleBusiness {
         try {
             Specification.SymbologyEncoding version = Specification.SymbologyEncoding.version(seVersion);
             return sldParser.readStyle(styleSrc, version);
-        } catch (JAXBException | FactoryException ex) {
+        } catch (Exception ex) {
             throw new ConstellationException("Error while reading sld.", ex);
         }
     }

@@ -405,10 +405,12 @@ angular.module('cstl-style-dashboard', [
                     cfpLoadingBar.complete();
                 },
                 error: function (data){
-                    if(data.responseJSON && (data.responseJSON.errorMessage || data.responseJSON.errorMessageI18nCode) ){
+                    if(data.responseJSON && (data.responseJSON.errorMessageI18nCode && data.responseJSON.errorMessageI18nCode === 'api.msg.error.style.alreadyExist') ){
                         Growl('error','Error','Style with name: '+styleName+' already exists!');
                         $scope.import.alreadyExistsName = styleName;
-                    }else {
+                    } else if (data.responseJSON && data.responseJSON.errorMessage) {
+                        Growl('error','Error','Unable to import style:' + data.responseJSON.errorMessage);
+                    } else {
                         Growl('error','Error','Unable to import style, please contact an administrator for more details.');
                     }
                     cfpLoadingBar.complete();
