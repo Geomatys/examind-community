@@ -20,7 +20,7 @@
 package org.constellation.wfs.core;
 
 import java.util.function.Function;
-import org.apache.sis.filter.internal.shared.FunctionNames;
+import org.apache.sis.filter.visitor.FunctionNames;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.opengis.feature.FeatureType;

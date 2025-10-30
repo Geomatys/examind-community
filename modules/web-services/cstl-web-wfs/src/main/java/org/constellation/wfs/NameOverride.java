@@ -50,8 +50,13 @@ public class NameOverride {
         }
 
         @Override
+        @Deprecated
         public Object getValueOrFallback(String s, Object o) {
-            return decorated.getValueOrFallback(s, o);
+            try {
+                return decorated.getPropertyValue(s);
+            } catch (PropertyNotFoundException e) {
+                return o;
+            }
         }
 
         @Override

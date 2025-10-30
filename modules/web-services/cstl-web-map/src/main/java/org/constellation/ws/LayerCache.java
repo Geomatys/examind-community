@@ -392,7 +392,7 @@ public class LayerCache {
                     if (def.crs() instanceof TemporalCRS tcrs && def.lower() instanceof FeatureExpression<?,?> fe) {
                         final Class<?> dimValueType = getFeatureType()
                                 .map(type -> fe.expectedType(new FeatureProjectionBuilder(type, null)).builder() instanceof AttributeTypeBuilder att ? att.getValueClass() : null)
-                                .orElse(fe.getValueClass());
+                                .orElse(fe.getResultClass());
                         final boolean isTemporal = Temporal.class.isAssignableFrom(dimValueType);
                         final boolean isDate = Date.class.isAssignableFrom(dimValueType);
                         if (isTemporal || isDate) {
