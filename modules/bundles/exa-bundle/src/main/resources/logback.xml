@@ -57,6 +57,7 @@ more details. */ -->
     <logger name="org.constellation" level="INFO" />
     <logger name="org.geotoolkit" level="INFO" />
     <logger name="org.flywaydb" level="INFO" />
+    <logger name="com.github.robtimus" level="WARN" />
 
     <root level="WARN">
         <appender-ref ref="STDOUT" />
