@@ -379,7 +379,7 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
     };
     
     self.showDeepOption = function () {
-        return self.remote.protocol.id === 'file' || self.remote.protocol.id === 's3';
+        return self.remote.protocol.id === 'file' || self.remote.protocol.id === 's3' || self.remote.protocol.id === 'ftp';
     };
 
     self.getBtnLabelFor = function (protocolId) {
