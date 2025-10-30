@@ -164,6 +164,7 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
      */
     self.getStores = function () {
         self.stores.selectedStore = null;
+        self.stores.detectedStores = [];
         var dsId = self.wizardValues.step1.dataSource.id;
         if (!dsId) {
             return;
