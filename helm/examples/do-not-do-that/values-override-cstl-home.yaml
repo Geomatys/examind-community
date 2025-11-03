@@ -1,0 +1,8 @@
+allInOne:
+  # Forbidden. It will cause an error on installation.
+  env:
+    CSTL_HOME: "DO NOT DO THAT"
+  # It will also cause an error in this form.
+  extraEnvVars:
+    - name: CSTL_HOME
+      value: "NOR THAT"

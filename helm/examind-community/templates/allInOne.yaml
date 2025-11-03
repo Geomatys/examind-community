@@ -176,9 +176,17 @@ spec:
                 -Dfile.encoding=UTF-8
                 -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
             {{- if not (empty .Values.allInOne.extraEnvVars) }}
+              {{- range $extraEnv := .Values.allInOne.extraEnvVars }}
+                {{- if has $extraEnv.name (list "CSTL_HOME" "DATABASE_URL" "DATABASE_USERNAME" "DATABASE_PASSWORD" "CATALINA_OPTS") }}
+                  {{ fail (printf "It is forbidden to override environment variable %s" $extraEnv.name) }}
+                {{- end }}
+              {{- end }}
               {{- .Values.allInOne.extraEnvVars | toYaml | nindent 12 }}
             {{- end }}
             {{- range $key, $value := .Values.allInOne.env }}
+                {{- if has $key (list "CSTL_HOME" "DATABASE_URL" "DATABASE_USERNAME" "DATABASE_PASSWORD" "CATALINA_OPTS") }}
+                  {{ fail (printf "It is forbidden to override environment variable %s" $key) }}
+                {{- end }}
             - name: {{ $key | quote }}
               value: {{ $value | quote }}
             {{- end }}
