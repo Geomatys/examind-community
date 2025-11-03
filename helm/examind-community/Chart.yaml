@@ -3,11 +3,11 @@ name: examind-community
 description: |
   Deploys a stand-alone version of GIS server Examind.
   Deploys community edition by default. 
-  If you are a paid customer, use `edition: server` value to deploy a complete edition.
+  If you are a paying customer, use `edition: server` value to deploy a complete edition.
 type: application
 home: https://www.examind.com
-version: "1.0.3"
-appVersion: "1.2.0"
+version: "1.0.4"
+appVersion: "1.2.4"
 
 maintainers:
   - name: Geomatys developer team
