@@ -36,7 +36,6 @@ import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
 import org.opengis.filter.Expression;
 import org.opengis.filter.Filter;
@@ -207,9 +206,7 @@ public class VectorAggregationWithExtraDimensionsProvider extends ComputedResour
             }
 
             for (String p : mandatoryPropertiesFromFirstType) {
-                try {
-                    type.getProperty(p);
-                } catch (PropertyNotFoundException e) {
+                if (!type.hasProperty(p)) {
                     builder.getProperty(p).setMinimumOccurs(0);
                     firstTypeModified = true;
                 }
