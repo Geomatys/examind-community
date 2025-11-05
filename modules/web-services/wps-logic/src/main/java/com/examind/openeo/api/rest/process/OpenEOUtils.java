@@ -10,8 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Utility class for OpenEO process ID conversions and data type schema building.
+ *
+ * @author Quentin Bialota (Geomatys)
+ */
 public class OpenEOUtils {
 
+    /**
+     * Convert Examind process IDs to OpenEO process IDs.
+     * Examples:
+     * - "examind.coverage.openeo.load" or "coverage.openeo.load" -> "load_collection"
+     * - "examind.coverage.save_result" or "coverage.save_result" -> "save_result"
+     *
+     * @param exaProcessId The Examind process ID.
+     * @return The corresponding OpenEO process ID.
+     */
     public static String examindProcessIdToOpenEOProcessId(String exaProcessId) {
         return switch (exaProcessId) {
             case "examind.coverage.openeo.load", "coverage.openeo.load" -> "load_collection";
@@ -20,6 +34,17 @@ public class OpenEOUtils {
         };
     }
 
+    /**
+     * Convert OpenEO process IDs to Examind process IDs.
+     * Examples:
+     * - "load_collection" -> "examind.coverage.openeo.load" or "coverage.openeo.load"
+     * - "save_result" -> "examind.coverage.save_result" or "coverage.save_result"
+     *
+     * @param eoProcessId The OpenEO process ID.
+     * @param fullDescriptor If true, returns the full Examind process ID; otherwise,
+     *                       returns the short form. (e.g., "examind.coverage.openeo.load" vs "coverage.openeo.load")
+     * @return The corresponding Examind process ID.
+     */
     public static String openEOProcessIdToExamindProcessId(String eoProcessId, boolean fullDescriptor) {
         return switch (eoProcessId) {
             case "load_collection" -> fullDescriptor ? "examind.coverage.openeo.load" : "coverage.openeo.load";
@@ -28,6 +53,19 @@ public class OpenEOUtils {
         };
     }
 
+    /**
+     * Build DataTypeSchema based on the provided parameters.
+     * Handles special cases for certain descriptor names and types.
+     * Example : If the input is an Envelope, will return a DataTypeSchema representing a bounding box.
+     *
+     * @param descriptor process descriptor
+     * @param descriptorName process descriptor name
+     * @param type type of the descriptor (as a string)
+     * @param clazz Java class of the descriptor
+     * @param isArray indicates if the descriptor is an array
+     * @param mandatory indicates if the descriptor is mandatory
+     * @return an array of DataTypeSchema objects
+     */
     public static DataTypeSchema[] buildDataTypeSchema(ProcessDescriptor descriptor, String descriptorName,
                                                        String type, Class<?> clazz, boolean isArray, boolean mandatory) {
         List<DataTypeSchema> dataTypeSchemas = new ArrayList<>();

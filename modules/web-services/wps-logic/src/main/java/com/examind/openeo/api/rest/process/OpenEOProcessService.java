@@ -17,12 +17,14 @@ import com.examind.openeo.api.rest.process.dto.Status;
 import com.examind.wps.api.WPSWorker;
 import com.examind.wps.util.WPSUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.DefaultParameterDescriptor;
 import org.apache.sis.referencing.CRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.business.ITokenBusiness;
+import org.constellation.configuration.Application;
 import org.constellation.dto.process.ChainProcess;
 import org.constellation.dto.process.Registry;
 import org.constellation.exception.ConstellationException;
@@ -85,8 +87,11 @@ import java.util.stream.Collectors;
 import static com.examind.openeo.api.rest.process.OpenEOUtils.buildDataTypeSchema;
 import static com.examind.openeo.api.rest.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
 import static com.examind.openeo.api.rest.process.OpenEOUtils.openEOProcessIdToExamindProcessId;
+import static org.constellation.configuration.AppProperty.EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE;
 import static org.geotoolkit.processing.chain.model.Element.BEGIN;
 import org.opengis.util.InternationalString;
+import org.springframework.web.client.RestTemplate;
+
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
@@ -103,30 +108,109 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
+ * OpenEO Process Service REST API.
+ *
  * @author Quentin BIALOTA (Geomatys)
  */
 @RestController
-//@RequestMapping("openeo/{serviceId:.+}")
 public class OpenEOProcessService extends OGCWebService<WPSWorker> {
 
+    /**
+     * Logger.
+     */
     private static final Logger LOGGER = Logger.getLogger("com.examind.openeo.api.rest");
 
+    /**
+     * Prefix for user-defined processes.
+     */
     private final String USER_DEFINED_PROCESS_PREFIX = "openeo-";
 
+    /**
+     * Prefix for temporary user-defined processes.
+     */
     private final String TEMPORARY_USER_DEFINED_PROCESS_PREFIX = "temp-openeo-";
 
+    /**
+     * Process business service.
+     */
     @Autowired
     public IProcessBusiness processBusiness;
 
+    /**
+     * Token business service.
+     */
     @Autowired
     private ITokenBusiness tokenBusiness;
 
+    /**
+     * Map of job IDs to their corresponding processes.
+     */
     private Map<String, Process> jobIdToProcessMap = new HashMap<>();
 
+    /**
+     * REST template used to make HTTP calls.
+     */
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    /**
+     * Cache of external STAC endpoints per serviceId.
+     */
+    private final Map<String, Pair<Boolean, String>> externalStacByServiceId = new HashMap<>();
+
+    /**
+     * Default Constructor.
+     */
     public OpenEOProcessService() {
         super(ServiceDef.Specification.WPS);
     }
 
+    /**
+     * Check if for the given serviceId an external STAC endpoint is configured.
+     * We look for the app property "exa.openeo.external.stac.per.wps.service" which
+     * must contains pairs of values (serviceId, stacUrl).
+     * You can set in your env variable EXA_OPENGEO_EXTERNAL_STAC_PER_WPS_SERVICE a list of values like:
+     * ["serviceId1", "https://external-stac-endpoint-1.com", "serviceId2", "https://external-stac-endpoint-2.com"]
+     * @param serviceId the WPS serviceId
+     * @return the external STAC url or null
+     */
+    private String remoteStacUrl(String serviceId) {
+        Pair<Boolean, String> external = externalStacByServiceId.get(serviceId);
+        if (external == null || external.getLeft() == null) {
+            List<String> map = Application.getListProperty(EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE);
+            if (map.isEmpty()) {
+                externalStacByServiceId.put(serviceId, Pair.of(false, null));
+                return null;
+            }
+
+            if (map.size() % 2 == 1) {
+                LOGGER.log(Level.WARNING, "The app property " +  EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE + " is not valid (odd numbers of values," +
+                        " we need to have an url per serviceId. Cannot set the service for External STAC endpoint.");
+                externalStacByServiceId.put(serviceId, Pair.of(false, null));
+                return null;
+            }
+
+            for (int i = 0; i < map.size(); i += 2) {
+                String mapServiceId = map.get(i);
+                if (mapServiceId.equals(serviceId)) {
+                    external = Pair.of(true, map.get(i + 1));
+                    externalStacByServiceId.put(serviceId, external);
+                    break;
+                }
+            }
+        }
+        return (external != null ? external.getRight() : null);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param objectRequest if the server receive a POST request in XML,
+     *        this object contain the request. Else for a GET or a POST kvp
+     *        request this parameter is {@code null}
+     *
+     * @param worker the selected worker on which apply the request.
+     *
+     * @return {@code null} as this method is not used in this service.
+     */
     @Override
     protected ResponseObject treatIncomingRequest(Object objectRequest, WPSWorker worker) {
         return null;

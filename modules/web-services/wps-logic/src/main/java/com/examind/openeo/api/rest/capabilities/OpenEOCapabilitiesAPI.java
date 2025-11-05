@@ -34,6 +34,8 @@ import static com.examind.openeo.api.rest.capabilities.AtomLinkBuilder.buildDocu
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
+ * Open EO Capabilities API.
+ *
  * @author Quentin BIALOTA (Geomatys)
  * TODO: When the examind refactor has been done so that there are no longer any services, transfer openEo to a dedicated module (no longer linked to wps).
  */
@@ -41,6 +43,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping("openeo/{serviceId:.+}")
 public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
 
+    /**
+     * List of conformance classes supported by this server.
+     */
     private static final List<String> CONFORMS = Arrays.asList(
             "https://api.openeo.org/1.2.0",
             "https://api.openeo.org/extensions/commercial-data/0.1.0",
@@ -48,11 +53,24 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
             "https://api.stacspec.org/v1.0.0/collections"
     );
 
+    /**
+     * Default constructor.
+     */
     public OpenEOCapabilitiesAPI() {
         // here we use wcs for worker retrieval purpose
         super(ServiceDef.Specification.WPS);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param objectRequest if the server receive a POST request in XML,
+     *        this object contain the request. Else for a GET or a POST kvp
+     *        request this parameter is {@code null}
+     *
+     * @param worker the selected worker on which apply the request.
+     *
+     * @return
+     */
     @Override
     protected ResponseObject treatIncomingRequest(Object objectRequest, WPSWorker worker) {
         String format = "application/json";
@@ -64,12 +82,27 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
         return new ResponseObject(capabilities, media, HttpStatus.OK);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param exc        The exception that has been generated during the web-service operation requested.
+     * @param serviceDef The service definition, from which the version number of exception report will
+     *                   be extracted. if {@code null} the default version of the worker will be used.
+     * @param w the selected worker on which apply the request.
+     * @param mimeType The mime type to use to return the http response.
+     *
+     * @return
+     */
     @Override
     protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w, MediaType mimeType) {
         LOGGER.log(Level.WARNING, exc.getLocalizedMessage(), exc);
         return new ResponseObject(new ErrorMessage(exc));
     }
 
+    /**
+     * Get the OpenEO capabilities.
+     * @param serviceId the service identifier
+     * @return the capabilities document
+     */
     @RequestMapping(value="/", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getCapabilities(@PathVariable("serviceId") String serviceId) {
         try {
@@ -83,6 +116,12 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
         }
     }
 
+    /**
+     * Build the capabilities page.
+     * @param format the requested format
+     * @param serviceId the service identifier
+     * @return the capabilities
+     */
     private Capabilities buildCapabilitiesPage(String format, String serviceId) {
         Capabilities capabilities = new Capabilities();
         final boolean asJson = format.contains(MimeType.APP_JSON);
@@ -128,6 +167,10 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
         return capabilities;
     }
 
+    /**
+     * Get the conformance classes supported by this server.
+     * @return the conformance document
+     */
     @RequestMapping(value = "/conformance", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getConformance() {
         try {
@@ -140,6 +183,11 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
         }
     }
 
+    /**
+     * Get the .well-known/openeo document.
+     * @param serviceId the service identifier
+     * @return the well-known document
+     */
     @RequestMapping(value = ".well-known/openeo", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getWellKnown(@PathVariable("serviceId") String serviceId) {
         try {
@@ -164,6 +212,10 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
         }
     }
 
+    /**
+     * Get the supported file formats.
+     * @return the file formats document
+     */
     @RequestMapping(value = "/file_formats", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getSupportedFileFormats() {
         try {
@@ -203,6 +255,11 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
         }
     }
 
+    /**
+     * Get other service types supported by this server.
+     * @param serviceId the service identifier
+     * @return the other service types document
+     */
     @RequestMapping(value = "/service_types", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getOtherServiceTypes(@PathVariable("serviceId") String serviceId) {
         try {
