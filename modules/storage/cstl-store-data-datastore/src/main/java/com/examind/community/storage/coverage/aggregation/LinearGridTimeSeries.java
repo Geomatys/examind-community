@@ -14,6 +14,7 @@ import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.iso.Names;
+import org.geotoolkit.nio.IOUtilities;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -85,6 +86,11 @@ public class LinearGridTimeSeries extends DataStoreProvider {
     }
 
     public static Configuration readConf(Path confFile) throws DataStoreException {
+        String extension = IOUtilities.extension(confFile);
+        if (extension != null && !extension.equalsIgnoreCase("json")) {
+            throw new DataStoreException("Invalid configuration file provided (" + confFile + ")");
+        }
+
         var mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
 
