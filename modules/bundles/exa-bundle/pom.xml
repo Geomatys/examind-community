@@ -147,7 +147,7 @@
                                         <artifactItem>
                                             <groupId>com.github.robtimus</groupId>
                                             <artifactId>ftp-fs</artifactId>
-                                            <version>1.3-GEOMATYS-MC0001</version>
+                                            <version>1.3-GEOMATYS-MC0002</version>
                                             <classifier>jar-with-dependencies</classifier>
                                             <type>jar</type>
                                             <destFileName>geomatys-ftp.jar</destFileName>
