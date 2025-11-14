@@ -29,6 +29,7 @@ public class OpenEOUtils {
     public static String examindProcessIdToOpenEOProcessId(String exaProcessId) {
         return switch (exaProcessId) {
             case "examind.coverage.openeo.load", "coverage.openeo.load" -> "load_collection";
+            case "examind.coverage.openeo.load.stac", "coverage.openeo.load.stac" -> "load_stac";
             case "examind.coverage.save_result", "coverage.save_result" -> "save_result";
             default -> exaProcessId;
         };
@@ -48,6 +49,7 @@ public class OpenEOUtils {
     public static String openEOProcessIdToExamindProcessId(String eoProcessId, boolean fullDescriptor) {
         return switch (eoProcessId) {
             case "load_collection" -> fullDescriptor ? "examind.coverage.openeo.load" : "coverage.openeo.load";
+            case "load_stac" -> fullDescriptor ? "examind.coverage.openeo.load.stac" : "coverage.openeo.load.stac";
             case "save_result" -> fullDescriptor ? "examind.coverage.save_result" : "coverage.save_result";
             default -> eoProcessId;
         };

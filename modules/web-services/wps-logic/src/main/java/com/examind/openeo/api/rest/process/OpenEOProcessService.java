@@ -145,60 +145,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     /**
      * Map of job IDs to their corresponding processes.
      */
-    private Map<String, Process> jobIdToProcessMap = new HashMap<>();
+    private final Map<String, Process> jobIdToProcessMap;
 
-    /**
-     * REST template used to make HTTP calls.
-     */
-    private final RestTemplate restTemplate = new RestTemplate();
-
-    /**
-     * Cache of external STAC endpoints per serviceId.
-     */
-    private final Map<String, Pair<Boolean, String>> externalStacByServiceId = new HashMap<>();
+    private final ExternalStacManager externalStac;
 
     /**
      * Default Constructor.
      */
     public OpenEOProcessService() {
         super(ServiceDef.Specification.WPS);
-    }
-
-    /**
-     * Check if for the given serviceId an external STAC endpoint is configured.
-     * We look for the app property "exa.openeo.external.stac.per.wps.service" which
-     * must contains pairs of values (serviceId, stacUrl).
-     * You can set in your env variable EXA_OPENGEO_EXTERNAL_STAC_PER_WPS_SERVICE a list of values like:
-     * ["serviceId1", "https://external-stac-endpoint-1.com", "serviceId2", "https://external-stac-endpoint-2.com"]
-     * @param serviceId the WPS serviceId
-     * @return the external STAC url or null
-     */
-    private String remoteStacUrl(String serviceId) {
-        Pair<Boolean, String> external = externalStacByServiceId.get(serviceId);
-        if (external == null || external.getLeft() == null) {
-            List<String> map = Application.getListProperty(EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE);
-            if (map.isEmpty()) {
-                externalStacByServiceId.put(serviceId, Pair.of(false, null));
-                return null;
-            }
-
-            if (map.size() % 2 == 1) {
-                LOGGER.log(Level.WARNING, "The app property " +  EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE + " is not valid (odd numbers of values," +
-                        " we need to have an url per serviceId. Cannot set the service for External STAC endpoint.");
-                externalStacByServiceId.put(serviceId, Pair.of(false, null));
-                return null;
-            }
-
-            for (int i = 0; i < map.size(); i += 2) {
-                String mapServiceId = map.get(i);
-                if (mapServiceId.equals(serviceId)) {
-                    external = Pair.of(true, map.get(i + 1));
-                    externalStacByServiceId.put(serviceId, external);
-                    break;
-                }
-            }
-        }
-        return (external != null ? external.getRight() : null);
+        this.jobIdToProcessMap = new HashMap<>();
+        this.externalStac = new ExternalStacManager();
     }
 
     /**
@@ -490,11 +447,12 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     /**
      * Validates a user-defined process.
      *
+     * @param serviceId the ID of the service
      * @param process the process to validate
      * @return a response entity containing a map of validation errors, if any
      */
     @RequestMapping(value = {"openeo/{serviceId:.+}/validation", "openeo/{serviceId:.+}/validation/"}, method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity validateUserProcess(@RequestBody final Process process) {
+    public ResponseEntity validateUserProcess(@PathVariable("serviceId") String serviceId, @RequestBody final Process process) {
 
         List<ProcessDescriptor> descriptorList = getDescriptorList();
 
@@ -510,6 +468,9 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             listError.add(new ResponseMessage(UUID.randomUUID().toString(), "InvalidArgument", "Info : " + checkMessage.getMessage(), List.of()));
         }
 
+        // Check if the collection exists in the external STAC endpoint if configured
+        externalStac.checkProcessLoadCollectionsWithExternalStac(process, serviceId, listError);
+
         responseErrorMap.put("errors", listError);
 
         return new ResponseEntity(responseErrorMap, OK);
@@ -518,6 +479,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     /**
      * Stores a user-defined process with the given ID.
      *
+     * @param serviceId      the ID of the service
      * @param processGraphId the ID of the process to be stored
      * @param process        the process to be stored, with the same ID as `processGraphId`
      * @return a response with an HTTP status code of 200 (OK) if the storage is successful,
@@ -526,7 +488,8 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      */
     @RequestMapping(value = {"openeo/{serviceId:.+}/process_graphs/{process_graph_id}" ,
             "openeo/{serviceId:.+}/process_graphs/{process_graph_id}/"}, method = PUT, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity storeUserDefinedProcess(@PathVariable("process_graph_id") String processGraphId,
+    public ResponseEntity storeUserDefinedProcess(@PathVariable("serviceId") String serviceId,
+                                                  @PathVariable("process_graph_id") String processGraphId,
                                                   @RequestBody final Process process) {
 
         if (!process.getId().equalsIgnoreCase(processGraphId)) {
@@ -549,6 +512,13 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                     new ResponseMessage(UUID.randomUUID().toString(), "InvalidArgument", "Info : " + checkMessage.getMessage() + " --- The process specified is not valid, check the elements of the process graphs." +
                             "Arguments are maybe incorrect, check ids of the processes,...", List.of()),
                     BAD_REQUEST);
+        }
+
+        // Check if the collection exists in the external STAC endpoint if configured
+        List<ResponseMessage> listError = new ArrayList<>();
+        externalStac.checkProcessLoadCollectionsWithExternalStac(process, serviceId, listError);
+        if (!listError.isEmpty()) {
+            return new ResponseEntity(listError.getFirst(), BAD_REQUEST);
         }
 
         try {
@@ -616,6 +586,13 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                             new ResponseMessage(UUID.randomUUID().toString(), "InvalidArgument", "Info : " + checkMessage.getMessage() + " --- The process specified is not valid, check the elements of the process graphs." +
                                     "Arguments are maybe incorrect, check ids of the processes,...", List.of()),
                             BAD_REQUEST);
+                }
+
+                // Check if the collection exists in the external STAC endpoint if configured
+                List<ResponseMessage> listError = new ArrayList<>();
+                externalStac.checkProcessLoadCollectionsWithExternalStac(process, serviceId, listError);
+                if (!listError.isEmpty()) {
+                    return new ResponseEntity(listError.getFirst() ,BAD_REQUEST);
                 }
 
                 try {
@@ -714,6 +691,13 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                         new ResponseMessage(UUID.randomUUID().toString(), "InvalidArgument", "Info : " + checkMessage.getMessage() + " --- The process specified is not valid, check the elements of the process graphs." +
                                 "Arguments are maybe incorrect, check ids of the processes,...", List.of()),
                         BAD_REQUEST);
+            }
+
+            // Check if the collection exists in the external STAC endpoint if configured
+            List<ResponseMessage> listError = new ArrayList<>();
+            externalStac.checkProcessLoadCollectionsWithExternalStac(process, serviceId, listError);
+            if (!listError.isEmpty()) {
+                return new ResponseEntity(listError.getFirst() ,BAD_REQUEST);
             }
 
             String processId;
@@ -1043,10 +1027,11 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      * @throws IllegalArgumentException      If the specified process is invalid.
      * @throws ProcessException              If an error occurs during the deployment of the process.
      */
-    private String deployUserDefinedProcess(Process process, boolean isTemporary, boolean acceptParameters) throws UnsupportedOperationException, IllegalArgumentException, ProcessException {
+    private String deployUserDefinedProcess(Process process, boolean isTemporary, boolean acceptParameters)
+            throws UnsupportedOperationException, IllegalArgumentException, ProcessException {
         String processId;
 
-        // Sort the process graph to ensure correct order of execution
+        // Sort the process graph to ensure the correct order of execution
         process.sortProcessGraph();
 
         if (isTemporary) processId = TEMPORARY_USER_DEFINED_PROCESS_PREFIX + process.getId();
@@ -1069,7 +1054,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 inputParameterClass = Object.class;
             } else {
                 //TODO : Find a way to put all "types" in input
-                inputParameterClass = in.getSchema()[0].getType().get(0).getClassAssociated(in.getSchema()[0].getSubType());
+                inputParameterClass = in.getSchema()[0].getType().getFirst().getClassAssociated(in.getSchema()[0].getSubType());
             }
             final Parameter param = new Parameter(in.getName(), inputParameterClass, in.getName(), in.getDescription(), 1, 1);
             inputs.put(in.getName(), param);
@@ -1157,7 +1142,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
 
                         String outputName;
                         try {
-                            outputName = registry.getDescriptor(referencedProcess.getCode()).getOutputDescriptor().descriptors().get(0).getName().getCode();
+                            outputName = registry.getDescriptor(referencedProcess.getCode()).getOutputDescriptor().descriptors().getFirst().getName().getCode();
                         } catch (NoSuchIdentifierException | IndexOutOfBoundsException e) {
                             throw new IllegalArgumentException("Arg " + argName + " with From_node " + argContent.getValue() + ", cannot find the process id " + referencedProcess.getCode());
                         }
@@ -1224,7 +1209,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 CoordinateReferenceSystem crs = null;
                 try {
                     crs = CRS.forCode(sourceValueBbox.getCrs());
-                } catch (FactoryException | NullPointerException ex ) {
+                } catch (FactoryException | NullPointerException ex) {
                     try {
                         crs = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
                     } catch (FactoryException e) {
@@ -1249,7 +1234,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
 
             ArrayList<?> list = (ArrayList<?>) listProcessDescriptionArgument.stream().map(e -> ((ProcessDescriptionArgument)e).getValue()).collect(Collectors.toList());
 
-            Class<?> valueClass = list.get(0).getClass();
+            Class<?> valueClass = list.getFirst().getClass();
 
             Class<?> primitiveClass = null;
             if (!valueClass.isPrimitive() && !valueClass.equals(String.class)) {
@@ -1280,7 +1265,11 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
 
             Object array = Array.newInstance(primitiveClass, list.size());
             for (int i = 0; i < list.size(); i++) {
-                Array.set(array, i, list.get(i));
+                if (list.get(i) == null && primitiveClass == String.class) {
+                    Array.set(array, i, "null");
+                } else {
+                    Array.set(array, i, list.get(i));
+                }
             }
 
             return array;
