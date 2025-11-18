@@ -391,7 +391,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                             isArray = inputDefaultParameterDescriptor.getValueClass().isArray();
                         }
                     } catch (NullPointerException ex) {
-                        LOGGER.log(Level.WARNING, "Error impossible to get the type of the input", ex);
+                        LOGGER.log(Level.INFO, "Error impossible to get the type of the input", ex);
                     }
                 }
 
@@ -522,7 +522,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         }
 
         try {
-            deployUserDefinedProcess(process, false, true);
+            deployUserDefinedProcess(process, false, true, serviceId);
         } catch (UnsupportedOperationException | IllegalArgumentException | ProcessException ex) {
             return new ResponseEntity(
                     new ResponseMessage(UUID.randomUUID().toString(), "InvalidArgument", "Info : " + ex.getMessage() + " --- The process specified is not valid, check the elements of the process graphs." +
@@ -596,7 +596,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 }
 
                 try {
-                    processId = deployUserDefinedProcess(process, true, false);
+                    processId = deployUserDefinedProcess(process, true, false, serviceId);
                 } catch (UnsupportedOperationException | IllegalArgumentException | ProcessException ex) {
                     return new ResponseEntity(
                             new ResponseMessage(UUID.randomUUID().toString(), "InvalidArgument", "Info : " + ex.getMessage() + " --- The process specified is not valid, check the elements of the process graphs." +
@@ -702,7 +702,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
 
             String processId;
             try {
-                processId = deployUserDefinedProcess(process, true, false);
+                processId = deployUserDefinedProcess(process, true, false, serviceId);
             } catch (UnsupportedOperationException | IllegalArgumentException | ProcessException ex) {
                 return new ResponseEntity(
                         new ResponseMessage(UUID.randomUUID().toString(), "InvalidArgument", "Info : " + ex.getMessage() + " --- The process specified is not valid, check the elements of the process graphs." +
@@ -1022,12 +1022,14 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      *
      * @param process     The process to be deployed.
      * @param isTemporary If true, the process will be deleted after its execution.
+     * @param acceptParameters If true, the process will accept parameters; otherwise, parameters must be set directly in the process graph.
+     * @param serviceId   The ID of the service where the process will be deployed.
      * @return The ID of the deployed process.
      * @throws UnsupportedOperationException If deploying the process is not supported.
      * @throws IllegalArgumentException      If the specified process is invalid.
      * @throws ProcessException              If an error occurs during the deployment of the process.
      */
-    private String deployUserDefinedProcess(Process process, boolean isTemporary, boolean acceptParameters)
+    private String deployUserDefinedProcess(Process process, boolean isTemporary, boolean acceptParameters, String serviceId)
             throws UnsupportedOperationException, IllegalArgumentException, ProcessException {
         String processId;
 
@@ -1109,7 +1111,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             // HACK : for the load_collection process, we need to force the use of the current serviceId
             // We will use the service id of the current wps service
             if (processDescription.getProcessId().equalsIgnoreCase("load_collection")) {
-                final Constant constant = chain.addConstant(id++, String.class, "test");
+                final Constant constant = chain.addConstant(id++, String.class, serviceId);
                 chain.addDataLink(constant.getId(), "", elementProcess.getId(), "serviceId");
             }
 

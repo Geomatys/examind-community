@@ -4,41 +4,34 @@
   "description": "Computes the Enhanced Vegetation Index (EVI). It is computed with the following formula: `2.5 * (NIR - RED) / (1 + NIR + 6*RED + 7.5*BLUE)`.",
   "parameters": [
     {
-      "name": "serviceId",
-      "description": "[Temp param] WCS service id where the data is",
-      "schema": {
-        "type": "String"
-      }
-    },
-    {
       "name": "dataId",
       "description": "Sentinel-2 data id",
-      "schema": {
+      "schema": [{
         "type": "String"
-      }
+      }]
     },
     {
       "name": "bbox",
       "description": "Spatial extent",
-      "schema": {
+      "schema": [{
         "type": "Object"
-      }
+      }]
     },
     {
       "name": "temporal",
       "description": "Temporal extent",
-      "schema": {
+      "schema": [{
         "type": "Array",
         "subtype": "String"
-      }
+      }]
     },
     {
       "name": "bands",
       "description": "Bands to load",
-      "schema": {
+      "schema": [{
         "type": "Array",
         "subtype": "String"
-      }
+      }]
     }
   ],
   "returns": {
@@ -49,7 +42,7 @@
   },
   "process_graph": {
     "load": {
-      "process_id": "examind.coverage.load",
+      "process_id": "load_collection",
       "arguments": {
         "spatial_extent": {
           "from_parameter": "bbox"
@@ -69,7 +62,7 @@
           "from_node": "load"
         },
         "bands": [
-          1
+          0
         ]
       }
     },
@@ -80,7 +73,7 @@
           "from_node": "load"
         },
         "bands": [
-          2
+          1
         ]
       }
     },
@@ -91,12 +84,12 @@
           "from_node": "load"
         },
         "bands": [
-          3
+          2
         ]
       }
     },
     "sub": {
-      "process_id": "examind.coverage:math:substract",
+      "process_id": "geotoolkit.coverage:math:substract",
       "arguments": {
         "first": {
           "from_node": "bs8"
@@ -107,7 +100,7 @@
       }
     },
     "p1": {
-      "process_id": "examind.coverage:math:multiplyWithValue",
+      "process_id": "geotoolkit.coverage:math:multiplyWithValue",
       "arguments": {
         "value": 6.0,
         "coverage": {
@@ -116,7 +109,7 @@
       }
     },
     "p2": {
-      "process_id": "examind.coverage:math:multiplyWithValue",
+      "process_id": "geotoolkit.coverage:math:multiplyWithValue",
       "arguments": {
         "value": 7.5,
         "coverage": {
@@ -125,7 +118,7 @@
       }
     },
     "sumCoverages1": {
-      "process_id": "examind.coverage:math:sum",
+      "process_id": "geotoolkit.coverage:math:sum",
       "arguments": {
         "first": {
           "from_node": "bs8"
@@ -136,7 +129,7 @@
       }
     },
     "sumCoverages2": {
-      "process_id": "examind.coverage:math:sum",
+      "process_id": "geotoolkit.coverage:math:sum",
       "arguments": {
         "first": {
           "from_node": "sumCoverages1"
@@ -147,7 +140,7 @@
       }
     },
     "sum": {
-      "process_id": "examind.coverage:math:sumWithValue",
+      "process_id": "geotoolkit.coverage:math:sumWithValue",
       "arguments": {
         "coverage": {
           "from_node": "sumCoverages2"
@@ -156,7 +149,7 @@
       }
     },
     "div": {
-      "process_id": "examind.coverage:math:divide",
+      "process_id": "geotoolkit.coverage:math:divide",
       "arguments": {
         "first": {
           "from_node": "sub"
@@ -167,7 +160,7 @@
       }
     },
     "p3": {
-      "process_id": "examind.coverage:math:multiplyWithValue",
+      "process_id": "geotoolkit.coverage:math:multiplyWithValue",
       "arguments": {
         "value": 2.5,
         "coverage": {
@@ -176,14 +169,14 @@
       }
     },
     "save": {
-      "process_id": "examind.coverage.save_result",
+      "process_id": "save_result",
       "arguments": {
         "format": "GTIFF",
         "coverage": {
           "from_node": "p3"
         }
       },
-      "result": true
+      "result": "True"
     }
   }
 }

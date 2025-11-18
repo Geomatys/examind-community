@@ -35,13 +35,16 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.test.context.TestPropertySource;
 
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -51,6 +54,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
+ * Tests for the OpenEO process service REST API.
  *
  * @author Quentin Bialota (Geomatys)
  * @since 0.9
@@ -133,20 +137,22 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
         stopServer();
     }
 
-    @Test
-    @Order(order = 1)
-    public void testOpenEOGetAllProcesses() throws Exception {
-
-        initWPSServer();
-
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/processes");
-
-        waitForRestStart(executeUrl.toString());
-
-        String result = getStringResponse(executeUrl);
-        String expected = getStringFromFile("com/examind/openeo/api/rest/process/all-processes.json");
-        compareJSON(expected, result);
-    }
+// Disabled because the list of processes can change even if we don't change anything in the tested code.
+// It depends on the processes available in the process factories at the time of the test execution.
+//    @Test
+//    @Order(order = 1)
+//    public void testOpenEOGetAllProcesses() throws Exception {
+//
+//        initWPSServer();
+//
+//        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/processes").toURL();
+//
+//        waitForRestStart(executeUrl.toString());
+//
+//        String result = getStringResponse(executeUrl);
+//        String expected = getStringFromFile("com/examind/openeo/api/rest/process/all-processes.json");
+//        compareJSON(expected, result);
+//    }
 
     @Test
     @Order(order = 2)
@@ -154,7 +160,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/validation");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/validation").toURL();
 
         URLConnection conec = executeUrl.openConnection();
         postRequestJson(conec, "com/examind/openeo/api/rest/process/process-evi.json");
@@ -170,7 +176,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/process_graphs/evi-sentinel");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/process_graphs/evi-sentinel").toURL();
 
         URLConnection conec = executeUrl.openConnection();
         putRequestJson(conec, "com/examind/openeo/api/rest/process/process-evi.json");
@@ -186,7 +192,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/process_graphs");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/process_graphs").toURL();
 
         waitForRestStart(executeUrl.toString());
 
@@ -202,7 +208,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/validation");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/validation").toURL();
 
         URLConnection conec = executeUrl.openConnection();
         postRequestJson(conec, "com/examind/openeo/api/rest/process/process-evi.json");
@@ -213,30 +219,28 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 6)
     public void testOpenEOValidationErrorParameters() throws Exception {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/validation");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/validation").toURL();
 
         URLConnection conec = executeUrl.openConnection();
         postRequestJson(conec, "com/examind/openeo/api/rest/process/process-evi-error-parameters.json");
 
         String result = getStringResponse(conec);
         boolean code = result.contains("InvalidArgument");
-        boolean message = result.contains("Argument 'from_parameter' (serviceId) is not present in the parameters list (no parameter with this name)");
+        boolean message = result.contains("Argument 'from_parameter' (dataId) is not present in the parameters list (no parameter with this name)");
         assertTrue(code);
         assertTrue(message);
     }
 
     @Test
-    @Order(order = 7)
     public void testOpenEOValidationErrorGraph() throws Exception {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/validation");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/validation").toURL();
 
         URLConnection conec = executeUrl.openConnection();
         postRequestJson(conec, "com/examind/openeo/api/rest/process/process-evi-error-graph.json");
@@ -249,37 +253,35 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 8)
     public void testOpenEOValidationErrorArgumentGraph() throws Exception {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/validation");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/validation").toURL();
 
         URLConnection conec = executeUrl.openConnection();
         postRequestJson(conec, "com/examind/openeo/api/rest/process/process-evi-error-argument-graph.json");
 
         String result = getStringResponse(conec);
         boolean code = result.contains("InvalidArgument");
-        boolean message = result.contains("For the process : examind.coverage.load, no argument named serviceId found");
+        boolean message = result.contains("For the process : load_collection, no argument named id found");
         assertTrue(code);
         assertTrue(message);
     }
 
     @Test
-    @Order(order = 9)
     public void testOpenEOValidationErrorArgumentType() throws Exception {
 
         initWPSServer();
 
-        final URL executeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/openeo/process/default/validation");
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/validation").toURL();
 
         URLConnection conec = executeUrl.openConnection();
         postRequestJson(conec, "com/examind/openeo/api/rest/process/process-evi-error-argument-type.json");
 
         String result = getStringResponse(conec);
         boolean code = result.contains("InvalidArgument");
-        boolean message = result.contains("For the process : examind.coverage:math:multiplyWithValue, the type specified for the argument : value is not correct (class java.lang.Double needed)");
+        boolean message = result.contains("For the process : geotoolkit.coverage:math:multiplyWithValue, the type specified for the argument : value is not correct (class java.lang.Double needed)");
         assertTrue(code);
         assertTrue(message);
     }
