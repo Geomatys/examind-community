@@ -172,14 +172,14 @@ ALTER TABLE "$SCHEMAom"."procedures_properties" ADD CONSTRAINT procedures_proper
 
 ALTER TABLE "$SCHEMAom"."sampling_features_properties" ADD CONSTRAINT sampling_features_properties_fk FOREIGN KEY ("id_sampling_feature") REFERENCES "$SCHEMAom"."sampling_features"("id");
 
-CREATE FUNCTION getmesureidpr
+CREATE FUNCTION "$SCHEMAmesures".getmesureidpr
 ( z_value DOUBLE, t TIMESTAMP )
 RETURNS BIGINT
 PARAMETER STYLE JAVA
 NO SQL LANGUAGE JAVA
 EXTERNAL NAME 'org.constellation.store.observation.db.mixed.DerbyFunctions.getMesureIdPr';
 
-CREATE FUNCTION getmesureidts
+CREATE FUNCTION "$SCHEMAmesures".getmesureidts
 (t TIMESTAMP )
 RETURNS BIGINT
 PARAMETER STYLE JAVA

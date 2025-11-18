@@ -202,9 +202,9 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         String where  = "WHERE \"thing_id\" = '" + pti.id + "'";
         if (idOnly) {
             if (nonTimeseries) {
-                select = "getmesureidpr(\"z_value\", \"time\") as \"id\"";
+                select = "\"" + schemaPrefix + "mesures\".getmesureidpr(\"z_value\", \"time\") as \"id\"";
             } else {
-                select = "getmesureidts(\"time\") as \"id\"";
+                select = "\"" + schemaPrefix + "mesures\".getmesureidts(\"time\") as \"id\"";
             }
         } else {
             if (nonTimeseries) {
@@ -215,9 +215,9 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             if (mode != DECIMATE) {
                 if (nonTimeseries) {
                     // probably an issue here for non profile
-                    select = select + ", getmesureidpr(m.\"z_value\", m.\"time\") as \"id\" ";
+                    select = select + ", \"" + schemaPrefix + "mesures\".getmesureidpr(m.\"z_value\", m.\"time\") as \"id\" ";
                 } else {
-                    select = select + ", getmesureidts(m.\"time\") as \"id\" ";
+                    select = select + ", \"" + schemaPrefix + "mesures\".getmesureidts(m.\"time\") as \"id\" ";
                 }
             }
             // we skip special case for mainfield only request (profile case)

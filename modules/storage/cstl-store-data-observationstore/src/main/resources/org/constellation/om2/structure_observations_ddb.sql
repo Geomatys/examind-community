@@ -131,9 +131,9 @@ CREATE OR REPLACE FUNCTION getpid(tid)
 	where "id" = tid
        );    
 
-CREATE OR REPLACE FUNCTION getmesureidpr(z_value, t)
+CREATE OR REPLACE FUNCTION "$SCHEMAmesures".getmesureidpr(z_value, t)
     AS (select EPOCH(t::TIMESTAMP)::BIGINT  * 1000000  + z_value * 1000);
 
-CREATE OR REPLACE FUNCTION getmesureidts(t)
+CREATE OR REPLACE FUNCTION "$SCHEMAmesures".getmesureidts(t)
     AS (select EPOCH(t::TIMESTAMP));
 
