@@ -64,7 +64,7 @@
             <gml:name>44499X4517-TRUC</gml:name>
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>
-                <gml:Point xmlns:dqm="http://standards.iso.org/iso/19157/-2/dqm/1.0" srsName="urn:ogc:def:crs:EPSG:9.9.1:27582" srsDimension="2" gml:id="station-005_g0">
+                <gml:Point xmlns:dqm="http://standards.iso.org/iso/19157/-2/dqm/1.0" srsName="urn:ogc:def:crs:EPSG:12.047:27582" srsDimension="2" gml:id="station-005_g0">
                     <gml:pos>62500.0 1625236.0</gml:pos>
                 </gml:Point>
             </sampling:position>

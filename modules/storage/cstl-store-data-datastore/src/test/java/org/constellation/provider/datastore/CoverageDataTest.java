@@ -123,9 +123,9 @@ public class CoverageDataTest {
         BandDescription desc = getBand("Red", result);
         Assert.assertNotNull(desc);
         Assert.assertEquals("0", desc.getIndice());
-        Assert.assertEquals( 0,  desc.getMinValue(), 0.1);
+        Assert.assertEquals(15,  desc.getMinValue(), 0.1);
         Assert.assertEquals(253, desc.getMaxValue(), 0.1);
-        Assert.assertArrayEquals(new double[0], desc.getNoDataValues(), 0);
+        Assert.assertArrayEquals(new double[]{Double.NaN}, desc.getNoDataValues(), 0);
 
         info = getStatInfo(sst);
         result = sst.getDataDescription(info, sst.getEnvelope());

@@ -17,6 +17,7 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.datum.Ellipsoid;
 import org.apache.sis.coverage.grid.PixelInCell;
+import org.apache.sis.referencing.datum.DatumOrEnsemble;
 import org.opengis.referencing.operation.CoordinateOperation;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.MathTransformFactory;
@@ -90,7 +91,7 @@ final class GridCalculator {
             transformBuilder = mtFactory.builder("Modified Azimuthal Equidistant");
 
 
-            final Ellipsoid ellipsoid = baseCrs.getDatum().getEllipsoid();
+            final Ellipsoid ellipsoid = DatumOrEnsemble.asDatum(baseCrs).getEllipsoid();
             transformBuilder.setSourceAxes(null, ellipsoid);
         }
 

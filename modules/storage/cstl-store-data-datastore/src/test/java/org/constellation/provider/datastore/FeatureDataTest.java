@@ -140,7 +140,7 @@ public class FeatureDataTest {
     @Test
     public void testGetResourceRSName() throws Exception {
         Assert.assertEquals(null, countries.getResourceCRSName());
-        Assert.assertEquals(null, city.getResourceCRSName());
+        Assert.assertEquals("CRS:84", city.getResourceCRSName());
 
     }
 
