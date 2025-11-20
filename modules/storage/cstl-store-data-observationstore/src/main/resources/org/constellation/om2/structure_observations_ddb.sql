@@ -7,7 +7,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) PRIMARY KEY
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.9');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.2.0');
 
 CREATE SCHEMA "$SCHEMAmesures";
 

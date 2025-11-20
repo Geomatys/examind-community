@@ -42,7 +42,7 @@ public class OM2DatabaseCreator {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.om2");
 
-    private final static String LAST_VERSION = "1.1.9";
+    private final static String LAST_VERSION = "1.2.0";
 
     /**
      * Fill a new database with the O&amp;M model.
@@ -157,11 +157,11 @@ public class OM2DatabaseCreator {
                         case "1.0.0": execute("org/constellation/om2/update/update101.sql", sr, schemaPrefix);
                         case "1.0.1": execute("org/constellation/om2/update/update102.sql", sr, schemaPrefix);
                         case "1.0.2": execute("org/constellation/om2/update/update103.sql", sr, schemaPrefix);
-                        case "1.0.3": if (dialect.equals(POSTGRES)) {
-                                        execute("org/constellation/om2/update/update104_pg.sql", sr, schemaPrefix);
-                                      } else {
-                                        execute("org/constellation/om2/update/update104.sql", sr, schemaPrefix);
-                                      }
+                        case "1.0.3": switch (dialect) {
+                            case POSTGRES      -> execute("org/constellation/om2/update/update104_pg.sql", sr, schemaPrefix);
+                            case DUCKDB, DERBY -> execute("org/constellation/om2/update/update104_ddb.sql", sr, schemaPrefix);
+                            default            -> LOGGER.log(Level.WARNING, "Unexpected SGBD dialect: {0}", dialect);
+                        }
                         case "1.0.4": execute("org/constellation/om2/update/update105.sql", sr, schemaPrefix);
                         case "1.0.5": execute("org/constellation/om2/update/update106.sql", sr, schemaPrefix);
                         case "1.0.6": execute("org/constellation/om2/update/update107.sql", sr, schemaPrefix);
@@ -177,6 +177,12 @@ public class OM2DatabaseCreator {
                         case "1.1.6": execute("org/constellation/om2/update/update117.sql", sr, schemaPrefix);
                         case "1.1.7": execute("org/constellation/om2/update/update118.sql", sr, schemaPrefix);
                         case "1.1.8": execute("org/constellation/om2/update/update119.sql", sr, schemaPrefix);
+                        case "1.1.9": switch (dialect) {
+                            case POSTGRES -> execute("org/constellation/om2/update/update120_pg.sql", sr, schemaPrefix);
+                            case DUCKDB   -> execute("org/constellation/om2/update/update120_ddb.sql", sr, schemaPrefix);
+                            case DERBY    -> execute("org/constellation/om2/update/update120.sql", sr, schemaPrefix);
+                            default       -> LOGGER.log(Level.WARNING, "Unexpected SGBD dialect: {0}", dialect);
+                        }
                     }
                     return true;
                 }
