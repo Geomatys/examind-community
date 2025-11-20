@@ -147,7 +147,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private static final class ObservationRef {
-        public final int id;
+        public final long id;
         public final String name;
         public final String phenomenonId;
         public final String foiId;
@@ -332,7 +332,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).get(); //we know that the procedure exist
                 Timestamp begin, end;
                 ObservationRef replacingObs = conflictedObservations.get(0);
-                int modOid                 = replacingObs.id;
+                long modOid                = replacingObs.id;
                 observationName            = replacingObs.name;
                 boolean replacePhen        = false;
 
@@ -404,7 +404,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     writePhenomenon(replacingPhen, c, false);
                     phenRef = replacingPhen;
                     updatePhen.setString(1, phenRef.getId());
-                    updatePhen.setInt(2, modOid);
+                    updatePhen.setLong(2, modOid);
                     updatePhen.executeUpdate();
                 } else {
                     phenRef = phenomenon;
@@ -413,12 +413,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 //update observation bounds
                 if (begin != null) {
                     updateBegin.setTimestamp(1, begin);
-                    updateBegin.setInt(2, modOid);
+                    updateBegin.setLong(2, modOid);
                     updateBegin.executeUpdate();
                 }
                 if (end != null) {
                     updateEnd.setTimestamp(1, end);
-                    updateEnd.setInt(2, modOid);
+                    updateEnd.setLong(2, modOid);
                     updateEnd.executeUpdate();
                 }
             }
@@ -892,7 +892,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldDataType.QUANTITY, "value", null, null, null, FieldType.MEASURE, 1, List.of(), List.of());
+    private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldDataType.QUANTITY, "value", null, null, null, FieldType.MEASURE, 1);
 
     /**
      * Write  an observation result.
@@ -905,19 +905,19 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * @throws SQLException
      * @throws DataStoreException
      */
-    private void writeResult(final int oid, final ProcedureInfo pi, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
+    private void writeResult(final long oid, final ProcedureInfo pi, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
         if (result instanceof MeasureResult measRes) {
 
             buildMeasureTable(pi, Arrays.asList(MEASURE_SINGLE_FIELD),  c);
             if (update) {
                 try (final PreparedStatement stmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" SET \"value\" = ? WHERE \"id_observation\"= ? AND id = 1")) {//NOSONAR
                     setResultField(stmt, 1, measRes);
-                    stmt.setInt(2, oid);
+                    stmt.setLong(2, oid);
                     stmt.executeUpdate();
                 }
             } else {
                 try (final PreparedStatement stmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" VALUES(?,?,?)")) {//NOSONAR
-                    stmt.setInt(1, oid);
+                    stmt.setLong(1, oid);
                     stmt.setInt(2, 1);
                     setResultField(stmt, 3, measRes);
                     stmt.executeUpdate();
@@ -1722,7 +1722,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * @param oid Observation identifier.
      * @param c A SQL connection.
      */
-    private synchronized void removeObservation(final int oid, final ProcedureInfo pi, Connection c) throws SQLException, DataStoreException {
+    private synchronized void removeObservation(final long oid, final ProcedureInfo pi, Connection c) throws SQLException, DataStoreException {
 
         // remove from measure tables
         for (int i = 0; i < pi.nbTable; i++) {
@@ -1731,14 +1731,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 suffix = suffix + "_" + (i + 1);
             }
             try (final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" = ?")){//NOSONAR
-                stmtMes.setInt(1, oid);
+                stmtMes.setLong(1, oid);
                 stmtMes.executeUpdate();
             }
         }
 
         // remove from observation table
         try(final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"id\"=?")) {//NOSONAR
-            stmtObs.setInt(1, oid);
+            stmtObs.setLong(1, oid);
             stmtObs.executeUpdate();
         }
     }

@@ -216,11 +216,13 @@ public class SQLResult implements AutoCloseable {
 
     public String getString(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getString(fieldIndex);
         return rss.get(resultSetIndex).getString(fieldIndex);
     }
 
     public String getString(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getString(fieldName);
         return rss.get(resultSetIndex).getString(fieldName);
     }
 
@@ -234,11 +236,13 @@ public class SQLResult implements AutoCloseable {
 
     public Blob getBlob(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getBlob(fieldIndex);
         return rss.get(resultSetIndex).getBlob(fieldIndex);
     }
 
     public Blob getBlob(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getBlob(fieldName);
         return rss.get(resultSetIndex).getBlob(fieldName);
     }
 
@@ -252,11 +256,13 @@ public class SQLResult implements AutoCloseable {
 
     public int getInt(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return -1;
+        if (resultSetIndex == -1) return getInt(fieldIndex);
         return rss.get(resultSetIndex).getInt(fieldIndex);
     }
 
     public int getInt(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return -1;
+        if (resultSetIndex == -1) return getInt(fieldName);
         return rss.get(resultSetIndex).getInt(fieldName);
     }
 
@@ -270,11 +276,13 @@ public class SQLResult implements AutoCloseable {
 
     public Timestamp getTimestamp(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getTimestamp(fieldIndex);
         return rss.get(resultSetIndex).getTimestamp(fieldIndex);
     }
 
     public Timestamp getTimestamp(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getTimestamp(fieldName);
         return rss.get(resultSetIndex).getTimestamp(fieldName);
     }
 
@@ -288,11 +296,13 @@ public class SQLResult implements AutoCloseable {
 
     public byte[] getBytes(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getBytes(fieldIndex);
         return rss.get(resultSetIndex).getBytes(fieldIndex);
     }
 
     public byte[] getBytes(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return null;
+        if (resultSetIndex == -1) return getBytes(fieldName);
         return rss.get(resultSetIndex).getBytes(fieldName);
     }
 
@@ -306,11 +316,13 @@ public class SQLResult implements AutoCloseable {
 
     public double getDouble(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return Double.NaN;
+        if (resultSetIndex == -1) return getDouble(fieldIndex);
         return rss.get(resultSetIndex).getDouble(fieldIndex);
     }
 
     public double getDouble(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return Double.NaN;
+        if (resultSetIndex == -1) return getDouble(fieldName);
         return rss.get(resultSetIndex).getDouble(fieldName);
     }
 
@@ -324,21 +336,28 @@ public class SQLResult implements AutoCloseable {
 
     public boolean getBoolean(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return false; // TODO?
+        if (resultSetIndex == -1) return getBoolean(fieldIndex);
         return rss.get(resultSetIndex).getBoolean(fieldIndex);
     }
 
     public boolean getBoolean(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return false; // TODO?
+        if (resultSetIndex == -1) return getBoolean(fieldName);
         return rss.get(resultSetIndex).getBoolean(fieldName);
     }
 
     public boolean wasNull(int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return true;
+        if (resultSetIndex == -1) return wasNull();
         return rss.get(resultSetIndex).wasNull();
     }
     
     public boolean wasNull() throws SQLException {
          return getFirstResultSet().wasNull();
+    }
+    
+    public long getLong(int fieldIndex) throws SQLException {
+        return getFirstResultSet().getLong(fieldIndex);
     }
     
     public long getLong(String fieldName) throws SQLException {
@@ -347,11 +366,13 @@ public class SQLResult implements AutoCloseable {
 
     public long getLong(int fieldIndex, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return -1L;
+        if (resultSetIndex == -1) return getLong(fieldIndex);
         return rss.get(resultSetIndex).getLong(fieldIndex);
     }
 
     public long getLong(String fieldName, int resultSetIndex) throws SQLException {
         if (emptyCell.contains(resultSetIndex)) return -1L;
+        if (resultSetIndex == -1) return getLong(fieldName);
         return rss.get(resultSetIndex).getLong(fieldName);
     }
     

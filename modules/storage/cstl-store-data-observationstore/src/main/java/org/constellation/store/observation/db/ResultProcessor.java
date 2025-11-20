@@ -28,6 +28,7 @@ import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.CSV;
 import static org.constellation.api.CommonConstants.CSV_FLAT;
+import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.store.observation.db.result.CsvFlatResultBuilder;
 import org.constellation.util.FilterSQLRequest;
@@ -128,7 +129,7 @@ public class ResultProcessor {
         FieldParser parser = new FieldParser(mainFieldIndex, fields, values, false, includeId, includeQuality, includeParameter, null, fieldOffset);
         while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
-                String name = rs.getString("identifier");
+                String name = rs.getString(IDENTIFIER_FIELD_NAME);
                 parser.setName(name + idSuffix);
             }
             parser.parseLine(rs);

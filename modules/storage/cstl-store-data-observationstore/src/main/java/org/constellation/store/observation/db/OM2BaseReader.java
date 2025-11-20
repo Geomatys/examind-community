@@ -1090,7 +1090,7 @@ public class OM2BaseReader {
         return -1;
     }
 
-    protected Result getResult(final ProcedureInfo ti, int oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+    protected Result getResult(final ProcedureInfo ti, long oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             return buildMeasureResult(ti, oid, measureId, selectedField, c);
         } else {
@@ -1116,7 +1116,7 @@ public class OM2BaseReader {
         }
     }
 
-    private MeasureResult buildMeasureResult(final ProcedureInfo ti, final int oid, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+    private MeasureResult buildMeasureResult(final ProcedureInfo ti, final long oid, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
@@ -1136,7 +1136,7 @@ public class OM2BaseReader {
                        "AND m.\"id\" = ? ";
 
         try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
-            stmt.setInt(1, oid);
+            stmt.setLong(1, oid);
             stmt.setInt(2, measureId);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

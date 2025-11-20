@@ -126,7 +126,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
      * @throws SQLException
      * @throws DataStoreException
      */
-    public void fillMesureTable(final Connection c, final int oid, final ComplexResult cr, boolean update) throws SQLException, DataStoreException {
+    public void fillMesureTable(final Connection c, final long oid, final ComplexResult cr, boolean update) throws SQLException, DataStoreException {
          ResultValuesIterator vi = new ResultValuesIterator(cr, dialect);
 
         if (update) LOGGER.info("Inserting measure in update mode");
@@ -146,7 +146,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
                     final Entry<InsertDbField, String> main = fieldValues.get(0);
                     try (final PreparedStatement measExist = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" " +
                                                                         "WHERE \"id_observation\" = ? AND \"" + main.getKey().name + "\" = " + main.getValue())) {
-                        measExist.setInt(1, oid);
+                        measExist.setLong(1, oid);
                         try (final ResultSet rs = measExist.executeQuery()) {
                             // there is an existing line
                             if (rs.next()) {
@@ -193,7 +193,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
      *
      * @return A SQL insert part, to add in a SQL Batch.
      */
-    private void buildInsertLine(int mid, int oid, List<Entry<InsertDbField, String>> fieldValues, Map<Integer, StringBuilder> builders) {
+    private void buildInsertLine(int mid, long oid, List<Entry<InsertDbField, String>> fieldValues, Map<Integer, StringBuilder> builders) {
 
         for (StringBuilder builder : builders.values()) {
             builder.append('(').append(oid).append(',').append(mid).append(',');
@@ -222,9 +222,9 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
      * @return An available measure identifier.
      * @throws SQLException
      */
-    private int getLastMeasureId(Connection c, int oid) throws SQLException {
+    private int getLastMeasureId(Connection c, long oid) throws SQLException {
         try (final PreparedStatement maxId = c.prepareStatement("SELECT max(\"id\") FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE \"id_observation\" = ? ")) {
-            maxId.setInt(1, oid);
+            maxId.setLong(1, oid);
             try (final ResultSet rs = maxId.executeQuery()) {
                 // there is an existing line
                 if (rs.next()) {
@@ -244,7 +244,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
      *
      * @return A SQL update query, to add in a SQL Batch.
      */
-    private List<String> buildUpdateLines(int mid, int oid, List<Entry<InsertDbField, String>> fieldValues) {
+    private List<String> buildUpdateLines(int mid, long oid, List<Entry<InsertDbField, String>> fieldValues) {
         Map<Integer, StringBuilder> builders = new HashMap<>();
         
         for (int i = 1; i < fieldValues.size(); i++) {

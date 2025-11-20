@@ -67,6 +67,8 @@ public class OM2Utils {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
     public static final Field DEFAULT_TIME_FIELD = new Field(-1, FieldDataType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null, FieldType.MAIN);
+    
+    public static final String IDENTIFIER_FIELD_NAME = "identifier";
 
     public static Timestamp getInstantTimestamp(Instant inst) {
         return (inst != null) ? getInstantTimestamp(inst.getPosition()) : null;
@@ -366,8 +368,21 @@ public class OM2Utils {
         }
     }
     
+    /**
+     * Empty special sub fields suach as quality / parameter fields if some are present .
+     * 
+     * @param f The field to modify.
+     */
     public static void clearExtraFields(Field f) {
         if (!f.qualityFields.isEmpty()) f.qualityFields.clear();
         if (!f.parameterFields.isEmpty()) f.parameterFields.clear();
+    }
+    
+    public static boolean isMeasureField(Field field, ProcedureInfo pti) {
+       return (field.type == FieldType.MEASURE || (field.type == FieldType.MAIN && pti.type != ObservationType.TIMESERIES));
+    }
+    
+    public static List<DbField> getMeasureFields(List<Field> fields, ProcedureInfo pti) {
+        return fields.stream().filter(f -> isMeasureField(f, pti)).map(f -> (DbField)f).toList();
     }
 }

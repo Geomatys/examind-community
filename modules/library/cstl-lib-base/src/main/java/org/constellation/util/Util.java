@@ -42,7 +42,6 @@ import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLInputFactory;
 
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.ArgumentChecks;
@@ -476,5 +475,20 @@ public final class Util {
             query = query.replace(s, " ( ");
         }
         return query;
+    }
+    
+    public static String concat(String[] components, int to, String separator) {
+        if (components == null || to <= 0 || to >= components.length) return "";
+            
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (int i = 0; i < to;  i++) {
+            if (!first) {
+                sb.append(separator);
+            }
+            sb.append(components[i]);
+            first = false;
+        }
+        return sb.toString();
     }
 }

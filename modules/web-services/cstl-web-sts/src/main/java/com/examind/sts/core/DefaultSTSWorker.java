@@ -615,7 +615,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     if (templates.size() == 1) {
                         Datastream ds = cache.getOrCreateDatastream(exp.subLevel("Datastreams"), templates.get(0));
                         observation.setDatastream(ds);
-                    } else {
+                    } else if (!templates.isEmpty()){
                         throw new ConstellationStoreException("Inconsistent request found no or multiple template for observation");
                     }
                 }
@@ -739,6 +739,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         List<Field> fields = cr.getFields();
         List<Object> resultArray = cr.getDataArray();
         List<Object> results = new ArrayList<>();
+        if (resultArray == null) {
+            LOGGER.warning("No result array to format");
+            return results;
+        }
         // reformat the results
         int j = 0;
         for (Object arrayLineO : resultArray) {
