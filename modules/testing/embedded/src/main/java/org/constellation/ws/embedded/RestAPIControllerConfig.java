@@ -18,11 +18,14 @@
  */
 package org.constellation.ws.embedded;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 //import org.constellation.api.rest.converter.PortrayalMessageConverter;
 //import org.constellation.api.rest.converter.StyleMessageConverter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MarshallingHttpMessageConverter;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -41,7 +44,9 @@ public class RestAPIControllerConfig extends WebMvcConfigurationSupport {
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 //        converters.add(new StyleMessageConverter());
 //        converters.add(new PortrayalMessageConverter());
+        converters.add(new ByteArrayHttpMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter());
+        converters.add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
 
         final XStreamMarshaller marshaller = new XStreamMarshaller();
         converters.add(new MarshallingHttpMessageConverter(marshaller,marshaller));

@@ -18,6 +18,7 @@
  */
 package org.constellation;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
 import org.constellation.coverage.ws.rs.GridCoverageWriter;
@@ -44,6 +45,7 @@ import org.constellation.ws.rs.provider.RenderedImageWriter;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -57,6 +59,7 @@ public class OGCWSControllerConfig extends WebMvcConfigurationSupport {
 
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(new ResourceHttpMessageConverter());
         converters.add(new WMSResponseWriter());
         converters.add(new CSWResponseWriter());
         converters.add(new NodeWriter());
@@ -80,7 +83,7 @@ public class OGCWSControllerConfig extends WebMvcConfigurationSupport {
         converters.add(new RenderedImageWriter());
         converters.add(new ExceptionReportWriter());
         converters.add(new ByteArrayWriter());
-        converters.add(new StringHttpMessageConverter());
+        converters.add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
         converters.add(new MappingJackson2HttpMessageConverter());
     }
 

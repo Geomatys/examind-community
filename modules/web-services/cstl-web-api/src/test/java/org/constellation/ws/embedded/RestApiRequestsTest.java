@@ -19,6 +19,7 @@
 package org.constellation.ws.embedded;
 
 import com.examind.repository.TestSamples;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.HttpURLConnection;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.business.IDataBusiness;
@@ -26,6 +27,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.admin.SpringHelper;
+import org.constellation.dto.AcknowlegementType;
 import org.constellation.test.utils.Order;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -192,7 +194,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
         final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/sensors/generate/" + dataId);
 
         String s = putStringResponse(request);
-        Assert.assertEquals("The sensors has been succesfully generated", s);
+        var response = new ObjectMapper().readValue(s, AcknowlegementType.class);
+        Assert.assertEquals(new AcknowlegementType("Success", "The sensor has been succesfully generated"), response);
 
         List<SensorReference> sensors = getSensorBusiness().getByDataId(dataId);
         Assert.assertNotNull(sensors);

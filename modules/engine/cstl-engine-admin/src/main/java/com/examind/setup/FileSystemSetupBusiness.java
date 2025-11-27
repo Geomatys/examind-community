@@ -37,7 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.commons.compress.utils.FileNameUtils;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.sis.io.stream.IOUtilities;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.api.ProviderType;
@@ -615,7 +615,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     private void createStyleFromFile(Path path) {
         try {
             String fileName = path.getFileName().toString();
-            String styleName = FilenameUtils.removeExtension(fileName);
+            String styleName = IOUtilities.filenameWithoutExtension(fileName);
             String type = "sld";
 
             //try to parse a style from various form and version

@@ -18,6 +18,7 @@
  */
 package org.constellation.api.rest;
 
+import java.nio.charset.StandardCharsets;
 import org.constellation.dto.DataSetBrief;
 import org.constellation.dto.DataBrief;
 import java.util.AbstractMap;
@@ -31,14 +32,11 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.apache.commons.io.IOUtils;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.api.ProviderType;
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -64,12 +62,13 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import org.springframework.http.ResponseEntity;
@@ -210,14 +209,12 @@ public class DatasetRestAPI extends AbstractRestAPI {
      * @return {@code Response}
      */
     @RequestMapping(value="/datasets/{datasetId}/metadata",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getDatasetMetadata(final @PathVariable("datasetId") int datasetId,
-            final @RequestParam(name="prune", defaultValue = "false") String prune, HttpServletResponse response) {
-
+    public ResponseEntity<Resource> getDatasetMetadata(final @PathVariable("datasetId") int datasetId,
+                                                     final @RequestParam(name="prune") boolean prune) {
         try {
-            final String buffer = metadataBusiness.getJsonDatasetMetadata(datasetId, Boolean.parseBoolean(prune), false);
-            IOUtils.write(buffer, response.getOutputStream());
-            return new ResponseEntity(OK);
-        } catch(Exception ex){
+            final String buffer = metadataBusiness.getJsonDatasetMetadata(datasetId, prune, false);
+            return ResponseEntity.ok(new ByteArrayResource(buffer.getBytes(StandardCharsets.UTF_8)));
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, "error while writing metadata json.", ex);
             return new ErrorMessage(ex).build();
         }

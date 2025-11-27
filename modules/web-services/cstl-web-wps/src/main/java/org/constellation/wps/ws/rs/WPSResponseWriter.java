@@ -19,6 +19,7 @@
 
 package org.constellation.wps.ws.rs;
 
+import java.nio.charset.StandardCharsets;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 
 import jakarta.xml.bind.JAXBException;
@@ -34,7 +35,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamWriter;
-import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.mapped.Configuration;
 import org.codehaus.jettison.mapped.MappedNamespaceConvention;
 import org.codehaus.jettison.mapped.MappedXMLStreamWriter;
@@ -127,7 +127,7 @@ public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
                 String s = sw.toString();
                 s = s.replace("&lt;![CDATA[", "<![CDATA[");
                 s = s.replace("]]&gt;", "]]>");
-                IOUtils.write(s, outputMessage.getBody(), "UTF-8");
+                outputMessage.getBody().write(s.getBytes(StandardCharsets.UTF_8));
             }
             WPSMarshallerPool.getInstance().recycle(m);
         } catch (JAXBException ex) {

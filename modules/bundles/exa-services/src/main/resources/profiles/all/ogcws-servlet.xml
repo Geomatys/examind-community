@@ -24,6 +24,7 @@
   <mvc:annotation-driven>
     <mvc:path-matching path-helper="pathHelper"/>
     <mvc:message-converters>
+        <bean class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
         <bean class="com.examind.sts.ws.rs.STSResponseWriter" />
         <bean class="org.constellation.coverage.ws.rs.GridCoverageNCWriter" />
         <bean class="org.constellation.coverage.ws.rs.GridCoverageWriter" />

@@ -21,6 +21,7 @@ package org.constellation.ws.rs;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -28,13 +29,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.apache.sis.storage.tiling.Tile;
 import org.apache.sis.storage.tiling.TileStatus;
 import org.constellation.api.rest.ErrorMessage;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.ws.rs.MultiPart.Part;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,8 +54,6 @@ public class ResponseObject {
     private Object entity;
 
     private MediaType mimeType;
-
-    private String mimeTypeSpecial;
 
     private HttpStatus status;
 
@@ -80,7 +79,7 @@ public class ResponseObject {
 
     public ResponseObject(Object entity, String mimeType) {
         this.entity   = entity;
-        this.mimeTypeSpecial = mimeType;
+        this.mimeType = MediaType.parseMediaType(mimeType);
         this.status   = HttpStatus.OK;
     }
 
@@ -92,7 +91,7 @@ public class ResponseObject {
 
     public ResponseObject(Object entity, String mimeType, Integer status) {
         this.entity   = entity;
-        this.mimeTypeSpecial = mimeType;
+        this.mimeType = MediaType.parseMediaType(mimeType);
         if (status != null) {
             this.status   = HttpStatus.valueOf(status);
         }
@@ -167,26 +166,22 @@ public class ResponseObject {
                 return new ErrorMessage(ex).build();
             }
 
-        } else if (entity instanceof String && response != null) {
+        } else if (entity instanceof String str) {
 
             HttpHeaders responseHeaders = new HttpHeaders();
             if (mimeType != null) {
                 responseHeaders.setContentType(mimeType);
-            }
-            if (mimeTypeSpecial != null) {
-                responseHeaders.set("Content-Type", mimeTypeSpecial);
             }
             if (extraHeaders != null) {
                 for (Entry<String, String> entry : extraHeaders.entrySet()) {
                     responseHeaders.add(entry.getKey(), entry.getValue());
                 }
             }
-            try {
-                IOUtils.write((String)entity, response.getOutputStream());
-            } catch (IOException ex) {
-                LOGGER.log(Level.WARNING, "Error while writing String response", ex);
-            }
-            return new ResponseEntity(responseHeaders, status);
+
+            var encoding = mimeType != null && mimeType.getCharset() != null
+                    ? mimeType.getCharset()
+                    : StandardCharsets.UTF_8;
+            return new ResponseEntity(new ByteArrayResource(str.getBytes(encoding)), responseHeaders, status);
         } else if (entity instanceof Tile t && isEmpty(t)) {
             // TODO: make configurable ?
             return ResponseEntity.noContent().build();
@@ -194,9 +189,6 @@ public class ResponseObject {
             HttpHeaders responseHeaders = new HttpHeaders();
             if (mimeType != null) {
                 responseHeaders.setContentType(mimeType);
-            }
-            if (mimeTypeSpecial != null) {
-                responseHeaders.set("Content-Type", mimeTypeSpecial);
             }
             if (extraHeaders != null) {
                 for (Entry<String, String> entry : extraHeaders.entrySet()) {

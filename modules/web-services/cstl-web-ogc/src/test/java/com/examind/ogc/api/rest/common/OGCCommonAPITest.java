@@ -28,19 +28,12 @@ import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.ws.embedded.AbstractGrizzlyServer;
-import org.constellation.ws.embedded.RestAPIControllerConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.logging.Level;
-
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Quentin BIALOTA (Geomatys)

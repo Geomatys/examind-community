@@ -22,10 +22,12 @@ package org.constellation.api.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,13 +38,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.zip.Deflater;
 import java.util.zip.ZipOutputStream;
 import javax.activation.MimetypesFileTypeMap;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -73,10 +75,12 @@ import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
 import org.constellation.metadata.utils.Utils;
 import static org.constellation.metadata.utils.Utils.UNKNOW_IDENTIFIER;
-import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,7 +103,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author Johann Sorel (Geomatys)
  */
 @RestController
-public class MetadataRestAPI extends AbstractRestAPI{
+public class MetadataRestAPI extends AbstractRestAPI {
 
     private static final MimetypesFileTypeMap MIME_TYPE_MAP = new MimetypesFileTypeMap();
     static {
@@ -511,12 +515,11 @@ public class MetadataRestAPI extends AbstractRestAPI{
     }
 
     @RequestMapping(value="/metadatas/export/{id}",method=GET,produces=APPLICATION_XML_VALUE)
-    public ResponseEntity exportMetadata(@PathVariable("id") Integer id, final HttpServletResponse response) {
+    public ResponseEntity<Resource> exportMetadata(@PathVariable("id") Integer id) {
         try {
             final String xml = metadataBusiness.getMetadataXml(id);
             if (xml != null) {
-                IOUtils.write(xml, response.getOutputStream());
-                return new ResponseEntity(OK);
+                return ResponseEntity.ok(new ByteArrayResource(xml.getBytes(StandardCharsets.UTF_8)));
             } else {
                 return new ResponseEntity(NOT_FOUND);
             }
@@ -880,26 +883,27 @@ public class MetadataRestAPI extends AbstractRestAPI{
      * @return ResponseEntity that contains the metadata in json format.
      */
     @RequestMapping(value="/metadatas/{id}/json",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getIsoMetadataJson(@PathVariable("id") final int id,
-            @RequestParam("prune") final boolean prune, HttpServletResponse response) {
+    public ResponseEntity<Resource> getIsoMetadataJson(@PathVariable("id") final int id,
+            @RequestParam("prune") final boolean prune) {
         try{
             final StringWriter buffer = new StringWriter();
             Object metadata = metadataBusiness.getMetadata(id);
-            if (metadata != null) {
-                if(prune && metadata instanceof DefaultMetadata){
-                    ((DefaultMetadata)metadata).prune();
-                }
-                //get template name
-                final String templateName = metadataBusiness.getMetadataById(id).getType();
-                final Template template = templateResolver.getByName(templateName);
-                template.write(metadata,buffer,prune, false);
+            if (metadata == null) return ResponseEntity.notFound().build();
+
+            if(prune && metadata instanceof DefaultMetadata){
+                ((DefaultMetadata)metadata).prune();
             }
-            IOUtils.write(buffer.toString(), response.getOutputStream());
+
+            //get template name
+            final String templateName = metadataBusiness.getMetadataById(id).getType();
+            final Template template = templateResolver.getByName(templateName);
+            template.write(metadata,buffer,prune, false);
+
+            return ResponseEntity.ok(new ByteArrayResource(buffer.toString().getBytes(StandardCharsets.UTF_8)));
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, "error while writing metadata json.", ex);
             return new ErrorMessage(ex).build();
         }
-        return new ResponseEntity(OK);
     }
 
     /**
@@ -909,16 +913,13 @@ public class MetadataRestAPI extends AbstractRestAPI{
      * @return ResponseEntity that contains the metadata in json format.
      */
     @RequestMapping(value="/metadatas/json/new",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getNewMetadataJson(@RequestParam(name = "profile", required = true) final String profile,
-            HttpServletResponse response) {
+    public ResponseEntity<Resource> getNewMetadataJson(@RequestParam(name = "profile", required = true) final String profile) {
         try {
             final StringWriter buffer = new StringWriter();
             //get template name
             final Template template = templateResolver.getByName(profile);
             template.write(null, buffer, false, false);
-            IOUtils.write(buffer.toString(), response.getOutputStream());
-            return new ResponseEntity(OK);
-
+            return ResponseEntity.ok(new ByteArrayResource(buffer.toString().getBytes(StandardCharsets.UTF_8)));
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, "An error happen when building json representation of new metadata for profile "+profile, ex);
             return new ErrorMessage(ex).build();
@@ -936,7 +937,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
      * @return The json representation of the converted metadata.
      */
     @RequestMapping(value="/metadatas/{id}/json/convert",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity convertMetadataJson(
+    public ResponseEntity<Resource> convertMetadataJson(
             @PathVariable("id") final int id,
             @RequestParam("prune")      final boolean prune,
             @RequestParam("profile")    final String profile,
@@ -945,15 +946,14 @@ public class MetadataRestAPI extends AbstractRestAPI{
         try {
             final StringWriter buffer = new StringWriter();
             Object metadata = metadataBusiness.getMetadata(id);
-            if (metadata != null) {
-                if (prune && metadata instanceof DefaultMetadata){
-                    ((DefaultMetadata)metadata).prune();
-                }
-                Template newTemplate = templateResolver.getByName(profile);
-                newTemplate.write(metadata, buffer, false, true);
+            if (metadata == null) return ResponseEntity.notFound().build();
+            if (prune && metadata instanceof DefaultMetadata){
+                ((DefaultMetadata)metadata).prune();
             }
-            IOUtils.write(buffer.toString(), response.getOutputStream());
-            return new ResponseEntity(OK);
+            Template newTemplate = templateResolver.getByName(profile);
+            newTemplate.write(metadata, buffer, false, true);
+
+            return ResponseEntity.ok(new ByteArrayResource(buffer.toString().getBytes(StandardCharsets.UTF_8)));
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, "error while writing metadata json.", ex);
             return new ErrorMessage(ex).build();
@@ -1205,31 +1205,27 @@ public class MetadataRestAPI extends AbstractRestAPI{
     }
 
     @RequestMapping(value = "/attachments/view/{attachmentId}", method = RequestMethod.GET)
-    public ResponseEntity get(@PathVariable("attachmentId") Integer attachmentId, final HttpServletResponse response) {
+    public ResponseEntity<byte[]> getAttachment(@PathVariable("attachmentId") Integer attachmentId) {
         try {
             final Attachment mql   = metadataBusiness.getMetadataAttachment(attachmentId);
             final byte[] quicklook = mql.getContent();
             final String fileName  = mql.getFilename();
 
-            response.setCharacterEncoding("UTF-8");
             final HttpHeaders responseHeaders = new HttpHeaders();
 
             // backward compatibility when there was no file name and the resource has been converted to PNG
             if (fileName == null) {
-                response.setContentType(MediaType.IMAGE_PNG_VALUE);
-                responseHeaders.set("Content-Type", "image/png");
+                responseHeaders.setContentType(IMAGE_PNG);
             } else {
                 try {
                     //try to get the content type of the attached file by file name
                     String mimeType = MIME_TYPE_MAP.getContentType(fileName);
 
                     final String mediaType = MediaType.valueOf(mimeType).toString();
-                    response.setContentType(mediaType);
                     responseHeaders.set("Content-Type", mediaType);
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-                    response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-                    responseHeaders.set("Content-Type", MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                    responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
                 }
             }
 
@@ -1237,12 +1233,11 @@ public class MetadataRestAPI extends AbstractRestAPI{
             if (cacheEnabled) {
                 // default to 1h
                 final int second = Application.getIntegerProperty(AppProperty.EXA_CACHE_CONTROL_ATTACHMENT_TIME, 3600);
-                response.setHeader("Cache-Control", "max-age=" + second);
-                response.setHeader("Pragma", "cache");
-                response.setDateHeader("Expires", System.currentTimeMillis() + second*1000);
+                responseHeaders.setCacheControl(CacheControl.maxAge(second, TimeUnit.SECONDS));
+                responseHeaders.setPragma("cache");
+                responseHeaders.setExpires(Instant.now().plusSeconds(second));
             }
-            IOUtils.write(quicklook, response.getOutputStream());
-            return ResponseEntity.ok().headers(responseHeaders).build();
+            return ResponseEntity.ok().headers(responseHeaders).body(quicklook);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
             return new ErrorMessage(ex).build();

@@ -42,9 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.xml.bind.JAXBException;
-import org.apache.commons.io.IOUtils;
 import org.constellation.api.ServiceDef;
 import org.constellation.ws.IWSEngine;
 import org.constellation.business.IDataBusiness;
@@ -70,6 +68,8 @@ import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.ObservationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -257,21 +257,15 @@ public class SensorRestAPI extends AbstractRestAPI {
      * @return the xml file
      */
     @RequestMapping(value="/sensors/{id}/metadata/download",method=GET,produces=APPLICATION_XML_VALUE)
-    public ResponseEntity downloadMetadataForSensor(
-            @PathVariable("id") final Integer id, HttpServletResponse response) {
-
+    public ResponseEntity<Resource> downloadMetadataForSensor(@PathVariable("id") final Integer id) {
         try{
             final Object sml = sensorBusiness.getSensorMetadata(id);
-            if (sml != null) {
-                final String xml = sensorBusiness.marshallSensor(sml);
-                response.addHeader("Content-Disposition","attachment; filename=" + id + ".xml");
-                response.setContentType(MediaType.APPLICATION_XML.toString());
-                response.flushBuffer();
-                IOUtils.write(xml, response.getOutputStream(), StandardCharsets.UTF_8);
-                return new ResponseEntity(OK);
-            } else {
-                return new ErrorMessage().message("SensorML not found").build();
-            }
+            if (sml == null) return new ErrorMessage(NOT_FOUND, "SensorML not found").build();
+            final String xml = sensorBusiness.marshallSensor(sml);
+            return ResponseEntity.ok()
+                                 .header("Content-Disposition","attachment; filename=" + id + ".xml")
+                                 .contentType(new MediaType(MediaType.APPLICATION_XML, StandardCharsets.UTF_8))
+                                 .body(new ByteArrayResource(xml.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Failed to get xml metadata for sensor with identifier "+id,ex);
             return new ErrorMessage(ex).build();
@@ -285,7 +279,7 @@ public class SensorRestAPI extends AbstractRestAPI {
      * @return An Acknowledgement describing how the operation went.
      */
     @RequestMapping(value="/sensors/generate/{dataId}",method=PUT,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity generateSensor(@PathVariable("dataId") final Integer dataId, HttpServletResponse response) {
+    public ResponseEntity generateSensor(@PathVariable("dataId") final Integer dataId) {
         if (readOnlyAPI) return readOnlyModeActivated();
         final DataProvider provider;
         try {
@@ -313,8 +307,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             for (ProcedureDataset process : procedures) {
                 sensorBusiness.generateSensor(process, smlProviderId, null, dataId);
             }
-            IOUtils.write("The sensors has been succesfully generated", response.getOutputStream(), StandardCharsets.UTF_8);
-            return new ResponseEntity(OK);
+            return ResponseEntity.ok(new AcknowlegementType("Success", "The sensor has been succesfully generated"));
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

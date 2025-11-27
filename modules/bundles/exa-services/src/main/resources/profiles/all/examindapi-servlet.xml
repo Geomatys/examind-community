@@ -34,6 +34,7 @@
   <mvc:annotation-driven>
     <mvc:path-matching path-helper="pathHelper"/>
     <mvc:message-converters>
+        <bean class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
         <bean class="com.examind.ogc.api.rest.common.converter.CommonResponseConverter" />
         <bean class="org.constellation.api.rest.converter.MapContextMessageConverter" />
         <bean class="org.constellation.api.rest.converter.StyleMessageConverter" />

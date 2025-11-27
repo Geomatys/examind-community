@@ -20,6 +20,7 @@ package org.constellation.api.rest;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,8 +32,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -72,6 +71,8 @@ import org.opengis.parameter.InvalidParameterValueException;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -194,7 +195,7 @@ public class TaskRestAPI extends AbstractRestAPI {
      * @return A description of the process inputs parameters.
      */
     @RequestMapping(value="/task/process/descriptor",method=POST,produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getProcessDescriptor(@RequestBody final ParameterValues params, HttpServletResponse response) {
+    public ResponseEntity<Resource> getProcessDescriptor(@RequestBody final ParameterValues params) {
         final ParameterDescriptorGroup idesc;
         try {
             idesc = getDescriptor(params.get("authority"), params.get("code"));
@@ -203,8 +204,7 @@ public class TaskRestAPI extends AbstractRestAPI {
         }
         try {
             final String jsonString = ParamUtilities.writeParameterDescriptorJSON(idesc);
-            IOUtils.write(jsonString, response.getOutputStream());
-            return new ResponseEntity(OK);
+            return ResponseEntity.ok(new ByteArrayResource(jsonString.getBytes(StandardCharsets.UTF_8)));
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).message("Failure, Could not find chain for given authority/code.").build();

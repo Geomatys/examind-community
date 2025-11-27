@@ -20,6 +20,7 @@ package org.constellation.api.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,16 +35,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.api.TilingMode;
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IDatasetBusiness;
@@ -230,12 +227,11 @@ public class DataRestAPI extends AbstractRestAPI{
      * @return {@code Response}
      */
     @RequestMapping(value="/datas/{dataId}/metadata",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getDataMetadata(final @PathVariable("dataId") int dataId, final @RequestParam(name="prune", defaultValue = "false") String prune, HttpServletResponse response) {
-
+    public ResponseEntity<byte[]> getDataMetadata(final @PathVariable("dataId") int dataId,
+                                          final @RequestParam(name="prune", defaultValue = "false") boolean prune) {
         try {
-            final String buffer = metadataBusiness.getJsonDataMetadata(dataId, Boolean.parseBoolean(prune), false);
-            IOUtils.write(buffer, response.getOutputStream());
-            return new ResponseEntity(OK);
+            final String buffer = metadataBusiness.getJsonDataMetadata(dataId, prune, false);
+            return ResponseEntity.ok(buffer.getBytes(StandardCharsets.UTF_8));
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, "error while writing metadata json.", ex);
             return new ErrorMessage(ex).build();

@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.sis.io.stream.IOUtilities;
 import org.constellation.api.rest.dto.Resource;
 import org.constellation.api.rest.dto.Resources;
 import org.constellation.business.IStyleBusiness;
@@ -156,7 +156,7 @@ public class OGCStyleAPI extends AbstractRestAPI {
             return new ErrorMessage().message("SLD file to import is empty!").build();
         }
 
-        String styleName = name.isEmpty() ? FilenameUtils.removeExtension(file.getOriginalFilename()) : name;
+        String styleName = name.isEmpty() ? IOUtilities.filenameWithoutExtension(file.getOriginalFilename()) : name;
 
         //copy the file content in memory
         final byte[] buffer;

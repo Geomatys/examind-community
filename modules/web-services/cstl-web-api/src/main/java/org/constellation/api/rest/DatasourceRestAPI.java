@@ -37,9 +37,6 @@ import java.util.logging.Level;
 import java.util.zip.CRC32;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
-
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProcessBusiness;
@@ -72,6 +69,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -183,11 +181,11 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      * @param response
      * @return
      */
-    @RequestMapping(value = "/datasources/test", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity testDatasource(@RequestBody final DataSource ds,  HttpServletResponse response) {
+    @RequestMapping(value = "/datasources/test", method = POST, consumes = APPLICATION_JSON_VALUE, produces = TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> testDatasource(@RequestBody final DataSource ds) {
         try {
-            IOUtils.write(datasourceBusiness.testDatasource(ds), response.getOutputStream());
-            return new ResponseEntity(OK);
+            final String testResult = datasourceBusiness.testDatasource(ds);
+            return ResponseEntity.ok(testResult);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -451,10 +449,10 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      * @return return the current state of analysis of the datasource.
      */
     @RequestMapping(value = "/datasources/{id}/analysis/state", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getDatasourceAnalysisState(@PathVariable("id") int id,  HttpServletResponse response) {
+    public ResponseEntity<String> getDatasourceAnalysisState(@PathVariable("id") int id,  HttpServletResponse response) {
         try {
-            IOUtils.write(datasourceBusiness.getDatasourceAnalysisState(id), response.getOutputStream());
-            return new ResponseEntity(OK);
+            final String state = datasourceBusiness.getDatasourceAnalysisState(id);
+            return ResponseEntity.ok(state);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

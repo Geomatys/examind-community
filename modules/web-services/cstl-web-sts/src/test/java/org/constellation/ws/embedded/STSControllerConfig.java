@@ -19,10 +19,13 @@
 package org.constellation.ws.embedded;
 
 import com.examind.sts.ws.rs.STSResponseWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
@@ -39,8 +42,10 @@ public class STSControllerConfig  extends WebMvcConfigurationSupport {
 
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(new ResourceHttpMessageConverter());
         converters.add(new STSResponseWriter());
         converters.add(new ExceptionReportWriter());
         converters.add(new MappingJackson2HttpMessageConverter());
+        converters.add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
     }
 }
