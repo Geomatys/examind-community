@@ -1,0 +1,7 @@
+= Test data
+
+This module contains minimal data files used in Examind unit tests.
+
+== Regenerate `with_nan.nc` test file
+
+If you need to modify the content of link:src/main/resources/org/constellation/netcdf/with_nan.nc[with_nan.nc] data file, you can modify the link:src/main/python/create_with_nan.nc.py[Python generator script], then launch the link:src/main/python/generate_with_nan_netcdf.sh[generator shell script] with a single argument: the path to link:src/main/resources/org/constellation/netcdf/with_nan.nc[with_nan.nc] data file.
