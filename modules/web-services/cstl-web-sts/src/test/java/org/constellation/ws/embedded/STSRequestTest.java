@@ -1777,8 +1777,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/th-property-3-ct.json");
         compareJSON(expResult, result);
-        
+    }
+    
+    @Test
+    public void getThingsResultFilterTest() throws Exception {
+        initPool();
 
+        String filter = "Datastream/ObservedProperty/id eq 'temperature' and  Datastream/Observation/result le 12.0".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/th-results.json");
+        compareJSON(expResult, result);
     }
 
     @Test

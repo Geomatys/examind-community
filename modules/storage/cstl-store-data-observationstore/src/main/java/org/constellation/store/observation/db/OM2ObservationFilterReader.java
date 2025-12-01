@@ -926,19 +926,41 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             sqlRequest.replaceAll("${foi-prop-join}", "offf.\"foi\"");
         }
         sqlRequest.join(joins);
-        sqlRequest = appendPaginationToRequest(sqlRequest);
+        if (!hasMeasureFilter) {
+            sqlRequest = appendPaginationToRequest(sqlRequest);
+        }
         LOGGER.fine(sqlRequest.toString());
         final List<Procedure> results = new ArrayList<>();
         try(final Connection c = source.getConnection();
             final SQLResult rs =  sqlRequest.execute(c)) {
             while (rs.next()) {
-                results.add(getProcess(rs.getString(1), c));
+                String procedure = rs.getString(1);
+                if (hasMeasureFilter) {
+                    ProcedureInfo pti = getPIDFromProcedureSafe(procedure, c).orElseThrow(); // we know that the procedure exist
+                    List<Field> fields = readFields(procedure, true, c, fieldIndexFilters, fieldIdFilters, true);
+                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
+                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, null, false, false, true, EXIST);
+                    try (final SQLResult rs2 = measureRequests.execute(c)) {
+                        boolean hasResults = rs2.next();
+                        // TODO pagination broken
+                        // handled by breakPostPagination/applyPostPagination
+                        if (!hasResults) continue;
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", measureRequests.toString());
+                        throw new DataStoreException("the service has throw a Exception.", ex);
+                    }
+                }
+                results.add(getProcess(procedure, c));
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
-        return results;
+        if (hasMeasureFilter) {
+            return applyPostPagination(results);
+        } else {
+            return results;
+        }
     }
 
     @Override

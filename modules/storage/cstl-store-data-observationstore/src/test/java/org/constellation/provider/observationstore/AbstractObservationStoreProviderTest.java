@@ -56,7 +56,6 @@ import org.constellation.test.SpringContextTest;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
-import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
@@ -2635,6 +2634,57 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds.add("urn:ogc:object:sensor:GEOM:14");
         expectedIds.add("urn:ogc:object:sensor:GEOM:18");
         Assert.assertEquals(expectedIds, resultIds);
+    }
+    
+    public void getProcedureResultTest() throws Exception {
+        assertNotNull(omPr);
+        
+        /*
+        * observed property filter
+        */
+        ProcedureQuery query = new ProcedureQuery();
+        Filter filter = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        query.setSelection(filter);
+
+        List<Procedure> results = omPr.getProcedures(query);
+
+        Set<String> resultIds = getProcessIds(results);
+        assertEquals(9, resultIds.size());
+
+        Set<String> expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:sensor:GEOM:2");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:7");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:8");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:12");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:13");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:14");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:18");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:19");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:test-1");
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        /*
+        * observed property filter + result filter
+        */
+        query = new ProcedureQuery();
+        Filter eqObs = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        Filter eqRes = ff.lessOrEqual(ff.property("result") , ff.literal(12.1));
+        filter = ff.and(eqObs, eqRes);
+        query.setSelection(filter);
+
+        results = omPr.getProcedures(query);
+
+        resultIds = getProcessIds(results);
+        assertEquals(4, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:sensor:GEOM:7");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:8");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:12");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:19");
+
+        Assert.assertEquals(expectedIds, resultIds);
+        
     }
     
     protected void getProcedureComplexFilterTest() throws Exception {

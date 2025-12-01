@@ -207,6 +207,12 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getProcedure2Test() throws Exception {
         super.getProcedureTest();
     }
+    
+    @Test
+    @Override
+    public void getProcedureResultTest() throws Exception {
+        super.getProcedureResultTest();
+    }
 
     @Test
     @Override

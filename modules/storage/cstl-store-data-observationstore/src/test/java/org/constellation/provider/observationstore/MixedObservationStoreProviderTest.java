@@ -218,6 +218,12 @@ public class MixedObservationStoreProviderTest extends AbstractMixedObservationS
     
     @Test
     @Override
+    public void getProcedureResultTest() throws Exception {
+        super.getProcedureResultTest();
+    }
+    
+    @Test
+    @Override
     public void getProcedureComplexFilterTest() throws Exception {
          super.getProcedureComplexFilterTest();
     }
