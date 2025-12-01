@@ -3,7 +3,7 @@
             "name": "Sensor 13",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:13",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:13)",
@@ -15,7 +15,7 @@
             "name": "Sensor 18",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:18",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)",
@@ -27,7 +27,7 @@
             "name": "Sensor 19 No FOI",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:19",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:19)",
@@ -39,7 +39,7 @@
             "name": "Sensor 3",
             "description": "",
             "properties": {
-                "type": "timeseries",
+                "type": "TIMESERIES",
                 "bss-code": ["10972X0137/SER", "BSS10972X0137"]
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:3",
@@ -52,7 +52,7 @@
             "name": "Sensor 4",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:4",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:4)",
@@ -64,7 +64,7 @@
             "name": "Sensor 7",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:7",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:7)",

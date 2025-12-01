@@ -234,6 +234,7 @@ public class ObservationTestUtils {
         assertEquals(expected.getName().getCode(), result.getName().getCode());
         assertEquals(expected.getObservedProperty(), result.getObservedProperty());
         assertEquals(expected.getProcedure().getId(), result.getProcedure().getId());
+        assertEquals(expected.getProcedure().getProperties(), result.getProcedure().getProperties());
 
         assertEquals(expected.getProcedure(), result.getProcedure());
         assertEqualsIdentifiedObject(expected.getSamplingTime(), result.getSamplingTime());

@@ -5,7 +5,7 @@
         "id": "urn:ogc:object:sensor:GEOM:multi-type",
         "name": "Sensor multi type",
         "properties": {
-            "type": "timeseries"
+            "type": "TIMESERIES"
         }
     },
     "featureOfInterest": {
@@ -38,7 +38,7 @@
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation",
     "properties": {
-        "type": "timeseries"
+        "type": "TIMESERIES"
     },
     "resultQuality": []
 }

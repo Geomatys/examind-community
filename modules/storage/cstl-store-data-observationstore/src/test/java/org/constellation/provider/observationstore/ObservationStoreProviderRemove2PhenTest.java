@@ -142,7 +142,7 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
             Phenomenon phen = castToModel(obs.getObservedProperty(), Phenomenon.class);
             Assert.assertTrue(phen.getId().startsWith("computed"));
             
-            boolean isProfile = castToModel(obs.getProcedure(), Procedure.class).getProperties().get("type").equals("profile");
+            boolean isProfile = castToModel(obs.getProcedure(), Procedure.class).getProperties().get("type").equals("PROFILE");
 
             List<Field> fields = OM2Utils.getMeasureFields(obs);
             // the main field is not included

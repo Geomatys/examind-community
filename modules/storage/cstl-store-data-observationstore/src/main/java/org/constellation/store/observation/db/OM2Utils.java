@@ -49,7 +49,7 @@ import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.TemporalOperatorName;

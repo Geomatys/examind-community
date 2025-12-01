@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.geotoolkit.observation.model.GeoSpatialBound;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.result.ResultBuilder;
@@ -42,7 +43,7 @@ public class ObservationBlock {
 
     public String featureID;
 
-    public final String observationType;
+    public final ObservationType observationType;
 
     private final Positions positions;
 
@@ -50,7 +51,7 @@ public class ObservationBlock {
 
     public final GeoSpatialBound currentSpaBound;
 
-    public ObservationBlock(Procedure procedure, String featureID, MeasureBuilder cmb, String observationType) {
+    public ObservationBlock(Procedure procedure, String featureID, MeasureBuilder cmb, ObservationType observationType) {
         this.procedure = procedure;
         this.featureID = featureID;
         this.cmb = cmb;

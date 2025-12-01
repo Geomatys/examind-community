@@ -55,6 +55,7 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorData;
 import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getOMType;
 import org.opengis.filter.FilterFactory;
@@ -194,7 +195,7 @@ public final class SensorUtils {
         final String name        = sd.getSensorName();
         final String description = sd.getDescription();
         final String type        = sd.getSensorMLType();
-        final String omType      = sd.getOMType();
+        final String omType      = sd.getOMType().name();
         return new Sensor(null, sensorId, name, description, type, null, null, null, providerId, null, omType);
     }
 }

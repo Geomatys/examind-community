@@ -130,7 +130,7 @@
             "name": "Sensor 14",
             "properties": {},
             "type": "Component",
-            "omType": "profile",
+            "omType": "PROFILE",
             "children": [],
             "spatialBound": {
                 "dateStart": 976489200000,

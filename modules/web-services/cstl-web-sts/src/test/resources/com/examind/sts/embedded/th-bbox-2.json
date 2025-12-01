@@ -3,7 +3,7 @@
             "name": "Sensor 7",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:7",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:7)",

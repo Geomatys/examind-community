@@ -41,7 +41,7 @@ import org.geotoolkit.observation.model.Field;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.OMEntity;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 
 /**
  *

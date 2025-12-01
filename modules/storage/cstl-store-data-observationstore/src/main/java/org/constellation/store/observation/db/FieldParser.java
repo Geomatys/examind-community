@@ -38,7 +38,7 @@ import org.geotoolkit.observation.model.Field;
 import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResultMode;
@@ -242,7 +242,7 @@ public class FieldParser {
     public Map<String, Observation> parseSingleMeasureObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen) throws SQLException {
         final Map<String, Observation> observations = new LinkedHashMap<>();
         Map<String, Object> properties = new HashMap<>();
-        properties.put("type", pti.type.name().toLowerCase());
+        properties.put("type", pti.type.name());
                 
         while (rs2.nextOnField(pti.mainField.name)) {
             parseLine(rs2);
@@ -277,7 +277,7 @@ public class FieldParser {
         final String obsID             = "obs-" + oid;
         boolean profile                = pti.type == ObservationType.PROFILE;
         Map<String, Object> properties = new HashMap<>();
-        properties.put("type", pti.type.name().toLowerCase());
+        properties.put("type", pti.type.name());
         
         while (rs2.nextOnField(pti.mainField.name)) {
             parseLine(rs2);

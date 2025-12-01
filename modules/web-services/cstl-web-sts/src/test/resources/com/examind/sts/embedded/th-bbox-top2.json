@@ -3,7 +3,7 @@
             "name": "Sensor 19 No FOI",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:19",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:19)",
@@ -15,7 +15,7 @@
             "name": "Sensor 3",
             "description": "",
             "properties": {
-                "type": "timeseries",
+                "type": "TIMESERIES",
                 "bss-code": ["10972X0137/SER", "BSS10972X0137"]
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:3",

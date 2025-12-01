@@ -24,7 +24,7 @@
                 "name": "Sensor 10",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:10",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:10)",
@@ -58,7 +58,7 @@
                 "name": "Sensor 12",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:12",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:12)",
@@ -92,7 +92,7 @@
                 "name": "Sensor 12",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:12",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:12)",
@@ -126,7 +126,7 @@
                 "name": "Sensor 12",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:12",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:12)",
@@ -160,7 +160,7 @@
                 "name": "Sensor 13",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:13",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:13)",
@@ -194,7 +194,7 @@
                 "name": "Sensor 14",
                 "description": "",
                 "properties": {
-                    "type": "profile"
+                    "type": "PROFILE"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:14",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:14)",
@@ -228,7 +228,7 @@
                 "name": "Sensor 14",
                 "description": "",
                 "properties": {
-                    "type": "profile"
+                    "type": "PROFILE"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:14",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:14)",
@@ -262,7 +262,7 @@
                 "name": "Sensor 14",
                 "description": "",
                 "properties": {
-                    "type": "profile"
+                    "type": "PROFILE"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:14",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:14)",
@@ -296,7 +296,7 @@
                 "name": "Sensor 14",
                 "description": "",
                 "properties": {
-                    "type": "profile"
+                    "type": "PROFILE"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:14",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:14)",
@@ -330,7 +330,7 @@
                 "name": "Sensor 17",
                 "description": "",
                 "properties": {
-                    "type": "profile"
+                    "type": "PROFILE"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:17",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:17)",
@@ -364,7 +364,7 @@
                 "name": "Sensor 18",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:18",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)",
@@ -399,7 +399,7 @@
                 "description": "",
                 "properties": {
                     "supervisor-code": "00ARGLELES",
-                    "type": "profile",
+                    "type": "PROFILE",
                     "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -435,7 +435,7 @@
                 "description": "",
                 "properties": {
                     "supervisor-code": "00ARGLELES",
-                    "type": "profile",
+                    "type": "PROFILE",
                     "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -471,7 +471,7 @@
                 "description": "",
                 "properties": {
                     "supervisor-code": "00ARGLELES",
-                    "type": "profile",
+                    "type": "PROFILE",
                     "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -506,7 +506,7 @@
                 "name": "Sensor 3",
                 "description": "",
                 "properties": {
-                    "type": "timeseries",
+                    "type": "TIMESERIES",
                     "bss-code": ["10972X0137/SER", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:3",
@@ -541,7 +541,7 @@
                 "name": "Sensor 4",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:4",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:4)",
@@ -575,7 +575,7 @@
                 "name": "Sensor 7",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:7",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:7)",
@@ -609,7 +609,7 @@
                 "name": "Sensor 8",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:8",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:8)",
@@ -643,7 +643,7 @@
                 "name": "Sensor 9",
                 "description": "",
                 "properties": {
-                    "type": "simple"
+                    "type": "SIMPLE"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:9",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:9)",
@@ -677,7 +677,7 @@
                 "name": "Sensor multi type",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:multi-type",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:multi-type)",
@@ -711,7 +711,7 @@
                 "name": "Sensor quality",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:quality_sensor",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)",
@@ -745,7 +745,7 @@
                 "name": "Sensor test 1",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:test-1",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:test-1)",
@@ -779,7 +779,7 @@
                 "name": "Sensor test id",
                 "description": "",
                 "properties": {
-                    "type": "timeseries"
+                    "type": "TIMESERIES"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:test-id",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:test-id)",

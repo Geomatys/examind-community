@@ -57,6 +57,8 @@ import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.ObservationType;
+import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -72,9 +74,9 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class CsvSplittedObservationStore extends FileParsingObservationStore {
     
-    private Path stationFile;
-    private Path obsPropFile;
-    private Path observationFile;
+    private final Path stationFile;
+    private final Path obsPropFile;
+    private final Path observationFile;
 
     private final String valueColumn;
     private final Set<String> csvFlatobsPropColumns;
@@ -216,7 +218,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
 
@@ -276,7 +278,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
 
@@ -346,12 +348,12 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
             // -- single observation related variables --
             Long currentTime                      = null;
             String currentFoi                     = null;
-            String currentObstType                = observationType;
+            ObservationType currentObstType       = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
             List<MeasureField> qualityFields      = buildExtraMeasureFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes);
             List<MeasureField> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes);
 
-            final Map<String, MeasureColumns> measureColumnsMap = new HashMap<>();
+            final Map<ObservationType, MeasureColumns> measureColumnsMap = new HashMap<>();
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -360,7 +362,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
 
@@ -376,7 +378,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                     if (!obsTypeCodes.contains(asString(line[typeColumnIndex]))) continue;
                     if (observationType == null) {
                         currentObstType = getObservationTypeFromCode(asString(line[typeColumnIndex]));
-                        if (currentObstType.equals("Profile")) {
+                        if (PROFILE.equals(currentObstType)) {
                             mainIndexes = Arrays.asList(zIndex);
                             currentMainColumns = Arrays.asList(zColumn);
                         } else {
@@ -393,7 +395,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                 MeasureColumns measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
                     List<MeasureField> measureFields = new ArrayList<>();
                      // initialize description
-                    int offset = "Profile".equals(observationType) ? 1 : 0;
+                    int offset = PROFILE.equals(observationType) ? 1 : 0;
                     for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
                         String mc = sortedMeasureColumns.get(j);
                         FieldDataType type = FieldDataType.QUANTITY;
@@ -580,7 +582,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
                 
@@ -621,7 +623,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
         Map<String, ProcedureDataset> result = new LinkedHashMap<>();
         Map<String, double[]> procedurePos   = new HashMap<>();
         String fixedObsId                    = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
-        String currentObstType               = observationType;
+        ObservationType currentObstType      = observationType;
        
         // open station csv file
         try (final DataFileReader reader = getDataFileReader(stationFile)) {
@@ -654,7 +656,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
                
@@ -713,7 +715,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
             
             final List<Field> qualityFields      = buildExtraFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes, FieldType.QUALITY);
             final List<Field> parameterFields    = buildExtraFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);
-            final Map<String, Map<String, Field>> measureColumnsMap = new HashMap<>();
+            final Map<ObservationType, Map<String, Field>> measureColumnsMap = new HashMap<>();
             
             int lineNumber                       = 1;
             
@@ -733,7 +735,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                 Map<String, Field> fieldMap = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
                     Map<String, Field> measureFields = new HashMap<>();
                      // initialize description
-                    int offset = "Profile".equals(observationType) ? 1 : 0;
+                    int offset = PROFILE.equals(observationType) ? 1 : 0;
                     for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
                         String mc = sortedMeasureColumns.get(j);
                         FieldDataType dataType = FieldDataType.QUANTITY;
@@ -792,18 +794,18 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
             return Arrays.asList("TS", "TR", "PR");
         }
         return switch (observationType) {
-            case "Timeserie" ->  Arrays.asList("TS");
-            case "Trajectory"->  Arrays.asList("TR");
-            case "Profile"   ->  Arrays.asList("PR");
+            case TIMESERIES ->  Arrays.asList("TS");
+            case TRAJECTORY ->  Arrays.asList("TR");
+            case PROFILE    ->  Arrays.asList("PR");
             default -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         };
     }
 
-    private String getObservationTypeFromCode(String code) {
+    private ObservationType getObservationTypeFromCode(String code) {
         return switch (code) {
-            case "TS" -> "Timeserie";
-            case "TR" -> "Trajectory";
-            case "PR" -> "Profile";
+            case "TS" -> ObservationType.TIMESERIES;
+            case "TR" -> ObservationType.TRAJECTORY;
+            case "PR" -> ObservationType.PROFILE;
             default-> throw new IllegalArgumentException("Unexpected observation type code:" + code + ". Allowed values are TS, TR, PR.");
         };
     }

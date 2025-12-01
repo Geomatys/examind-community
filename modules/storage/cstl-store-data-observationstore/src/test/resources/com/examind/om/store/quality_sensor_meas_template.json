@@ -5,7 +5,7 @@
         "id": "urn:ogc:object:sensor:GEOM:quality_sensor",
         "name": "Sensor quality",
         "properties": {
-            "type": "timeseries"
+            "type": "TIMESERIES"
         }
     },
     "featureOfInterest": {
@@ -43,7 +43,7 @@
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
     "properties": {
-        "type": "timeseries"
+        "type": "TIMESERIES"
     },
     "resultQuality": [
         {

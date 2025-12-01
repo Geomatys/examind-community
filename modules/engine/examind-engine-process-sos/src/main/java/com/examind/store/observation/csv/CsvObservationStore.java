@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -117,7 +118,7 @@ public class CsvObservationStore extends AbstractCsvStore {
             }
             
             final List<String> measureFields = new ArrayList<>();
-            if ("Profile".equals(observationType))   {
+            if (ObservationType.PROFILE.equals(observationType))   {
                 if (mainColumns.size() > 1) {
                     throw new DataStoreException("Multiple main columns is not yet supported for Profile");
                 }
@@ -163,7 +164,7 @@ public class CsvObservationStore extends AbstractCsvStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
 
@@ -436,7 +437,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                                                         currentProc.getName(), 
                                                         currentProc.getDescription(), 
                                                         PROCEDURE_TREE_TYPE, 
-                                                        observationType.toLowerCase(), 
+                                                        observationType, 
                                                         fields, 
                                                         currentProc.getProperties()));
                 }

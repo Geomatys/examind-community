@@ -73,7 +73,7 @@ import static org.geotoolkit.observation.model.FieldDataType.TEXT;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -892,7 +892,7 @@ public class OM2BaseReader {
             if (rs.next()) {
                final String procedureId = rs.getString(3);
                final Field mainField = getMainField(procedureId, c);
-               return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(5), rs.getString(6), rs.getString(4), mainField));
+               return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(5), rs.getString(6), ObservationType.parse(rs.getString(4)), mainField));
             }
             return Optional.empty();
         }
@@ -985,7 +985,7 @@ public class OM2BaseReader {
                 if (rs.next()) {
                     String omType = rs.getString("om_type");
                     if (omType != null) {
-                        properties.putIfAbsent("type", omType);
+                        properties.putIfAbsent("type", ObservationType.parse(omType).name());
                     }
                     return new Procedure(rs.getString("id"), rs.getString("name"), rs.getString("description"), properties);
                 }

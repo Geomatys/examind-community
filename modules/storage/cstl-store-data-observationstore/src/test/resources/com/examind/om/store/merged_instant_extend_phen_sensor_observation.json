@@ -5,7 +5,7 @@
         "id": "urn:ogc:object:sensor:GEOM:instant_extend_phen_sensor",
         "name": "Sensor extended",
         "properties": {
-            "type": "timeseries"
+            "type": "TIMESERIES"
         }
     },
     "samplingTime": {
@@ -98,7 +98,7 @@
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "properties": {
-        "type": "timeseries"
+        "type": "TIMESERIES"
     },
     "resultQuality": []
 }

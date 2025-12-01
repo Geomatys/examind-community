@@ -73,7 +73,7 @@ import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Phenomenon;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;

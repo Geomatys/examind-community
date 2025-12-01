@@ -85,6 +85,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.constellation.ws.ISensorConfigurer;
 import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
@@ -390,7 +391,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                         if (objsml instanceof AbstractSensorML) {
                             final AbstractSensorML sml = (AbstractSensorML) objsml;
                             final String type = SensorMLUtilities.getSensorMLType(sml);
-                            final String omType = SensorMLUtilities.getOMType(sml).orElse(null);
+                            final ObservationType omType = SensorMLUtilities.getOMType(sml).map(t -> ObservationType.parse(t)).orElse(null);
                             final String sensorID = SensorMLUtilities.getSmlID(sml);
                             final String name = sensorID; // TODO extract from sml
                             final String description = null; // TODO extract from sml
@@ -420,13 +421,13 @@ public class SensorRestAPI extends AbstractRestAPI {
         } else {
             final Object objsml = sensorBusiness.unmarshallSensor(imported);
             if (objsml instanceof AbstractSensorML) {
-                final AbstractSensorML sml = (AbstractSensorML) objsml;
-                final String type          = SensorMLUtilities.getSensorMLType(sml);
-                final String omType        = SensorMLUtilities.getOMType(sml).orElse(null);
-                final String sensorID      = SensorMLUtilities.getSmlID(sml);
-                final String name          = sensorID; // TODO extract from sml
-                final String description   = null; // TODO extract from sml
-                final Integer sid          = sensorBusiness.create(sensorID, name, description, type, omType, null, sml, System.currentTimeMillis(), providerID);
+                final AbstractSensorML sml   = (AbstractSensorML) objsml;
+                final String type            = SensorMLUtilities.getSensorMLType(sml);
+                final ObservationType omType = SensorMLUtilities.getOMType(sml).map(t -> ObservationType.parse(t)).orElse(null);
+                final String sensorID        = SensorMLUtilities.getSmlID(sml);
+                final String name            = sensorID; // TODO extract from sml
+                final String description     = null; // TODO extract from sml
+                final Integer sid            = sensorBusiness.create(sensorID, name, description, type, omType, null, sml, System.currentTimeMillis(), providerID);
                 sensorsImported.add(sensorBusiness.getSensor(sid));
             }
         }

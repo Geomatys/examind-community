@@ -41,7 +41,7 @@ import org.geotoolkit.observation.model.FieldDataType;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResultMode;
@@ -69,7 +69,7 @@ public class MixedFieldParser extends FieldParser {
     public Map<String, Observation> parseSingleMeasureObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen) throws SQLException {
         final Map<String, Observation> observations = new LinkedHashMap<>();
         final Map<String, Object> properties = new HashMap<>();
-        properties.put("type", pti.type.name().toLowerCase());
+        properties.put("type", pti.type.name());
         final boolean profile = pti.type == ObservationType.PROFILE;
         int mainFieldIndex = fields.indexOf(pti.mainField);
         Object previousKey    = null;
@@ -199,7 +199,7 @@ public class MixedFieldParser extends FieldParser {
         Object prevObsKey                = null;
         boolean hasData                  = false;
         Map<String, Object> blocValues   = createNewBlocValues(profile, mainFieldIndex);
-        Map<String, Object> properties   = Map.of("type", pti.type.name().toLowerCase());
+        Map<String, Object> properties   = Map.of("type", pti.type.name());
         Map<String, Observation> results = new HashMap<>();
         boolean separated                = (separatedProfileObs && profile);
         

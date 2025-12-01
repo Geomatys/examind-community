@@ -63,7 +63,7 @@ import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -558,7 +558,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 boolean timeseries = (pti.type == ObservationType.TIMESERIES);
 
                 Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type.name().toLowerCase());
+                properties.put("type", pti.type.name());
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
                 final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, NONE);

@@ -97,7 +97,7 @@
             },
             "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "resultQuality": []
         }],
@@ -142,7 +142,7 @@
             "name": "Sensor 12",
             "properties": {},
             "type": "Component",
-            "omType": "timeseries",
+            "omType": "TIMESERIES",
             "children": [],
             "spatialBound": {
                 "dateStart": 1260536460000,

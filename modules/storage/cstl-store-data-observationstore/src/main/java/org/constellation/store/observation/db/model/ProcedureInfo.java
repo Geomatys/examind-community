@@ -19,7 +19,7 @@
 package org.constellation.store.observation.db.model;
 
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 
 /**
  *
@@ -34,13 +34,13 @@ public class ProcedureInfo {
     public final ObservationType type;
     public final Field mainField;
 
-    public ProcedureInfo(int pid, int nbTable, String id, String name, String description, String type, Field mainField) {
+    public ProcedureInfo(int pid, int nbTable, String id, String name, String description, ObservationType type, Field mainField) {
         this.pid = pid;
         this.nbTable = nbTable;
         this.id = id;
         this.name = name;
         this.description = description;
-        this.type = type != null ? ObservationType.valueOf(type.toUpperCase()) : null;
+        this.type = type;
         this.mainField = mainField;
     }
 

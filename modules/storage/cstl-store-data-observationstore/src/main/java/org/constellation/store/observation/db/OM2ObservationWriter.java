@@ -74,6 +74,7 @@ import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -241,7 +242,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         // look for an conflicted observation
         final Procedure procedure  = observation.getProcedure();
         final String procedureID   = procedure.getId();
-        final String procedureOMType = (String) procedure.getProperties().getOrDefault("type", "timeseries");
+        final ObservationType procedureOMType = ObservationType.parse((String) procedure.getProperties().getOrDefault("type", "timeseries"));
 
         final TemporalPrimitive samplingTime = observation.getSamplingTime();
 
@@ -728,7 +729,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             stmtInsert.setNull(6, java.sql.Types.VARCHAR);
                         }
                         if (procedure.omType != null) {
-                            stmtInsert.setString(7, procedure.omType);
+                            stmtInsert.setString(7, procedure.omType.name());
                         } else {
                             stmtInsert.setNull(7, java.sql.Types.VARCHAR);
                         }

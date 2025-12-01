@@ -50,6 +50,7 @@ import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TEXT;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.ObservationDataset;
+import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -111,7 +112,7 @@ public class DbfObservationStore extends AbstractCsvStore {
             }
 
             final List<String> measureFields = new ArrayList<>();
-            if ("Profile".equals(observationType))   {
+            if (PROFILE.equals(observationType))   {
                 if (mainColumns.size() > 1) {
                     throw new DataStoreException("Multiple main columns is not yet supported for Profile");
                 }
@@ -404,7 +405,7 @@ public class DbfObservationStore extends AbstractCsvStore {
                                                               currentProcDesc, 
                                                               null, 
                                                               PROCEDURE_TREE_TYPE, 
-                                                              observationType.toLowerCase(),
+                                                              observationType,
                                                               fields, null));
                 }
 

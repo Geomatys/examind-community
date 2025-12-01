@@ -184,6 +184,7 @@ import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.observation.Measurement;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ObservationType;
 import org.opengis.observation.ObservationCollection;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.opengis.temporal.IndeterminateValue;
@@ -1749,10 +1750,10 @@ public class SOSworker extends SensorWorker {
                 LOGGER.warning("multiple SensorML member");
             }
             //and we write it in the sensorML Database
-            final String smlType = SensorMLUtilities.getSensorMLType(process);
-            final String omType  = SensorMLUtilities.getOMType(process).orElse(null);
-            final String name    = procedure.getName();
-            final String desc    = procedure.getDescription();
+            final String smlType          = SensorMLUtilities.getSensorMLType(process);
+            final ObservationType omType  = SensorMLUtilities.getOMType(process).map(p -> ObservationType.parse(p)).orElse(null);
+            final String name             = procedure.getName();
+            final String desc             = procedure.getDescription();
             Integer sid = sensorBusiness.create(procedure.getId(), name, desc, smlType, omType, null, process, System.currentTimeMillis(), smlProviderID);
             sensorBusiness.addSensorToService(getServiceId(), sid);
 

@@ -67,6 +67,8 @@ import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ObservationType;
+import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResponseMode;
@@ -128,7 +130,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final List<String> obsPropDescs;
     
     // timeSeries / trajectory / profiles
-    protected final String observationType;
+    protected final ObservationType observationType;
 
     protected final List<String> qualityColumns;
     protected final List<String> qualityColumnsIds;
@@ -188,7 +190,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
         this.obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().getCode());
         this.obsPropDescs = getMultipleValuesList(params, OBS_PROP_DESC.getName().getCode());
-        this.observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
+        this.observationType = parseObservationType((String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue());
         this.foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
         this.procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
         this.procedureNameColumn = (String) params.parameter(PROCEDURE_NAME_COLUMN.getName().toString()).getValue();
@@ -227,6 +229,16 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             fileLock = new ReentrantLock();
         } else fileLock = null;
     }
+    
+    private ObservationType parseObservationType(String s) {
+        if (s == null) return null;
+        return switch (s) {
+            case "Timeserie"  -> ObservationType.TIMESERIES;
+            case "Trajectory" -> ObservationType.TRAJECTORY;
+            case "Profile"  -> ObservationType.PROFILE;
+            default -> throw new IllegalArgumentException("Unexpected observation type value: " + s);
+        };
+    }
 
     @Override
     public Set<String> getEntityNames(AbstractObservationQuery query) throws DataStoreException {
@@ -234,16 +246,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             throw new DataStoreException("initialisation of the filter missing.");
         }
         switch (query.getEntityType()) {
-            case OBSERVED_PROPERTY:   return extractPhenomenonIds();
-            case LOCATION:
-            case PROCEDURE:           return extractProcedureIds();
-            case FEATURE_OF_INTEREST:
-            case OFFERING:
-            case OBSERVATION:
-            case HISTORICAL_LOCATION:
-            case RESULT:
+            case OBSERVED_PROPERTY   -> { return extractPhenomenonIds();}
+            case LOCATION, PROCEDURE -> { return extractProcedureIds();}
+            case FEATURE_OF_INTEREST, OFFERING, OBSERVATION, HISTORICAL_LOCATION, RESULT -> 
                 throw new DataStoreException("entity name listing not implemented yet: " + query.getEntityType());
-            default:
+            default -> 
                 throw new DataStoreException("unexpected object type:" + query.getEntityType());
         }
     }
@@ -282,15 +289,14 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         // do nothing
     }
 
-    protected ProcedureDataset getOrCreateProcedureTree(final ObservationDataset result, final Procedure procedure, final String type, String omType) {
+    protected ProcedureDataset getOrCreateProcedureTree(final ObservationDataset result, final Procedure procedure, final String type, ObservationType omType) {
         for (ProcedureDataset tree : result.procedures) {
             if (tree.getId().equals(procedure.getId())) {
                 return tree;
             }
         }
-        // TODO fix until we create an enum
-        if (omType == null || "timeserie".equals(omType)) {
-            omType = "timeseries";
+        if (omType == null) {
+            omType = ObservationType.TIMESERIES;
         }
         ProcedureDataset tree = new ProcedureDataset(procedure.getId(), procedure.getName(), procedure.getDescription(), type, omType, new ArrayList<>(), procedure.getProperties());
         result.procedures.add(tree);
@@ -298,14 +304,14 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     }
 
     protected static class MeasureColumns {
-        public final String observationType;
+        public final ObservationType observationType;
         public final boolean isProfile;
         public final List<MeasureField> measureFields;
         public final List<String> mainColumns;
 
-        public MeasureColumns(List<MeasureField> measureFields, List<String> mainColumns, String observationType) {
+        public MeasureColumns(List<MeasureField> measureFields, List<String> mainColumns, ObservationType observationType) {
             this.observationType = observationType;
-            this.isProfile = observationType.equals("Profile");
+            this.isProfile = observationType.equals(PROFILE);
             this.mainColumns = mainColumns;
             this.measureFields = measureFields;
         }
@@ -366,15 +372,15 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
     }
     
-    protected void addMainField(String observationType, List<Field> fields) {
+    protected void addMainField(ObservationType observationType, List<Field> fields) {
         switch (observationType) {
-            case "Timeserie", "Trajectory"  -> fields.add(0, OMUtils.TIME_MAIN_FIELD);
-            case "Profile"    -> {}
+            case TIMESERIES, TRAJECTORY  -> fields.add(0, OMUtils.TIME_MAIN_FIELD);
+            case PROFILE    -> {}
             default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         }
     }
     
-    protected List<Field> toFields(Collection<MeasureField> measureFields, String observationType) {
+    protected List<Field> toFields(Collection<MeasureField> measureFields, ObservationType observationType) {
         final List<Field> fields = new ArrayList<>();
         addMainField(observationType, fields);
         int i = 1;
@@ -466,7 +472,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // build procedure tree
-        final ProcedureDataset procedure = getOrCreateProcedureTree(result, ob.procedure, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
+        final ProcedureDataset procedure = getOrCreateProcedureTree(result, ob.procedure, PROCEDURE_TREE_TYPE, ob.observationType);
         for (Map.Entry<Long, List<Coordinate>> entry : ob.getHistoricalPositions()) {
             procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
         }
@@ -569,10 +575,10 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return new double[0];
     }
 
-    protected Optional<? extends Number> parseMain(Object[] line, final Long preComputeDateValue, List<Integer> mainIndexes, final DateFormat sdf, int lineNumber, String currentObsType) throws DataStoreException {
+    protected Optional<? extends Number> parseMain(Object[] line, final Long preComputeDateValue, List<Integer> mainIndexes, final DateFormat sdf, int lineNumber, ObservationType currentObsType) throws DataStoreException {
 
         // assume that for profile main field is a double
-        if ("Profile".equals(currentObsType)) {
+        if (ObservationType.PROFILE.equals(currentObsType)) {
             if (mainIndexes.size() > 1) {
                 throw new DataStoreException("Multiple main columns is not yet supported for Profile");
             }

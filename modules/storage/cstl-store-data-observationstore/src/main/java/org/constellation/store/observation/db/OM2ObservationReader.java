@@ -63,7 +63,7 @@ import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.ObservationType;
 import static org.geotoolkit.observation.model.ObservationUtils.setIdentifier;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -452,7 +452,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
             Map<String, Object> properties = new HashMap<>();
             final ProcedureInfo pi = getPIDFromProcedure(procedure, c).orElseThrow(IllegalArgumentException::new);
-            properties.put("type", pi.type.name().toLowerCase());
+            properties.put("type", pi.type.name());
             final Procedure proc = getProcess(procedure, c);
             final Phenomenon resultPhen;
             final Result result;

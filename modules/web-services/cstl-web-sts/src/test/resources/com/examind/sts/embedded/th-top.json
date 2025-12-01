@@ -3,7 +3,7 @@
     "description" : "",
     "name" : "Sensor 1",
     "properties" : {
-      "type" : "timeseries"
+      "type" : "TIMESERIES"
     },
     "@iot.id" : "urn:ogc:object:sensor:GEOM:1",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:1)",
@@ -15,7 +15,7 @@
     "description" : "",
     "name" : "Sensor 10",
     "properties": {
-        "type": "timeseries"
+        "type": "TIMESERIES"
     },
     "@iot.id" : "urn:ogc:object:sensor:GEOM:10",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:10)",

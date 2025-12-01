@@ -25,6 +25,7 @@ import org.geotoolkit.sml.xml.SensorMLUtilities;
 import org.constellation.api.DataType;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.SensorData;
+import org.geotoolkit.observation.model.ObservationType;
 
 /**
  * TODO extract envelope from SML metadata.
@@ -56,8 +57,8 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     }
 
     @Override
-    public String getOMType() {
-        return SensorMLUtilities.getOMType(metadata).orElse("timeseries");
+    public ObservationType getOMType() {
+        return ObservationType.parse(SensorMLUtilities.getOMType(metadata).orElse("timeseries"));
     }
 
     @Override

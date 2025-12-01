@@ -16,6 +16,8 @@
  */
 package org.constellation.provider;
 
+import org.geotoolkit.observation.model.ObservationType;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -30,5 +32,5 @@ public interface SensorData extends Data {
 
     String getSensorMLType();
 
-    String getOMType();
+    ObservationType getOMType();
 }

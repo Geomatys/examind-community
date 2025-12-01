@@ -70,6 +70,7 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.Util;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.GeneralParameterValue;
@@ -624,7 +625,7 @@ public class ProviderBusiness implements IProviderBusiness {
                             final String name = sData.getSensorName();
                             final String description = sData.getDescription();
                             final String type = sData.getSensorMLType();
-                            final String omType = sData.getOMType();
+                            final ObservationType omType = sData.getOMType();
                             final String parentIdentifier = null; // TODO
                             sensorBusiness.create(key.toString(), name, description, type, omType, parentIdentifier, sml, System.currentTimeMillis(), pr.getId());
                         }

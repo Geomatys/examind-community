@@ -75,6 +75,7 @@ import org.locationtech.jts.io.WKTWriter;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.GenericName;
@@ -126,7 +127,7 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
                     if (sensor instanceof AbstractSensorML sml) {
                         final String sensorID             = SensorMLUtilities.getSmlID(sml);
                         final String smlType              = SensorMLUtilities.getSensorMLType(sml);
-                        final String omType               = SensorMLUtilities.getOMType(sml).orElse(null);
+                        final ObservationType omType      = SensorMLUtilities.getOMType(sml).map(t -> ObservationType.parse(t)).orElse(null);
                         final String name                 = SensorMLUtilities.getSmlName(sml).orElse(sensorID);
                         final String description          = SensorMLUtilities.getSmlDescription(sml).orElse(null);
                         final List<SensorMLTree> children = SensorUtils.getChildren(sml);

@@ -56,7 +56,7 @@
             },
             "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
             "properties": {
-                "type": "timeseries"
+                "type": "TIMESERIES"
             },
             "resultQuality": []
         }],
@@ -88,7 +88,7 @@
             "name": "Sensor 7",
             "properties": {},
             "type": "Component",
-            "omType": "timeseries",
+            "omType": "TIMESERIES",
             "children": [],
             "spatialBound": {
                 "dateStart": 1178031540000,

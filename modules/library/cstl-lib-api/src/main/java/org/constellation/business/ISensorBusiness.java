@@ -29,6 +29,7 @@ import org.constellation.dto.SensorReference;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationException;
+import org.geotoolkit.observation.model.ObservationType;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -91,7 +92,7 @@ public interface ISensorBusiness {
 
     void updateSensorMetadata(String sensorID, Object sensorMetadata) throws ConfigurationException;
 
-    Integer create(String id, String name, String description, String type, String omType, String parentID, Object sml, final Long date, Integer providerID) throws ConfigurationException;
+    Integer create(String id, String name, String description, String type, ObservationType omType, String parentID, Object sml, final Long date, Integer providerID) throws ConfigurationException;
 
     void update(Sensor childRecord);
 

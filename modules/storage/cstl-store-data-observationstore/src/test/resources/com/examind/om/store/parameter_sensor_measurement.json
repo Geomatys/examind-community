@@ -5,7 +5,7 @@
         "id": "urn:ogc:object:sensor:GEOM:parameter_sensor",
         "name": "Sensor parameter",
         "properties": {
-            "type": "timeseries"
+            "type": "TIMESERIES"
         }
     },
     "samplingTime": {
@@ -48,7 +48,7 @@
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
     "properties": {
-        "type": "timeseries"
+        "type": "TIMESERIES"
     },
     "parameters": {
         "pflag": "ok",
