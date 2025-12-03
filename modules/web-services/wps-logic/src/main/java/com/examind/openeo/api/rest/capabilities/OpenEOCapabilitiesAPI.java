@@ -1,13 +1,5 @@
 package com.examind.openeo.api.rest.capabilities;
 
-import com.examind.openeo.api.rest.capabilities.dto.Billing;
-import com.examind.openeo.api.rest.capabilities.dto.Capabilities;
-import com.examind.openeo.api.rest.capabilities.dto.Conformance;
-import com.examind.openeo.api.rest.capabilities.dto.Endpoint;
-import com.examind.openeo.api.rest.capabilities.dto.FileFormat;
-import com.examind.openeo.api.rest.capabilities.dto.FileFormats;
-import com.examind.openeo.api.rest.capabilities.dto.SecondaryWebServices;
-import com.examind.openeo.api.rest.capabilities.dto.Service;
 import com.examind.wps.api.WPSWorker;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
@@ -16,6 +8,14 @@ import org.constellation.ws.Worker;
 import org.constellation.ws.rs.OGCWebService;
 import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.openeo.capabilities.dto.Billing;
+import org.geotoolkit.openeo.capabilities.dto.Capabilities;
+import org.geotoolkit.openeo.capabilities.dto.Conformance;
+import org.geotoolkit.openeo.capabilities.dto.Endpoint;
+import org.geotoolkit.openeo.capabilities.dto.FileFormat;
+import org.geotoolkit.openeo.capabilities.dto.FileFormats;
+import org.geotoolkit.openeo.capabilities.dto.SecondaryWebServices;
+import org.geotoolkit.openeo.capabilities.dto.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

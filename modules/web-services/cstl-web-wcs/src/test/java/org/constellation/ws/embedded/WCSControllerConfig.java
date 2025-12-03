@@ -18,10 +18,9 @@
  */
 package org.constellation.ws.embedded;
 
-import com.examind.ogc.api.rest.common.converter.CommonResponseConverter;
 import java.util.List;
 
-import com.examind.ogc.api.rest.common.converter.OldCommonResponseConverter;
+import com.examind.ogc.api.rest.common.converter.CommonResponseConverter;
 import com.examind.ogc.api.rest.coverages.converter.CoverageResponseConverter;
 import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
 import org.constellation.coverage.ws.rs.GridCoverageWriter;
@@ -58,7 +57,6 @@ public class WCSControllerConfig  extends WebMvcConfigurationSupport {
         converters.add(new RenderedImageWriter());
         converters.add(new ExceptionReportWriter());
         converters.add(new StringHttpMessageConverter());
-        converters.add(new OldCommonResponseConverter());
         converters.add(new CommonResponseConverter());
         converters.add(new CoverageResponseConverter());
     }

@@ -18,7 +18,7 @@
  */
 package com.examind.ogc.api.rest.common;
 
-import com.examind.ogc.api.rest.common.converter.OldCommonResponseConverter;
+import com.examind.ogc.api.rest.common.converter.CommonResponseConverter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -39,7 +39,7 @@ public class CommonAPIControllerConfig extends WebMvcConfigurationSupport {
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new MappingJackson2HttpMessageConverter());
-        converters.add(new OldCommonResponseConverter());
+        converters.add(new CommonResponseConverter());
 
         final XStreamMarshaller marshaller = new XStreamMarshaller();
         converters.add(new MarshallingHttpMessageConverter(marshaller,marshaller));

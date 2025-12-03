@@ -1,13 +1,13 @@
 package com.examind.openeo.api.rest.process;
 
-import com.examind.openeo.api.rest.dto.ResponseMessage;
-import com.examind.openeo.api.rest.process.dto.Process;
-import com.examind.openeo.api.rest.process.dto.ProcessDescriptionArgument;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.constellation.configuration.Application;
+import org.geotoolkit.openeo.dto.ResponseMessage;
+import org.geotoolkit.openeo.process.dto.Process;
+import org.geotoolkit.openeo.process.dto.ProcessDescriptionArgument;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,8 +18,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.examind.openeo.api.rest.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
 import static org.constellation.configuration.AppProperty.EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE;
+import static org.geotoolkit.openeo.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
 
 /**
  * Management class for external STAC use cases.

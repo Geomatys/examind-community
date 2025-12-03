@@ -1,12 +1,5 @@
 package com.examind.ogc.api.rest.common;
 
-import com.examind.ogc.api.rest.common.dto.Collection;
-import com.examind.ogc.api.rest.common.dto.Collections;
-import com.examind.ogc.api.rest.common.dto.Conformance;
-import com.examind.ogc.api.rest.common.dto.Extent;
-import com.examind.ogc.api.rest.common.dto.LandingPage;
-import com.examind.ogc.api.rest.common.dto.SpatialCRS;
-import com.examind.ogc.api.rest.common.dto.TemporalCRS;
 import jakarta.servlet.http.HttpServletRequest;
 import org.constellation.api.rest.AbstractRestAPI;
 import org.constellation.business.IDataBusiness;
@@ -20,7 +13,15 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.rs.ResponseObject;
-import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.ogcapi.model.common.CollectionDescription;
+import org.geotoolkit.ogcapi.model.common.Collections;
+import org.geotoolkit.ogcapi.model.common.Conformance;
+import org.geotoolkit.ogcapi.model.common.Extent;
+import org.geotoolkit.ogcapi.model.common.LandingPage;
+import org.geotoolkit.ogcapi.model.common.Link;
+import org.geotoolkit.ogcapi.model.common.SpatialExtent;
+import org.geotoolkit.ogcapi.model.common.TemporalExtent;
+import org.opengis.referencing.crs.TemporalCRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,6 +35,8 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,15 +60,15 @@ public class OGCCommonAPI extends AbstractRestAPI {
     private final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     private static final List<Link> CONFORMS = java.util.Collections.unmodifiableList(Arrays.asList( //TODO : Conformity with Part 1 html, Part 2 simple-query & html
-            new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core", null, null, null),
-            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page", null, null, null),
-            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json", null, null, null),
+            new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core", null, null, null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page", null, null, null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json", null, null, null, null, null),
             //new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html", null, null, null), Doesn't conform
-            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30", null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30", null, null, null, null, null),
 
-            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/collections", null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/collections", null, null, null, null, null),
             //new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/simple-query", null, null, null), Doesn't conform
-            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/json", null, null, null)
+            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/json", null, null, null, null, null)
             //new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html", null, null, null), Doesn't conform
     ));
 
@@ -205,7 +208,7 @@ public class OGCCommonAPI extends AbstractRestAPI {
 
         String url = getServiceURL(req, false);
         Collections response = new Collections();
-        List<Collection> collections = new ArrayList<>();
+        List<CollectionDescription> collections = new ArrayList<>();
         List<Link> links = new ArrayList<>();
         Link link1 = new Link();
         link1.setTitle("this document");
@@ -237,7 +240,7 @@ public class OGCCommonAPI extends AbstractRestAPI {
         List<DataBrief> results = entry.getValue();
         for (DataBrief data : results) {
             try {
-                final Collection collection = getCollection(data, url);
+                final CollectionDescription collection = getCollection(data, url);
                 collections.add(collection);
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, "Error while getting collection from data:" + data.getId(), ex);
@@ -272,7 +275,7 @@ public class OGCCommonAPI extends AbstractRestAPI {
         }
         String url = getServiceURL(req, false);
         DataBrief data = dataBusiness.getDataBrief(collectionId, true, false);
-        final Collection collection = getCollection(data, url);
+        final CollectionDescription collection = getCollection(data, url);
         MediaType mt = MediaType.APPLICATION_JSON;
         if (f.equals("xml")) {
             mt = MediaType.APPLICATION_XML;
@@ -280,9 +283,9 @@ public class OGCCommonAPI extends AbstractRestAPI {
         return new ResponseObject(collection, mt, HttpStatus.OK).getResponseEntity();
     }
 
-    private Collection getCollection(DataBrief data, String url) throws ConfigurationException, ConstellationStoreException {
+    private CollectionDescription getCollection(DataBrief data, String url) throws ConfigurationException, ConstellationStoreException {
 
-        Collection collection = new Collection();
+        CollectionDescription collection = new CollectionDescription();
         final Integer dataId = data.getId();
         collection.setId(String.valueOf(dataId));
         collection.setName(data.getName());
@@ -305,31 +308,29 @@ public class OGCCommonAPI extends AbstractRestAPI {
         collection.setLinks(linksData);
 
         Extent extent = new Extent();
-        extent.setCrs("http://www.opengis.net/def/crs/OGC/1.3/CRS84");
         DataDescription dataDescription = data.getDataDescription();
         if (dataDescription != null) {
-            SpatialCRS spatialCRS = new SpatialCRS();
+            SpatialExtent spatialExtent = new SpatialExtent();
             double[] boundingBox = dataDescription.getBoundingBox();
             double[][] globalBoundingBox = new double[1][boundingBox.length];
             System.arraycopy(boundingBox, 0, globalBoundingBox[0], 0, boundingBox.length);
-            spatialCRS.setBbox(globalBoundingBox);
-            extent.setSpatial(spatialCRS);
+            spatialExtent.setBbox(globalBoundingBox);
+            extent.setSpatial(spatialExtent);
+            extent.setCrs("http://www.opengis.net/def/crs/OGC/1.3/CRS84");
         }
 
         // Fill time dimensions if it exist
         final SortedSet availableTimes = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName()).getAvailableTimes();
         if (availableTimes != null && !availableTimes.isEmpty()) {
-            List<String> times = new ArrayList<>();
-            for (Object time : availableTimes) {
-                times.add(ISO8601_FORMAT.format(time));
-            }
+            TemporalExtent temporalExtent = new TemporalExtent();
+
+            OffsetDateTime[][] temporalInterval = new OffsetDateTime[1][2];
+            temporalInterval[0][0] = OffsetDateTime.ofInstant(((java.util.Date) availableTimes.first()).toInstant(), ZoneOffset.UTC);
+            temporalInterval[0][1] = OffsetDateTime.ofInstant(((java.util.Date) availableTimes.last()).toInstant(), ZoneOffset.UTC);
+
+            temporalExtent.setInterval(temporalInterval);
+            extent.setTemporal(temporalExtent);
             extent.setTrs("http://www.opengis.net/def/uom/ISO-8601/0/Gregorian");
-            TemporalCRS temporalCRS = new TemporalCRS();
-            String[][] temporalInterval = new String[1][2];
-            temporalInterval[0][0] = times.get(0);
-            temporalInterval[0][1] = times.get(times.size()-1);
-            temporalCRS.setInterval(temporalInterval);
-            extent.setTemporal(temporalCRS);
         }
 
         collection.setExtent(extent);

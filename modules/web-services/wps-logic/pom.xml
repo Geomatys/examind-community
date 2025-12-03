@@ -38,6 +38,10 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-openeo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-client-wps</artifactId>
         </dependency>
         <dependency>
