@@ -1,12 +1,11 @@
-version: "2"
+name: "examind-community-standard-debug"
 
 services :
     exa-db:
-       image: postgis/postgis:15-3.3-alpine
+       image: postgis/postgis:17-3.5-alpine
        restart: "no"
        volumes:
          - exa-db-volume:/var/lib/postgresql/data/
-         - "./mount/exa-db/:/usr/local/exa-db/:Z"
        ports:
          - "5440:5432"
        environment:
@@ -14,40 +13,43 @@ services :
         POSTGRES_USER: examind
         POSTGRES_PASSWORD: examind
         PGDATA: /var/lib/postgresql/data/pgdata/
+       healthcheck:
+         test: [ "CMD", "pg_isready", "-U", "examind", "-d", "examind" ]
+         retries: 10
+         interval: "2s"
 
     examind:
        image: images.geomatys.com/examind/examind-community:latest
-       #image: tomcat:7-jre8
        restart: "no"
        volumes:
          - "./mount/examind/data/:/var/examind/:Z"
-         #- "./mount/examind/tomcat/webapps/:/usr/local/tomcat/webapps/"
-         #- "./mount/examind/tomcat/fs/:/usr/local/tomcat/fs/"
-         #- "./mount/examind/tomcat/bin/setenv.sh:/usr/local/tomcat/bin/setenv.sh"
-         #- "./mount/examind/tomcat/conf/server.xml:/usr/local/tomcat/conf/server.xml"
        depends_on:
-         - exa-db
+          exa-db:
+            condition: service_healthy
        ports:
+         # Service port: admin UI and REST API
          - "8080:8080"
+         # Debug port
          - "8000:8000"
        environment:
          DATABASE_URL: "postgres://examind:examind@exa-db:5432/examind"
-         EPSG_DATABASE_URL: "postgres://examind:examind@exa-db:5432/examind"
-         CSTL_SECRET: examind-secret
-         SPRING_PROFILES_ACTIVE: standard
-         CSTL_SERVICE_URL: "http://localhost:8080/examind/WS"
-         CSTL_REFRESH_URL: "http://localhost:8080/examind/API/auth/extendToken"
-         CSTL_URL: "http://localhost:8080/examind"
          CSTL_HOME: /var/examind/
+         CSTL_URL: "http://localhost:8080/examind"
          # org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH allow to send value in path with encoded slash
          # this is needed when some identifiers contains slash, like in STA for example
-         CATALINA_OPTS: "-Xms1G -Xmx4G -Dfile.encoding=UTF-8 -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true"
-         JPDA_ADDRESS: "*:8000"
-         JPDA_TRANSPORT: dt_socket
+         CATALINA_OPTS: >-
+           -Xms1G -Xmx4G
+           -Dfile.encoding=UTF-8
+           -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+           -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000
+         # User authentication configuration
          CSTL_TOKEN_LIFE: 30
+         CSTL_SECRET: examind-secret
+         SPRING_PROFILES_ACTIVE: standard
+         # TODO: document these parameters
          EXAMIND_ENABLE_INTERNAL_SIS_STORE: "true"
          EXA_CACHE_DATA_INFO: "false"
          AWS_REGION: "eu-west-1"
-       entrypoint: catalina.sh jpda run
+
 volumes:
   exa-db-volume:
