@@ -8,14 +8,14 @@ import org.constellation.ws.Worker;
 import org.constellation.ws.rs.OGCWebService;
 import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.openeo.capabilities.dto.Argument;
 import org.geotoolkit.openeo.capabilities.dto.Billing;
 import org.geotoolkit.openeo.capabilities.dto.Capabilities;
 import org.geotoolkit.openeo.capabilities.dto.Conformance;
 import org.geotoolkit.openeo.capabilities.dto.Endpoint;
 import org.geotoolkit.openeo.capabilities.dto.FileFormat;
 import org.geotoolkit.openeo.capabilities.dto.FileFormats;
-import org.geotoolkit.openeo.capabilities.dto.SecondaryWebServices;
-import org.geotoolkit.openeo.capabilities.dto.Service;
+import org.geotoolkit.openeo.capabilities.dto.ServiceType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -266,20 +266,53 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
     public ResponseEntity getOtherServiceTypes(@PathVariable("serviceId") String serviceId) {
         try {
             MediaType media = MediaType.APPLICATION_JSON;
-            SecondaryWebServices services = new SecondaryWebServices();
 
-            Service wcsService = new Service();
-            wcsService.setId("WCS");
-            wcsService.setTitle("Web Coverage Service");
-            wcsService.setDescription("OGC Web Coverage Service");
-            wcsService.setUrl(new java.net.URI(getServiceURL() + "/wcs/" + serviceId));
-            wcsService.setCreated(null);
-            wcsService.setPlan("basic");
-            wcsService.setCosts(null);
-            wcsService.setBudget(null);
-            services.addServicesItem(wcsService);
+            Map<String, ServiceType> serviceTypes = new HashMap<>();
 
-            return new ResponseObject(services, media, HttpStatus.OK).getResponseEntity();
+            // -----------------------------------------------------------
+            // 1. Define WMS Service Type
+            // -----------------------------------------------------------
+            ServiceType wmsType = new ServiceType()
+                    .title("Web Map Service")
+                    .description("Visualizes the data using the OGC Web Map Service (WMS) protocol.");
+
+            // Define the configuration parameters a user can send when creating a WMS
+            Argument wmsVersion = new Argument()
+                    .type(Argument.TypeEnum.STRING)
+                    .description("The WMS version to use.")
+                    ._default("1.3.0")
+                    .addEnumItem("1.1.1")
+                    .addEnumItem("1.3.0");
+
+            // Add to WMS configuration map
+            wmsType.putConfigurationItem("version", wmsVersion);
+
+            serviceTypes.put("WMS", wmsType);
+
+            // -----------------------------------------------------------
+            // 2. Define WCS Service Type
+            // -----------------------------------------------------------
+            ServiceType wcsType = new ServiceType()
+                    .title("Web Coverage Service")
+                    .description("Provides access to raw data using the OGC Web Coverage Service (WCS) protocol.");
+
+            Argument wcsVersion = new Argument()
+                    .type(Argument.TypeEnum.STRING)
+                    .description("The WCS version to use.")
+                    ._default("2.0.1")
+                    .addEnumItem("1.0.0")
+                    .addEnumItem("2.0.1");
+
+            // Add to WCS configuration map
+            wcsType.putConfigurationItem("version", wcsVersion);
+
+            serviceTypes.put("WCS", wcsType);
+
+            // -----------------------------------------------------------
+            // 3. Return Response
+            // -----------------------------------------------------------
+            return new ResponseObject(serviceTypes, media, HttpStatus.OK).getResponseEntity();
+
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
