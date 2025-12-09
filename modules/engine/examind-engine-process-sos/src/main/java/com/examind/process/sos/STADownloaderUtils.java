@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.Instant;
 import java.util.List;
 import org.geotoolkit.nio.IOUtilities;
 import org.opengis.geometry.Envelope;
@@ -76,6 +77,22 @@ public class STADownloaderUtils {
                 filter.append(" or ");
             }
             filter.append(relativeLocation).append(" eq '").append(entityId).append("'");
+        }
+        filter.append(")");
+        return filter.toString();
+    }
+
+    public static String buildTimeFilter(Instant startDate, Instant endDate, String relativeLocation) {
+        StringBuilder filter = new StringBuilder();
+        filter.append("(");
+        if (startDate != null) {
+            filter.append(relativeLocation).append(" ge ").append(startDate);
+            if (endDate != null) {
+                filter.append(" and ");
+            }
+        }
+        if (endDate != null) {
+            filter.append(relativeLocation).append(" le ").append(endDate);
         }
         filter.append(")");
         return filter.toString();

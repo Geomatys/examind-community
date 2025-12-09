@@ -31,6 +31,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -74,6 +75,8 @@ public class STADownloaderProcess extends AbstractCstlProcess {
         final String staUrl              = inputParameters.getValue(STA_URL);
         final List<String> thingIds      = getMultipleValues(inputParameters, THING_ID);
         final List<String> observedProps = getMultipleValues(inputParameters, OBSERVED_PROPERTY);
+        final Instant startDate          = inputParameters.getValue(START_DATE);
+        final Instant endDate            = inputParameters.getValue(END_DATE);
         final Envelope bounds            = inputParameters.getValue(BOUNDARY);
         
         final String outputFormat        = inputParameters.getValue(OUTPUT_FORMAT);
@@ -96,6 +99,10 @@ public class STADownloaderProcess extends AbstractCstlProcess {
             filter.addFilter();
             filter.obsFilter.append(STADownloaderUtils.buildEntityFilter(observedProps, "Datastream/ObservedProperty/id"));
             filter.hloFilter.append(STADownloaderUtils.buildEntityFilter(observedProps, "Thing/Datastream/ObservedProperty/id"));
+        }
+        if (startDate != null || endDate != null) {
+            filter.addFilter();
+            filter.obsFilter.append(STADownloaderUtils.buildTimeFilter(startDate, endDate, "Datastreams/phenomenonTime"));
         }
         
         if (toCsvFlat) {

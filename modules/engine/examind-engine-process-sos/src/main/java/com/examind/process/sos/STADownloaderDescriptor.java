@@ -21,6 +21,8 @@ package com.examind.process.sos;
 
 import com.examind.process.InputCompleterDescriptor;
 import java.io.File;
+import java.time.Instant;
+
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.ExamindProcessFactory;
@@ -68,7 +70,23 @@ public class STADownloaderDescriptor extends AbstractProcessDescriptor implement
     public static final ParameterDescriptor<String> OBSERVED_PROPERTY = 
             new ExtendedParameterDescriptor<>(
                 OBSERVED_PROPERTY_NAME, OBSERVED_PROPERTY_DESC, 0, Integer.MAX_VALUE, String.class, null, null, null);
-    
+
+    public static final String START_DATE_NAME = "start_date";
+    public static final String START_DATE_DESC = "Start date to filter data.";
+    public static final ParameterDescriptor<Instant> START_DATE = PARAM_BUILDER
+            .addName(START_DATE_NAME)
+            .setRemarks(START_DATE_DESC)
+            .setRequired(false)
+            .create(Instant.class, null);
+
+    public static final String END_DATE_NAME = "end_date";
+    public static final String END_DATE_DESC = "End date to filter data.";
+    public static final ParameterDescriptor<Instant> END_DATE = PARAM_BUILDER
+            .addName(END_DATE_NAME)
+            .setRemarks(END_DATE_DESC)
+            .setRequired(false)
+            .create(Instant.class, null);
+
     public static final String BOUNDARY_NAME = "boundary";
     private static final String BOUNDARY_REMARKS = "Boundary.";
     public static final ParameterDescriptor<Envelope> BOUNDARY = PARAM_BUILDER
@@ -94,7 +112,7 @@ public class STADownloaderDescriptor extends AbstractProcessDescriptor implement
             .create(Boolean.class, false);
     
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(STA_URL, THING_ID, OBSERVED_PROPERTY, BOUNDARY, OUTPUT_FORMAT, COMPRESS);
+            PARAM_BUILDER.addName("InputParameters").createGroup(STA_URL, THING_ID, OBSERVED_PROPERTY, START_DATE, END_DATE, BOUNDARY, OUTPUT_FORMAT, COMPRESS);
     
     public static final String FILE_OUTPUT_NAME = "file.output";
     private static final String FILE_OUTPUT_REMARKS = "File output.";
