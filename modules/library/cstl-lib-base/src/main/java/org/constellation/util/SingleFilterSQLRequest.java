@@ -25,13 +25,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.util.ArgumentChecks;
@@ -61,7 +63,27 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
      * SQL parts of the query that will be used or not  at the end depending on a condition calculated at build time.
      * Each part has an identifier to be replaced at runtime.
      */
-    private final Map<String, SingleFilterSQLRequest> conditionalRequests = new HashMap<>();
+    private static class RequestPart {
+        public final String varName;
+        public int paramIndex;
+        
+        public RequestPart(String varName, int paramIndex) {
+            this.varName = varName;
+            this.paramIndex = paramIndex;
+        }
+        
+        public RequestPart(RequestPart rp) {
+            this.varName = rp.varName;
+            this.paramIndex = rp.paramIndex;
+        }
+
+        @Override
+        public String toString() {
+            return "VarName: " + varName + " param index:" + paramIndex;
+        }
+        
+    }
+    private final Map<RequestPart, SingleFilterSQLRequest> conditionalRequests = new LinkedHashMap<>();
 
     public SingleFilterSQLRequest() {
         this("", List.of(), Map.of(), false, false);
@@ -71,10 +93,10 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         this(s, List.of(), Map.of(), false, false);
     }
 
-    private SingleFilterSQLRequest(String s, List<Param> params, Map<String, SingleFilterSQLRequest> cs, boolean whereSet, boolean hasFilter) {
+    private SingleFilterSQLRequest(String s, List<Param> params, Map<RequestPart, SingleFilterSQLRequest> cs, boolean whereSet, boolean hasFilter) {
         this.sqlRequest = new StringBuilder(s);
         if (cs != null) {
-            for (Entry<String, SingleFilterSQLRequest> entryCs : cs.entrySet()) {
+            for (Entry<RequestPart, SingleFilterSQLRequest> entryCs : cs.entrySet()) {
                 this.conditionalRequests.put(entryCs.getKey(), entryCs.getValue().clone());
             }
         }
@@ -145,7 +167,11 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     @Override
     public FilterSQLRequest appendConditional(String condId, SingleFilterSQLRequest conditionalRequest) {
         this.sqlRequest.append(" $").append(condId).append(" ");
-        this.conditionalRequests.put(condId, conditionalRequest);
+        int conditionalIndex = this.params.size();
+        for (SingleFilterSQLRequest sfr : this.conditionalRequests.values()) {
+            conditionalIndex = conditionalIndex + sfr.params.size();
+        }
+        this.conditionalRequests.put(new RequestPart(condId, conditionalIndex), conditionalRequest);
         return this;
     }
     
@@ -157,21 +183,22 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     @Override
     public FilterSQLRequest append(FilterSQLRequest s, boolean includeConditional) {
         if (s instanceof SingleFilterSQLRequest sf) {
+            int nbParams = this.params.size();
             this.sqlRequest.append(sf.sqlRequest);
             this.params.addAll(sf.params);
             
-            for (Entry<String, SingleFilterSQLRequest> entry : sf.conditionalRequests.entrySet()) {
-                String varName = '$' + entry.getKey();
+            for (Entry<RequestPart, SingleFilterSQLRequest> entry : sf.conditionalRequests.entrySet()) {
+                RequestPart reqPart = entry.getKey();
+                String varName = '$' + reqPart.varName;
                 int st = this.sqlRequest.indexOf(varName);
                 if (st != -1) {
                     int en = st + varName.length();
                     SingleFilterSQLRequest cRequest = entry.getValue();
-
+            
                     if (includeConditional) {
                         this.sqlRequest.replace(st, en, cRequest.getRequest());
 
-                        // warning the order must be break
-                        this.params.addAll(cRequest.params);
+                        this.params.addAll(nbParams + reqPart.paramIndex, cRequest.params);
 
                     // remove conditional variable
                     } else {
@@ -181,6 +208,13 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
                 } else {
                     LOGGER.warning(" conditional variable not found");
                 }
+            }
+            if (LOGGER.isLoggable(Level.FINE)) {
+                StringBuilder sb = new StringBuilder("Aggregated params:\n");
+                for (int i = 0;  i < this.params.size(); i++) {
+                    sb.append(i).append(":").append(this.params.get(i)).append('\n');
+                }
+                LOGGER.fine(sb.toString());
             }
             cleanupFilterRequest();
             return this;
@@ -213,8 +247,9 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     @Override
     public boolean isEmpty(boolean includeConditional) {
         String query = this.sqlRequest.toString();
-        for (Entry<String, SingleFilterSQLRequest> entry : conditionalRequests.entrySet()) {
-            String varName = '$' + entry.getKey();
+        for (Entry<RequestPart, SingleFilterSQLRequest> entry : conditionalRequests.entrySet()) {
+            RequestPart reqPart = entry.getKey();
+            String varName = '$' + reqPart.varName;
             if (query.contains(varName)) {
                 SingleFilterSQLRequest cRequest = entry.getValue();
 
@@ -324,6 +359,12 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         int index = params.indexOf(param);
         ArgumentChecks.ensurePositive("Parameter index", index);
         params.remove(index);
+        // update conditional request indexes
+        for (RequestPart rq : this.conditionalRequests.keySet()) {
+            if (rq.paramIndex > index) {
+                rq.paramIndex--;
+            }
+        }
     }
 
 
@@ -333,8 +374,13 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
 
     public void duplicateNamedParam(Param param, int size) {
         int index = params.indexOf(param);
-        for (int i = 0; i < size; i++) {
-            params.add(index, param);
+        params.addAll(index, Collections.nCopies(size, param));
+        
+        // update conditional request indexes
+        for (RequestPart rq : this.conditionalRequests.keySet()) {
+            if (rq.paramIndex >= index) {
+                rq.paramIndex = rq.paramIndex + size;
+            }
         }
     }
 
@@ -389,7 +435,15 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
 
     @Override
     public SingleFilterSQLRequest clone() {
-        return new SingleFilterSQLRequest(this.sqlRequest.toString(), this.params, this.conditionalRequests, this.whereSet.get(), this.hasFilter.get());
+        Map<RequestPart, SingleFilterSQLRequest> conditionalRequest = new LinkedHashMap<>();
+        for (Entry<RequestPart, SingleFilterSQLRequest> entry : this.conditionalRequests.entrySet()) {
+            conditionalRequest.put(new RequestPart(entry.getKey()), entry.getValue().clone());
+        }
+        return new SingleFilterSQLRequest(this.sqlRequest.toString(), 
+                                          new ArrayList<>(this.params),
+                                          conditionalRequest,
+                                          this.whereSet.get(),
+                                          this.hasFilter.get());
     }
 
     @Override
@@ -543,7 +597,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         StringBuilder cs = new StringBuilder();
         if (!conditionalRequests.isEmpty()) {
             cs.append("\n conditional:\n");
-            for (Entry<String, SingleFilterSQLRequest> entry : conditionalRequests.entrySet()) {
+            for (Entry<RequestPart, SingleFilterSQLRequest> entry : conditionalRequests.entrySet()) {
                 cs.append(entry.getKey()).append(":\n");
                 cs.append(entry.getValue().toString()).append("\n");
             }
@@ -615,8 +669,9 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             return hash;
         }
         
+        @Override
         public String toString() {
-            return "[Param]\n name = " + name + "\nvalue = " + value + "\ntype = " + type.getSimpleName();
+            return "[Param] name: " + name + " value: " + value + " type: " + type.getSimpleName();
         }
 
     }

@@ -1507,6 +1507,19 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         }
                         results.add(observationTemplateIdBase + procedureID + '-' + fieldIndex);
                     } else {
+                        if (hasMeasureFilter) {
+                            final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
+                            boolean timeseries       = pti.type == ObservationType.TIMESERIES;
+                            final List<Field> fields = fieldMap.computeIfAbsent(procedure,  p -> readFields(procedure, timeseries, c, fieldIndexFilters, fieldIdFilters, true));
+                            final FilterSQLRequest measureFilter   = applyFilterOnMeasureRequest(0, fields, pti);
+                            final FilterSQLRequest measureRequests = buildMesureRequests(pti, fields, measureFilter, null, false, false, true, EXIST);
+                            try (final SQLResult rs2 = measureRequests.execute(c, SQLResult.NextMode.UNION, dialect)) {
+                                boolean hasResults = rs2.nextOnField("id", SQLResult.NextMode.UNION);
+                                // TODO pagination broken
+                                // handled by breakPostPagination/applyPostPagination
+                                if (!hasResults) continue;
+                            }
+                        }
                         final String name = observationTemplateIdBase + procedureID;
                         results.add(name);
                     }

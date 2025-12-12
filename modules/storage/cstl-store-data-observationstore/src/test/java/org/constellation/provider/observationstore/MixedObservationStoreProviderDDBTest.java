@@ -277,6 +277,27 @@ public class MixedObservationStoreProviderDDBTest extends AbstractMixedObservati
     public void getObservationTemplate2Test() throws Exception {
         super.getObservationTemplate2Test();
     }
+    
+    /**
+     * No quality flag in this implementation 
+     */
+    @Ignore
+    @Override
+    public void getObservationTemplate3Test() throws Exception {
+        super.getObservationTemplate3Test();
+    }
+    
+    @Test
+    @Override
+    public void getObservationTemplate4Test() throws Exception {
+        super.getObservationTemplate4Test();
+    }
+    
+    @Test
+    @Override
+    public void getObservationTemplate5Test() throws Exception {
+        super.getObservationTemplate5Test();
+    }
 
     @Test
     @Override
@@ -330,6 +351,27 @@ public class MixedObservationStoreProviderDDBTest extends AbstractMixedObservati
     @Override
     public void getMeasurementTemplateFilter3Test() throws Exception {
         super.getMeasurementTemplateFilter3Test();
+    }
+    
+    /**
+     * No quality flag in this implementation 
+     */
+    @Ignore
+    @Override
+    public void getMeasurementTemplateFilter4Test() throws Exception {
+       super.getMeasurementTemplateFilter4Test();
+    }
+    
+    @Test
+    @Override
+    public void getMeasurementTemplateFilter5Test() throws Exception {
+        super.getMeasurementTemplateFilter5Test();
+    }
+    
+    @Test
+    @Override
+    public void getMeasurementTemplateFilter6Test() throws Exception {
+        super.getMeasurementTemplateFilter6Test();
     }
     
     @Test

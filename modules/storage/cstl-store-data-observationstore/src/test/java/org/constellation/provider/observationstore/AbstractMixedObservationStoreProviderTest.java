@@ -31,6 +31,7 @@ import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.provider.observationstore.AbstractObservationStoreProviderTest.ff;
+import static org.constellation.provider.observationstore.AbstractObservationStoreProviderTest.omPr;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertInstantEquals;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertPeriodEquals;
 import static org.constellation.provider.observationstore.ObservationTestUtils.buildInstant;
@@ -59,6 +60,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
+import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.TemporalOperator;
 
@@ -679,6 +681,48 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
 
         Set<String> resultIds = results.stream().map(result -> getFOIId(result)).collect(Collectors.toSet());
         assertTrue(resultIds.contains("station-001"));
+    }
+    
+    @Override
+    protected void getObservationTemplate5Test() throws Exception {
+
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
+        
+        BinaryComparisonOperator le = ff.lessOrEqual(ff.property("result") , ff.literal(13.0));
+        TemporalOperator after = ff.after(ff.property("phenomenonTime"), ff.literal(buildInstant("2000-01-01T00:00:00Z")));
+        BinaryComparisonOperator eq1 = ff.equal(ff.property("observedProperty"), ff.literal("temperature"));
+        BinaryComparisonOperator eq2 = ff.equal(ff.property("observedProperty"), ff.literal("depth"));
+        LogicalOperator or = ff.or(eq1, eq2);
+        TemporalOperator before = ff.before(ff.property("phenomenonTime"), ff.literal(buildInstant("2020-01-01T00:00:00Z")));
+        BinaryComparisonOperator foi1 = ff.equal(ff.property("featureOfInterest"), ff.literal("station-001"));
+        BinaryComparisonOperator foi2 = ff.equal(ff.property("featureOfInterest"), ff.literal("station-002"));
+        LogicalOperator or2 = ff.or(foi1, foi2);
+        query.setSelection(ff.and(List.of(le, after, or, before, or2)));
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18");
+        
+        // his implementation act diferently because of the OR between the lines
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:14");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        long count = omPr.getCount(query);
+        assertEquals(11L, count); 
     }
 
     @Override
@@ -4547,6 +4591,38 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
 
         expectedResult =  "urn:ogc:object:observation:GEOM:2-976492800012000,2000-12-11T00:00:00.0,12.0,12.0,18.5@@";
         assertEquals(expectedResult, result);
+    }
+    
+    @Override
+    protected void getMeasurementTemplateFilter6Test() throws Exception {
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        
+        BinaryComparisonOperator le = ff.lessOrEqual(ff.property("result") , ff.literal(5.0));
+        TemporalOperator after = ff.after(ff.property("phenomenonTime"), ff.literal(buildInstant("2000-01-01T00:00:00Z")));
+        BinaryComparisonOperator eq1 = ff.equal(ff.property("observedProperty"), ff.literal("temperature"));
+        BinaryComparisonOperator eq2 = ff.equal(ff.property("observedProperty"), ff.literal("depth"));
+        LogicalOperator or = ff.or(eq1, eq2);
+        TemporalOperator before = ff.before(ff.property("phenomenonTime"), ff.literal(buildInstant("2020-01-01T00:00:00Z")));
+        BinaryComparisonOperator foi = ff.equal(ff.property("featureOfInterest"), ff.literal("station-001"));
+        query.setSelection(ff.and(List.of(le, after, or, before, foi)));
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        Set<String> expectedIds = new HashSet<>();
+        // expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1"); no data in this implementaton
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        long count = omPr.getCount(query);
+        assertEquals(4L, count); 
     }
 
 }

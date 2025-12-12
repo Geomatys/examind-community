@@ -159,10 +159,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         sqlRequest.join(joins);
         sqlRequest.append(" ORDER BY o.\"procedure\" ");
-        sqlRequest = appendPaginationToRequest(sqlRequest);
+        if (!hasMeasureFilter) {
+            sqlRequest = appendPaginationToRequest(sqlRequest);
+        }
 
-        final List<Observation> observations = new ArrayList<>();
+        final List<Observation> observations    = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
+        final Map<String, ProcedureInfo> ptiMap = new HashMap<>();
 
         LOGGER.fine(sqlRequest.toString());
         try (final Connection c = source.getConnection();
@@ -190,6 +193,25 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     tempTime = getTimeForTemplate(c, procedure, null, featureID);
                 }
                 List<Field> fields = readFields(procedure, c);
+                
+                if (hasMeasureFilter) {
+                    ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
+                    boolean timeseries       = pti.type == ObservationType.TIMESERIES;
+                    final int fieldOffset = getFieldsOffset(!timeseries, false, false); // this will be better handled in a future pach
+                    // apply the filter only on selected fields
+                    final List<Field> queryFields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true);
+                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, queryFields, pti);
+                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, null, false, false, true, EXIST);
+                    try (final SQLResult rs2 = measureRequests.execute(c, SQLResult.NextMode.UNION, dialect)) {
+                        boolean hasResults = rs2.nextOnField("id", SQLResult.NextMode.UNION);
+                        // TODO pagination broken
+                        // handled by breakPostPagination/applyPostPagination
+                        if (!hasResults) continue;
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", measureRequests.toString());
+                        throw new DataStoreException("the service has throw a Exception.", ex);
+                    }
+                }
 
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", getProcedureOMType(procedure, c));
@@ -213,6 +235,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                           properties,
                                                           null);
                 observations.add(observation);
+                if (hasMeasureFilter && breakPostPagination(observations)) {
+                    return applyPostPagination(observations);
+                }
             }
 
 
@@ -220,7 +245,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw an Exception.", ex);
         }
-        return observations;
+        if (hasMeasureFilter) {
+            return applyPostPagination(observations);
+        } else {
+            return observations;
+        }
     }
 
     private List<Observation> getMesurementTemplates() throws DataStoreException {
