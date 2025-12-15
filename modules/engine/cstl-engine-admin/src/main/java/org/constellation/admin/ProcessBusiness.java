@@ -63,6 +63,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.api.CstlJobListener;
 import org.constellation.api.CstlScheduler;
+import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.process.TaskParameterWithOwnerName;
 import org.constellation.dto.CstlUser;
@@ -109,6 +110,9 @@ public class ProcessBusiness implements IProcessBusiness {
     private DirectoryWatcher directoryWatcher;
 
     private final Map<Integer, Object> scheduledTasks = new HashMap<>();
+    
+    @Autowired
+    private IClusterBusiness clusterBusiness;
 
     @PostConstruct
     public void init(){
@@ -129,7 +133,7 @@ public class ProcessBusiness implements IProcessBusiness {
             quartzScheduler.start();
 
             //listen and attach a process on all geotk process tasks
-            quartzScheduler.addJobListener(new QuartzJobListener());
+            quartzScheduler.addJobListener(new QuartzJobListener(clusterBusiness));
 
         } catch (ConstellationSchedulerException ex) {
             LOGGER.log(Level.SEVERE, "Failed to start quartz scheduler\n"+ex.getLocalizedMessage(), ex);

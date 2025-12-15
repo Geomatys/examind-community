@@ -13,7 +13,7 @@
         <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
         <bean id="configurationBusiness" class="org.constellation.admin.ConfigurationBusiness" init-method="init"/>
         <bean id="exaDataCreator" class="com.examind.provider.component.DefaultExaDataCreator"/>
-        <context:component-scan base-package="org.constellation.admin org.constellation.rest.api org.constellation.api.rest org.constellation.scheduler" />
+        <context:component-scan base-package="org.constellation.admin org.constellation.rest.api org.constellation.api.rest org.constellation.scheduler com.examind.websocket" />
     </beans>
     <beans profile="fsconfig">
         <bean id="fsCleaner" class="com.examind.setup.FileSystemStartupCleanerBusiness" />

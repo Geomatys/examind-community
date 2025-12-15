@@ -18,7 +18,6 @@
  */
 package org.constellation.admin;
 
-import com.google.common.eventbus.EventBus;
 import java.util.Optional;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -51,11 +50,6 @@ public final class SpringHelper {
     @Autowired
     protected ApplicationContext context;
 
-    /**
-     * TODO this eventBus should be removed and replaced by the clusterBusiness
-     */
-    protected EventBus eventBus;
-
     protected SpringHelper(){
         synchronized(LOCK){
             if(INSTANCE!=null){
@@ -68,7 +62,6 @@ public final class SpringHelper {
 
     @PostConstruct
     protected void postConstruct(){
-        eventBus = context.getBean(EventBus.class);
         LOGGER.info("Spring application context loaded");
     }
 
@@ -142,15 +135,6 @@ public final class SpringHelper {
         }
         LOGGER.warning("No spring application context available");
         return Optional.empty();
-    }
-
-    public static void sendEvent(Object event) {
-        SpringHelper helper = get();
-        if (helper!=null && helper.eventBus != null) {
-            helper.eventBus.post(event);
-        } else {
-            LOGGER.warning("No event bus available");
-        }
     }
 
     /**

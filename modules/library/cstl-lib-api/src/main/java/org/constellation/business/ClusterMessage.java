@@ -20,11 +20,13 @@ package org.constellation.business;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.sis.util.ArgumentChecks;
@@ -219,6 +221,16 @@ public class ClusterMessage extends HashMap<String, Object> {
     public ClusterMessage getMap(String key, boolean nullable) throws MessageException {
         return getCast(ClusterMessage.class, key, nullable);
     }
+    
+    public <T> T getComplex(String key, boolean nullable, Class<T> c) throws MessageException {
+        Map m = getCast(Map.class, key, nullable);
+        if (m != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            T result = mapper.convertValue(m, c);
+            return result;
+        }
+        return null;
+    }
 
     private <T> T getCast(Class<T> clazz, String key, boolean nullable) throws MessageException {
         final Object val = get(key);
@@ -229,6 +241,12 @@ public class ClusterMessage extends HashMap<String, Object> {
         }else{
             throw new MessageException("Missing message value "+key);
         }
+    }
+    
+    public void addComplexObject(String key, Object obj) {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = mapper.convertValue(obj, new TypeReference<Map<String, Object>>() {});
+        this.put(key, map);
     }
 
     public String printMessage() {

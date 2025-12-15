@@ -15,6 +15,14 @@ public class ClusterMessageConstant {
     public static final String KEY_IDENTIFIER = "identifier";
 
     public static final String SRV_MESSAGE_TYPE_ID = "service";
+    
+    public static final String PRC_TASK = "task";
+    
+    public static final String PRC_TASK_STATUS = "taskStatus";
+    
+    public static final String SRV_SOS_EVENT = "sosEvent";
+    
+    public static final String SRV_SOS_EVENT_BODY = "sosEventBody";
 
     public static final String SRV_KEY_TYPE = "type";
 

@@ -47,6 +47,10 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+import org.constellation.business.ClusterMessage;
+import static org.constellation.business.ClusterMessageConstant.SRV_SOS_EVENT_BODY;
+import static org.constellation.business.ClusterMessageConstant.SRV_SOS_EVENT;
+import org.constellation.business.IClusterBusiness;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2Utils.*;
@@ -456,7 +460,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
                 resultEvent.setHeaders(headers);
                 resultEvent.setProcedureID(procedureID);
-                SpringHelper.sendEvent(resultEvent);
+                
+                IClusterBusiness bean = SpringHelper.getBean(IClusterBusiness.class).orElse(null);
+                if (bean != null) {
+                    final ClusterMessage request = bean.createRequest(SRV_SOS_EVENT,false);
+                    request.addComplexObject(SRV_SOS_EVENT_BODY, resultEvent);
+                    bean.publish(request);
+                }
             }
         }
     }

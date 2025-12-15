@@ -168,7 +168,7 @@ public class LocalClusterBusiness implements IClusterBusiness{
     public ClusterMessage createRequest(String typeId, boolean expectResponse) {
         return new LocalClusterMessage(typeId, expectResponse);
     }
-
+    
     private class LocalClusterMessage extends ClusterMessage {
         protected LocalClusterMessage(String typeId, boolean expectResponse){
             super(LocalClusterBusiness.this.getMemberUID(), typeId, (expectResponse?ClusterMessage.Type.REQUEST_WITH_RESPONSE:ClusterMessage.Type.REQUEST_NO_RESPONSE));

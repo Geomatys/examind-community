@@ -45,6 +45,9 @@ import org.quartz.JobListener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.UUID;
 import org.constellation.api.CstlJobListener;
+import org.constellation.business.ClusterMessage;
+import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.business.IClusterBusiness;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.quartz.ProcessJob;
@@ -65,8 +68,10 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
     public static final String PROPERTY_TASK = "task";
     private IProcessBusiness processBusiness;
+    private final IClusterBusiness clusterBusiness;
 
-    public QuartzJobListener() {
+    public QuartzJobListener(IClusterBusiness clusterBusiness) {
+        this.clusterBusiness = clusterBusiness;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -83,7 +88,6 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
         if (processBusiness == null) {
             this.processBusiness = SpringHelper.getBean(IProcessBusiness.class).orElseThrow(IllegalStateException::new);
         }
-
         final Job job = jec.getJobInstance();
         if(!(job instanceof ProcessJob)) return;
         final ProcessJob pj = (ProcessJob) job;
@@ -106,7 +110,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
                     LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 }
 
-                final ProcessListener listener = new StateListener(taskEntity.getIdentifier(), quartzTask.getTitle() );
+                final ProcessListener listener = new StateListener(taskEntity.getIdentifier(), quartzTask.getTitle(), clusterBusiness);
                 pj.addListener(listener);
                 LOGGER.log(Level.INFO, "Run task "+taskEntity.getIdentifier());
                 return null;
@@ -154,7 +158,10 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
                     //send event
                     final TaskStatus taskStatus = new TaskStatus(taskEntity, quartzTask.getTitle());
-                    SpringHelper.sendEvent(taskStatus);
+                    final ClusterMessage request = clusterBusiness.createRequest(PRC_TASK,false);
+                    request.addComplexObject(PRC_TASK_STATUS, taskStatus);
+                    clusterBusiness.publish(request);
+                    //SpringHelper.sendEvent(taskStatus);
                     return null;
                 }
             });
@@ -192,14 +199,16 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
         private final String title;
         private final Task taskEntity;
         private IProcessBusiness processBusiness;
+        private final IClusterBusiness clusterBusiness;
 
         /** Used to store eventual warnings process could send us. */
         private final ArrayList<ProcessEvent> warnings = new ArrayList<>();
 
-        public StateListener(String taskId, String title) {
+        public StateListener(String taskId, String title, IClusterBusiness clusterBusiness) {
             if (processBusiness == null) {
                 this.processBusiness = SpringHelper.getBean(IProcessBusiness.class).orElseThrow(IllegalStateException::new);
             }
+            this.clusterBusiness = clusterBusiness;
             this.taskEntity = processBusiness.getTask(taskId);
             this.title = title;
         }
@@ -341,7 +350,9 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
             //send event
             final TaskStatus taskStatus = new TaskStatus(taskEntity, title);
-            SpringHelper.sendEvent(taskStatus);
+            final ClusterMessage request = clusterBusiness.createRequest(PRC_TASK,false);
+            request.addComplexObject(PRC_TASK_STATUS, taskStatus);
+            clusterBusiness.publish(request);
         }
 
         /**
