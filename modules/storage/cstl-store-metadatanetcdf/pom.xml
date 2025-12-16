@@ -35,6 +35,11 @@
             <groupId>org.apache.sis.storage</groupId>
             <artifactId>sis-netcdf</artifactId>
         </dependency>
+        <dependency>
+             <groupId>com.google.jimfs</groupId>
+             <artifactId>jimfs</artifactId>
+             <scope>test</scope>
+         </dependency>
     </dependencies>
 
 </project>
