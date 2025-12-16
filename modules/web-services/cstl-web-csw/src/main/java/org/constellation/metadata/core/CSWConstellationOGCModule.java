@@ -18,7 +18,6 @@
  */
 package org.constellation.metadata.core;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
 
@@ -39,7 +38,7 @@ public class CSWConstellationOGCModule implements ConstellationOGCModule {
 
     @Override
     public Set<String> getVersions() {
-        return ImmutableSet.of("2.0.2", "3.0.0");
+        return Set.of("2.0.2", "3.0.0");
     }
 
 }

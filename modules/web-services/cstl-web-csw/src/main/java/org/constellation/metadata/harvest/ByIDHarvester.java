@@ -18,7 +18,6 @@
  */
 package org.constellation.metadata.harvest;
 
-import com.google.common.base.Charsets;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
@@ -34,6 +33,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -108,7 +108,7 @@ public class ByIDHarvester extends CatalogueHarvester {
                 LOGGER.log(Level.WARNING, "the file " + identifierDirectoryPath + "id{0} does not exist", currentFile);
                 return result;
             }
-            result.addAll(Files.readAllLines(f, Charsets.UTF_8));
+            result.addAll(Files.readAllLines(f, StandardCharsets.UTF_8));
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

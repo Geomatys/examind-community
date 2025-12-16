@@ -18,8 +18,6 @@
  */
 package org.constellation.api.rest;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -43,12 +41,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
-import org.constellation.dto.thesaurus.ConceptBrief;
 import org.constellation.dto.thesaurus.ConceptNode;
 import org.constellation.dto.thesaurus.FullConcept;
 import org.constellation.dto.thesaurus.SearchMode;
@@ -58,7 +54,6 @@ import org.constellation.dto.thesaurus.ThesaurusComparator;
 import org.constellation.exception.ConstellationException;
 import org.constellation.thesaurus.api.IThesaurusBusiness;
 import org.constellation.thesaurus.api.ThesaurusException;
-import static org.constellation.thesaurus.io.sql.ThesaurusDatabase.CONCEPT_TYPE;
 import org.constellation.thesaurus.io.sql.ThesaurusDatabaseWriter;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.skos.xml.Concept;
@@ -444,24 +439,19 @@ public class THWRestAPI extends AbstractRestAPI {
         return thesaurusBusiness.listThesaurus().get(uri);
     }
 
-
     private static List<ThesaurusBrief> toThesaurusBriefs(Collection<Thesaurus> thesaurus) {
-        return Lists.transform(Lists.newArrayList(thesaurus), new Function<Thesaurus, ThesaurusBrief>() {
-            @Override
-            public ThesaurusBrief apply(Thesaurus instance) {
-                return new ThesaurusBrief()
+        return thesaurus.stream().map(instance -> {
+                 return new ThesaurusBrief()
                         .setUri(instance.getUri())
                         .setName(instance.getName())
                         .setDefaultLang(instance.getDefaultLang())
                         .setCreationDate(instance.getCreationDate());
             }
-        });
+        ).toList();
     }
 
     private static List<ConceptNode> toConceptNodes(List<Concept> concepts) {
-        return Lists.transform(concepts, new Function<Concept, ConceptNode>() {
-            @Override
-            public ConceptNode apply(Concept concept) {
+        return concepts.stream().map(concept -> {
                 ConceptNode conceptNode = new ConceptNode(concept.getAbout())
                         .setNarrowerCount(concept.getNarrower().size());
                 for (Value prefLabel : concept.getPrefLabel()) {
@@ -471,57 +461,6 @@ public class THWRestAPI extends AbstractRestAPI {
                     conceptNode.addAltLabel(altLabel.getLang(), altLabel.getValue());
                 }
                 return conceptNode;
-            }
-        });
+        }).toList();
     }
-
-    private static List<Concept> toPartialSkosConcept(List<ConceptBrief> briefs) {
-        return Lists.transform(briefs, BRIEF_TO_SKOS);
-    }
-
-    private static final Function<ConceptBrief, Concept> BRIEF_TO_SKOS = new Function<ConceptBrief, Concept>() {
-        @Override
-        public Concept apply(ConceptBrief brief) {
-            Concept concept = new Concept();
-            concept.setResource(brief.getUri());
-            return concept;
-        }
-    };
-
-    /**
-     * TODO handle IsTop concept
-     */
-    private static final Function<FullConcept, Concept> FULL_TO_SKOS = new Function<FullConcept, Concept>() {
-
-        @Override
-        public Concept apply(FullConcept f) {
-            final Concept c = new Concept(f.getUri());
-            c.setType(new Concept(CONCEPT_TYPE));
-            c.setBroader(toPartialSkosConcept(f.getBroaders()));
-            c.setNarrower(toPartialSkosConcept(f.getNarrowers()));
-            c.setRelated(toPartialSkosConcept(f.getRelated()));
-
-            final List<Value> definitions = new ArrayList<>();
-            if (f.getDefinition() != null) {
-                for (Map.Entry<String, String> entry : f.getDefinition().entrySet()) {
-                    if (isNotBlank(entry.getValue())) {
-                        definitions.add(new Value(entry.getKey(), entry.getValue()));
-                    }
-                }
-            }
-            c.setDefinition(definitions);
-
-            final List<Value> prefLabels = new ArrayList<>();
-            if (f.getPrefLabel()!= null) {
-                for (Map.Entry<String, String> entry : f.getPrefLabel().entrySet()) {
-                    if (isNotBlank(entry.getValue())) {
-                        prefLabels.add(new Value(entry.getKey(), entry.getValue()));
-                    }
-                }
-            }
-            c.setPrefLabel(prefLabels);
-
-            return c;
-        }
-    };
 }

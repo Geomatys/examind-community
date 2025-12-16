@@ -18,8 +18,6 @@
  */
 package org.constellation.thesaurus.component;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
@@ -139,12 +137,7 @@ public class ThesaurusBusiness implements IThesaurusBusiness {
                 languages.add(defaultLang);
             }
         } else {
-            languages = Lists.transform(thesaurus.getLangs(), new Function<String, ISOLanguageCode>() {
-                @Override
-                public ISOLanguageCode apply(String langCode) {
-                    return ISOLanguageCode.fromCode(langCode);
-                }
-            });
+            languages = thesaurus.getLangs().stream().map(langCode -> ISOLanguageCode.fromCode(langCode)).toList();
         }
 
         // Create the thesaurus instance.
@@ -192,13 +185,6 @@ public class ThesaurusBusiness implements IThesaurusBusiness {
     private static String generateSchemaName(String thesaurusName) {
         return "th_" + thesaurusName.replaceAll("\\W", "").toLowerCase();
     }
-
-    private static Function<ISOLanguageCode, String> ISO_LANG_TO_CODE = new Function<ISOLanguageCode, String>() {
-        @Override
-        public String apply(ISOLanguageCode isoLanguage) {
-            return isoLanguage.getTwoLetterCode().toLowerCase();
-        }
-    };
 
     @Override
     public MarshallerPool getSkosMarshallerPool() {

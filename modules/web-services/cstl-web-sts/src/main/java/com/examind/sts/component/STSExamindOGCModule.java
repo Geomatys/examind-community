@@ -18,7 +18,6 @@
  */
 package com.examind.sts.component;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
 import org.springframework.stereotype.Component;
@@ -38,6 +37,6 @@ public class STSExamindOGCModule implements ConstellationOGCModule {
 
     @Override
     public Set<String> getVersions() {
-        return ImmutableSet.of("1.0.0");
+        return Set.of("1.0.0");
     }
 }

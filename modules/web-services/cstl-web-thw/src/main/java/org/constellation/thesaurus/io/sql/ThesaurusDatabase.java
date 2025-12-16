@@ -19,7 +19,6 @@
 
 package org.constellation.thesaurus.io.sql;
 
-import com.google.common.collect.Lists;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -1371,7 +1370,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                     readCompletionTerm(rs, conceptNode);
                     conceptNode.setNarrowerCount(narrowerCount);
                 }
-                return Lists.newArrayList(conceptMap.values());
+                return new ArrayList(conceptMap.values());
             }
         } catch (SQLException ex) {
             throw new RuntimeException("SQL exception in getConceptNarrowers()", ex);
