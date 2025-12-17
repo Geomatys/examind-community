@@ -313,7 +313,9 @@ public enum AppProperty {
     
     EXA_OM2_DEFAULT_DECIMATION_ALGORITHM("examind.om2.default.decimation.algorithm", false, String.class),
     
-    EXA_OM2_DUCKDB_EXTENSION_DIRECTORY("examind.om2.duckdb.extension.directory", false, String.class);
+    EXA_OM2_DUCKDB_EXTENSION_DIRECTORY("examind.om2.duckdb.extension.directory", false, String.class),
+    
+    EXA_ALLOWED_ORIGIN("examind.allowed.origin", false, List.class);
 
     private final String key;
     private final boolean secure;

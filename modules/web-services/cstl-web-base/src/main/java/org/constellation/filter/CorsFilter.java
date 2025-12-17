@@ -28,7 +28,10 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.regex.Pattern;
+import org.constellation.configuration.Application;
+import static org.constellation.configuration.AppProperty.EXA_ALLOWED_ORIGIN;
 
 /**
  * @author bgarcia
@@ -37,12 +40,15 @@ import java.util.regex.Pattern;
 public class CorsFilter implements Filter {
 
     private Pattern EXCUSION_PATTERN;
+    private List<String> allowedOrigins;
 
     @Override
     public void init(final FilterConfig filterConfig) throws ServletException {
         String exclude = filterConfig.getInitParameter("exclude");
-        if (exclude != null)
+        if (exclude != null) {
             EXCUSION_PATTERN = Pattern.compile(filterConfig.getServletContext().getContextPath() +  exclude);
+        }
+        allowedOrigins = Application.getListProperty(EXA_ALLOWED_ORIGIN);
     }
 
     @Override
@@ -53,9 +59,17 @@ public class CorsFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
 
         //for websocket uses only, if request is from websocket we need to avoid the header allow-origin=*
-        if (EXCUSION_PATTERN == null || !EXCUSION_PATTERN.matcher(httpServletRequest.getRequestURI()).matches())
-            httpServletResponse.addHeader("Access-Control-Allow-Origin", "*");
-
+        if (EXCUSION_PATTERN == null || !EXCUSION_PATTERN.matcher(httpServletRequest.getRequestURI()).matches()) {
+            String origin = httpServletRequest.getHeader("Origin");
+            if (origin != null && allowedOrigins.contains(origin)) {
+                httpServletResponse.addHeader("Access-Control-Allow-Origin", origin);
+            
+            // fallback to old behaviour but will not work in some cases
+            } else {
+                httpServletResponse.addHeader("Access-Control-Allow-Origin", "*");
+            }
+        }
+        
         httpServletResponse.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         httpServletResponse.addHeader("Access-Control-Allow-Headers", "Origin, access_token, X-Requested-With, Content-Type, Accept, Authorization");
         httpServletResponse.addHeader("Access-Control-Allow-Credentials", "true");

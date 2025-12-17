@@ -126,7 +126,11 @@ public class CookieUtils {
         if (domain != null) {
             cookie.setDomain(domain);
         }
-        cookie.setSecure(Application.getBooleanProperty(EXA_COOKIE_SECURE, Boolean.FALSE));
+        boolean secure = Application.getBooleanProperty(EXA_COOKIE_SECURE, Boolean.FALSE);
+        if (secure) {
+            cookie.setSecure(true);
+            cookie.setAttribute("SameSite", "None");
+        }
         response.addCookie(cookie);
     }
 
