@@ -3,7 +3,6 @@ package org.constellation.webservice.map.component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import org.apache.commons.io.FilenameUtils;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.*;
 import org.constellation.dto.contact.Details;
@@ -100,7 +99,7 @@ public class LayerStatisticsJobTest extends SpringContextTest {
             // Add style to database
             final Path stylePath = DATA_DIRECTORY.resolve("Med_KBA_Tunisia-sld.xml");
             final Path styleFileName = stylePath.getFileName();
-            final String styleName = FilenameUtils.removeExtension(styleFileName.toString());
+            final String styleName = IOUtilities.filenameWithoutExtension(styleFileName);
             style = styleBusiness.parseStyle(styleName, stylePath, styleFileName.toString());
             styleId = styleBusiness.createStyle("sld", style);
 
@@ -224,7 +223,7 @@ public class LayerStatisticsJobTest extends SpringContextTest {
         // Add style to database
         final Path stylePath = DATA_DIRECTORY.resolve("Med_KBA_Tunisia_modified-sld.xml");
         final Path styleFileName = stylePath.getFileName();
-        final String styleName = FilenameUtils.removeExtension(styleFileName.toString());
+        final String styleName = IOUtilities.filenameWithoutExtension(styleFileName);
         Style style = styleBusiness.parseStyle(styleName, stylePath, styleFileName.toString());
         final Integer newStyleId = styleBusiness.createStyle("sld", style);
 

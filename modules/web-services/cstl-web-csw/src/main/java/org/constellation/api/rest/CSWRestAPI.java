@@ -18,8 +18,8 @@
  */
 package org.constellation.api.rest;
 
-import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -48,7 +48,6 @@ import org.geotoolkit.index.tree.manager.NamedEnvelope;
 import org.geotoolkit.util.StringUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.util.NodeUtilities;
@@ -284,8 +283,8 @@ public class CSWRestAPI extends AbstractRestAPI {
             final Node md = getConfigurer().getMetadata(id, metaID);
             response.addHeader("Content-Disposition", "attachment; filename=\"" + metaID + ".xml\"");
 
-            InputStream in = IOUtils.toInputStream(NodeUtilities.getStringFromNode(md), "UTF-8");
-            IOUtilities.copy(in, response.getOutputStream());
+            final String mdAsTxt = NodeUtilities.getStringFromNode(md);
+            response.getOutputStream().write(mdAsTxt.getBytes(StandardCharsets.UTF_8));
             response.flushBuffer();
 
             return new ResponseEntity(OK);
@@ -359,7 +358,7 @@ public class CSWRestAPI extends AbstractRestAPI {
                 final StringWriter writer = new StringWriter();
                 final Template template = templateResolver.getByName(pojo.getType());
                 template.write(metadata,writer,prune, false);
-                IOUtils.write(writer.toString(), response.getOutputStream());
+                response.getOutputStream().write(writer.toString().getBytes(StandardCharsets.UTF_8));
 
                 return new ResponseEntity(OK);
             }
@@ -420,7 +419,7 @@ public class CSWRestAPI extends AbstractRestAPI {
                 s.append("<tr><td>").append(Integer.toString(entry.getKey())).append("</td><td>").append(entry.getValue().toString()).append("</td></tr>");
             }
             s.append("</table></body></html>");
-            IOUtils.write(s.toString(), response.getOutputStream());
+            response.getOutputStream().write(s.toString().getBytes(StandardCharsets.UTF_8));
             return new ResponseEntity(OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -433,7 +432,7 @@ public class CSWRestAPI extends AbstractRestAPI {
         try {
             final CSWConfigurer configurer = getConfigurer();
             final String result =  configurer.getTreeRepresentation(serviceID);
-            IOUtils.write(result, response.getOutputStream());
+            response.getOutputStream().write(result.getBytes(StandardCharsets.UTF_8));
             return new ResponseEntity(OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

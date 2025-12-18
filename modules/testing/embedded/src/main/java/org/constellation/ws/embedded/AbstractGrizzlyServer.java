@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.StorageConnector;
@@ -67,7 +68,6 @@ import javax.imageio.ImageWriter;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
-import org.apache.commons.io.IOUtils;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -771,18 +771,16 @@ public abstract class AbstractGrizzlyServer {
         System.setProperty("javax.xml.accessExternalDTD", "all");
 
         Unmarshaller unmarshaller = pool.acquireUnmarshaller();
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(is, writer, "UTF-8");
-
+        final String responseStr = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         Object obj;
         try {
             if (print) {
-                LOGGER.info(writer.toString());
+                LOGGER.info(responseStr);
             }
-            obj = unmarshaller.unmarshal(new StringReader(writer.toString()));
+            obj = unmarshaller.unmarshal(new StringReader(responseStr));
             pool.recycle(unmarshaller);
         } catch (JAXBException ex) {
-            LOGGER.log(Level.WARNING, "JAXB Error received while trying to read:{0}", writer.toString());
+            LOGGER.log(Level.WARNING, "JAXB Error received while trying to read:{0}", responseStr);
             throw ex;
         }
 
@@ -795,14 +793,13 @@ public abstract class AbstractGrizzlyServer {
     private static Object unmarshallJsonStream(final InputStream is, Class type) throws IOException, JAXBException {
 
         ObjectMapper mapper = new ObjectMapper();
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(is, writer, "UTF-8");
+        final String responseStr = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
         Object obj;
         try {
-            obj = mapper.readValue(writer.toString(),type);
+            obj = mapper.readValue(responseStr, type);
         } catch (JsonParseException ex) {
-            LOGGER.log(Level.WARNING, "JSON Error received while trying to read:{0}", writer.toString());
+            LOGGER.log(Level.WARNING, "JSON Error received while trying to read:{0}", responseStr);
             throw ex;
         }
 
