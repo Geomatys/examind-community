@@ -1,5 +1,9 @@
 package com.examind.openeo.api.rest.process;
 
+import org.constellation.api.rest.ErrorMessage;
+import org.geotoolkit.openeo.capabilities.dto.Argument;
+import org.geotoolkit.openeo.capabilities.dto.Service;
+import org.geotoolkit.openeo.capabilities.dto.ServiceType;
 import org.geotoolkit.openeo.dto.CheckMessage;
 import org.geotoolkit.openeo.dto.ResponseMessage;
 import org.geotoolkit.openeo.process.dto.BoundingBox;
@@ -61,6 +65,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -359,9 +364,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             List<ProcessParameter> parameters = new ArrayList<>();
 
             for (GeneralParameterDescriptor inputDescriptor : descriptor.getInputDescriptor().descriptors()) {
-                // HACK : for the load_collection process, we don't want to show the serviceId parameter
+                // HACK : for the load_collection and load_stac processes, we don't want to show the serviceId, external_stac_url and external_sac_custom_process parameters
                 // openEO will use the same id for the wps and wcs. So the serviceId parameter will reuse the id of the current wps service
-                if (openEOId.equalsIgnoreCase("load_collection") && inputDescriptor.getName().getCode().equalsIgnoreCase("serviceId")) {
+                if (openEOId.equalsIgnoreCase("load_collection") &&
+                        (inputDescriptor.getName().getCode().equalsIgnoreCase("serviceId") ||
+                                inputDescriptor.getName().getCode().equalsIgnoreCase("external_stac_url") ||
+                                inputDescriptor.getName().getCode().equalsIgnoreCase("external_stac_custom_process")
+                        )) {
+                    continue;
+                } else if (openEOId.equalsIgnoreCase("load_stac") &&
+                        (inputDescriptor.getName().getCode().equalsIgnoreCase("external_stac_custom_process")
+                        )) {
                     continue;
                 }
 
@@ -379,15 +392,19 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 boolean isArray = false;
                 if (inputDescriptor instanceof DefaultParameterDescriptor<?> inputDefaultParameterDescriptor) {
                     try {
-                        if (inputDefaultParameterDescriptor.getValueType() != null) {
-                            type = inputDefaultParameterDescriptor.getValueType().toString();
-                        }
                         if (inputDefaultParameterDescriptor.getValueClass() != null) {
                             clazz = inputDefaultParameterDescriptor.getValueClass();
                             isArray = inputDefaultParameterDescriptor.getValueClass().isArray();
                         }
-                    } catch (NullPointerException ex) {
-                        LOGGER.log(Level.INFO, "Error impossible to get the type of the input", ex);
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.FINE, "Error impossible to get the class of the input", ex);
+                    }
+                    try {
+                        if (inputDefaultParameterDescriptor.getValueType() != null) {
+                            type = inputDefaultParameterDescriptor.getValueType().toString();
+                        }
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.FINE, "Error impossible to get the type of the input", ex);
                     }
                 }
 
@@ -421,14 +438,18 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             boolean isArray = false;
             if (descriptor.getOutputDescriptor().descriptors().get(0) instanceof DefaultParameterDescriptor<?> outputDefaultParameterDescriptor) {
                 try {
-                    if (outputDefaultParameterDescriptor.getValueType() != null) {
-                        type = outputDefaultParameterDescriptor.getValueType().toString();
-                    }
                     if (outputDefaultParameterDescriptor.getValueClass() != null) {
                         isArray = outputDefaultParameterDescriptor.getValueClass().isArray();
                     }
-                } catch (NullPointerException ex) {
-                    LOGGER.log(Level.WARNING, "Error impossible to get the type of the ouput", ex);
+                } catch (Exception ex) {
+                        LOGGER.log(Level.FINE, "Error impossible to get the class of the output", ex);
+                }
+                try {
+                    if (outputDefaultParameterDescriptor.getValueType() != null) {
+                        type = outputDefaultParameterDescriptor.getValueType().toString();
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.FINE, "Error impossible to get the type of the output", ex);
                 }
             }
 
@@ -1104,11 +1125,26 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 chain.addFlowLink(elementProcess.getId(), Element.END.getId());
             }
 
-            // HACK : for the load_collection process, we need to force the use of the current serviceId
+            // HACK : for the load_collection and load_stac processes, we need to force the use of the current serviceId
             // We will use the service id of the current wps service
             if (processDescription.getProcessId().equalsIgnoreCase("load_collection")) {
                 final Constant constant = chain.addConstant(id++, String.class, serviceId);
                 chain.addDataLink(constant.getId(), "", elementProcess.getId(), "serviceId");
+
+                if (externalStac.isExternalStac(serviceId)) {
+                    final Constant constantStac = chain.addConstant(id++, String.class, externalStac.getExternalStacUrl(serviceId));
+                    chain.addDataLink(constantStac.getId(), "", elementProcess.getId(), "external_stac_url");
+
+                    if (externalStac.useCustomProcess(serviceId)) {
+                        final Constant constantCustomProcess = chain.addConstant(id++, String.class, externalStac.getExternalStacCustomProcess(serviceId));
+                        chain.addDataLink(constantCustomProcess.getId(), "", elementProcess.getId(), "external_stac_custom_process");
+                    }
+                }
+            } else if (processDescription.getProcessId().equalsIgnoreCase("load_stac")) {
+                if (externalStac.useCustomProcess(serviceId)) {
+                    final Constant constantCustomProcess = chain.addConstant(id++, String.class, externalStac.getExternalStacCustomProcess(serviceId));
+                    chain.addDataLink(constantCustomProcess.getId(), "", elementProcess.getId(), "external_stac_custom_process");
+                }
             }
 
             //Data flow links

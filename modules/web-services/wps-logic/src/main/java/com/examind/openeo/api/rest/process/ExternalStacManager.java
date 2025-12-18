@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.constellation.configuration.AppProperty.EXA_OPENEO_EXTERNAL_STAC_CUSTOM_PROCESS_PER_WPS_SERVICE;
 import static org.constellation.configuration.AppProperty.EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE;
 import static org.geotoolkit.openeo.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
 
@@ -44,6 +45,11 @@ public class ExternalStacManager {
     private final Map<String, Pair<Boolean, String>> externalStacByServiceId = new HashMap<>();
 
     /**
+     * Cache of external STAC custom process per serviceId.
+     */
+    private final Map<String, Pair<Boolean, String>> externalStacCustomProcessByServiceId = new HashMap<>();
+
+    /**
      * Check if for the given serviceId an external STAC endpoint is configured.
      * @param serviceId the WPS serviceId
      * @return true if an external STAC endpoint is configured, false otherwise
@@ -51,6 +57,34 @@ public class ExternalStacManager {
     public boolean isExternalStac(String serviceId) {
         String stacUrl = remoteStacUrl(serviceId);
         return stacUrl != null;
+    }
+
+    /**
+     * Check if for the given serviceId a custom process for external STAC is configured.
+     * @param serviceId the WPS serviceId
+     * @return true if a custom process is configured, false otherwise
+     */
+    public boolean useCustomProcess(String serviceId) {
+        String customProcess = remoteStacCustomProcess(serviceId);
+        return customProcess != null;
+    }
+
+    /**
+     * Return external_stac_url or null
+     * @param serviceId the WPS serviceId
+     * @return String (external_stac_url) or null if no external stac configured for this service
+     */
+    public String getExternalStacUrl(String serviceId) {
+        return remoteStacUrl(serviceId);
+    }
+
+    /**
+     * Return external_stac_custom_process or null
+     * @param serviceId the WPS serviceId
+     * @return String (external_stac_custom_process) or null if no custom process configured for this service
+     */
+    public String getExternalStacCustomProcess(String serviceId) {
+        return remoteStacCustomProcess(serviceId);
     }
 
     /**
@@ -89,6 +123,47 @@ public class ExternalStacManager {
         }
         return (external != null ? external.getRight() : null);
     }
+
+    /**
+     * Check if for the given serviceId a custom process for external STAC is configured.
+     * We look for the app property "exa.openeo.external.stac.custom.process.per.wps.service" which
+     * must contains pairs of values (serviceId, customProcessId).
+     * You can set in your env variable EXA_OPENEO_EXTERNAL_STAC_CUSTOM_PROCESS_PER_WPS_SERVICE a list of values like:
+     * ["serviceId1", "custom_process_id_1", "serviceId2", "custom_process_id_2"]
+     * @param serviceId the WPS serviceId
+     * @return the custom process id or null
+     */
+    private String remoteStacCustomProcess(String serviceId) {
+        Pair<Boolean, String> external = externalStacCustomProcessByServiceId.get(serviceId);
+        if (external == null || external.getLeft() == null) {
+            List<String> map = Application.getListProperty(EXA_OPENEO_EXTERNAL_STAC_CUSTOM_PROCESS_PER_WPS_SERVICE);
+            if (map.isEmpty()) {
+                externalStacCustomProcessByServiceId.put(serviceId, Pair.of(false, null));
+                return null;
+            }
+
+            if (map.size() % 2 == 1) {
+                LOGGER.log(Level.WARNING, "The app property " +  EXA_OPENEO_EXTERNAL_STAC_CUSTOM_PROCESS_PER_WPS_SERVICE + " is not valid (odd numbers of values," +
+                        " we need to have a process name/id per serviceId. Cannot set the service for External STAC endpoint.");
+                externalStacCustomProcessByServiceId.put(serviceId, Pair.of(false, null));
+                return null;
+            }
+
+            for (int i = 0; i < map.size(); i += 2) {
+                String mapServiceId = map.get(i);
+                if (mapServiceId.equals(serviceId)) {
+                    external = Pair.of(true, map.get(i + 1));
+                    externalStacCustomProcessByServiceId.put(serviceId, external);
+                    break;
+                }
+            }
+        }
+        return (external != null ? external.getRight() : null);
+    }
+
+    ////////////////////
+    // STAC Utilities //
+    ////////////////////
 
     /**
      * Get the list of collection ids from the external STAC endpoint configured for the given serviceId.
