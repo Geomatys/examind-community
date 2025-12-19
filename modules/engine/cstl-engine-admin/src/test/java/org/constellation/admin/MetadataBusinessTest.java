@@ -18,6 +18,7 @@
  */
 package org.constellation.admin;
 
+import jakarta.annotation.PostConstruct;
 import org.junit.Assert;
 import org.junit.Test;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -30,10 +31,17 @@ import org.constellation.util.NodeUtilities;
  * @author Guilhem Legal (Geomatys)
  */
 public class MetadataBusinessTest extends AbstractBusinessTest {
+    
+    private Integer providerID;
+    
+    @PostConstruct
+    public void init() throws Exception {
+        providerID = metadataBusiness.getDefaultInternalProviderID();
+        metadataBusiness.deleteAllMetadata();
+    }
 
     @Test
     public void createMetadata() throws Exception {
-        int providerID = metadataBusiness.getDefaultInternalProviderID();
 
         final MetadataLightBrief metadata = metadataBusiness.updateMetadata("42292_9s_19900610041000", NodeUtilities.getNodeFromString(BIG_XML), null, null, null, null, providerID, "DOC");
 
@@ -46,7 +54,6 @@ public class MetadataBusinessTest extends AbstractBusinessTest {
 
     @Test
     public void createMetadataError() throws Exception {
-        int providerID = metadataBusiness.getDefaultInternalProviderID();
         boolean exlanched = false;
         try {
             metadataBusiness.updateMetadata("whatever", NodeUtilities.getNodeFromString(ERROR_XML), null, null, null, null, providerID, "DOC");
