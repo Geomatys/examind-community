@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.constellation.business.ITokenBusiness;
 
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
@@ -41,6 +42,7 @@ public class TokenUtils {
 
     public static final String ACCESS_TOKEN = "access_token";
     public static final String REFRESH_TOKEN = "refresh_token";
+    public static final String AUTHORIZATION = "Authorization";
 
     private static final char[] HEX = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
@@ -254,5 +256,24 @@ public class TokenUtils {
             }
         }
         return value;
+    }
+    
+    public static String getUserNameFromRequest(HttpServletRequest request, ITokenBusiness tBusiness) {
+        String token = TokenUtils.extract(request, ACCESS_TOKEN);
+        if (token == null) {
+            token = TokenUtils.extract(request, AUTHORIZATION);
+        }
+        
+        if (token != null && !tBusiness.validate(token)) {
+            if (token.startsWith("Bearer basic//")) {
+                token = token.split("//")[1];
+            }
+        }
+        
+        //FIXME We should use cache here.
+        if (token != null && tBusiness.validate(token)) {
+            return getUserNameFromToken(token);
+        }
+        return null;
     }
 }

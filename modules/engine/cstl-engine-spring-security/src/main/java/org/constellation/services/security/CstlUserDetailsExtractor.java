@@ -21,11 +21,12 @@ package org.constellation.services.security;
 import java.util.Base64;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.constellation.business.ITokenBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 
 import org.constellation.engine.security.UserDetailsExtractor;
-import org.constellation.services.component.TokenService;
+import org.constellation.token.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,7 +40,7 @@ public class CstlUserDetailsExtractor implements UserDetailsExtractor{
 
     private UserDetailsService userDetailsService;
 
-    private TokenService tokenService;
+    private ITokenBusiness tokenBusiness;
 
     @Autowired
     @Qualifier("authenticationManager")
@@ -47,7 +48,7 @@ public class CstlUserDetailsExtractor implements UserDetailsExtractor{
 
     @Override
     public UserDetails userDetails(HttpServletRequest request, HttpServletResponse response) {
-        String userName = tokenService.getUserName(request);
+        String userName = TokenUtils.getUserNameFromRequest(request, tokenBusiness);
         if (userName == null) {
             boolean basic = Application.getBooleanProperty(AppProperty.EXA_ENABLE_BASIC_AUTH, false);
             if (basic) {
@@ -70,13 +71,13 @@ public class CstlUserDetailsExtractor implements UserDetailsExtractor{
     }
 
 
-    public TokenService getTokenService() {
-        return tokenService;
+    public ITokenBusiness getTokenService() {
+        return tokenBusiness;
     }
 
 
-    public void setTokenService(TokenService tokenService) {
-        this.tokenService = tokenService;
+    public void setTokenService(ITokenBusiness tokenService) {
+        this.tokenBusiness = tokenService;
     }
 
     private String getUserNameFromBasicAuth(HttpServletRequest httpRequest) {

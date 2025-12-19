@@ -33,6 +33,7 @@
   </bean>
 
   <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
+  <bean id="tokenBusiness" class="org.constellation.services.component.TokenBusiness" />
 
   <bean class="org.constellation.test.component.TestSpatialIndexDBConfiguration" />
   <import resource="cstl-ds-test.xml"/>

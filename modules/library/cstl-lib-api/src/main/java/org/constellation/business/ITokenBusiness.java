@@ -1,8 +1,8 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
- * Copyright 2016 Geomatys.
+ * Copyright 2025 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.token;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+package org.constellation.business;
 
 /**
  *
- * @author Olivier Nougier (Geomatys)
+ * @author Quentin Bialota (Geomatys)
  */
-public interface TokenExtender {
+public interface ITokenBusiness {
+
+    String createToken(String username);
+
+    boolean validate(String access_token);
     
-    String extend(String token, HttpServletRequest httpServletRequest,  HttpServletResponse httpServletResponse);
+    String extend(String username);
+
 }

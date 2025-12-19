@@ -26,12 +26,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.constellation.business.ITokenBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.UserWithRole;
 import org.constellation.engine.security.AuthenticationProxy;
 import org.constellation.engine.security.Utils;
-import org.constellation.services.component.TokenService;
-import org.constellation.token.TokenExtender;
 import static org.constellation.token.TokenUtils.ACCESS_TOKEN;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,14 +49,12 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.services.security");
 
     @Autowired
-    private TokenService tokenService;
+    @Qualifier("tokenBusiness")
+    private ITokenBusiness tokenService;
 
     @Autowired
     @Qualifier("authenticationManager")
     private AuthenticationManager authManager;
-
-    @Autowired
-    private TokenExtender tokenExtender;
 
     @Autowired
     private IUserBusiness userBusiness;
@@ -82,7 +79,7 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
     @Override
     public void extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
         UserDetails userDetails = Utils.extractUserDetail();
-        String newToken = tokenExtender.extend(userDetails.getUsername(), request, response);
+        String newToken = tokenService.extend(userDetails.getUsername());
         CookieUtils.addCookie(response, new AbstractMap.SimpleEntry<>(ACCESS_TOKEN, new String[] {newToken, "HttpOnly"}));
     }
 

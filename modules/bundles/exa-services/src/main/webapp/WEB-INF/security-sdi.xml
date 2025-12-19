@@ -7,7 +7,7 @@
 
   <import resource="security/common.xml" />
 
-  <bean id="cstlTokenService" class="org.constellation.services.component.TokenService" autowire="byType" />
+  <bean id="cstlTokenService" class="org.constellation.services.component.TokenBusiness" autowire="byType" />
 
   <sec:jdbc-user-service id="cstlUserService" data-source-ref="dataSource"
 

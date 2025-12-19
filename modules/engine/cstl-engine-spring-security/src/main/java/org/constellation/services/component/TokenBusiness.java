@@ -20,20 +20,19 @@ package org.constellation.services.component;
 
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.token.TokenExtender;
 import org.constellation.token.TokenUtils;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
-import static org.constellation.token.TokenUtils.ACCESS_TOKEN;
+import org.constellation.business.ITokenBusiness;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author Olivier Nougier (Geomatys)
  */
-public class TokenService implements TokenExtender {
+@Component("tokenBusiness")
+public class TokenBusiness implements ITokenBusiness {
 
     private String secret = "TokenSecret";
 
@@ -42,25 +41,18 @@ public class TokenService implements TokenExtender {
         secret = Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, UUID.randomUUID().toString());
     }
 
+    @Override
     public String createToken(String username) {
         return TokenUtils.createToken(username, secret);
     }
 
+    @Override
     public boolean validate(String access_token) {
         return TokenUtils.validateToken(access_token, secret);
     }
 
-    public String getUserName(HttpServletRequest request) {
-        String token = TokenUtils.extract(request, ACCESS_TOKEN);
-        //FIXME We should use cache here.
-        if (token != null && validate(token)) {
-            return TokenUtils.getUserNameFromToken(token);
-        }
-        return null;
-    }
-
     @Override
-    public String extend(String token, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        return TokenUtils.createToken(token, secret);
+    public String extend(String username) {
+        return TokenUtils.createToken(username, secret);
     }
 }
