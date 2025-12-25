@@ -36,7 +36,6 @@ import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import org.apache.sis.util.internal.shared.UnmodifiableArrayList;
 import org.apache.sis.util.Version;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
@@ -66,7 +65,7 @@ import org.xml.sax.SAXException;
  * @author Cédric Briançon (Geomatys)
  * @author Johann Sorel (Geomatys)
  * @author Guilhem Legal (Geomatys)
- * 
+ *
  * @param <A> Specific worker configuration object class.
  */
 public abstract class AbstractWorker<A extends AbstractConfigurationObject> implements Worker {
@@ -113,7 +112,7 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
      */
     protected final Specification specification;
 
-    protected UnmodifiableArrayList<ServiceDef> supportedVersions;
+    protected List<ServiceDef> supportedVersions;
 
     /**
      * use this flag to enable cache for capabilities document.
@@ -232,7 +231,7 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
     }
 
     private void setSupportedVersion(final List<ServiceDef> supportedVersions) {
-         this.supportedVersions = UnmodifiableArrayList.wrap(supportedVersions.toArray(new ServiceDef[supportedVersions.size()]));
+         this.supportedVersions = List.copyOf(supportedVersions);
     }
 
     protected boolean isSupportedVersion(final String version) {

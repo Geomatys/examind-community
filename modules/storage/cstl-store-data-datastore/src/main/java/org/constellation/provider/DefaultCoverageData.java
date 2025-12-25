@@ -42,7 +42,6 @@ import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.storage.base.StoreResource;
 import org.apache.sis.storage.image.WorldFileStore;
-import org.apache.sis.util.internal.shared.UnmodifiableArrayList;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.map.MapItem;
@@ -101,7 +100,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     /**
      * AxisDirection name for Lat/Long, Elevation, temporal dimensions.
      */
-    private static final List<String> COMMONS_DIM = UnmodifiableArrayList.wrap(new String[] {
+    private static final List<String> COMMONS_DIM = List.of(new String[] {
             "NORTH", "EAST", "SOUTH", "WEST",
             "UP", "DOWN",
             "FUTURE", "PAST"});
