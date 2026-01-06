@@ -36,6 +36,7 @@ import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.wxs.LayerContext;
+import org.constellation.exception.ConstellationException;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -82,10 +83,12 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
             try {
                 startServer();
 
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
+                try {
+                    layerBusiness.removeAll();
+                    serviceBusiness.deleteAll();
+                    dataBusiness.deleteAll();
+                    providerBusiness.removeAll();
+                } catch (ConstellationException ex) {LOGGER.log(Level.FINE, "Error chile clening old data", ex);}
                 
                 final TestEnvironment.TestResources testResource = initDataDirectory();
 

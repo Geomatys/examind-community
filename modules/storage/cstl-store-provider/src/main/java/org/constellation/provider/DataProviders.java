@@ -154,7 +154,7 @@ public final class DataProviders extends Static{
 
         //find factory
         final DataProviderFactory factory = getFactory(config.getImpl());
-        if(factory==null) throw new ConfigurationException("No provider factory for id "+config.getImpl());
+        if(factory==null) throw new ConfigurationException("No provider factory for implementation "+config.getImpl());
 
         //read provider parameters
         final ParameterValueGroup params;
