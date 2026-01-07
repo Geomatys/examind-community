@@ -86,7 +86,9 @@ public class WMTSWorkerTest extends SpringContextTest {
                 serviceBusiness.deleteAll();
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
-            } catch (ConstellationException ex) {}
+            } catch (ConstellationException ex) {
+                Logger.getLogger("org.constellation.wmts.ws").log(Level.FINE, "Error while cleanning database before test", ex);
+            }
 
             pool = WMTSMarshallerPool.getInstance();
 

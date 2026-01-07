@@ -54,6 +54,7 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 
 import javax.imageio.ImageIO;
+import org.constellation.exception.ConstellationException;
 
 /**
  * @author Hilmi BOUALLAGUE (Geomatys)
@@ -86,10 +87,14 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
             try {
                 startServer();
 
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
+                try {
+                    layerBusiness.removeAll();
+                    serviceBusiness.deleteAll();
+                    dataBusiness.deleteAll();
+                    providerBusiness.removeAll();
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.FINE, "Error while cleanning database before test", ex);
+                }
 
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();

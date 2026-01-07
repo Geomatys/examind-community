@@ -4,7 +4,6 @@ import javax.xml.namespace.QName;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.util.iso.Names;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;

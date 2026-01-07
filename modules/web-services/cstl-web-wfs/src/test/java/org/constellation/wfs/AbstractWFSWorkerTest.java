@@ -28,6 +28,7 @@ import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.exception.ConstellationException;
 import org.constellation.test.SpringContextTest;
 import org.constellation.wfs.core.WFSWorker;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
@@ -61,7 +62,7 @@ public abstract class AbstractWFSWorkerTest extends SpringContextTest {
     @Autowired
     protected IDatasourceBusiness datasourceBusiness;
 
-     @AfterClass
+    @AfterClass
     public static void tearDownClass() throws Exception {
         try {
             final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class).orElse(null);
@@ -93,6 +94,17 @@ public abstract class AbstractWFSWorkerTest extends SpringContextTest {
             }
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
+        }
+    }
+    
+    protected void cleanupDB() {
+         try {
+            layerBusiness.removeAll();
+            serviceBusiness.deleteAll();
+            dataBusiness.deleteAll();
+            providerBusiness.removeAll();
+        } catch (ConstellationException ex) {
+            LOGGER.log(Level.FINE, "Error while cleanning database before test", ex);
         }
     }
 }

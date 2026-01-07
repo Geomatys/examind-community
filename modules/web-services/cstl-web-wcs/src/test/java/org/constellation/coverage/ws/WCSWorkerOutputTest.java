@@ -65,6 +65,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wxs.LayerContext;
+import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.junit.AfterClass;
@@ -114,11 +115,14 @@ public class WCSWorkerOutputTest extends SpringContextTest {
     public void setUpClass() {
         if (!initialized) {
             try {
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
-
+                try {
+                    layerBusiness.removeAll();
+                    serviceBusiness.deleteAll();
+                    dataBusiness.deleteAll();
+                    providerBusiness.removeAll();
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.FINE, "Error while cleanning database before test", ex);
+                }
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);

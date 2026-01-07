@@ -33,6 +33,7 @@ import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.Details;
+import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.wfs.core.DefaultWFSWorker;
@@ -69,12 +70,8 @@ public class WFSCIteWorkerTest extends AbstractWFSWorkerTest {
     public void setUpClass() {
         if (!initialized) {
             try {
-
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
-
+                
+                cleanupDB();
                 final List<DataImport> datas = new ArrayList<>();
                 datas.addAll(testResources.createProvider(TestResource.WFS110_PRIMITIVE, providerBusiness, null).datas);
                 datas.addAll(testResources.createProvider(TestResource.WFS110_ENTITY,    providerBusiness, null).datas);

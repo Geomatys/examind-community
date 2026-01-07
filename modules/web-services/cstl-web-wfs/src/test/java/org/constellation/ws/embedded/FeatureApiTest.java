@@ -82,10 +82,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
             try {
                 startServer();
 
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
+                cleanupDB();
 
                 final TestResources testResource = initDataDirectory();
                 final List<DataImport> datas = new ArrayList<>();

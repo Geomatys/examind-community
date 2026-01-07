@@ -51,6 +51,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
+import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
@@ -72,11 +73,14 @@ public class WFSWorkerTest extends AbstractWFSWorkerTest {
     public void setUpClass() {
         if (!initialized) {
             try {
-
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
+                try {
+                    layerBusiness.removeAll();
+                    serviceBusiness.deleteAll();
+                    dataBusiness.deleteAll();
+                    providerBusiness.removeAll();
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.FINE, "Error while cleanning database before test", ex);
+                }
 
                 final List<DataImport> datas = new ArrayList<>();
                 /**

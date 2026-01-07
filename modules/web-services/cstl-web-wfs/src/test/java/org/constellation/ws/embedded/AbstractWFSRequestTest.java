@@ -29,6 +29,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.exception.ConstellationException;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.controllerConfiguration;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.stopServer;
 import org.junit.AfterClass;
@@ -78,5 +79,16 @@ public abstract class AbstractWFSRequestTest extends AbstractGrizzlyServer {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
         stopServer();
+    }
+    
+    protected void cleanupDB() {
+         try {
+            layerBusiness.removeAll();
+            serviceBusiness.deleteAll();
+            dataBusiness.deleteAll();
+            providerBusiness.removeAll();
+        } catch (ConstellationException ex) {
+            LOGGER.log(Level.FINE, "Error while cleanning database before test", ex);
+        }
     }
 }

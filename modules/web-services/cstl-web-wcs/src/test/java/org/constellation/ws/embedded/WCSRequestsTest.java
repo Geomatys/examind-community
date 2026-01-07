@@ -206,10 +206,14 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
             try {
                 startServer();
 
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
+                try {
+                    layerBusiness.removeAll();
+                    serviceBusiness.deleteAll();
+                    dataBusiness.deleteAll();
+                    providerBusiness.removeAll();
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.FINE, "Error while cleanning database before test", ex);
+                }
 
                  //Initialize geotoolkit
                 ImageIO.scanForPlugins();

@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.Marshaller;
@@ -91,10 +90,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
     public void setUpClass() {
         if (!initialized) {
             try {
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
+                cleanupDB();
 
                 final TestResources testResource = initDataDirectory();
                 final List<DataImport> datas = new ArrayList<>();
