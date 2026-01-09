@@ -448,7 +448,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      * @param response
      * @return return the current state of analysis of the datasource.
      */
-    @RequestMapping(value = "/datasources/{id}/analysis/state", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/datasources/{id}/analysis/state", method = GET, produces = TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getDatasourceAnalysisState(@PathVariable("id") int id,  HttpServletResponse response) {
         try {
             final String state = datasourceBusiness.getDatasourceAnalysisState(id);
