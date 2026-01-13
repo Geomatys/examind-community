@@ -1083,8 +1083,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
                         //verif that trim value does not overlap envelope
                         if (low < minVal || low > maxVal || high > maxVal || high < minVal) {
-                            throw new CstlServiceException("Subsetting params overlap the envelope extent",
-                                    INVALID_SUBSETTING);
+                            throw new CstlServiceException("Subsetting params overlap the envelope extent: " + dimension + "(" + minVal + "/" + maxVal + ") for value: " + low + "/" + high , INVALID_SUBSETTING);
                         }
 
                         //verif that trim value is correct (low < high)
@@ -1109,7 +1108,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
                         //verif that trim value does not overlap envelope
                         if (pt < minVal || pt > maxVal) {
-                            throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                            throw new CstlServiceException("Subsetting params overlap the envelope extent: " + dimension + "(" + minVal + "/" + maxVal + ") for value: " + pt,
                                     INVALID_SUBSETTING);
                         }
 
@@ -1356,7 +1355,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 }
 
                 if ((firstValue < minVal || firstValue > maxVal) && (secondValue < minVal || secondValue > maxVal)) {
-                    throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                    throw new CstlServiceException("Subsetting params overlap the envelope extent: " + axisName + "(" + minVal + "/" + maxVal + ") for value: " + firstValue + "/" + secondValue ,
                             INVALID_SUBSETTING);
                 }
                 readEnv.setRange(axisID, firstValue, secondValue);
@@ -1410,7 +1409,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
                     //verif that trim value does not overlap envelope
                     if (pt < minVal || pt > maxVal) {
-                        throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                        throw new CstlServiceException("Subsetting params overlap the envelope extent (time)",
                                 INVALID_SUBSETTING);
                     }
                     readEnv.setRange(timeDimensionId, pt, pt);
@@ -1423,7 +1422,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
                     //verif that trim value does not overlap envelope
                     if (pt < minVal || pt > maxVal) {
-                        throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                        throw new CstlServiceException("Subsetting params overlap the envelope extent (vertical extent): (" + minVal + "/" + maxVal + ") for value: " + pt,
                                 INVALID_SUBSETTING);
                     }
                     readEnv.setRange(verticalDimensionId, pt, pt);
@@ -2044,7 +2043,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
                         //verif that trim value does not overlap envelope
                         if (low < minVal || low > maxVal || high > maxVal || high < minVal) {
-                            throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                            throw new CstlServiceException("Subsetting params overlap the envelope extent: dim=" + dimIdx + "(" + minVal + "/" + maxVal + ") for value: " + low + "/" + high ,
                                     INVALID_SUBSETTING, KEY_COVERAGE.toLowerCase());
                         }
                         readEnv.setRange(dimIdx, low, high);
