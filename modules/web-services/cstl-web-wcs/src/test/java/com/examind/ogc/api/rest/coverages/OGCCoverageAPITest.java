@@ -293,6 +293,21 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order = 9)
+    public void getCoverageSchema() throws Exception {
+        init();
+        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema");
+        URLConnection conn = request.openConnection();
+        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
+
+        String content = getStringResponse(conn);
+        String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/schema.json");
+        compareJSON(expected, content);
+
+        //XML not supported for the moment
+    }
+
+    @Test
+    @Order(order = 10)
     public void getCoverage() throws Exception {
         init();
         URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage");
