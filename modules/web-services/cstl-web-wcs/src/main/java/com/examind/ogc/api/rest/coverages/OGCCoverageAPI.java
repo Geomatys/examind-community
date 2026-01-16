@@ -30,6 +30,7 @@ import com.examind.ogc.api.rest.common.dto.Conformance;
 import com.examind.ogc.api.rest.common.dto.LandingPage;
 import com.examind.ogc.api.rest.coverages.dto.DataRecord;
 import com.examind.ogc.api.rest.coverages.dto.DomainSet;
+import com.examind.ogc.api.rest.coverages.dto.Schema;
 import org.constellation.admin.SpringHelper;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
@@ -379,7 +380,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
      * <p>
      * reference : https://developer.ogc.org/api/coverages/index.html#tag/Coverage/operation/getCoverageRangeType
      *
-     * @return coverage domain set information
+     * @return coverage range type information
      */
     @RequestMapping(value = "/collections/{collectionId}/coverage/rangetype", method = RequestMethod.GET)
     public ResponseEntity coverageRangeType(@PathVariable("serviceId") String serviceId,
@@ -393,6 +394,40 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
             try {
                 // if the layer does not exist an exception will be thrown
                 DataRecord response = worker.getDataRecord(collectionId);
+
+                return new ResponseObject(response, format).getResponseEntity();
+
+            } catch (CstlServiceException ex) {
+                if (ex.getExceptionCode().equals(LAYER_NOT_DEFINED)) {
+                    return new ErrorMessage(HttpStatus.NOT_FOUND).i18N(I18nCodes.Collection.NOT_FOUND).build();
+                }
+                LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+                return new ErrorMessage(ex).build();
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+                return new ErrorMessage(ex).build();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * GET /collections/{collectionId}/schema
+     *
+     * @return coverage schema information
+     */
+    @RequestMapping(value = "/collections/{collectionId}/schema", method = RequestMethod.GET)
+    public ResponseEntity coverageSchema(@PathVariable("serviceId") String serviceId,
+                                            @PathVariable(value = "collectionId") String collectionId,
+                                            @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) throws ConstellationException {
+
+        putServiceIdParam(serviceId);
+        final WCSWorker worker = getWorker(serviceId);
+
+        if (worker != null) {
+            try {
+                // if the layer does not exist an exception will be thrown
+                Schema response = worker.getSchema(collectionId);
 
                 return new ResponseObject(response, format).getResponseEntity();
 

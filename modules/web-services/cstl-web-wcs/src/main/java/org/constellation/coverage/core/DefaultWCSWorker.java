@@ -38,6 +38,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1488,6 +1489,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                         SampleDimension.Builder sdb = new SampleDimension.Builder();
                         sdb.addQuantitative(sourceSD.getName().toString(), statistics[i].minimum(), statistics[i].maximum(), sourceSD.getUnits().orElse(Units.UNITY));
                         resultSdList.add(sdb.build());
+                        i++;
                     }
 
                     GridCoverageBuilder gcb = new GridCoverageBuilder();
@@ -1781,6 +1783,55 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
 
         return new DataRecord(dataRecordFields);
+    }
+
+    @Override
+    public Schema getSchema(String collectionId) throws CstlServiceException {
+        CoverageData data = getCoverageData(collectionId);
+
+        Map<String, PropertyBand> propertyMap = new LinkedHashMap<>();
+        Map<String, Integer> nameCounter = new HashMap<>();
+
+        try {
+            RenderedImage imageStatistics = new ImageProcessor().statistics(data.getCoverage(null, null).render(null), null, null);
+            Statistics[] statistics = (Statistics[]) imageStatistics.getProperty("org.apache.sis.Statistics");
+
+            List<SampleDimension> sampleDimensions = data.getSampleDimensions();
+
+            // Pre-calculate totals to decide if suffixes are needed for duplicate names
+            // e.g., "Band_1", "Band_2", etc.
+            Map<String, Long> totals = sampleDimensions.stream().collect(Collectors.groupingBy(s -> s.getName().toString(), Collectors.counting()));
+
+
+            for (int i = 0; i < sampleDimensions.size(); i++) {
+                SampleDimension smp = sampleDimensions.get(i);
+                String baseName = smp.getName().toString();
+                String baseDescription = "Band " + (i) + " - " + baseName;
+
+                // Generate unique key
+                String uniqueKey = baseName;
+                if (totals.get(baseName) > 1) {
+                    int index = nameCounter.getOrDefault(baseName, 0);
+                    uniqueKey = baseName + "_" + index;
+                    nameCounter.put(baseName, index + 1);
+                }
+
+                // Create the PropertyBand
+                RangeStatistics stat = new RangeStatistics(
+                        statistics[i].minimum(),
+                        statistics[i].maximum(),
+                        statistics[i].mean(),
+                        statistics[i].standardDeviation(true));
+
+                PropertyBand pb = new PropertyBand(baseName, baseDescription, null, null, stat, i+1);
+
+                propertyMap.put(uniqueKey, pb);
+            }
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
+
+        return new Schema(collectionId, propertyMap);
     }
 
     public List<String> getDimensionsNames(String collectionId) throws CstlServiceException {

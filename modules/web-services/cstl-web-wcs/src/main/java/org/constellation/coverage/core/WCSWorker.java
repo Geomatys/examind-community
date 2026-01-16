@@ -21,6 +21,7 @@ package org.constellation.coverage.core;
 import com.examind.ogc.api.rest.common.dto.Collection;
 import com.examind.ogc.api.rest.coverages.dto.DataRecord;
 import com.examind.ogc.api.rest.coverages.dto.DomainSet;
+import com.examind.ogc.api.rest.coverages.dto.Schema;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
 import org.geotoolkit.wcs.xml.DescribeCoverage;
@@ -50,6 +51,8 @@ public interface WCSWorker extends Worker{
     DomainSet getDomainSet(String collectionId, List<Double> bbox, String bboxCrs) throws CstlServiceException;
 
     DataRecord getDataRecord(String collectionId) throws CstlServiceException;
+
+    Schema getSchema(String collectionId) throws CstlServiceException;
 
     List<String> getDimensionsNames(String collectionId) throws CstlServiceException;
 }
