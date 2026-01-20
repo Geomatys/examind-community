@@ -22,8 +22,6 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.token.TokenUtils;
 
-import jakarta.annotation.PostConstruct;
-import java.util.UUID;
 import org.constellation.business.ITokenBusiness;
 import org.springframework.stereotype.Component;
 
@@ -34,11 +32,13 @@ import org.springframework.stereotype.Component;
 @Component("tokenBusiness")
 public class TokenBusiness implements ITokenBusiness {
 
-    private String secret = "TokenSecret";
-
-    @PostConstruct
-    public void init() {
-        secret = Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, UUID.randomUUID().toString());
+    private static final String secret;
+    static {
+        try {
+            secret = Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret");
+        } catch (Exception e) {
+            throw new IllegalStateException("Examind secret cannot be properly setup. Please verify your configuration", e);
+        }
     }
 
     @Override
