@@ -5,9 +5,6 @@
 
 
   <import resource="classpath:/security/common.xml" />
-
-  <bean id="cstlTokenService" class="org.constellation.services.component.TokenBusiness" autowire="byType" />
-
   <sec:jdbc-user-service id="cstlUserService" data-source-ref="dataSource"
 
                      users-by-username-query="
@@ -36,7 +33,7 @@
   <bean id="cstlAuthenticationTokenProcessingFilter" class="org.constellation.engine.security.AuthenticationTokenProcessingFilter">
     <property name="userDetailsExtractor">
       <bean class="org.constellation.services.security.CstlUserDetailsExtractor">
-        <property name="tokenService" ref="cstlTokenService" />
+        <property name="tokenService" ref="tokenBusiness" />
         <property name="userDetailsService" ref="cstlUserService" />
       </bean>
     </property>

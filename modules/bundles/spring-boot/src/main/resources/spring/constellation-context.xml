@@ -18,8 +18,6 @@
   
   <bean id="exaDataCreator" class="com.examind.provider.component.DefaultExaDataCreator"/>
 
-  <bean id="tokenBusiness" class="org.constellation.services.component.TokenBusiness" />
-  
   <context:component-scan base-package="org.constellation.admin org.constellation.rest.api org.constellation.scheduler" />
 
   <import resource="classpath:cstl/spring/database-context.xml" />
