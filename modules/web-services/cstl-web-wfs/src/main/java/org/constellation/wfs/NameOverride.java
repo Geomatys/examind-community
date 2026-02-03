@@ -50,16 +50,6 @@ public class NameOverride {
         }
 
         @Override
-        @Deprecated
-        public Object getValueOrFallback(String s, Object o) {
-            try {
-                return decorated.getPropertyValue(s);
-            } catch (PropertyNotFoundException e) {
-                return o;
-            }
-        }
-
-        @Override
         public void setProperty(Property property) throws IllegalArgumentException {
             decorated.setProperty(property);
         }
