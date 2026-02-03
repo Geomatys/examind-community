@@ -63,6 +63,7 @@ import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.DimensionItem;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
+import java.util.regex.Pattern;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
@@ -129,14 +130,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     private ISensorServiceBusiness sensorServiceBusiness;
     
     private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url");
-    
-    private static final Map<String, List<String>> ALLOWED_MULTI_PROVIDER = new HashMap<>();
-    static {
-        ALLOWED_MULTI_PROVIDER.put("shapefile", List.of("shp"));
-        ALLOWED_MULTI_PROVIDER.put("geotk_csv", List.of("csv"));
-        ALLOWED_MULTI_PROVIDER.put("geojson",   List.of("json", "geojson"));
-        ALLOWED_MULTI_PROVIDER.put("GeoTIFF",   List.of("tif", "tiff", "geotiff", "geotif"));
-    }
     
     @PostConstruct
     public void initFsConfiguration() {
@@ -467,17 +460,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
-    private void setParameter(final ParameterValueGroup config, Map<String, String> parameters, String paramName, boolean mandatory) throws ConstellationException {
-        
-        String value = parameters.get(paramName);
-        if (value == null) {
-            if (mandatory) throw new ConstellationException("Missing advanced parameter: " + paramName);
-            return;
-        }
-        ParameterValue<?> parameter = config.parameter(paramName);
-        parameter.setValue(ObjectConverters.convert(value, parameter.getDescriptor().getValueClass()));
-    }
-    
     private Integer createDatasource(Datasource source) throws ConstellationException {
         String location = source.getLocation();
         String userName = source.getUserName();
@@ -497,7 +479,13 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             String dataset = providerConf.getDataset();
             String pathParamName = "location";
             String providerIdentifier = providerConf.getIdentifier();
+            String dirFilter = providerConf.getDirectoryFilter();
             Integer datasourceId = null;
+            
+            Pattern dirPattern = null;
+            if (dirFilter != null) {
+                dirPattern = Pattern.compile(dirFilter);
+            }
             
             // special case
             if ("coverage-xml-pyramid".equals(impl)) {
@@ -521,11 +509,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 try {
                     URI dataUri = URI.create(dataStr);
                     Path dataDir = Paths.get(dataUri);
-                    if (ALLOWED_MULTI_PROVIDER.containsKey(impl) && Files.isDirectory(dataDir)) {
-                        List<String> exts = ALLOWED_MULTI_PROVIDER.get(impl);
+                    if (dirPattern != null && Files.isDirectory(dataDir)) {
                         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataDir)) {
                             for (Path file : stream) {
-                                if (!Files.isDirectory(file) && exts.contains(FileNameUtils.getExtension(file).toLowerCase())) {
+                                if (!Files.isDirectory(file) && dirPattern.matcher(file.getFileName().toString()).matches()) {
                                     files.add(file.toUri());
                                 }
                             }

@@ -30,6 +30,7 @@ public class Provider {
     private String location;
     private String providerType;
     private String dataset;
+    private String directoryFilter;
     
     private Datasource source;
 
@@ -132,5 +133,19 @@ public class Provider {
      */
     public void setSource(Datasource source) {
         this.source = source;
+    }
+
+    /**
+     * @return the directoryFilter
+     */
+    public String getDirectoryFilter() {
+        return directoryFilter;
+    }
+
+    /**
+     * @param directoryFilter the directoryFilter to set
+     */
+    public void setDirectoryFilter(String directoryFilter) {
+        this.directoryFilter = directoryFilter;
     }
 }
