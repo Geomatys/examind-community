@@ -28,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,7 +62,9 @@ import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.DimensionItem;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
+import java.net.URISyntaxException;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
@@ -147,32 +148,26 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         try {
             // install new data
             Path dataDir = configBusiness.getProvidersDirectory();
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataDir)) {
-                for (Path path : stream) {
-                    if (!Files.isDirectory(path) && "yaml".equals(FileNameUtils.getExtension(path))) {
-                        createProviderFromFile(path);
-                    }
-                }
+            try (Stream<Path> stream = Files.walk(dataDir)) {
+                stream.filter(this::ymlFileFilter).forEach(path -> {
+                    createProviderFromFile(path);
+                });
             }
             
             // install new styles
             Path styleDir = configBusiness.getStylesDirectory();
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(styleDir)) {
-                for (Path path : stream) {
-                    if (!Files.isDirectory(path)) {
-                        createStyleFromFile(path);
-                    }
-                }
+            try (Stream<Path> stream = Files.walk(styleDir)) {
+                 stream.filter(this::sldFileFilter).forEach(path -> {
+                    createStyleFromFile(path);
+                });
             }
             
             // install new services
             Path servDir = configBusiness.getServicesDirectory();
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(servDir)) {
-                for (Path path : stream) {
-                    if (!Files.isDirectory(path)) {
-                        createServiceFromFile(path);
-                    }
-                }
+             try (Stream<Path> stream = Files.walk(servDir)) {
+                 stream.filter(this::ymlFileFilter).forEach(path -> {
+                    createServiceFromFile(path);
+                });
             }
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error a filesystem configuration startup", ex);
@@ -482,10 +477,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             String dirFilter = providerConf.getDirectoryFilter();
             Integer datasourceId = null;
             
-            Pattern dirPattern = null;
-            if (dirFilter != null) {
-                dirPattern = Pattern.compile(dirFilter);
-            }
+            final Pattern dirPattern = (dirFilter != null) ? Pattern.compile(dirFilter) : null;
             
             // special case
             if ("coverage-xml-pyramid".equals(impl)) {
@@ -507,15 +499,15 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 files.add(datasourceId);
             } else {
                 try {
-                    URI dataUri = URI.create(dataStr);
+                    URI dataUri = getDataPath(path.getParent(), dataStr);
                     Path dataDir = Paths.get(dataUri);
                     if (dirPattern != null && Files.isDirectory(dataDir)) {
-                        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataDir)) {
-                            for (Path file : stream) {
-                                if (!Files.isDirectory(file) && dirPattern.matcher(file.getFileName().toString()).matches()) {
-                                    files.add(file.toUri());
-                                }
-                            }
+                        try (Stream<Path> stream = Files.walk(dataDir)) {
+                            files.addAll(
+                                stream.filter(p -> regexFileFilter(p, dirPattern))
+                                      .map(p -> p.toUri())
+                                      .toList()
+                            );
                         }
                     } else {
                         files.add(dataUri);
@@ -634,5 +626,36 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             
             default -> false;
         };
+    }
+    
+    private boolean regexFileFilter(Path path, Pattern dirPattern) {
+        return !Files.isDirectory(path) && dirPattern.matcher(path.getFileName().toString()).matches();
+    }
+    
+    private static URI getDataPath(Path parentDir, String dataStr) {
+        URI uri;
+        try {
+            URI parsed = new URI(dataStr);
+            if (parsed.getScheme() != null) {
+                uri = parsed;
+            } else {
+                uri = parentDir.resolve(dataStr).normalize().toUri();
+            }
+        } catch (URISyntaxException e) {
+            uri = parentDir.resolve(dataStr).toUri();
+        }
+        return uri;
+    }
+    
+    private boolean ymlFileFilter(Path path) {
+        return fileFilter(path, List.of("yaml", "yml"));
+    }
+    
+    private boolean sldFileFilter(Path path) {
+        return fileFilter(path, List.of("sld", "xml"));
+    }
+    
+    private boolean fileFilter(Path path, List<String> allowedExt) {
+        return !Files.isDirectory(path) && allowedExt.contains(FileNameUtils.getExtension(path));
     }
 }
