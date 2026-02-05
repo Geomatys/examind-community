@@ -29,6 +29,7 @@ public class Collection {
     private String dataSet;
     private String filter;
     private String datasetStyle;
+    private boolean includeAll = true;
     private List<CollectionItem> data;
 
     /**
@@ -96,5 +97,19 @@ public class Collection {
             }
         }
         return null;
+    }
+
+    /**
+     * @return the includeAll
+     */
+    public boolean isIncludeAll() {
+        return includeAll;
+    }
+
+    /**
+     * @param includeAll the includeAll to set
+     */
+    public void setIncludeAll(boolean includeAll) {
+        this.includeAll = includeAll;
     }
 }

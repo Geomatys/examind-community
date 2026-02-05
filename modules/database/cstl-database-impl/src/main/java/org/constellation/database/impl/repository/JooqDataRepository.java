@@ -502,6 +502,10 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
             return DATA.NAME.likeIgnoreCase("%" + castOrThrow(key, value, String.class) + "%")
                    .or(
                    DATA.NAMESPACE.likeIgnoreCase("%" + castOrThrow(key, value, String.class) + "%"));
+        } else if ("name".equals(key)) {
+            return DATA.NAME.equal(castOrThrow(key, value, String.class));
+        } else if ("namespace".equals(key)) {
+            return DATA.NAMESPACE.equal(castOrThrow(key, value, String.class));
         } else if ("period".equals(key)) {
             return DATA.DATE.greaterOrEqual(castOrThrow(key, value, Long.class));
         } else if ("type".equals(key)) {

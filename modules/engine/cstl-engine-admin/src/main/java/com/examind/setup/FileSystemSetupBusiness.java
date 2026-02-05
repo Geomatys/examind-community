@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
-import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,6 +62,7 @@ import com.examind.dto.fs.DimensionItem;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.constellation.dto.contact.Details;
@@ -279,20 +279,40 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
             for (Collection col : instance.getCollections()) {
                 if (col.getDataSet() != null) {
-                    Integer styleId = null;
-                    if (col.getDatasetStyle() != null) {
-                        styleId = styleBusiness.getStyleId("sld", col.getDatasetStyle());
-                    }
-                    Integer dsId = datasetBusiness.getDatasetId(col.getDataSet());
+                    
+                    Integer styleId = (col.getDatasetStyle() != null) ? styleBusiness.getStyleId("sld", col.getDatasetStyle()) : null;
+                    Integer dsId    = datasetBusiness.getDatasetId(col.getDataSet());
+                    
                     if (dsId == null) {
-                        LOGGER.warning("Unable to find a dataset: " + col.getDataSet() + " for service: " + instance.getIdentifier() + " (" + instance.getType() + ")");
+                        LOGGER.log(Level.WARNING, "Unable to find a dataset: {0} for service: {1} ({2})", new Object[]{col.getDataSet(), instance.getIdentifier(), instance.getType()});
                         continue;
                     }
-                    List<DataBrief> datas = dataBusiness.getDataBriefsFromDatasetId(dsId, true, false, null, null, false, false);
+                    
+                    List<DataBrief> datas = new ArrayList<>();
+                    if (col.isIncludeAll()) {
+                        datas.addAll(dataBusiness.getDataBriefsFromDatasetId(dsId, true, false, null, null, false, false));
+                    } else {
+                        for (CollectionItem it : col.getData()) {
+                            Map filter = new HashMap();
+                            filter.put("dataset", dsId);
+                            filter.put("name", it.getName());
+                            if (it.getNamespace() != null) filter.put("namespace", it.getNamespace());
+                            
+                            Entry<Integer, List<DataBrief>> candidates = dataBusiness.filterAndGetBrief(filter, null, 1, 2);
+                            if (candidates.getKey() == 0) {
+                                LOGGER.log(Level.WARNING, "No data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
+                                continue;
+                            } else if (candidates.getKey() > 1) {
+                                LOGGER.log(Level.WARNING, "Multiple data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
+                            }
+                            datas.add(candidates.getValue().get(0));
+                        }
+                    }
+                    
                     for (DataBrief data : datas) {
                         
                         if (!isAllowedDataTypeForService(instance.getType(), data.getType(), data.getSubtype())) {
-                            LOGGER.finer("Data type: " + data.getType() + " not allowed for service: " + instance.getType());
+                            LOGGER.log(Level.FINER, "Data type: {0} not allowed for service: {1}", new Object[]{data.getType(), instance.getType()});
                             continue;
                         }
 
@@ -330,6 +350,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                             styleBusiness.linkToLayer(styleId, layerId);
                         }
                     }
+                } else {
+                    LOGGER.warning("No dataset specified in collection");
                 }
             }
         } catch (Exception ex) {
