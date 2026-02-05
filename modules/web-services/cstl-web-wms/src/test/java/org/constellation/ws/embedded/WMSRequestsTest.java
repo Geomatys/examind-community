@@ -139,6 +139,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private Long sstChecksumGeo = null;
 
     private static final String EPSG_VERSION = CRS.getVersion("EPSG").toString();
+    
+    private static final String CUSTOM_SERVER_URL = "http://myserver.com/mywms";
 
     /**
      * URLs which will be tested on the server.
@@ -695,6 +697,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
                 config2.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
+                config2.getCustomParameters().put("custom-service-url", "http://myserver.com/mywms");
 
                 int styleId1 = styleBusiness.getStyleId("sld", "default-polygon");
                 int styleId2 = styleBusiness.getStyleId("sld", "default-point-sensor");
@@ -1106,7 +1109,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetCapabilities url.
-        URL getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES_111);
+        URL getCapsUrl = URI.create("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES_111).toURL();
 
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
@@ -1188,7 +1191,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
 
-        assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?", currentUrl);
+        assertEquals(CUSTOM_SERVER_URL, currentUrl);
 
         getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES_130);
 
@@ -1224,6 +1227,26 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // Try to marshall something from the response returned by the server.
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof WMSCapabilities);
+    }
+    
+    @Test
+    @Order(order = 11)
+    public void testWMSGetCapabilitiesCustomUrl() throws JAXBException, Exception {
+        initLayerList();
+
+        // Creates a valid GetCapabilities url.
+        URL getCapsUrl = URI.create("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_111).toURL();
+        
+        // Try to marshall something from the response returned by the server.
+        // The response should be a WMT_MS_Capabilities.
+        Object obj = unmarshallResponse(getCapsUrl);
+        assertTrue("was:" + obj, obj instanceof WMT_MS_Capabilities);
+        WMT_MS_Capabilities responseCaps = (WMT_MS_Capabilities) obj;
+        
+        String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
+        
+        assertEquals(CUSTOM_SERVER_URL, currentUrl);
+        
     }
 
     @Test

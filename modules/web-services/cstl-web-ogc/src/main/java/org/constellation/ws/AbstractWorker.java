@@ -355,6 +355,10 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
      */
     @Override
     public synchronized String getServiceUrl(){
+        String csUrl = getProperty("custom-service-url");
+        if (csUrl!= null) {
+            return csUrl;
+        }
         return serviceUrl;
     }
 

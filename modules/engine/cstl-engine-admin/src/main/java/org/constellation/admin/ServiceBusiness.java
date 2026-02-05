@@ -61,6 +61,7 @@ import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.ProviderBrief;
+import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
@@ -101,7 +102,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public Integer create(final String serviceType, final String identifier, Object configuration, Details details, Integer owner)
+    public Integer create(final String serviceType, final String identifier, AbstractConfigurationObject configuration, Details details, Integer owner)
             throws ConfigurationException {
         return create(serviceType, identifier, configuration, details, owner, null);
     }
@@ -111,7 +112,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public Integer create(final String serviceType, final String identifier, Object configuration, Details details, Integer owner, String impl)
+    public Integer create(final String serviceType, final String identifier, AbstractConfigurationObject configuration, Details details, Integer owner, String impl)
             throws ConfigurationException {
 
         if (identifier == null || identifier.isEmpty()) {
@@ -337,7 +338,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Transactional
     @Override
-    public void configure(final String serviceType, final String identifier, Details details, Object configuration)
+    public void configure(final String serviceType, final String identifier, Details details, AbstractConfigurationObject configuration)
             throws ConstellationException {
         if (identifier == null || identifier.isEmpty()) {
             throw new ConfigurationException("Service instance identifier can't be null or empty.");
@@ -370,13 +371,13 @@ public class ServiceBusiness implements IServiceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getConfiguration(final String serviceType, final String identifier) throws ConfigurationException {
+    public AbstractConfigurationObject getConfiguration(final String serviceType, final String identifier) throws ConfigurationException {
         if (identifier == null || identifier.isEmpty()) {
             throw new ConfigurationException("Service instance identifier can't be null or empty.");
         }
         final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
         if (service != null) {
-            return Util.readConfigurationObject(service.getConfig(), Object.class);
+            return Util.readConfigurationObject(service.getConfig(), AbstractConfigurationObject.class);
         }
         return null;
     }
@@ -385,10 +386,10 @@ public class ServiceBusiness implements IServiceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getConfiguration(final int id) throws ConfigurationException {
+    public AbstractConfigurationObject getConfiguration(final int id) throws ConfigurationException {
         final Service service = serviceRepository.findById(id);
         if (service != null) {
-            return Util.readConfigurationObject(service.getConfig(), Object.class);
+            return Util.readConfigurationObject(service.getConfig(), AbstractConfigurationObject.class);
         }
         return null;
     }
@@ -398,7 +399,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void setConfiguration(final String serviceType, final String identifier, final Object config) throws ConfigurationException {
+    public void setConfiguration(final String serviceType, final String identifier, final AbstractConfigurationObject config) throws ConfigurationException {
         if (identifier == null || identifier.isEmpty()) {
             throw new ConfigurationException("Service instance identifier can't be null or empty.");
         }
@@ -419,7 +420,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void setConfiguration(final Integer id, final Object config) throws ConfigurationException {
+    public void setConfiguration(final Integer id, final AbstractConfigurationObject config) throws ConfigurationException {
         if (id == null) {
             throw new ConfigurationException("Service instance identifier can't be null or empty.");
         }
@@ -703,7 +704,7 @@ public class ServiceBusiness implements IServiceBusiness {
     }
 
     @Override
-    public Object getDefaultConfiguration(final String serviceType) {
+    public AbstractConfigurationObject getDefaultConfiguration(final String serviceType) {
         return switch(serviceType.toLowerCase()) {
             case "csw" ->  new Automatic();
             case "wps" -> new ProcessContext(new Processes());

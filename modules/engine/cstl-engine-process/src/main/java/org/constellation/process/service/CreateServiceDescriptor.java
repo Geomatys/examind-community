@@ -19,7 +19,6 @@
 package org.constellation.process.service;
 
 import org.apache.sis.util.SimpleInternationalString;
-import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.ExamindProcessFactory;
 import org.opengis.parameter.ParameterDescriptor;
@@ -45,11 +44,11 @@ public class CreateServiceDescriptor extends AbstractServiceDescriptor {
 
     public static final String OUT_CONFIG_NAME = "out_configuration";
     private static final String OUT_CONFIG_REMARKS = "The configuration object for the new instance.";
-    public static final ParameterDescriptor<AbstractConfigurationObject> OUT_CONFIGURATION = BUILDER
+    public static final ParameterDescriptor<Object> OUT_CONFIGURATION = BUILDER
             .addName(OUT_CONFIG_NAME)
             .setRemarks(OUT_CONFIG_REMARKS)
             .setRequired(false)
-            .create(AbstractConfigurationObject.class, null);
+            .create(Object.class, null);
 
     /**Output parameters */
     public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)

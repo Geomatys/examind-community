@@ -195,6 +195,14 @@ public class ProcessContext extends AbstractConfigurationObject {
         }
         return null;
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setProperty(String key, String value) {
+        customParameters.put(key, value);
+    }
 
     /**
      * @return the customParameters

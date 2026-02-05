@@ -52,4 +52,13 @@ public abstract class AbstractConfigurationObject {
      */
    public abstract String getProperty(String key);
    
+    /**
+     * Set a named property. 
+     *
+     * @param key name of the property we look for.
+     * @param value the new value for property
+     *
+     */
+   public abstract void setProperty(String key, String value);
+   
 }

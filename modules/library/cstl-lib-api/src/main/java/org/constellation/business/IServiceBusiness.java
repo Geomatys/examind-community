@@ -28,6 +28,7 @@ import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.dto.service.config.AbstractConfigurationObject;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -53,7 +54,7 @@ public interface IServiceBusiness {
      *
      * @throws ConfigurationException if the operation has failed for any reason
      */
-    void configure(String serviceType, String identifier, Details serviceMetadata, Object configuration) throws ConstellationException;
+    void configure(String serviceType, String identifier, Details serviceMetadata, AbstractConfigurationObject configuration) throws ConstellationException;
 
     /**
      * Starts a service instance.
@@ -121,21 +122,21 @@ public interface IServiceBusiness {
      * @param serviceType The service type (WMS, WFS, ...)
      * @param identifier the service name.
      *
-     * @return a configuration {@link Object} (depending on implementation)
+     * @return a configuration {@link AbstractConfigurationObject} (depending on implementation)
      * @throws ConfigurationException
      *             if the operation has failed for any reason
      */
-    Object getConfiguration(String serviceType, String identifier) throws ConfigurationException;
+    AbstractConfigurationObject getConfiguration(String serviceType, String identifier) throws ConfigurationException;
 
     /**
      * Returns the configuration object of a service instance.
      *
      * @param id The service identifier.
      *
-     * @return a configuration {@link Object} (depending on implementation)
+     * @return a configuration {@link AbstractConfigurationObject} (depending on implementation)
      * @throws ConfigurationException if the operation has failed for any reason
      */
-    Object getConfiguration(int id) throws ConfigurationException;
+    AbstractConfigurationObject getConfiguration(int id) throws ConfigurationException;
 
     /**
      * Update the configuration object of a service instance.
@@ -146,7 +147,7 @@ public interface IServiceBusiness {
      *
      * @throws ConfigurationException if the operation has failed for any reason
      */
-    void setConfiguration(String serviceType, String identifier, Object configuration) throws ConfigurationException;
+    void setConfiguration(String serviceType, String identifier, AbstractConfigurationObject configuration) throws ConfigurationException;
 
     /**
      * Update the configuration object of a service instance.
@@ -156,7 +157,7 @@ public interface IServiceBusiness {
      *
      * @throws ConfigurationException if the operation has failed for any reason
      */
-    void setConfiguration(Integer serviceId, Object configuration) throws ConfigurationException;
+    void setConfiguration(Integer serviceId, AbstractConfigurationObject configuration) throws ConfigurationException;
 
     /**
      * Create a new service instance from input information.
@@ -169,7 +170,7 @@ public interface IServiceBusiness {
      * @return The configuration object of this service (can be auto generated).
      * @throws ConfigurationException
      */
-    Integer create(String serviceType, String identifier, Object configuration, Details serviceMetadata, Integer owner) throws ConfigurationException;
+    Integer create(String serviceType, String identifier, AbstractConfigurationObject configuration, Details serviceMetadata, Integer owner) throws ConfigurationException;
 
     /**
      * Create a new service instance from input information.
@@ -183,7 +184,7 @@ public interface IServiceBusiness {
      * @return The configuration object of this service (can be auto generated).
      * @throws ConfigurationException
      */
-    Integer create(String serviceType, String identifier, Object configuration, Details serviceMetadata, Integer owner, String impl) throws ConfigurationException;
+    Integer create(String serviceType, String identifier, AbstractConfigurationObject configuration, Details serviceMetadata, Integer owner, String impl) throws ConfigurationException;
 
     List<String> getServiceIdentifiers(String type);
 

@@ -66,8 +66,8 @@ import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.constellation.dto.contact.Details;
+import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
@@ -191,8 +191,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             if ("STS".equalsIgnoreCase(instance.getType())) {
                 boolean directProvider = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("direct-provider", "false"));
                 if (directProvider) {
-                    SOSConfiguration conf = (SOSConfiguration) serviceBusiness.getConfiguration(sid);
-                    conf.getParameters().put("directProvider", "true");
+                    AbstractConfigurationObject conf = serviceBusiness.getConfiguration(sid);
+                    conf.setProperty("directProvider", "true");
                     serviceBusiness.setConfiguration(sid, conf);
                 }
                 
@@ -235,7 +235,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     Automatic conf = (Automatic) serviceBusiness.getConfiguration(sid);
                     for (Entry<String, String> entry : instance.getAdvancedParameters().entrySet()) {
                         if (CSW_SERVICE_CONFIGURATION_PARAMETERS.contains(entry.getKey())) {
-                            conf.getCustomparameters().put(entry.getKey(), entry.getValue());
+                            conf.setProperty(entry.getKey(), entry.getValue());
                             if (entry.getKey().equals("partial")) {
                                 partial = Boolean.parseBoolean(entry.getValue());
                             }
@@ -248,7 +248,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
                     // force partial for filesystem CSW
                     if (instance.getAdvancedParameters().containsKey("dataDirectory")) {
-                        conf.getCustomparameters().put("partial", "true");
+                        conf.setProperty("partial", "true");
                         partial = false;
                     }
                     serviceBusiness.setConfiguration(sid, conf);
@@ -273,6 +273,13 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     conf.setProcesses(new Processes(false, factories));
                     serviceBusiness.setConfiguration(sid, conf);
                 }
+            
+            } else {
+                AbstractConfigurationObject conf = serviceBusiness.getConfiguration(sid);
+                for (Entry<String, String> entry : instance.getAdvancedParameters().entrySet()) {
+                    conf.setProperty(entry.getKey(), entry.getValue());
+                }
+                serviceBusiness.setConfiguration(sid, conf);
             }
 
             serviceBusiness.start(sid);

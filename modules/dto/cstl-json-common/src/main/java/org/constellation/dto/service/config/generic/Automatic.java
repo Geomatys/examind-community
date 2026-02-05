@@ -368,6 +368,14 @@ public class Automatic extends AbstractConfigurationObject {
         return getParameter(key);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setProperty(String key, String value) {
+        putParameter(key, value);
+    }
+    
     public String getParameter(final String key) {
         if (customparameters == null) {
             customparameters = new HashMap<>();

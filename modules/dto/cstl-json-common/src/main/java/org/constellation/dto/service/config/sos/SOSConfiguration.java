@@ -271,6 +271,17 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     public String getProperty(final String propertyName) {
         return getParameter(propertyName);
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setProperty(String key, String value) {
+        if (parameters == null) {
+            this.parameters = new HashMap<>();
+        }
+        parameters.put(key, value);
+    }
 
     public String getParameter(final String name) {
         if (parameters != null) {

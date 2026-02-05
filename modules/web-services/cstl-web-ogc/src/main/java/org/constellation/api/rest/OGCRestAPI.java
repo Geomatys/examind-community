@@ -340,7 +340,7 @@ public class OGCRestAPI extends AbstractRestAPI {
         if (readOnlyAPI) return readOnlyModeActivated();
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
-            final Object config = serviceBusiness.getConfiguration(serviceType, id);
+            final AbstractConfigurationObject config = serviceBusiness.getConfiguration(serviceType, id);
             serviceBusiness.configure(serviceType, id, metadata, config);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" details successfully updated."), OK);
         } catch (Exception ex) {

@@ -20,6 +20,7 @@ package org.constellation.process.service;
 
 import org.constellation.exception.ConstellationException;
 import org.constellation.dto.contact.Details;
+import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
@@ -50,13 +51,17 @@ public class SetConfigService extends AbstractServiceProcess {
     @Override
     protected void execute() throws ProcessException {
 
-        final String serviceType       = inputParameters.getValue(SERVICE_TYPE);
-        final String identifier        = inputParameters.getValue(IDENTIFIER);
-        Object configuration           = inputParameters.getValue(CONFIGURATION);
-        final Details serviceMetadata  = inputParameters.getValue(SERVICE_METADATA);
+        final String serviceType                  = inputParameters.getValue(SERVICE_TYPE);
+        final String identifier                   = inputParameters.getValue(IDENTIFIER);
+        final Object configuration                = inputParameters.getValue(CONFIGURATION);
+        final Details serviceMetadata             = inputParameters.getValue(SERVICE_METADATA);
 
         try {
-            serviceBusiness.configure(serviceType.toLowerCase(), identifier, serviceMetadata, configuration);
+            if (configuration instanceof AbstractConfigurationObject cf) {
+                serviceBusiness.configure(serviceType.toLowerCase(), identifier, serviceMetadata, cf);
+            } else {
+                throw new ProcessException("Unallowed configuration Object", this);
+            }
         } catch (ConstellationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
