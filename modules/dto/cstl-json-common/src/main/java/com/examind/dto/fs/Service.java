@@ -20,6 +20,7 @@ package com.examind.dto.fs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.constellation.dto.contact.Details;
 
 /**
  *
@@ -27,13 +28,11 @@ import java.util.Map;
  */
 public class Service {
     
-    private String name;
-
     private String identifier;
 
     private String type;
     
-    private List<String> versions;
+    private Details metadata;
     
     private List<Collection> collections;
     
@@ -43,20 +42,6 @@ public class Service {
 
     private Datasource source;
     
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
     /**
      * @return the identifier
      */
@@ -83,20 +68,6 @@ public class Service {
      */
     public void setType(String type) {
         this.type = type;
-    }
-
-    /**
-     * @return the versions
-     */
-    public List<String> getVersions() {
-        return versions;
-    }
-
-    /**
-     * @param versions the versions to set
-     */
-    public void setVersions(List<String> versions) {
-        this.versions = versions;
     }
 
     /**
@@ -158,5 +129,19 @@ public class Service {
      */
     public void setSource(Datasource source) {
         this.source = source;
+    }
+
+    /**
+     * @return the serviceMetada
+     */
+    public Details getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * @param serviceMetada the serviceMetada to set
+     */
+    public void setMetadata(Details serviceMetada) {
+        this.metadata = serviceMetada;
     }
 }

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
+import org.constellation.dto.contact.Details;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -35,9 +36,11 @@ public class FsConfigTest {
     public void cannotRemoveBadDirectory() throws IOException {
         Service s = new Service();
         s.setIdentifier("wms1");
-        s.setName("WMS 1");
         s.setType("WMS");
-        s.setVersions(List.of("1.1.1", "1.3.0"));
+        Details metadata = new Details();
+        metadata.setName("WMS 1");
+        metadata.setVersions(List.of("1.1.1", "1.3.0"));
+        s.setMetadata(metadata);
         
         Collection c = new Collection();
         c.setDataSet("ds1");
@@ -56,16 +59,25 @@ public class FsConfigTest {
         
         String expected = """
                           ---
-                          name: "WMS 1"
                           identifier: "wms1"
                           type: "WMS"
-                          versions:
-                          - "1.1.1"
-                          - "1.3.0"
+                          metadata:
+                            name: "WMS 1"
+                            identifier: null
+                            keywords: null
+                            description: null
+                            versions:
+                            - "1.1.1"
+                            - "1.3.0"
+                            lang: null
+                            serviceContact: null
+                            serviceConstraints: null
+                            transactional: false
                           collections:
                           - dataSet: "ds1"
                             filter: null
                             datasetStyle: "style_ds_1"
+                            includeAll: true
                             data:
                             - name: "data1_nm"
                               namespace: "data2_nmsp"

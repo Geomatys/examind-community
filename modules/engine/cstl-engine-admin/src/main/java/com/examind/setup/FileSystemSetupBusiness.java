@@ -65,6 +65,7 @@ import com.examind.dto.fs.Service;
 import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
@@ -181,8 +182,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             if (serviceBusiness.getServiceIdentifiers(instance.getType()).contains(instance.getIdentifier())) {
                 throw new ConfigurationException("Service identifier: " + instance.getIdentifier() + "(" +  instance.getType() + ") already used");
             }
-            int sid = serviceBusiness.create(instance.getType(), instance.getIdentifier(), null, null, null);
-
+            
+            Details metadata = instance.getMetadata();
+            metadata.setIdentifier(instance.getIdentifier());
+            int sid = serviceBusiness.create(instance.getType(), instance.getIdentifier(), null, metadata, null);
+            
             // special case
             if ("STS".equalsIgnoreCase(instance.getType())) {
                 boolean directProvider = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("direct-provider", "false"));
