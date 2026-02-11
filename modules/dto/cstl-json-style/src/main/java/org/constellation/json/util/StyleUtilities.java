@@ -133,6 +133,7 @@ public final class StyleUtilities extends Static {
      * Parse given string as CQL and returns Expression.
      */
     public static Expression parseExpression(final String exp) {
+        if (exp == null) return nil();
         try{
             return CQL.parseExpression(exp);
         } catch (CQLException ex) {
