@@ -414,11 +414,18 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
     /**
      * GET /collections/{collectionId}/schema
      *
+     * @param collectionId the collection identifier
+     * @param subset       the subset of dimensions to include in the response, separated by comma (e.g. "t,d").
+     *                     Not standard, but useful to reduce the size of the response when only a subset of dimensions is needed
+     *                     (Only used if force-calculate-stats is true)
+     * @param forceCalculateStatistics force the calculation of the statistics by SIS (if not we use the metadata). Only work for 2D Slice (lat/lon)
      * @return coverage schema information
      */
     @RequestMapping(value = "/collections/{collectionId}/schema", method = RequestMethod.GET)
     public ResponseEntity coverageSchema(@PathVariable("serviceId") String serviceId,
                                             @PathVariable(value = "collectionId") String collectionId,
+                                            @RequestParam(name = "subset", required = false) String subset, // Not standard, but useful to reduce the size of the response when only a subset of dimensions is needed
+                                            @RequestParam(name = "force-calculate-stats", required = false, defaultValue = "false") boolean forceCalculateStatistics, // Not standard, but useful to force the calculation of the statistics
                                             @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) throws ConstellationException {
 
         putServiceIdParam(serviceId);
@@ -426,8 +433,13 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
 
         if (worker != null) {
             try {
+                List<String> subsetData = new ArrayList<>();
+                if (subset != null && !subset.isEmpty()) {
+                    subsetData = Arrays.stream(subset.split(",")).toList();
+                }
+
                 // if the layer does not exist an exception will be thrown
-                Schema response = worker.getSchema(collectionId);
+                Schema response = worker.getSchema(collectionId, subsetData, forceCalculateStatistics);
 
                 return new ResponseObject(response, format).getResponseEntity();
 

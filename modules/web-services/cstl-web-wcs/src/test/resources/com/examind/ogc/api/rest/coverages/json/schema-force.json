@@ -7,21 +7,36 @@
       "title" : "Red",
       "description" : "Band 0 - Red",
       "type" : "number",
-      "x-ogc-statistics" : { },
+      "x-ogc-statistics" : {
+        "min" : 0.0,
+        "max" : 255.0,
+        "mean" : 46.6775153095676,
+        "stdDev" : 40.56033565740449
+      },
       "x-ogc-propertySeq" : 1
     },
     "Green" : {
       "title" : "Green",
       "description" : "Band 1 - Green",
       "type" : "number",
-      "x-ogc-statistics" : { },
+      "x-ogc-statistics" : {
+        "min" : 0.0,
+        "max" : 255.0,
+        "mean" : 71.62365240878292,
+        "stdDev" : 51.83550650516462
+      },
       "x-ogc-propertySeq" : 2
     },
     "Blue" : {
       "title" : "Blue",
       "description" : "Band 2 - Blue",
       "type" : "number",
-      "x-ogc-statistics" : { },
+      "x-ogc-statistics" : {
+        "min" : 0.0,
+        "max" : 255.0,
+        "mean" : 96.32036288914243,
+        "stdDev" : 64.58910872429199
+      },
       "x-ogc-propertySeq" : 3
     }
   }

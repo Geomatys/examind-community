@@ -52,7 +52,7 @@ public interface WCSWorker extends Worker{
 
     DataRecord getDataRecord(String collectionId) throws CstlServiceException;
 
-    Schema getSchema(String collectionId) throws CstlServiceException;
+    Schema getSchema(String collectionId, List<String> subsetData, boolean forceCalculateStatistics) throws CstlServiceException;
 
     List<String> getDimensionsNames(String collectionId) throws CstlServiceException;
 }

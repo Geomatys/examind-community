@@ -38,6 +38,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -72,6 +73,7 @@ import org.apache.sis.image.Interpolation;
 import org.apache.sis.math.Statistics;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.measure.Units;
+import org.apache.sis.metadata.iso.content.DefaultSampleDimension;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -156,6 +158,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 import org.constellation.util.Util;
 import org.constellation.util.CRSUtilities;
 import org.geotoolkit.gml.xml.v311.RectifiedGridType;
+import org.geotoolkit.metadata.MetadataUtilities;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
@@ -212,8 +215,13 @@ import org.geotoolkit.wcs.xml.v200.DimensionSliceType;
 import org.geotoolkit.wcs.xml.v200.DimensionTrimType;
 import org.geotoolkit.wcs.xml.v200.ExtensionType;
 import org.geotoolkit.wcs.xml.v200.ServiceParametersType;
+import org.opengis.coverage.CannotEvaluateException;
 import org.opengis.coverage.grid.RectifiedGrid;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Metadata;
+import org.opengis.metadata.content.AttributeGroup;
+import org.opengis.metadata.content.CoverageDescription;
+import org.opengis.metadata.content.RangeDimension;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.spatial.DimensionNameType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -246,6 +254,8 @@ import org.springframework.stereotype.Component;
 @Component("WCSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
+
+    private final String DATA_CRS_ARG = "dataDefault";
 
     public DefaultWCSWorker(final String id) {
         super(id, ServiceDef.Specification.WCS);
@@ -1281,85 +1291,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             processBbox(readEnv, bbox);
             GridGeometry originGeometry = data.getGeometry();
 
-            /*
-             * Subset Data can be :
-             * - axisName(80)
-             * - axisName(80:90)
-             * - axisName("2022-10-11T10:00:00Z":"2022-10-13T10:00:00Z")
-             * - axisName("2022-10-11T10:00:00Z")
-             */
-            for(String subsetString : subsetData) {
-                String[] split = subsetString.split("\\(",2);
-                String axisName = split[0];
-                String valuesString = split[1].replace(")", "");
-
-                List<String> values = new ArrayList<>();
-                Pattern pattern = Pattern.compile("\"[^\"]*\"|[^:]+");
-                Matcher matcher = pattern.matcher(valuesString);
-
-                while (matcher.find()) {
-                    values.add(matcher.group().replace("\"", ""));
-                }
-
-                if (values.size() >= 3) { //Not supported
-                    throw new CstlServiceException("This subset is not valid (only support slicing [value] or simple subset [value1:value2].", INVALID_SUBSETTING);
-                }
-
-                Integer axisID = null;
-                for (int i = 0; i < crs.getCoordinateSystem().getDimension(); i++) {
-                    CoordinateSystemAxis axis = crs.getCoordinateSystem().getAxis(i);
-                    if (axisName.equalsIgnoreCase(axis.getAbbreviation())) {
-                        axisID = i;
-                        break;
-                    }
-                }
-                if (axisID == null) {
-                    throw new CstlServiceException("This subset is not valid, axis doesn't exist : " + axisName, INVALID_SUBSETTING);
-                }
-
-                DimensionNameType axisType = originGeometry.getExtent().getAxisType(axisID).orElse(null);
-                CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(axisID);
-                AxisDirection axisDirection = csa.getDirection();
-                double minVal = readEnv.getMinimum(axisID);
-                double maxVal = readEnv.getMaximum(axisID);
-                double firstValue = 0.0;
-                double secondValue = 0.0;
-
-                if (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || axisName.equalsIgnoreCase("time")) {
-                    TemporalCRS temporalCRS = CRS.getTemporalComponent(crs);
-
-                    if (temporalCRS == null) {
-                        throw new CstlServiceException("No temporal CRS found for axisName : " + axisName, INVALID_SUBSETTING);
-                    }
-
-                    DefaultTemporalCRS defaultTemporalCRS = DefaultTemporalCRS.castOrCopy(temporalCRS);
-
-                    if (values.size() == 1) { //In case of slice
-                        Instant datetime = Instant.parse(values.get(0));
-                        firstValue = defaultTemporalCRS.toValue(datetime);
-                        secondValue = firstValue;
-                    } else if (values.size() == 2) { //In case of subset
-                        Instant datetime = Instant.parse(values.get(0));
-                        firstValue = defaultTemporalCRS.toValue(datetime);
-                        datetime = Instant.parse(values.get(1));
-                        secondValue = defaultTemporalCRS.toValue(datetime);
-                    }
-                } else {
-                    if (values.size() == 1) { //In case of slice
-                        firstValue = Double.parseDouble(values.get(0));
-                        secondValue = firstValue;
-                    } else if (values.size() == 2) { //In case of subset
-                        firstValue = Double.parseDouble(values.get(0));
-                        secondValue = Double.parseDouble(values.get(1));
-                    }
-                }
-
-                if ((firstValue < minVal || firstValue > maxVal) && (secondValue < minVal || secondValue > maxVal)) {
-                    throw new CstlServiceException("Subsetting params overlap the envelope extent: " + axisName + "(" + minVal + "/" + maxVal + ") for value: " + firstValue + "/" + secondValue ,
-                            INVALID_SUBSETTING);
-                }
-                readEnv.setRange(axisID, firstValue, secondValue);
-            }
+            applySubsettingToEnvelope(readEnv, subsetData, originGeometry);
 
             /////////////////////////////////////////////////////////////////////////////////
 
@@ -1778,56 +1710,135 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             }
 
         } catch (ConstellationStoreException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+            throw new CstlServiceException("Error while getting the data record", ex, NO_APPLICABLE_CODE);
         }
 
         return new DataRecord(dataRecordFields);
     }
 
+    /**
+     * Get the schema of the coverage, with statistics for each band.
+     * @param collectionId the coverage name
+     * @param subsetData the subsetting parameters, used only if forceCalculate is true
+     * @param forceCalculateStatistics force the calculation of statistics by SIS (if false, we will try to get statistics from metadata)
+     *                                 (Only work for 2D slices)
+     * @return the schema of the coverage with statistics for each band
+     * @throws CstlServiceException Error while getting the schema of the coverage
+     */
     @Override
-    public Schema getSchema(String collectionId) throws CstlServiceException {
-        CoverageData data = getCoverageData(collectionId);
-
+    public Schema getSchema(String collectionId, List<String> subsetData, boolean forceCalculateStatistics) throws CstlServiceException {
         Map<String, PropertyBand> propertyMap = new LinkedHashMap<>();
         Map<String, Integer> nameCounter = new HashMap<>();
 
+        // No subset Data or 2D data : check if statistics in metatata, if not calculate statistics
+        // Subset Data over ND : if => 2D
+
+        final CoverageData data = getCoverageData(collectionId);
+        final GridCoverageResource origin = data.getOrigin();
+
+        List<SampleDimension> sampleDimensions;
         try {
-            RenderedImage imageStatistics = new ImageProcessor().statistics(data.getCoverage(null, null).render(null), null, null);
-            Statistics[] statistics = (Statistics[]) imageStatistics.getProperty("org.apache.sis.Statistics");
+            sampleDimensions = data.getSampleDimensions();
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException("Error while getting the sample dimensions of the coverage.", ex, NO_APPLICABLE_CODE);
+        }
 
-            List<SampleDimension> sampleDimensions = data.getSampleDimensions();
+        RangeStatistics[] rangeStatisticsList = new RangeStatistics[sampleDimensions.size()];
 
-            // Pre-calculate totals to decide if suffixes are needed for duplicate names
-            // e.g., "Band_1", "Band_2", etc.
-            Map<String, Long> totals = sampleDimensions.stream().collect(Collectors.groupingBy(s -> s.getName().toString(), Collectors.counting()));
+        // Statistics from metadata
+        if (!forceCalculateStatistics) {
+            try {
+                final Metadata metadata = origin.getMetadata();
+                List<CoverageDescription> cdList = MetadataUtilities.extractCoverageDescription(metadata).toList();
+                if (!cdList.isEmpty()) {
+                    Iterator<? extends AttributeGroup> attributeGroupsIterator = cdList.get(0).getAttributeGroups().iterator();
+                    if (attributeGroupsIterator.hasNext()) {
+                        int i = 0;
+                        for (RangeDimension rd : attributeGroupsIterator.next().getAttributes()) {
+                            if (rd instanceof DefaultSampleDimension dsd) {
 
+                                // TODO : Manage the case where statistics are not in the same order as sample dimensions
+                                // Should not be the case in most cases
+                                RangeStatistics stat = new RangeStatistics(
+                                        dsd.getMinValue(),
+                                        dsd.getMaxValue(),
+                                        dsd.getMeanValue(),
+                                        dsd.getStandardDeviation());
+                                rangeStatisticsList[i] = stat;
+                            }
+                            i++;
+                        }
+                    }
+                }
+            } catch (DataStoreException ex) {
+                throw new CstlServiceException("Error while reading coverage metadata to get statistics.", ex, NO_APPLICABLE_CODE);
+            }
+        // Statistics from SIS calculation (only for 2D slices, if not 2D it will not work)
+        } else {
+            try {
+                GeneralEnvelope readEnv = getGeneralEnvelope(data, DATA_CRS_ARG);
+                GridGeometry originGeometry = data.getGeometry();
 
-            for (int i = 0; i < sampleDimensions.size(); i++) {
-                SampleDimension smp = sampleDimensions.get(i);
-                String baseName = smp.getName().toString();
-                String baseDescription = "Band " + (i) + " - " + baseName;
+                applySubsettingToEnvelope(readEnv, subsetData, originGeometry);
 
-                // Generate unique key
-                String uniqueKey = baseName;
-                if (totals.get(baseName) > 1) {
-                    int index = nameCounter.getOrDefault(baseName, 0);
-                    uniqueKey = baseName + "_" + index;
-                    nameCounter.put(baseName, index + 1);
+                GridGeometry readGg = getGridGeometry(data, readEnv);
+                GridCoverage gridCoverageSource = null;
+                try {
+                    var processor = new ResourceProcessor();
+                    processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+
+                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
+                    gridCoverageSource = coverageResourceResampled.read(readGg);
+                } catch (Exception ex) {
+                    throw new CstlServiceException("Error while resampling the coverage to calculate statistics.", ex, NO_APPLICABLE_CODE);
                 }
 
-                // Create the PropertyBand
-                RangeStatistics stat = new RangeStatistics(
-                        statistics[i].minimum(),
-                        statistics[i].maximum(),
-                        statistics[i].mean(),
-                        statistics[i].standardDeviation(true));
+                RenderedImage renderedImage;
+                try {
+                    renderedImage = gridCoverageSource.render(null);
+                } catch (CannotEvaluateException ex) {
+                    throw new CstlServiceException("Error while rendering the coverage to calculate statistics. " +
+                            "The calculation needs to be done on 2D slices (check your subset parameter)." +
+                            "Or the coverage may be too big for this operation.", ex, NO_APPLICABLE_CODE);
+                }
 
-                PropertyBand pb = new PropertyBand(baseName, baseDescription, null, null, stat, i+1);
+                RenderedImage imageStatistics = new ImageProcessor().statistics(renderedImage, null);
+                Statistics[] statistics = (Statistics[]) imageStatistics.getProperty("org.apache.sis.Statistics");
 
-                propertyMap.put(uniqueKey, pb);
+                for (int i = 0; i < statistics.length; i++) {
+                    RangeStatistics stat = new RangeStatistics(
+                            statistics[i].minimum(),
+                            statistics[i].maximum(),
+                            statistics[i].mean(),
+                            statistics[i].standardDeviation(true));
+                    rangeStatisticsList[i] = stat;
+                }
+
+            } catch (ConstellationStoreException ex) {
+                throw new CstlServiceException("Error while creating the schema", ex, NO_APPLICABLE_CODE);
             }
-        } catch (ConstellationStoreException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
+
+        // Pre-calculate totals to decide if suffixes are needed for duplicate names
+        // e.g., "Band_1", "Band_2", etc.
+        Map<String, Long> totals = sampleDimensions.stream().collect(Collectors.groupingBy(s -> s.getName().toString(), Collectors.counting()));
+
+        for (int i = 0; i < sampleDimensions.size(); i++) {
+            SampleDimension smp = sampleDimensions.get(i);
+            String baseName = smp.getName().toString();
+            String baseDescription = "Band " + (i) + " - " + baseName;
+
+            // Generate unique key
+            String uniqueKey = baseName;
+            if (totals.get(baseName) > 1) {
+                int index = nameCounter.getOrDefault(baseName, 0);
+                uniqueKey = baseName + "_" + index;
+                nameCounter.put(baseName, index + 1);
+            }
+
+            PropertyBand pb = new PropertyBand(baseName, baseDescription, null, null, rangeStatisticsList[i], i+1);
+
+            propertyMap.put(uniqueKey, pb);
         }
 
         return new Schema(collectionId, propertyMap);
@@ -1887,7 +1898,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             }
 
             //We keep the data crs
-            if (bboxCrs != null && bboxCrs.equalsIgnoreCase("dataDefault")) {
+            if (bboxCrs != null && bboxCrs.equalsIgnoreCase(DATA_CRS_ARG)) {
                 return readEnv;
             }
             CoordinateReferenceSystem bboxCrsData = Extent.getCrsFromName(bboxCrs);
@@ -2023,6 +2034,90 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             return base;
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
+    }
+
+    private void applySubsettingToEnvelope(GeneralEnvelope readEnv, List<String> subsetData, GridGeometry originGeometry) throws CstlServiceException {
+        CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
+
+        /*
+         * Subset Data can be :
+         * - axisName(80)
+         * - axisName(80:90)
+         * - axisName("2022-10-11T10:00:00Z":"2022-10-13T10:00:00Z")
+         * - axisName("2022-10-11T10:00:00Z")
+         */
+        for(String subsetString : subsetData) {
+            String[] split = subsetString.split("\\(",2);
+            String axisName = split[0];
+            String valuesString = split[1].replace(")", "");
+
+            List<String> values = new ArrayList<>();
+            Pattern pattern = Pattern.compile("\"[^\"]*\"|[^:]+");
+            Matcher matcher = pattern.matcher(valuesString);
+
+            while (matcher.find()) {
+                values.add(matcher.group().replace("\"", ""));
+            }
+
+            if (values.size() >= 3) { //Not supported
+                throw new CstlServiceException("This subset is not valid (only support slicing [value] or simple subset [value1:value2].", INVALID_SUBSETTING);
+            }
+
+            Integer axisID = null;
+            for (int i = 0; i < crs.getCoordinateSystem().getDimension(); i++) {
+                CoordinateSystemAxis axis = crs.getCoordinateSystem().getAxis(i);
+                if (axisName.equalsIgnoreCase(axis.getAbbreviation())) {
+                    axisID = i;
+                    break;
+                }
+            }
+            if (axisID == null) {
+                throw new CstlServiceException("This subset is not valid, axis doesn't exist : " + axisName, INVALID_SUBSETTING);
+            }
+
+            DimensionNameType axisType = originGeometry.getExtent().getAxisType(axisID).orElse(null);
+            CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(axisID);
+            AxisDirection axisDirection = csa.getDirection();
+            double minVal = readEnv.getMinimum(axisID);
+            double maxVal = readEnv.getMaximum(axisID);
+            double firstValue = 0.0;
+            double secondValue = 0.0;
+
+            if (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || axisName.equalsIgnoreCase("time")) {
+                TemporalCRS temporalCRS = CRS.getTemporalComponent(crs);
+
+                if (temporalCRS == null) {
+                    throw new CstlServiceException("No temporal CRS found for axisName : " + axisName, INVALID_SUBSETTING);
+                }
+
+                DefaultTemporalCRS defaultTemporalCRS = DefaultTemporalCRS.castOrCopy(temporalCRS);
+
+                if (values.size() == 1) { //In case of slice
+                    Instant datetime = Instant.parse(values.get(0));
+                    firstValue = defaultTemporalCRS.toValue(datetime);
+                    secondValue = firstValue;
+                } else if (values.size() == 2) { //In case of subset
+                    Instant datetime = Instant.parse(values.get(0));
+                    firstValue = defaultTemporalCRS.toValue(datetime);
+                    datetime = Instant.parse(values.get(1));
+                    secondValue = defaultTemporalCRS.toValue(datetime);
+                }
+            } else {
+                if (values.size() == 1) { //In case of slice
+                    firstValue = Double.parseDouble(values.get(0));
+                    secondValue = firstValue;
+                } else if (values.size() == 2) { //In case of subset
+                    firstValue = Double.parseDouble(values.get(0));
+                    secondValue = Double.parseDouble(values.get(1));
+                }
+            }
+
+            if ((firstValue < minVal || firstValue > maxVal) && (secondValue < minVal || secondValue > maxVal)) {
+                throw new CstlServiceException("Subsetting params overlap the envelope extent: " + axisName + "(" + minVal + "/" + maxVal + ") for value: " + firstValue + "/" + secondValue ,
+                        INVALID_SUBSETTING);
+            }
+            readEnv.setRange(axisID, firstValue, secondValue);
         }
     }
 

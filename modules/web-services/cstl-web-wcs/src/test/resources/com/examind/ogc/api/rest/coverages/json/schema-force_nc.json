@@ -1,0 +1,19 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "type" : "object",
+  "title" : "test_netcdf",
+  "properties" : {
+    "SST" : {
+      "title" : "SST",
+      "description" : "Band 0 - SST",
+      "type" : "number",
+      "x-ogc-statistics" : {
+        "min" : 271.31561279296875,
+        "max" : 306.6756286621094,
+        "mean" : 285.91009088545945,
+        "stdDev" : 11.793157437059559
+      },
+      "x-ogc-propertySeq" : 1
+    }
+  }
+}

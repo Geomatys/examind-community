@@ -16,6 +16,45 @@
   } ],
   "collections" : [ {
     "links" : [ {
+      "href" : "http://localhost:9090/WS/coverage/default/collections/test_netcdf/coverage",
+      "rel" : "items",
+      "type" : "image/tiff",
+      "hreflang" : null,
+      "title" : "test_netcdf",
+      "length" : null
+    }, {
+      "href" : "http://localhost:9090/WS/coverage/default/collections/test_netcdf/coverage?f=image/tiff",
+      "rel" : "items",
+      "type" : "image/tiff",
+      "hreflang" : null,
+      "title" : "test_netcdf",
+      "length" : null
+    }, {
+      "href" : "http://localhost:9090/WS/coverage/default/collections/test_netcdf/coverage?f=application/x-netcdf",
+      "rel" : "items",
+      "type" : "application/x-netcdf",
+      "hreflang" : null,
+      "title" : "test_netcdf",
+      "length" : null
+    } ],
+    "id" : "test_netcdf",
+    "name" : "test_netcdf",
+    "title" : "test_netcdf",
+    "extent" : {
+      "srs" : "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/OGC/1.3/CRS84&2=hours since 1992-1-1",
+      "crs" : "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+      "spatial" : {
+        "bbox" : [ [ -180.0, -90.0, 180.0, 90.0 ] ]
+      },
+      "trs" : "hours since 1992-1-1",
+      "temporal" : {
+        "interval" : [ [ "1970-01-01T01:00:00.000Z", "1970-01-01T01:00:00.000Z" ] ]
+      }
+    },
+    "crs" : [ "http://www.opengis.net/def/crs/OGC/1.3/CRS84", "Unknown datum based upon the GRS 1980 ellipsoid" ],
+    "storageCrs" : "Unknown datum based upon the GRS 1980 ellipsoid"
+  }, {
+    "links" : [ {
       "href" : "http://localhost:9090/WS/coverage/default/collections/test_tif/coverage",
       "rel" : "items",
       "type" : "image/tiff",

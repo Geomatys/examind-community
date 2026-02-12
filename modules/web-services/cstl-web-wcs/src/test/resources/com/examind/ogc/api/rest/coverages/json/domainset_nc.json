@@ -1,0 +1,51 @@
+{
+  "type" : "DomainSet",
+  "generalGrid" : {
+    "type" : "GeneralGridCoverage",
+    "srsName" : "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/OGC/1.3/CRS84&2=hours since 1992-1-1",
+    "axisLabels" : [ "lon", "lat", "t" ],
+    "axis" : [ {
+      "type" : "RegularAxis",
+      "axisLabel" : "lon",
+      "lowerBound" : -180.0,
+      "upperBound" : 185.0,
+      "uomLabel" : "degré",
+      "resolution" : 5.0
+    }, {
+      "type" : "RegularAxis",
+      "axisLabel" : "lat",
+      "lowerBound" : -90.0,
+      "upperBound" : 92.50000000008178,
+      "uomLabel" : "degré",
+      "resolution" : 2.5
+    }, {
+      "type" : "IrregularAxis",
+      "axisLabel" : "t",
+      "lowerBound" : "1970-01-01T00:00:00",
+      "upperBound" : "1970-01-01T00:00:00",
+      "uomLabel" : "heure",
+      "coordinate" : [ "1970-01-01T00:00:00" ]
+    } ],
+    "gridLimits" : {
+      "type" : "GridLimits",
+      "srsName" : "http://www.opengis.net/def/crs/OGC/0/Index4D",
+      "axisLabels" : [ "i", "j", "k" ],
+      "axis" : [ {
+        "type" : "IndexAxis",
+        "axisLabel" : "i",
+        "lowerBound" : 0,
+        "upperBound" : 72
+      }, {
+        "type" : "IndexAxis",
+        "axisLabel" : "j",
+        "lowerBound" : 0,
+        "upperBound" : 72
+      }, {
+        "type" : "IndexAxis",
+        "axisLabel" : "k",
+        "lowerBound" : 0,
+        "upperBound" : 0
+      } ]
+    }
+  }
+}
