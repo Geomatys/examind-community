@@ -3,29 +3,6 @@
     <link href="http://localhost:9090/WS/coverage/default/collections?f=application/xml" rel="self" type="application/vnd.ogc.xml" title="this document"/>
     <link href="http://localhost:9090/WS/coverage/default/collections" rel="alternate" type="application/json" title="this document as JSON"/>
     <ns2:Collection>
-        <link href="http://localhost:9090/WS/coverage/default/collections/test_netcdf/coverage" rel="items" type="image/tiff" title="test_netcdf"/>
-        <link href="http://localhost:9090/WS/coverage/default/collections/test_netcdf/coverage?f=image/tiff" rel="items" type="image/tiff" title="test_netcdf"/>
-        <link href="http://localhost:9090/WS/coverage/default/collections/test_netcdf/coverage?f=application/x-netcdf" rel="items" type="application/x-netcdf" title="test_netcdf"/>
-        <ns2:Id>test_netcdf</ns2:Id>
-        <ns2:Name>test_netcdf</ns2:Name>
-        <ns2:Title>test_netcdf</ns2:Title>
-        <ns2:Extent>
-            <ns2:crs>http://www.opengis.net/def/crs/OGC/1.3/CRS84</ns2:crs>
-            <ns2:spatial>
-                <ns2:LowerCorner>-180.0 -90.0</ns2:LowerCorner>
-                <ns2:UpperCorner>180.0 90.0</ns2:UpperCorner>
-            </ns2:spatial>
-            <ns2:temporal>
-                <ns2:begin>1970-01-01T01:00:00.000Z</ns2:begin>
-                <ns2:end>1970-01-01T01:00:00.000Z</ns2:end>
-            </ns2:temporal>
-            <ns2:trs>hours since 1992-1-1</ns2:trs>
-        </ns2:Extent>
-        <ns2:Crs>http://www.opengis.net/def/crs/OGC/1.3/CRS84</ns2:Crs>
-        <ns2:Crs>Unknown datum based upon the GRS 1980 ellipsoid</ns2:Crs>
-        <ns2:StorageCrs>Unknown datum based upon the GRS 1980 ellipsoid</ns2:StorageCrs>
-    </ns2:Collection>
-    <ns2:Collection>
         <link href="http://localhost:9090/WS/coverage/default/collections/test_tif/coverage" rel="items" type="image/tiff" title="test_tif"/>
         <link href="http://localhost:9090/WS/coverage/default/collections/test_tif/coverage?f=image/tiff" rel="items" type="image/tiff" title="test_tif"/>
         <link href="http://localhost:9090/WS/coverage/default/collections/test_tif/coverage?f=application/x-netcdf" rel="items" type="application/x-netcdf" title="test_tif"/>
