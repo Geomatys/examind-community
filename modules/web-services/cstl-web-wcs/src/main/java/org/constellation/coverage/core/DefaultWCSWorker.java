@@ -1754,7 +1754,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     Iterator<? extends AttributeGroup> attributeGroupsIterator = cdList.get(0).getAttributeGroups().iterator();
                     if (attributeGroupsIterator.hasNext()) {
                         int i = 0;
-                        for (RangeDimension rd : attributeGroupsIterator.next().getAttributes()) {
+                        final var attributes = attributeGroupsIterator.next().getAttributes();
+                        for (RangeDimension rd : attributes) {
                             if (rd instanceof DefaultSampleDimension dsd) {
 
                                 // TODO : Manage the case where statistics are not in the same order as sample dimensions
