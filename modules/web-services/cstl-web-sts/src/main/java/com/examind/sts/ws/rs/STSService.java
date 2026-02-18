@@ -771,6 +771,27 @@ public class STSService extends OGCWebService<STSWorker> {
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
+    
+    @RequestMapping(path = "Datastreams({id:[^\\)]+})/Things", method = RequestMethod.GET)
+    public ResponseEntity getThingsForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        id = removeQuote(id);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker, req.getPathInfo());
+                request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forDS", "true");
+                return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (Exception ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
 
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/ObservedProperties", method = RequestMethod.GET)
     public ResponseEntity getObservedPropertyForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
