@@ -239,37 +239,27 @@ public class StyleBusiness implements IStyleBusiness {
     @Override
     @Transactional
     public Integer createStyle(final String providerId, final org.apache.sis.style.Style styleI) throws ConfigurationException {
-        if (styleI instanceof MutableStyle style) {
-            String styleName = style.getName();
-
-            // Proceed style name.
-            if (isBlank(styleName)) {
-                if (isBlank(style.getName())) {
-                    throw new ConfigurationException("Unable to create/update the style. No specified style name.");
-                } else {
-                    styleName = style.getName();
-                }
-            } else {
-                style.setName(styleName);
-            }
-            // Retrieve or not the provider instance.
-            final int provider = nameToId(providerId);
-
-            final String xmlStyle = specificationForName("sld").encode(style);
-
-            Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
-            final Style newStyle = new Style();
-            newStyle.setName(styleName);
-            newStyle.setProviderId(provider);
-            newStyle.setType(getTypeFromMutableStyle(style));
-            newStyle.setDate(new Date());
-            newStyle.setBody(xmlStyle);
-            newStyle.setOwnerId(userId);
-            newStyle.setSpecification("sld");
-            return styleRepository.create(newStyle);
-        } else {
-            throw new ConfigurationException("Style is not an instanceof Mutable style");
+        if (!(styleI instanceof MutableStyle style)) throw new ConfigurationException("Style is not an instanceof Mutable style");
+        final String styleName = style.getName();
+        if (styleName == null || styleName.isBlank()) {
+            throw new ConfigurationException("Unable to create/update the style. No specified style name.");
         }
+
+        // Retrieve or not the provider instance.
+        final int provider = nameToId(providerId);
+
+        final String xmlStyle = specificationForName("sld").encode(style);
+
+        Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
+        final Style newStyle = new Style();
+        newStyle.setName(styleName);
+        newStyle.setProviderId(provider);
+        newStyle.setType(getTypeFromMutableStyle(style));
+        newStyle.setDate(new Date());
+        newStyle.setBody(xmlStyle);
+        newStyle.setOwnerId(userId);
+        newStyle.setSpecification("sld");
+        return styleRepository.create(newStyle);
     }
 
     /**
