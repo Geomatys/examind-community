@@ -145,14 +145,12 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final MutableStyle style = StyleUtilities.type(styleJson);
-            boolean exists = styleBusiness.existsStyle(type, style.getName());
-
-            //in case of temp sld provider we always create it, the style will be recreated.
-            if ((!"sld".equals(type) && exists) || !exists) {
-                return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
-            } else {
-                return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
+            if (styleBusiness.existsStyle(type, style.getName())) {
+                return new ErrorMessage(CONFLICT).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
+
+            final var newStyleId = styleBusiness.createStyle(type, style);
+            return new ResponseEntity(newStyleId, OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
