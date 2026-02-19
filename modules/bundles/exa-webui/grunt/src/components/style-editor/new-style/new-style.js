@@ -42,8 +42,8 @@ function NewStyleController($scope, $translate, Growl, Examind, DataViewerServic
 
     // Temporary style to handle the styling in the preview map
     self.temporaryStyle = {
-        id: -1,
-        name: ''
+        id: null,
+        name: null
     };
 
     self.afterCreateStyle = $scope.afterCreateStyle() || angular.noop;
@@ -157,7 +157,7 @@ function NewStyleController($scope, $translate, Growl, Examind, DataViewerServic
                 } else {
                     layerData = DataViewerService.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),
                         self.selectedDataRef.dataLayer.id, self.selectedDataRef.dataLayer.name,
-                        self.newStyle.name, "sld_temp", null, false);
+                        self.temporaryStyle.name, "sld_temp", null, false);
                 }
             }
 
@@ -187,11 +187,16 @@ function NewStyleController($scope, $translate, Growl, Examind, DataViewerServic
             }, 200);
         };
 
-        if (angular.isNumber(self.temporaryStyle.id) && self.temporaryStyle.id > 0) {
-            Examind.styles.updateStyle(self.temporaryStyle.id, self.newStyle)
+        if (self.temporaryStyle.name == null) {
+            self.temporaryStyle.name = self.newStyle.name + "-" + new Date().getTime()
+        }
+        var temporaryStyleDefinition = Object.assign({}, self.newStyle);
+        temporaryStyleDefinition.name = self.temporaryStyle.name;
+        if (self.temporaryStyle.id !== null && self.temporaryStyle.id !== undefined) {
+            Examind.styles.updateStyle(self.temporaryStyle.id, temporaryStyleDefinition)
                 .then(callback);
         } else {
-            Examind.styles.createStyle(self.newStyle, 'sld_temp')
+            Examind.styles.createStyle(temporaryStyleDefinition, 'sld_temp')
                 .then(callback);
         }
     };
