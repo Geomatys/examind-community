@@ -2266,7 +2266,7 @@ angular.module('cstl-style-edit', [
                 return;
             }
             DataViewer.initConfig();
-            if($scope.selectedLayer && $scope.stylechooser === 'existing'){
+            if ($scope.selectedLayer && $scope.stylechooser === 'existing') {
                 var styleName = null;
                 if ($scope.selected) {
                     styleName = $scope.selected.name;
@@ -2293,6 +2293,8 @@ angular.module('cstl-style-edit', [
                     var timestamp=new Date().getTime();
                     $scope.newStyle.name = 'default-sld-'+timestamp;
                     $scope.optionsSLD.temporaryStyleName = $scope.newStyle.name;
+                } else {
+                    $scope.optionsSLD.temporaryStyleName = $scope.newStyle.name + '-' + new Date().getTime();
                 }
 
                 var callback = function(response) {
@@ -2303,7 +2305,7 @@ angular.module('cstl-style-edit', [
                             layerData = DataViewer.createLayer(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,null,false);
                         }else {
                             layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
-                                $scope.newStyle.name, "sld_temp",null,false);
+                                $scope.optionsSLD.temporaryStyleName, "sld_temp",null,false);
                         }
                     }else {
                         //if there is no selectedLayer ie the sld editor in styles dashboard
@@ -2314,11 +2316,11 @@ angular.module('cstl-style-edit', [
                                     null,true);
                             }else {
                                 layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
-                                    $scope.newStyle.name, "sld_temp",null,false);
+                                    $scope.optionsSLD.temporaryStyleName, "sld_temp",null,false);
                             }
                         }else {
                             layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
-                                $scope.newStyle.name, "sld_temp",null,false);
+                                $scope.optionsSLD.temporaryStyleName, "sld_temp",null,false);
                         }
                     }
                     //to force the browser cache reloading styled layer.
@@ -2346,12 +2348,15 @@ angular.module('cstl-style-edit', [
                         }
                     },200);
                 };
+
+                var tmpStyleDefinition = Object.assign({}, $scope.newStyle);
+                tmpStyleDefinition.name = $scope.optionsSLD.temporaryStyleName;
                 if(angular.isDefined($scope.optionsSLD.temporaryStyleId)) {
-                    Examind.styles.updateStyle($scope.optionsSLD.temporaryStyleId,$scope.newStyle).then(callback);
+                    Examind.styles.updateStyle($scope.optionsSLD.temporaryStyleId, tmpStyleDefinition).then(callback);
                 } else if (!$scope.tempStylePromise) {
                     // do nothing if antoher callback is pending
                     // to avoid to send multiple createStyle at the exact same time
-                   $scope.tempStylePromise = Examind.styles.createStyle($scope.newStyle,'sld_temp');
+                   $scope.tempStylePromise = Examind.styles.createStyle(tmpStyleDefinition,'sld_temp');
                    $scope.tempStylePromise.then(callback);
                 }
             }
