@@ -505,7 +505,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             String impl = providerConf.getProviderType();
             String dataStr = providerConf.getLocation() != null ? providerConf.getLocation() : null;
             String dataset = providerConf.getDataset();
-            String pathParamName = "location";
             String providerIdentifier = providerConf.getIdentifier();
             String dirFilter = providerConf.getDirectoryFilter();
             Integer datasourceId = null;
@@ -513,9 +512,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             final Pattern dirPattern = (dirFilter != null) ? Pattern.compile(dirFilter) : null;
             
             // special case
+            String pathParamName = null;
             if ("coverage-xml-pyramid".equals(impl)) {
                 pathParamName = "path";
-            } else if ("SQL".equals(impl)) {
+            } else if (providerConf.getSource() != null) {
                 pathParamName = "datasourceId";
                 Datasource source = providerConf.getSource();
                 if (source != null) {
@@ -523,6 +523,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 } else {
                     throw new ConstellationException("Provider source missing for SQL provider.");
                 }
+            // default case for file provider    
+            } else if (dataStr != null) {
+                pathParamName = "location";
             }
             
             // special case for folder
@@ -530,7 +533,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             
             if (datasourceId != null) {
                 files.add(datasourceId);
-            } else {
+            } else if (dataStr != null) {
                 try {
                     URI dataUri = getDataPath(path.getParent(), dataStr);
                     Path dataDir = Paths.get(dataUri);
@@ -549,6 +552,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     LOGGER.log(Level.FINER, ex.getMessage(), ex);
                     files = List.of(dataStr);
                 }
+            } else {
+                files = List.of("NO_FILES");
             }
 
             Integer dsId = dataset != null ? datasetBusiness.getDatasetId(dataset) : null;
@@ -595,7 +600,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     }
 
                     final ParameterValueGroup config = choice.addGroup(impl);
-                    config.parameter(pathParamName).setValue(fileUri);
+                    if (pathParamName != null) {
+                        config.parameter(pathParamName).setValue(fileUri);
+                    }
 
                     ParameterDescriptorGroup configDescriptor = config.getDescriptor();
                     for (Entry<String, String> entry : providerConf.getAdvancedParameters().entrySet()) {
@@ -611,7 +618,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     }
 
                     // Create provider and generate data.
-                    final Integer pid = providerBusiness.storeProvider(currentProviderId, ProviderType.LAYER, "data-store", source);
+                    final Integer pid = providerBusiness.storeProvider(currentProviderId, ProviderType.LAYER, dataType, source);
                     providerBusiness.createOrUpdateData(pid, dsId, true, false, null);
 
                     List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
