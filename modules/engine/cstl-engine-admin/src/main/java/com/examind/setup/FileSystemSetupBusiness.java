@@ -660,9 +660,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private boolean isAllowedDataTypeForService(String serviceType, String dataType, String subDataType) {
         return switch (dataType.toLowerCase()) {
-            case "vector"   -> VECTOR_ALLOWED.contains(serviceType.toLowerCase());
-            case "coverage" -> ("pyramid".equals(subDataType.toLowerCase()) && "wmts".equals(serviceType.toLowerCase())) ||
+            case "vector"     -> VECTOR_ALLOWED.contains(serviceType.toLowerCase());
+            case "coverage"   -> ("pyramid".equals(subDataType.toLowerCase()) && "wmts".equals(serviceType.toLowerCase())) ||
                                (!"pyramid".equals(subDataType.toLowerCase()) && COVERAGE_ALLOWED.contains(serviceType.toLowerCase()));
+                
+            case "observation" -> ("VECTOR".equals(subDataType) && VECTOR_ALLOWED.contains(serviceType.toLowerCase())); 
             
             default -> false;
         };
