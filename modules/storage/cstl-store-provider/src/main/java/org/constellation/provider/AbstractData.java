@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
@@ -280,7 +281,7 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
             try {
                 styleI = (Style) DataProviders.getStyle("default-line");
             } catch (ConstellationException ex) {
-                throw new ConstellationStoreException(ex);
+                LOGGER.log(Level.FINER, "Unable to find style: default-line", ex);
             }
         }
         final MapLayer maplayer = new MapLayer();

@@ -18,6 +18,7 @@
  */
 package org.constellation.provider.observationstore;
 
+import java.util.logging.Level;
 import java.util.stream.Stream;
 import org.apache.sis.map.MapItem;
 import org.apache.sis.map.MapLayer;
@@ -106,7 +107,7 @@ public class FeatureSetObservationData extends AbstractData<FeatureSet> implemen
             try {
                 styleI = DataProviders.getStyle("default-point-sensor");
             } catch (ConstellationException ex) {
-                throw new ConstellationStoreException(ex);
+                LOGGER.log(Level.FINER, "Unable to find style: default-point-sensor", ex);
             }
         }
         maplayer.setData(origin);
