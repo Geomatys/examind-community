@@ -223,9 +223,14 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 serviceBusiness.linkServiceAndSensorProvider(sid, spid, fullLink);
                 
                 
-                boolean generate = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("generate-from-existing", "false"));
-                if (generate && !directProvider) {
+                boolean generateSensor = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("generate-from-existing", "false"));
+                if (generateSensor && !directProvider) {
                     sensorServiceBusiness.generateSensorFromOMProvider(sid);
+                }
+                
+                boolean generateData = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("create-data", "false"));
+                if (generateData) {
+                    providerBusiness.createOrUpdateData(pid, null, true, false, null);
                 }
 
             } else if ("CSW".equalsIgnoreCase(instance.getType())) {
@@ -387,11 +392,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return metadataBusiness.getDefaultInternalProviderID();
     }
     
-    private final List<String> skippedForOMProvider = List.of("om-implementation", "sn-implementation", "direct-provider");
+    private final List<String> skippedForOMProvider = List.of("om-implementation", "sn-implementation", "direct-provider", "create-data");
     
     private Integer createOM2DatabaseProvider(String serviceId, Map<String, String> parameters, Integer datasourceId) {
         try {
-            final String providerIdentifier = "omSrc-" + serviceId;
+            final String providerIdentifier = "om-src-" + serviceId;
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
             source.parameter("id").setValue(providerIdentifier);
