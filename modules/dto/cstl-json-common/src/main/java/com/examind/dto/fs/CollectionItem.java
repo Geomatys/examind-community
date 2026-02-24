@@ -26,6 +26,7 @@ import java.util.List;
  */
 public class CollectionItem {
     
+    private String provider;
     private String name;
     private String namespace;
     private String title;
@@ -116,5 +117,19 @@ public class CollectionItem {
      */
     public void setDimensions(List<DimensionItem> dimensions) {
         this.dimensions = dimensions;
+    }
+
+    /**
+     * @return the provider
+     */
+    public String getProvider() {
+        return provider;
+    }
+
+    /**
+     * @param provider the provider to set
+     */
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 }

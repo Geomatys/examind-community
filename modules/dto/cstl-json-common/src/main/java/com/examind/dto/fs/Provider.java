@@ -17,6 +17,7 @@
  */
 package com.examind.dto.fs;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,6 +36,8 @@ public class Provider {
     private Datasource source;
 
     private Map<String, String> advancedParameters;
+    
+    private List<Collection> computedData;
 
     /**
      * @return the identifier
@@ -147,5 +150,19 @@ public class Provider {
      */
     public void setDirectoryFilter(String directoryFilter) {
         this.directoryFilter = directoryFilter;
+    }
+
+    /**
+     * @return the computedData
+     */
+    public List<Collection> getComputedData() {
+        return computedData;
+    }
+
+    /**
+     * @param computedData the computedData to set
+     */
+    public void setComputedData(List<Collection> computedData) {
+        this.computedData = computedData;
     }
 }

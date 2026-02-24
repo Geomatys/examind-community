@@ -79,7 +79,8 @@ public class FsConfigTest {
                             datasetStyle: "style_ds_1"
                             includeAll: true
                             data:
-                            - name: "data1_nm"
+                            - provider: null
+                              name: "data1_nm"
                               namespace: "data2_nmsp"
                               title: null
                               alias: "alibi"

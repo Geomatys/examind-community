@@ -133,6 +133,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url");
     
+    private static final String COMPUTED_PROVIDER = "computed-resource";
+    
+    private static final List<String> DATA_CREATING_SERVICE = List.of("sts", "sos");
+    
+    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    
     @PostConstruct
     public void initFsConfiguration() {
         installDatas();
@@ -143,19 +149,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         LOGGER.info("""
                     
                     -----------------------------------------------------------
-                    -- STARTING FILESYSTEM CONFIG INSTALLATION               --
+                    --        STARTING FILESYSTEM CONFIG INSTALLATION        --
                     -----------------------------------------------------------
                     """);
         try {
-            // install new data
-            Path dataDir = configBusiness.getProvidersDirectory();
-            try (Stream<Path> stream = Files.walk(dataDir)) {
-                stream.filter(this::ymlFileFilter).forEach(path -> {
-                    createProviderFromFile(path);
-                });
-            }
             
-            // install new styles
+            // 1. install styles
             Path styleDir = configBusiness.getStylesDirectory();
             try (Stream<Path> stream = Files.walk(styleDir)) {
                  stream.filter(this::sldFileFilter).forEach(path -> {
@@ -163,13 +162,37 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 });
             }
             
-            // install new services
+            // 2. install regular data
+            Path dataDir = configBusiness.getProvidersDirectory();
+            try (Stream<Path> stream = Files.walk(dataDir)) {
+                stream.filter(p -> providerFileFilter(p, false)).forEach(path -> {
+                    createProviderFromFile(path);
+                });
+            }
+            
+            // 3. install services potentially creating data
             Path servDir = configBusiness.getServicesDirectory();
-             try (Stream<Path> stream = Files.walk(servDir)) {
-                 stream.filter(this::ymlFileFilter).forEach(path -> {
+            try (Stream<Path> stream = Files.walk(servDir)) {
+                 stream.filter(p -> serviceFileFilter(p, true)).forEach(path -> {
                     createServiceFromFile(path);
                 });
             }
+            
+            // 4. install computed data that use data created in the previous pass
+            try (Stream<Path> stream = Files.walk(dataDir)) {
+                stream.filter(p -> providerFileFilter(p, true)).forEach(path -> {
+                    createProviderFromFile(path);
+                });
+            }
+            
+            // 5. install regular services
+            try (Stream<Path> stream = Files.walk(servDir)) {
+                 stream.filter(p -> serviceFileFilter(p, false)).forEach(path -> {
+                    createServiceFromFile(path);
+                });
+            }
+            
+            
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error a filesystem configuration startup", ex);
         }
@@ -177,7 +200,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private void createServiceFromFile(Path path) {
         try {
-            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             Service instance = mapper.readValue(path.toFile(), Service.class);
             if (serviceBusiness.getServiceIdentifiers(instance.getType()).contains(instance.getIdentifier())) {
                 throw new ConfigurationException("Service identifier: " + instance.getIdentifier() + "(" +  instance.getType() + ") already used");
@@ -293,33 +315,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 if (col.getDataSet() != null) {
                     
                     Integer styleId = (col.getDatasetStyle() != null) ? styleBusiness.getStyleId("sld", col.getDatasetStyle()) : null;
-                    Integer dsId    = datasetBusiness.getDatasetId(col.getDataSet());
-                    
-                    if (dsId == null) {
-                        LOGGER.log(Level.WARNING, "Unable to find a dataset: {0} for service: {1} ({2})", new Object[]{col.getDataSet(), instance.getIdentifier(), instance.getType()});
-                        continue;
-                    }
-                    
-                    List<DataBrief> datas = new ArrayList<>();
-                    if (col.isIncludeAll()) {
-                        datas.addAll(dataBusiness.getDataBriefsFromDatasetId(dsId, true, false, null, null, false, false));
-                    } else {
-                        for (CollectionItem it : col.getData()) {
-                            Map filter = new HashMap();
-                            filter.put("dataset", dsId);
-                            filter.put("name", it.getName());
-                            if (it.getNamespace() != null) filter.put("namespace", it.getNamespace());
-                            
-                            Entry<Integer, List<DataBrief>> candidates = dataBusiness.filterAndGetBrief(filter, null, 1, 2);
-                            if (candidates.getKey() == 0) {
-                                LOGGER.log(Level.WARNING, "No data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
-                                continue;
-                            } else if (candidates.getKey() > 1) {
-                                LOGGER.log(Level.WARNING, "Multiple data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
-                            }
-                            datas.add(candidates.getValue().get(0));
-                        }
-                    }
+                    List<DataBrief> datas = getDataFromCollection(col);
                     
                     for (DataBrief data : datas) {
                         
@@ -369,6 +365,51 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error while importing service file: " + path.getFileName().toString(), ex);
         }
+    }
+    
+    private List<DataBrief> getDataFromCollection(Collection col) throws ConstellationException {
+        Integer dsId  = col.getDataSet() != null ? datasetBusiness.getDatasetId(col.getDataSet()) : null;
+        
+        if (col.getDataSet() != null && dsId == null) {
+            LOGGER.log(Level.WARNING, "Unable to find a dataset: {0}", new Object[]{col.getDataSet()});
+            return List.of();
+        }
+                    
+        List<DataBrief> datas = new ArrayList<>();
+        if (col.isIncludeAll()) {
+            if (dsId == null) {
+                LOGGER.log(Level.WARNING, "Include All collection require a dataset declaration");
+                return List.of();
+            }
+            datas.addAll(dataBusiness.getDataBriefsFromDatasetId(dsId, true, false, null, null, false, false));
+        } else {
+            for (CollectionItem it : col.getData()) {
+                Map filter = new HashMap();
+                filter.put("name", it.getName());
+                if (dsId              != null) filter.put("dataset",     dsId);
+                if (it.getNamespace() != null) filter.put("namespace",   it.getNamespace());
+                if (it.getProvider()  != null) filter.put("provider_id", it.getProvider());
+
+                Entry<Integer, List<DataBrief>> candidates = dataBusiness.filterAndGetBrief(filter, null, 1, 2);
+                if (candidates.getKey() == 0) {
+                    LOGGER.log(Level.WARNING, "No data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
+                } else if (candidates.getKey() > 1) {
+                    StringBuilder errorMsg = new StringBuilder("Multiple data found for input:\ndataset: ").append(col.getDataSet())
+                                                       .append("\nname: ").append(it.getName())
+                                                       .append("\nnamespace: ").append(it.getNamespace())
+                                                       .append("\nAvailable candidates:");
+                    for (DataBrief db : candidates.getValue()) {
+                        errorMsg.append("\n - name: ").append(db.getName());
+                        if (db.getNamespace() != null) errorMsg.append(" namespace: ").append(db.getNamespace());
+                        errorMsg.append("provider_id: ").append(db.getProvider());
+                    }
+                    LOGGER.warning(errorMsg.toString());
+                } else {
+                    datas.add(candidates.getValue().get(0));
+                }
+            }
+        }
+        return datas;
     }
     
     private Integer createMetadataDatabaseProvider(String serviceId, Map<String, String> parameters) throws ConstellationException {
@@ -503,7 +544,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private void createProviderFromFile(final Path path) {
         try {
-            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             Provider providerConf = mapper.readValue(path.toFile(), Provider.class);
 
             String dataType = providerConf.getDataType();
@@ -515,6 +555,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             Integer datasourceId = null;
             
             final Pattern dirPattern = (dirFilter != null) ? Pattern.compile(dirFilter) : null;
+            
+            if (impl == null) {
+                throw new ConstellationException("Provider type is missing for:" + path.getFileName().toString());
+            }
             
             // special case
             String pathParamName = null;
@@ -621,6 +665,25 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                             LOGGER.log(Level.WARNING, "Erreur while setting advanced parameter " + entry.getKey() + " on provider: " + providerConf.getIdentifier(), ex);
                         }
                     }
+                    
+                    /*
+                     * special case for computed resource
+                     */
+                    if (COMPUTED_PROVIDER.equals(dataType)) {
+                        List<DataBrief> datas = new ArrayList<>();
+                        for (Collection col : providerConf.getComputedData()) {
+                            datas.addAll(getDataFromCollection(col));
+                        }
+                        GeneralParameterDescriptor genParamDesc = configDescriptor.descriptor("data_ids");
+                        if (genParamDesc instanceof ParameterDescriptor paramDesc) {
+                            for (DataBrief brief : datas) {
+                                ParameterValue value = paramDesc.createValue();
+                                value.setValue(brief.getId());
+                                config.values().add(value);
+                            }
+                        }
+                        
+                    }
 
                     // Create provider and generate data.
                     final Integer pid = providerBusiness.storeProvider(currentProviderId, ProviderType.LAYER, dataType, source);
@@ -692,6 +755,27 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             uri = parentDir.resolve(dataStr).toUri();
         }
         return uri;
+    }
+    
+    
+    private boolean providerFileFilter(Path path, boolean computedResource) {
+        if (!fileFilter(path, List.of("yaml", "yml"))) return false;
+        try {
+            Provider providerConf = mapper.readValue(path.toFile(), Provider.class);
+            return providerConf.getDataType()!= null && COMPUTED_PROVIDER.equals(providerConf.getDataType()) == computedResource;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+    
+    private boolean serviceFileFilter(Path path, boolean creatingData) {
+        if (!fileFilter(path, List.of("yaml", "yml"))) return false;
+        try {
+            Service serviceConf = mapper.readValue(path.toFile(), Service.class);
+            return serviceConf.getType() != null && DATA_CREATING_SERVICE.contains(serviceConf.getType()) == creatingData;
+        } catch (Exception ex) {
+            return false;
+        }
     }
     
     private boolean ymlFileFilter(Path path) {
