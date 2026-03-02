@@ -1930,7 +1930,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         Map<String,Double> resolutions = new HashMap<>();
 
         if(stringResolutions != null) {
-            Pattern pattern = Pattern.compile("(\\w+)\\((\\d+\\.\\d+)\\)");
+            Pattern pattern = Pattern.compile("(\\w+)\\((\\d+\\.\\d+)\\)", Pattern.UNICODE_CHARACTER_CLASS);
             Matcher matcher = pattern.matcher(stringResolutions);
 
             while (matcher.find()) {
