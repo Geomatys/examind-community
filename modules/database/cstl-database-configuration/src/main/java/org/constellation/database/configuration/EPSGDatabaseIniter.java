@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PreDestroy;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.util.Version;
 import org.constellation.business.IClusterBusiness;
 import org.geotoolkit.lang.Setup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 public class EPSGDatabaseIniter {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.database.configuration");
+    
+    private static final Version LAST_EPSG_VERSION = new Version("12.047");
 
     @Autowired
     private IClusterBusiness clusterBusiness;
@@ -66,10 +69,20 @@ public class EPSGDatabaseIniter {
             //set datasource used by geotoolkit EPSG database
             Setup.setEPSG(epsgDatasource);
 
-            if (exists(epsgDatasource)) {
-                LOGGER.info("EPSG database already installed.");
-            } else {
-                //force loading or creating the epsg schema now that the datasource is available
+            Version currentVersion = exists(epsgDatasource);
+            if (currentVersion != null) {
+                if (currentVersion.compareTo(LAST_EPSG_VERSION) >= 0) {
+                      LOGGER.info("EPSG database already installed and up to date.");
+                } else {
+                    // remove current database schema
+                    LOGGER.log(Level.INFO, "EPSG database already installed but need to be updated: {0} < {1}", new Object[]{currentVersion, LAST_EPSG_VERSION});
+                    remove(epsgDatasource);
+                    currentVersion = null;
+                }
+            } 
+            
+             //force loading or creating the epsg schema now that the datasource is available
+            if (currentVersion == null) {
                 CRS.forCode("EPSG:2154");
                 CRS.forCode("EPSG:3395");
             }
@@ -95,22 +108,36 @@ public class EPSGDatabaseIniter {
      * @returnq
      * @throws IOException
      */
-    private synchronized boolean exists(DataSource dataSource) throws IOException {
+    private synchronized Version exists(DataSource dataSource) throws IOException {
         try (Connection conn = dataSource.getConnection()) {
             final DatabaseMetaData md = conn.getMetaData();
-            LOGGER.info("Check EPSG database installation on " + md.getURL());
+            LOGGER.log(Level.INFO, "Check EPSG database installation on {0}", md.getURL());
 
             final ResultSet result = md.getTables(null, "EPSG", null, new String[] {"TABLE"});
             while (result.next()) {
                 final String table = result.getString("TABLE_NAME");
                 for (final String candidate : SAMPLES) {
                     if (candidate.equalsIgnoreCase(table)) {
-                        return true;
+                        try (PreparedStatement p = conn.prepareStatement("SELECT \"version_number\" FROM \"EPSG\".\"Version History\" ORDER BY \"version_date\" DESC LIMIT 1");
+                             ResultSet rs = p.executeQuery();) {
+                            if (rs.next()) {
+                                return new Version(rs.getString(1));
+                            }
+                        }
                     }
                 }
             }
-            return false;
+            return null;
 
+        } catch (SQLException e) {
+            throw new IOException(e);
+        }
+    }
+    
+     private synchronized void remove(DataSource dataSource) throws IOException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement p = conn.prepareStatement("DROP SCHEMA \"EPSG\" CASCADE")) {
+            p.executeUpdate();
         } catch (SQLException e) {
             throw new IOException(e);
         }
