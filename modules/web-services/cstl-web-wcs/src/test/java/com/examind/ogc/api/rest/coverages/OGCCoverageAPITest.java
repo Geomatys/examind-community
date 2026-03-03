@@ -57,6 +57,7 @@ import javax.imageio.ImageIO;
 import org.constellation.exception.ConstellationException;
 
 /**
+ * @author Quentin BIALOTA (Geomatys)
  * @author Hilmi BOUALLAGUE (Geomatys)
  * @author Johann Sorel (Geomatys)
  */

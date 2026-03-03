@@ -7,21 +7,30 @@
       "title" : "Red",
       "description" : "Band 0 - Red",
       "type" : "number",
-      "x-ogc-statistics" : { },
+      "x-ogc-statistics" : {
+        "min" : 0.0,
+        "max" : 255.0
+      },
       "x-ogc-propertySeq" : 1
     },
     "Green" : {
       "title" : "Green",
       "description" : "Band 1 - Green",
       "type" : "number",
-      "x-ogc-statistics" : { },
+      "x-ogc-statistics" : {
+        "min" : 0.0,
+        "max" : 255.0
+      },
       "x-ogc-propertySeq" : 2
     },
     "Blue" : {
       "title" : "Blue",
       "description" : "Band 2 - Blue",
       "type" : "number",
-      "x-ogc-statistics" : { },
+      "x-ogc-statistics" : {
+        "min" : 0.0,
+        "max" : 255.0
+      },
       "x-ogc-propertySeq" : 3
     }
   }
