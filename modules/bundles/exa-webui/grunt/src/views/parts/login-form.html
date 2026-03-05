@@ -6,7 +6,7 @@
 <div id="msg-error2"
      style="display:none;border-color:#D89A9A; background-color:#FFC0CB;padding: 8px;"
      class="alert msg_auth_error"
-     translate="login.disabled">This account is disabled, thank you to contact an administrator to reactivate it.</div>
+     translate="login.disabled" data-test-id="disabled-account">This account is disabled, thank you to contact an administrator to reactivate it.</div>
 <form id="loginForm" class="form" role="form" ng-submit="login()" form-autofill-fix>
     <div class="form-group">
         <label for="username"
@@ -17,6 +17,7 @@
                name="username"
                placeholder="login"
                autofocus
+               data-test-id="username"
                ng-model="formInputs.username"/>
     </div>
     <div class="form-group">
@@ -27,11 +28,13 @@
                class="form-control"
                name="password"
                placeholder="password"
+               data-test-id="password"
                ng-model="formInputs.password"/>
     </div>
     <button id="submitLogin"
             type="submit"
-            class="btn btn-primary">Login</button>
+            class="btn btn-primary"
+            data-test-id="login">Login</button>
     <a ng-click="forgotPassword()"
        class="btn pull-right"
        translate="login.form.forgot.password">Forgot password ?</a>

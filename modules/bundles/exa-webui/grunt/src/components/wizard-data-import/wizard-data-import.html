@@ -41,11 +41,13 @@
         <div class="wizard-action-bar">
             <button class="btn btn-danger2 pull-left"
                     ng-if="wizDataImportCtrl.showBtn('cancel')"
-                    ng-click="wizDataImportCtrl.cancel()">
+                    ng-click="wizDataImportCtrl.cancel()"
+                    data-test-id="cancel-import">
                 <span>{{'wiz.data.import.cancel' | translate}}</span>
             </button>
 
             <button class="btn btn-success pull-right ac-btn"
+                    data-test-id="data-wizard-finish"
                     ng-if="wizDataImportCtrl.showBtn('finish')"
                     ng-disabled="wizDataImportCtrl.disableFinishBtn()"
                     ng-click="wizDataImportCtrl.finish()">
@@ -53,6 +55,7 @@
             </button>
 
             <button class="btn btn-primary pull-right ac-btn"
+                    data-test-id="data-wizard-next"
                     ng-if="wizDataImportCtrl.showBtn('next')"
                     ng-disabled="wizDataImportCtrl.disableNextBtn()"
                     ng-click="wizDataImportCtrl.goToNextStep()">

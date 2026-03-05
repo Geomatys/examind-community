@@ -3,7 +3,7 @@
          ng-if="treeCtrl.showSelectAll()">
         <label>
             <input type="checkbox" ng-model="treeCtrl.allStoresSelection"
-            ng-change="treeCtrl.toggleAllStoreSelection()"/>
+            ng-change="treeCtrl.toggleAllStoreSelection()" data-test-id="toggle-selectall"/>
             <span>{{'label.select.all' | translate}}</span>
         </label>
     </div>
@@ -12,6 +12,7 @@
             <div class="store">
                 <!-- The case of divisible data-->
                 <div class="store-header" ng-show="!store.indivisible"
+                     data-test-id="collapse-data-view"
                      ng-click="store.collapsed=!store.collapsed"
                      title="{{treeCtrl.getFileName(store.mainPath)}}">
                     <i class="fa" ng-class="{'fa-chevron-right':store.collapsed,'fa-chevron-down':!store.collapsed}"></i>
@@ -32,6 +33,7 @@
                     <i class="fa fa-expand pull-right" aria-hidden="true"></i>
                 </div>
                 <div ng-show="!store.indivisible" ng-repeat="resource in store.resources"
+                     data-test-id="select-data-{{resource.name}}"
                      slide-toggle="store.collapsed"
                      class="collapsed store-content"
                      ng-click="treeCtrl.toggleResourceSelection(resource)"
@@ -50,6 +52,7 @@
                 </div>
                 <!--The case of indivisible data-->
                 <div class="store-header" ng-show="store.indivisible"
+                     data-test-id="collapse-data-view-{{treeCtrl.getFileName(store.mainPath)}}"
                      ng-click="treeCtrl.toggleStoreSelection(store);"
                      ng-class="{'selected':treeCtrl.isSelected(store)}"
                      title="{{treeCtrl.getFileName(store.mainPath)}}">
@@ -71,6 +74,7 @@
                     <i class="fa fa-compress pull-right" aria-hidden="true"></i>
                 </div>
                 <div ng-show="store.indivisible" ng-repeat="resource in store.resources"
+                     data-test-id="select-data-{{treeCtrl.getFileName(store.mainPath)}}-{{resource.name}}"
                      slide-toggle="store.collapsed"
                      class="collapsed store-content"
                      ng-class="{'displayed-layer':treeCtrl.isDisplayedLayer(resource)}"

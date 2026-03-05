@@ -33,13 +33,14 @@
                     <form class="pull-right quick-search" ng-submit="existingCtrl.pagedSearchService.setPage(1)">
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="{{'label.search'|translate}}"
-                                   ng-model="existingCtrl.pagedSearchService.query.text"/>
+                                   ng-model="existingCtrl.pagedSearchService.query.text" data-test-id="search-style"/>
                             <span class="input-group-btn">
                         <button type="button" class="btn btn-info btn-data"
                                 ng-disabled="existingCtrl.searchStatus === -1"
                                 ng-click="existingCtrl.pagedSearchService.setPage(1)">
                             <i class="fa fa-search"
-                               ng-class="{'fa-search': existingCtrl.searchStatus > -1, 'fa-spinner': existingCtrl.searchStatus < 0, 'fa-spin': existingCtrl.searchStatus < 0}"></i>
+                               ng-class="{'fa-search': existingCtrl.searchStatus > -1, 'fa-spinner': existingCtrl.searchStatus < 0, 'fa-spin': existingCtrl.searchStatus < 0}"
+                               data-test-id="launch-search-style"></i>
                         </button>
                     </span>
                         </div>
@@ -94,7 +95,7 @@
                                  ng-click="existingCtrl.selectStyle(style);">
                                 <!--Top Item Line-->
                                 <div class="top">
-                                    <span class="item-title">
+                                    <span class="item-title" data-test-id="select-style-{{style.name}}">
                                         {{style.name}}
                                     </span>
                                     <span class="pull-right text-right">
@@ -126,7 +127,8 @@
     <div class="association-bar">
         <button class="btn btn-primary pull-right"
                 ng-disabled="existingCtrl.disableAssociateBtn()"
-                ng-click="existingCtrl.associateStyleToDataLayer()">
+                ng-click="existingCtrl.associateStyleToDataLayer()"
+                data-test-id="associate-style">
             <span>{{'dataset.editor.existing.label.associate.style' | translate}}</span>
         </button>
     </div>

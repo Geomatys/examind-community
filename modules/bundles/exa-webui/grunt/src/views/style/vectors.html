@@ -11,7 +11,8 @@
                         <input ng-if="!isSelectedChooser('edit')"
                                type="text"
                                class="form-control form-control-fix"
-                               ng-model="optionsSLD.userStyleName"/>
+                               ng-model="optionsSLD.userStyleName"
+                               data-test-id="vector-style-name"/>
                         <input ng-if="isSelectedChooser('edit')"
                                type="text"
                                class="form-control form-control-fix"
@@ -31,16 +32,19 @@
                         <div class="dropdown pull-right" style="margin-top: -5px;">
                             <a data-toggle="dropdown" class="btn btn-add dropdown-toggle" style="font-size: 12px;">
                                 <span class="fa fa-plus" style="margin-right:5px;"></span>
-                                <span translate="edition.style.label.new.rules">Add rule(s)</span>
+                                <span translate="edition.style.label.new.rules" data-test-id="new-rule">Add rule(s)</span>
                                 <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu" style="font-size: 12px;">
                                 <li><a ng-click="createRules('manual')"
-                                       translate="edition.style.label.new.rules.manual">Manually create rules</a></li>
+                                       translate="edition.style.label.new.rules.manual"
+                                       data-test-id="manually-create-rule">Manually create rules</a></li>
                                 <li ng-if="selectedLayer !== null"><a ng-click="createRules('auto_interval')"
-                                       translate="edition.style.label.new.rules.auto_interval">Automatically create by intervals</a></li>
+                                       translate="edition.style.label.new.rules.auto_interval"
+                                       data-test-id="automatic-by-interval">Automatically create by intervals</a></li>
                                 <li ng-if="selectedLayer !== null"><a ng-click="createRules('auto_values')"
-                                       translate="edition.style.label.new.rules.auto_values">Automatically create by unique values</a></li>
+                                       translate="edition.style.label.new.rules.auto_values"
+                                       data-test-id="auto-valeurs-uniques">Automatically create by unique values</a></li>
                             </ul>
                         </div>
                     </div>
@@ -91,7 +95,7 @@
             <ol class="breadcrumb col-xs-12 col-sm-12 col-md-12 col-lg-12">
                 <li>
                     <a ng-click="goBack()">
-                        <span translate="sldeditor.breadcrumb.type">Back to rules list</span>
+                        <span translate="sldeditor.breadcrumb.type" data-test-id="back-to-rules-list">Back to rules list</span>
                     </a>
                 </li>
                 <li class="active">
@@ -106,7 +110,7 @@
                 </li>
                 <li ng-class="{active: chosenTab==='symbols'}">
                     <a ng-click="chosenTab = 'symbols'" data-toggle="tab">
-                        <span translate="label.symbols" >Symbols</span>
+                        <span translate="label.symbols" data-test-id="symbol-tab" >Symbols</span>
                     </a>
                 </li>
                 <li ng-class="{active: chosenTab==='filters'}">
@@ -128,7 +132,8 @@
                                         <input type="text"
                                                class="form-control form-control-fix"
                                                id="inputrulename"
-                                               ng-model="optionsSLD.selectedRule.name"/>
+                                               ng-model="optionsSLD.selectedRule.name"
+                                               data-test-id="input-rule-name"/>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -139,7 +144,8 @@
                                         <input type="text"
                                                class="form-control form-control-fix"
                                                id="inputRuleTitle"
-                                               ng-model="optionsSLD.selectedRule.title"/>
+                                               ng-model="optionsSLD.selectedRule.title"
+                                               data-test-id="input-rule-title"/>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -150,7 +156,8 @@
                                         <textarea id="inputRuleDesc"
                                                   class="form-control form-control-fix"
                                                   rows="3"
-                                                  ng-model="optionsSLD.selectedRule.description"></textarea>
+                                                  ng-model="optionsSLD.selectedRule.description"
+                                                  data-test-id="input-rule-desc"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -167,6 +174,7 @@
                                            translate="edition.style.label.new.symbolizer">Add new symbolizer</label>
                                     <div class="col-xs-12 col-md-10 col-md-offset-1" style="margin-top: 3pt;">
                                         <select id="selectsymbolizer"
+                                                data-test-id="select-symbolizer"
                                                 class="col-xs-8 form-control"
                                                 style="font-size: 14px; height: 30px; width:60%;"
                                                 ng-model="optionsSLD.selectedSymbolizerType">
@@ -180,7 +188,8 @@
                                                 type="button"
                                                 style="font-size: 12px; margin-left: 7pt;"
                                                 ng-click="addSymbolizer();"
-                                                translate="label.add">Add</button>
+                                                translate="label.add"
+                                                data-test-id="add-new-symbolizer">Add</button>
                                     </div>
                                 </div>
                             </div>
@@ -188,12 +197,13 @@
                         <div class="row" style="margin: 0pt;">
                             <accordion close-others="false">
                                 <accordion-group ng-repeat="symbolizer in optionsSLD.selectedRule.symbolizers"
+                                                 data-test-id="display-symbol-editor"
                                                  is-open="status.open">
                                     <accordion-heading>
                                         <div style="text-transform: uppercase;cursor: pointer;">
                                             <i class="pull-left glyphicon"
                                                ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
-                                            <span style="margin-left: 10pt;font-size: 14px;">{{symbolizer.name}}</span>
+                                            <span style="margin-left: 10pt;font-size: 14px;" data-test-id="open-symbol-wizard">{{symbolizer.name}}</span>
                                             <button type="button"
                                                     class="pull-right btn btn-default btn-xs btn-remove"
                                                     ng-click="removeSymbolizer(symbolizer);$event.stopPropagation();">

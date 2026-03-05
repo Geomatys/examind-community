@@ -39,7 +39,7 @@
                     <span class="input-group-addon btn btn-default btn-file">
                                 <span class="fileinput-new">{{'style.editor.import.select.file' | translate}}</span>
                                 <span class="fileinput-exists">{{'style.editor.import.change' | translate}}</span>
-                                <input type="file" name="data"
+                                <input type="file" name="data" data-test-id="import-style-file-input"
                                        onchange="angular.element(this).scope().verifyExtension(this.value);"/>
                             </span>
                     <a class="input-group-addon btn btn-default fileinput-exists"
@@ -55,6 +55,7 @@
             <div class="col-sm-offset-2 col-sm-10">
                 <button type="button"
                         class="btn btn-primary"
+                        data-test-id="import-style-submit"
                         ng-disabled="!importStyleCtrl.helper.allowSubmit"
                         ng-click="importStyleCtrl.uploadStyleFile();">
                     <i class="fa fa-upload" aria-hidden="true"></i>

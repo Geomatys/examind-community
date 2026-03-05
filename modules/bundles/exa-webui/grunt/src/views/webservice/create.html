@@ -79,6 +79,7 @@
                                     <input  type="text"
                                             class="form-control form-control-fix"
                                             id="name"
+                                            data-test-id="create-service-name"
                                             name="name"
                                             ng-required="true"
                                             ng-model="wsCreateCtrl.metadata.name"/>
@@ -99,6 +100,7 @@
                                     <input type="text"
                                            class="form-control form-control-fix"
                                            id="identifier"
+                                           data-test-id="create-service-identifier"
                                            name="identifier"
                                            ng-required="true"
                                            ng-model="wsCreateCtrl.metadata.identifier"/>
@@ -133,7 +135,9 @@
                                             {{ tag }}
                                             <div class="delete-tag" data-ng-click="wsCreateCtrl.deleteTag(key)">&times;</div>
                                         </div>
-                                        <input type="text" data-tag-input=""
+                                        <input type="text"
+                                               data-tag-input=""
+                                               data-test-id="create-service-tag"
                                                data-ng-model="wsCreateCtrl.newService.tagText"
                                                data-new-tag="wsCreateCtrl.addTag()"
                                                data-delete-tag="wsCreateCtrl.deleteTag()"/>
@@ -150,6 +154,7 @@
                                        translate="service.description.tab.description.description">Description</label>
                                 <div class="col-xs-8">
                                 <textarea id="inputDescription"
+                                          data-test-id="create-service-description"
                                           rows="5"
                                           class="form-control form-control-fix"
                                           ng-model="wsCreateCtrl.metadata.description"></textarea>
@@ -165,6 +170,7 @@
                                         <div ng-repeat="version in wsCreateCtrl.versions" class="inline">
                                             <div class="checkbox inline">
                                                 <input type="checkbox"
+                                                       data-test-id="create-service-version-{{version.id}}"
                                                        ng-model="version.checked"
                                                        ng-disabled="wsCreateCtrl.versions.length ==1;"
                                                        name="{{'checkbox_'+$index}}"
@@ -200,28 +206,28 @@
                                 <label class="control-label new-service-form-label"
                                        for="contactFirstName"
                                        translate="create.contact.firstname.label">First name</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-firstname"
                                        id="contactFirstName" ng-model="wsCreateCtrl.metadata.serviceContact.firstname"/>
                             </div>
                             <div class="control-group">
                                 <label class="control-label new-service-form-label"
                                        for="contactLastName"
                                        translate="create.contact.lastname.label">Last name</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-lastname"
                                        id="contactLastName" ng-model="wsCreateCtrl.metadata.serviceContact.lastname"/>
                             </div>
                             <div class="control-group">
                                 <label class="control-label new-service-form-label"
                                        for="contactOrganisation"
                                        translate="create.contact.organisation.label">Organisation</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-organisation"
                                        id="contactOrganisation" ng-model="wsCreateCtrl.metadata.serviceContact.organisation"/>
                             </div>
                             <div class="control-group">
                                 <label class="control-label new-service-form-label"
                                        for="contactPosition"
                                        translate="create.contact.position.label">Position</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-position"
                                        id="contactPosition" ng-model="wsCreateCtrl.metadata.serviceContact.position"/>
                             </div>
                             <div class="control-group">
@@ -229,7 +235,7 @@
                                        for="contactPhone"
                                        translate="create.contact.phone.label" style="padding:0;">Phone</label>
                                 <div class="col-xs-6" style="padding:0; margin-bottom:7px;">
-                                    <input type="tel" class="form-control"
+                                    <input type="tel" class="form-control" data-test-id="create-service-phone"
                                            id="contactPhone" ng-model="wsCreateCtrl.metadata.serviceContact.phone"/>
                                 </div>
                             </div>
@@ -238,7 +244,7 @@
                                        for="contactFax"
                                        translate="create.contact.fax.label" style="padding:0;">Fax</label>
                                 <div class="col-xs-6" style="padding:0; margin-bottom:7px;">
-                                    <input type="tel" class="form-control"
+                                    <input type="tel" class="form-control" data-test-id="create-service-fax"
                                            id="contactFax" ng-model="wsCreateCtrl.metadata.serviceContact.fax"/>
                                 </div>
                             </div>
@@ -246,7 +252,7 @@
                                 <label class="col-xs-12 control-label new-service-form-label"
                                        for="contactemail"
                                        translate="create.contact.email.label" style="padding:0;">Email</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-email"
                                        id="contactEmail" ng-model="wsCreateCtrl.metadata.serviceContact.email"/>
                             </div>
                         </form>
@@ -261,21 +267,21 @@
                                 <label class="control-label new-service-form-label"
                                        for="contactAddress"
                                        translate="create.contact.address.label">Address</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-address"
                                        id="contactAddress" ng-model="wsCreateCtrl.metadata.serviceContact.address"/>
                             </div>
                             <div class="control-group">
                                 <label class="control-label new-service-form-label"
                                        for="contactCity"
                                        translate="create.contact.address.city.label">City</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-city"
                                        id="contactCity" ng-model="wsCreateCtrl.metadata.serviceContact.city"/>
                             </div>
                             <div class="control-group">
                                 <label class="control-label new-service-form-label"
                                        for="contactState"
                                        translate="create.contact.address.state.label">State</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-state"
                                        id="contactState" ng-model="wsCreateCtrl.metadata.serviceContact.state"/>
                             </div>
                             <div class="control-group">
@@ -283,7 +289,7 @@
                                        for="contactPostcode"
                                        translate="create.contact.address.postcode.label" style="padding:0;">Zip code</label>
                                 <div class="col-xs-4" style="padding:0; margin-bottom:7px;">
-                                    <input type="text" class="form-control"
+                                    <input type="text" class="form-control" data-test-id="create-service-zipcode"
                                            id="contactPostcode" ng-model="wsCreateCtrl.metadata.serviceContact.zipCode"/>
                                 </div>
                             </div>
@@ -291,7 +297,7 @@
                                 <label class="col-xs-12 control-label new-service-form-label"
                                        for="contactCountry"
                                        translate="create.contact.address.country.label" style="padding:0;">Country</label>
-                                <input type="text" class="form-control"
+                                <input type="text" class="form-control" data-test-id="create-service-country"
                                        id="contactCountry" ng-model="wsCreateCtrl.metadata.serviceContact.country"/>
                             </div>
                         </form>
@@ -310,7 +316,7 @@
                                        translate="create.accessconstraint.fees.label"
                                        style="padding:0 0 0 15px;">Fees</label>
                                 <div class="col-xs-11" style=" padding:0 15px;margin-bottom:7px;">
-                                    <input id="fees" class="form-control" type="text"
+                                    <input id="fees" class="form-control" type="text" data-test-id="create-service-fees"
                                            ng-model="wsCreateCtrl.metadata.serviceConstraints.fees"/>
                                 </div>
                                 <div class="btn-lg tooltipicon">
@@ -325,7 +331,7 @@
                                        translate="create.accessconstraint.label"
                                        style="padding:0 0 0 15px;">Access constraints</label>
                                 <div class="col-xs-11" style="margin-bottom:7px;padding:0 15px;">
-                                    <textarea rows="5" id="accessConstraints" class="form-control"
+                                    <textarea rows="5" id="accessConstraints" class="form-control" data-test-id="create-service-access-contraints"
                                               ng-model="wsCreateCtrl.metadata.serviceConstraints.accessConstraint"></textarea>
                                 </div>
                                 <div class="btn-lg tooltipicon">
@@ -341,7 +347,7 @@
                                        translate="create.accessconstraint.layerlimit.label"
                                        style="padding:0;">Layer limit</label>
                                 <div class="col-xs-4" style="padding:0;margin-bottom:7px;">
-                                    <input type="text" id="layerLimit" class="form-control"
+                                    <input type="text" id="layerLimit" class="form-control" data-test-id="create-service-layer-limit"
                                            ng-model="wsCreateCtrl.metadata.serviceConstraints.layerLimit"/>
                                 </div>
                                 <div class="btn-lg tooltipicon">
@@ -358,7 +364,7 @@
                                        for="maxWidth"
                                        translate="create.accessconstraint.maxwidth.label" style="padding:0;">Max width</label>
                                 <div class="col-xs-4" style="padding:0; margin-bottom:7px;">
-                                    <input type="text" id="maxWidth" class="form-control"
+                                    <input type="text" id="maxWidth" class="form-control" data-test-id="create-service-max-width"
                                            ng-model="wsCreateCtrl.metadata.serviceConstraints.maxWidth"/>
                                 </div>
                                 <div class="btn-lg tooltipicon">
@@ -375,7 +381,7 @@
                                        for="maxHeight"
                                        translate="create.accessconstraint.maxheight.label" style="padding:0;">Max height</label>
                                 <div class="col-xs-4" style="padding:0;margin-bottom:7px;">
-                                    <input type="text" id="maxHeight" class="form-control"
+                                    <input type="text" id="maxHeight" class="form-control" data-test-id="create-service-max-height"
                                            ng-model="wsCreateCtrl.metadata.serviceConstraints.maxHeight"/>
                                 </div>
                                 <div class="btn-lg tooltipicon">
@@ -394,6 +400,7 @@
         <div class="row bg-white">
             <div class="pull-right" style="margin: 20px 30px;">
                 <button ng-if="wsCreateCtrl.serviceInfo"
+                        data-test-id="create-service-next"
                         class="btn btn-default"
                         type="button"
                         ng-disabled="!wsCreateCtrl.isValidForm(wsCreateCtrl.serviceform) || !wsCreateCtrl.isValidVersion() || !wsCreateCtrl.isValidIdentifier()"
@@ -414,6 +421,7 @@
                         translate="create.description.previous.label">Previous
                 </button>
                 <button ng-if="wsCreateCtrl.serviceContact"
+                        data-test-id="create-service-save"
                         class="btn btn-add"
                         type="button"
                         ng-click="wsCreateCtrl.saveServiceMetadata()"

@@ -12,6 +12,7 @@
                            translate="layer.listing.selected.edit.layer.alias">Layer alias</label>
                     <div class="col-sm-5">
                         <input type="text"
+                               data-test-id="layer-alias-input"
                                class="form-control form-control-fix"
                                ng-init="checkAlias()"
                                ng-change="checkAlias()"
@@ -65,6 +66,7 @@
                            translate="layer.listing.selected.edit.layer.title">Layer title</label>
                     <div class="col-sm-5">
                         <input type="text"
+                               data-test-id="layer-title-input"
                                class="form-control form-control-fix"
                                ng-model="layerForm.title"/>
                     </div>
@@ -78,6 +80,7 @@
                     translate="data.modal.cancel">Cancel</button>
             <button type="button"
                     class="btn btn-info"
+                    data-test-id="save-layer-info"
                     ng-disabled="errors.nameEmpty || errors.nameInuse || errors.nameInvalid"
                     ng-click="save()">
                 <span translate="metadata.edition.heading.save">Save modifications</span>

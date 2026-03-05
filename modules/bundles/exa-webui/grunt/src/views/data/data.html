@@ -6,7 +6,8 @@
         <div class="pull-right">
             <button class="btn btn-add btn-lg"
                     ng-click="dc.openAddDataWizard()"
-                    style="margin:8px 0;padding:15px 19px;">
+                    style="margin:8px 0;padding:15px 19px;"
+                    data-test-id="data-dashboard-add-data">
                 <span class="fa fa-plus" style="margin-right:5px;"></span>
                 <span>{{'label.add.data' | translate}}</span>
             </button>
@@ -137,10 +138,13 @@
                     <form class="pull-right quick-search" ng-submit="lc.setPage(1)">
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="{{'label.search'|translate}}"
-                                   ng-model="lc.query.text"/>
+                                   ng-model="lc.query.text"
+                                   data-test-id="search-dataset"
+                            />
                             <span class="input-group-btn">
                                         <button type="button" class="btn btn-info btn-data"
-                                                ng-disabled="lc.searchStatus === -1" ng-click="lc.setPage(1)">
+                                                ng-disabled="lc.searchStatus === -1" ng-click="lc.setPage(1)"
+                                                data-test-id="filter-with-search">
                                             <i class="fa fa-search"
                                                ng-class="{'fa-search': lc.searchStatus > -1, 'fa-spinner': lc.searchStatus < 0, 'fa-spin': lc.searchStatus < 0}"></i>
                                         </button>
@@ -155,7 +159,7 @@
                     <div id="list" data-role="list">
                         <div class="pagination-wrapper pagination-data">
                             <strong class="col-md-6">
-                                <span class="nb-results pull-left">{{lc.page.total}}&nbsp;</span>
+                                <span class="nb-results pull-left" data-test-id="available-dataset">{{lc.page.total}}&nbsp;</span>
                                 <span class="nb-results" translate="label.count.dataset">available dataset</span>
                             </strong>
                             <div class="hidden-sm hidden-xs pull-right col-md-6" style="padding-right:0;">
@@ -183,13 +187,15 @@
                         </div>
                         <div class="item-list" ng-init="selectall=false">
                             <div ng-repeat="dataset in lc.page.content" ng-class="{'col-xs-6': smallDisplay}"
-                                 style="padding-left:0;">
+                                 style="padding-left:0;"
+                                 data-test-id="datadashboard-main-block"
+                            >
 
                                 <div class="item dataset-data" ng-if="dc.shouldDisplayDataset(dataset)"
                                      ng-click="dc.toggleSelect(dataset)"
                                      ng-class="{'style-small': smallDisplay, 'selected': dc.isSelected(dataset)}">
                                     <div class="top">
-                                        <span class="item-title" title="{{dataset.name}}" ng-bind="dataset.name"></span>
+                                        <span class="item-title" title="{{dataset.name}}" ng-bind="dataset.name" data-test-id="dataset-{{dataset.name}}"></span>
                                         <span class="text-right item-list-style" translate="dataset.label"></span>
                                     </div>
                                     <div class="bottom">
@@ -217,7 +223,9 @@
                                                   translate="md.listing.no.data">No</span>
                                             <span ng-show="dataset.dataCount > 0" ng-bind="dataset.dataCount"></span>
                                             <span ng-class="{'hide': smallDisplay}"
-                                                  translate="md.listing.data.associated">associated data</span>
+                                                  translate="md.listing.data.associated"
+                                                  data-test-id="associated-data"
+                                            >associated data</span>
                                         </div>
                                     </div>
                                 </div>
@@ -279,7 +287,9 @@
                     <div id="block-information-right">
                         <div class="sous-block-information">
                             <preview-map class="data-preview" layer="dc.preview.layer"
-                                         extent="dc.preview.extent"></preview-map>
+                                         extent="dc.preview.extent"
+                                         data-test-id="data-preview"
+                            ></preview-map>
                             <div>
                                 <div class="alert alert-info alert-data" ng-if="!dc.selection.dataset">
                                     <h4 translate="label.no.selected.data">No selected data</h4>
@@ -291,6 +301,7 @@
                                     <div class="block-header" ng-click="collapsed=!collapsed"
                                          style="position:relative;">
                                         <div class="item-title title-bloc"
+                                             data-test-id="collapse-dataset-options"
                                              title="{{dc.selection.dataset.name}}"
                                              style="text-overflow:ellipsis;overflow: hidden;font-weight:bold;"
                                              ng-bind="dc.selection.dataset.name"></div>
@@ -326,7 +337,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div ng-if="dc.selection.data && dc.selection.data.length === 1">
+                                    <div ng-if="dc.selection.data && dc.selection.data.length === 1" data-test-id="bloc-association">
                                         <div class="block-action" ng-include="'views/data/data_actions.html'"></div>
                                     </div>
                                     <div ng-if="dc.selection.data && dc.selection.data.length > 1" style="margin-top: 10px;">
@@ -341,7 +352,9 @@
                                         <div class="block-associated block-associated-style"
                                              ng-click="assocStyle=!assocStyle; assocService=false; assocSensor=false">
                                             <div class="block-associated-nb"
-                                                 ng-bind="dc.selection.data[0].targetStyle.length">0
+                                                 ng-bind="dc.selection.data[0].targetStyle.length"
+                                                 data-test-id="associated-styles"
+                                            >0
                                             </div>
                                             <div class="block-associated-title" translate="label.related.style">
                                                 Associated Styles
@@ -353,7 +366,8 @@
                                         <span class="fa icon-assoc-style fa-plus" tooltip-placement="bottom"
                                               tooltip-html-unsafe="{{'label.new.style' | translate }}"
                                               style="right: 70px;"
-                                              ng-click="dc.associateStyle()"></span>
+                                              ng-click="dc.associateStyle()"
+                                              data-test-id="associate-style"></span>
                                     </div>
                                 </div>
                                 <div ng-if="assocStyle" class="col-sm-12 block-assoc" style="float: left;">
@@ -397,7 +411,9 @@
                                             </div>
                                             <span class="fa icon-assoc-service" tooltip-placement="bottom"
                                                   tooltip-html-unsafe="{{'label.show.services' | translate }}"
-                                                  ng-class="{'selected': assocService, 'fa-chevron-circle-up': assocService, 'fa-chevron-circle-down': !assocService}"></span>
+                                                  ng-class="{'selected': assocService, 'fa-chevron-circle-up': assocService, 'fa-chevron-circle-down': !assocService}"
+                                                  data-test-id="list-associated-services"
+                                            ></span>
                                         </div>
                                     </div>
                                 </div>
@@ -407,7 +423,9 @@
                                               translate="label.no.association">No association</span>
                                         <div class="style btn-assoc-item"
                                              ng-repeat="service in dc.selection.data[0].targetService"
-                                             style="line-height:30px;">
+                                             style="line-height:30px;"
+                                             data-test-id="layer-linked-to-{{service.identifier}}"
+                                        >
                                             ({{service.type | uppercase}}) {{service.identifier}}
                                         </div>
                                     </div>
@@ -418,7 +436,9 @@
                                         <div class="block-associated block-associated-sensor"
                                              ng-click="assocStyle=false; assocService=false; assocSensor=!assocSensor">
                                             <div class="block-associated-nb"
-                                                 ng-bind="dc.selection.data[0].targetSensor.length">0
+                                                 ng-bind="dc.selection.data[0].targetSensor.length"
+                                                 data-test-id="associated-sensors"
+                                            >0
                                             </div>
                                             <div class="block-associated-title" translate="label.related.sensors">
                                                 Associated Sensors

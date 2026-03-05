@@ -39,7 +39,8 @@
     <div class="col-sm-2">
         <span class="tooltipicon">
             <button id="deleteLayer" type="button" class="btn btn-danger2" tooltip-placement="bottom" tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"
-                    ng-click="lc.deleteData()">
+                    ng-click="lc.deleteData()"
+                    data-test-id="delete-data">
                 <i class="glyphicon glyphicon-trash"></i>
             </button>
         </span>

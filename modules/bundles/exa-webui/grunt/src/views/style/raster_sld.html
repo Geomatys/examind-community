@@ -7,11 +7,12 @@
                        translate="label.color.model">Color model</label>
 				<div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
 					<select id="colormodel"
+                            data-test-id="color-model-selector"
                             class="form-control form-control-fix"
                             ng-model="optionsSLD.rasterPalette.colorModel">
-                        <option value="palette">Palette mode</option>
-                        <option value="rgb">RGB composition mode</option>
-                        <option value="grayscale">Grayscale mode</option>
+                        <option value="palette" data-test-id="color-model-palette">Palette mode</option>
+                        <option value="rgb" data-test-id="color-model-rgb">RGB composition mode</option>
+                        <option value="grayscale" data-test-id="color-model-grayscale">Grayscale mode</option>
 					</select>
 				</div>
 			</div>
@@ -19,7 +20,8 @@
                        ng-show="optionsSLD.rasterPalette.colorModel === 'palette'"
                        ng-init="status.open=true">
 				<accordion-group heading="Edition" is-open="status.open">
-						<accordion-heading>
+						<accordion-heading
+                                data-test-id="edition-panel">
                              <div style="cursor: pointer;">
                                  <i class="pull-left glyphicon"
                                     ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
@@ -42,6 +44,7 @@
                                         <input type="text"
                                                ng-if="!dataProperties || dataProperties.bands.length==0"
                                                class="form-control form-control-fix"
+                                               data-test-id="edition-panel-band"
                                                ng-model="optionsSLD.rasterPalette.band.selected.indice"/>
 									</div>
 								</div>
@@ -52,6 +55,7 @@
                                         <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" style="padding: 0;">
                                             <input type="number" id="minValue"
                                                    class="form-control form-control-fix"
+                                                   data-test-id="edition-panel-distribution-min"
                                                    ng-model="optionsSLD.rasterPalette.palette.rasterMinValue" required/>
                                         </div>
                                         <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 styleRZSlider" style="padding:0 10px;">
@@ -59,6 +63,9 @@
                                         <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" style="padding: 0;">
                                             <input type="number"
                                                    class="form-control form-control-fix"
+                                                   data-test-id="edition-panel-distribution-max"
+                                                   min="{{dataBands[0].minValue}}"
+                                                   max="{{dataBands[0].maxValue}}"
                                                    ng-model="optionsSLD.rasterPalette.palette.rasterMaxValue"
                                                    required/>
                                         </div>
@@ -74,6 +81,7 @@
                                                     style="padding-right: 25px;">
 												<span class="filter-option pull-left">
                                                     <img class="img_palette img_palette_ajust"
+                                                         data-test-id="choose-palette"
                                                          ng-src="{{optionsSLD.rasterPalette.palette.img_palette}}"/>
                                                 </span>&nbsp;
 												<span class="caret"></span>
@@ -81,19 +89,19 @@
 											<span class="dropdown-arrow dropdown-arrow-inverse"></span>
 											<ul class="dropdown-menu dropdown-inverse dropdown-images" role="menu"
 												style="overflow-y: auto; min-width: 70px; min-height: 108px;">
-												<li ng-click="choosePalette(1)">
+												<li ng-click="choosePalette(1)" data-test-id="choose-palette-1">
                                                     <a><img class="img_palette img_palette_ajust" src="img/palette1.png"/></a>
                                                 </li>
-												<li ng-click="choosePalette(2)">
+												<li ng-click="choosePalette(2)" data-test-id="choose-palette-2">
                                                     <a><img class="img_palette img_palette_ajust" src="img/palette2.png"/></a>
                                                 </li>
-												<li ng-click="choosePalette(3)">
+												<li ng-click="choosePalette(3)" data-test-id="choose-palette-3">
                                                     <a><img class="img_palette img_palette_ajust" src="img/palette3.png"/></a>
                                                 </li>
-												<li ng-click="choosePalette(4)">
+												<li ng-click="choosePalette(4)" data-test-id="choose-palette-4">
                                                     <a><img class="img_palette img_palette_ajust" src="img/palette4.png"/></a>
                                                 </li>
-												<li ng-click="choosePalette(5)">
+												<li ng-click="choosePalette(5)" data-test-id="choose-palette-5">
                                                     <a><img class="img_palette img_palette_ajust" src="img/palette5.png"/></a>
                                                 </li>
 											</ul>
@@ -108,7 +116,7 @@
                                                    name="categorize"
                                                    ng-model="optionsSLD.rasterPalette.palette.method"
                                                    value="categorize"/>
-											<span translate="sldeditor.paletteMethod.solidcolor">Solid color</span>
+											<span translate="sldeditor.paletteMethod.solidcolor" data-test-id="edition-panel-radio-solid-color">Solid color</span>
 										</label> 
 										<label class="radio-inline" style="font-size: 12px;margin-left: 0;">
 											<input id="interpolation"
@@ -116,7 +124,7 @@
                                                    name="interpolation"
                                                    ng-model="optionsSLD.rasterPalette.palette.method"
                                                    value="interpolate"/>
-											<span translate="sldeditor.paletteMethod.interpolatecolor">Interpolate color</span>
+											<span translate="sldeditor.paletteMethod.interpolatecolor" data-test-id="edition-panel-radio-interpolate-palette">Interpolate color</span>
 										</label>
 									</div>
 								</div>
@@ -125,6 +133,7 @@
 									<div class="col-xs-7 col-sm-7 col-md-4">
 										<input type="number"
                                                class="form-control form-control-fix"
+                                               data-test-id="edition-panel-divisions"
                                                ng-model="optionsSLD.rasterPalette.palette.intervalsCount"/>
 									</div>
 								</div>
@@ -133,8 +142,9 @@
                                         <div class="checkbox checkbox-inline">
                                             <label>
                                                 <input type="checkbox"
-                                                       ng-model="optionsSLD.rasterPalette.palette.inverse">
-                                                    <span translate="sldeditor.edition.reversecolors">Reverse colors</span>
+                                                       ng-model="optionsSLD.rasterPalette.palette.inverse"
+                                                       data-test-id="reverse-colors">
+                                                    <span translate="sldeditor.edition.reversecolors" data-test-id="edition-panel-reverse-colors">Reverse colors</span>
                                                 </input>
                                             </label>
                                         </div>
@@ -142,7 +152,7 @@
                                             <label>
                                                 <input type="checkbox"
                                                        ng-model="optionsSLD.rasterPalette.palette.nan.selected">
-                                                    <span translate="sldeditor.raster.1band.NaN">NaN</span>
+                                                    <span translate="sldeditor.raster.1band.NaN" data-test-id="edition-panel-nan">NaN</span>
                                                 </input>
                                             </label>
                                         </div>
@@ -156,7 +166,8 @@
 									<button type="button"
                                             ng-click="generateRasterPalette();"
                                             class="btn btn-generer btn-default pull-right"
-                                            style="margin-top: 2px;">
+                                            style="margin-top: 2px;"
+                                            data-test-id="edition-panel-generate-palette">
                                         <span translate="sldeditor.edition.rasterPalette.generate">Generate palette</span>
                                     </button>
 								</div>
@@ -164,7 +175,8 @@
 						</div>
 				</accordion-group>
 				<accordion-group heading="Palette" is-open="optionsSLD.rasterPalette.palette.open">
-					<accordion-heading>
+					<accordion-heading
+                            data-test-id="palette-panel">
                         <div style="cursor: pointer;">
                             <i class="pull-left glyphicon"
                                ng-class="{'glyphicon-chevron-down': optionsSLD.rasterPalette.palette.open, 'glyphicon-chevron-right': !optionsSLD.rasterPalette.palette.open}"></i>
@@ -217,10 +229,10 @@
                                translate="sldeditor.edition.rasterPalette.redChannel">Red channel</label>
 						<div class="col-sm-9">
 							<select class="form-control form-control-fix"
-                                    ng-model="optionsSLD.rasterPalette.rgbChannels[0].name">
+                                    ng-model="optionsSLD.rasterPalette.rgbChannels[0].name" data-test-id="edition-panel-red-channel">
                                 <option value=""></option>
                                 <option ng-repeat="dp in dataProperties.bands"
-                                        ng-value="dp.indice">{{dp.indice}}</option>
+                                        ng-value="dp.indice" data-test-id="edition-panel-red-channel-{{dp.indice}}">{{dp.indice}}</option>
 							</select>
 						</div>
 					</div>
@@ -229,28 +241,29 @@
                                translate="sldeditor.edition.rasterPalette.greenChannel">Green channel</label>
 						<div class="col-sm-9">
 							<select class="form-control form-control-fix"
-                                    ng-model="optionsSLD.rasterPalette.rgbChannels[1].name">
+                                    ng-model="optionsSLD.rasterPalette.rgbChannels[1].name" data-test-id="edition-panel-green-channel">
                                 <option value=""></option>
                                 <option ng-repeat="dp in dataProperties.bands"
-                                        ng-value="dp.indice">{{dp.indice}}</option>
+                                        ng-value="dp.indice" data-test-id="edition-panel-green-channel-{{dp.indice}}">{{dp.indice}}</option>
 							</select>
 						</div>
 					</div>
 					<div class="form-group bande_bleue">
 						<label class="col-sm-3 control-label"
-                               translate="sldeditor.edition.rasterPalette.blueChannel">Blue channel</label>
+                               translate="sldeditor.edition.rasterPalette.blueChannel" data-test-id="edition-panel-blue-channel">Blue channel</label>
 						<div class="col-sm-9">
 							<select class="form-control form-control-fix"
                                     ng-model="optionsSLD.rasterPalette.rgbChannels[2].name">
                                 <option value=""></option>
                                 <option ng-repeat="dp in dataProperties.bands"
-                                        ng-value="dp.indice">{{dp.indice}}</option>
+                                        ng-value="dp.indice" data-test-id="edition-panel-blue-channel-{{dp.indice}}">{{dp.indice}}</option>
 							</select>
 						</div>
 					</div>
                     <div class="col-xs-12 div-btn-add">
                         <button type="button"
                                 class="btn-apercu btn btn-default pull-right"
+                                data-test-id="edition-panel-rgb-apply"
                                 ng-click="applyRGBComposition();">
                             <span translate="sldeditor.edition.apply">Apply</span>
                         </button>
@@ -264,15 +277,16 @@
                                translate="sldeditor.edition.rasterPalette.grayscale">Grayscale</label>
                         <div class="col-sm-8">
                             <select class="form-control form-control-fix"
-                                    ng-model="optionsSLD.rasterPalette.greyChannel.name">
+                                    ng-model="optionsSLD.rasterPalette.greyChannel.name" data-test-id="edition-panel-grayscale-channel">
                                 <option value=""></option>
-                                <option ng-repeat="dp in dataProperties.bands" ng-value="dp.indice">{{dp.indice}}</option>
+                                <option ng-repeat="dp in dataProperties.bands" ng-value="dp.indice" data-test-id="edition-panel-grayscale-channel-{{dp.indice}}">{{dp.indice}}</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-xs-12 div-btn-add">
                         <button type="button"
                                 class="btn-apercu btn btn-default pull-right"
+                                data-test-id="edition-panel-grayscale-apply"
                                 ng-click="applyGrayscaleComposition();">
                             <span translate="sldeditor.edition.apply">Apply</span>
                         </button>

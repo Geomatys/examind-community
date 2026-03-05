@@ -88,6 +88,7 @@
     <span ng-if="fieldObj.field.render.indexOf('readonly') !== -1"
           class="label-data-readonly">{{fieldObj.field.name | translate}}</span>
     <input ng-if="fieldObj.field.render === 'text'"
+           data-test-id="edit-metadata-{{fieldObj.field.name | translate}}"
            type="text"
            class="form-control form-control-fix"
            placeholder="{{fieldObj.field.name | translate}}"
@@ -97,6 +98,7 @@
            dynamic-name="blockObj.block.name+'_'+blockIndex+'_'+fieldObj.field.name+'_'+$index"
            debounce="200"/>
     <textarea ng-if="fieldObj.field.render === 'textarea'"
+              data-test-id="edit-metadata-{{fieldObj.field.name | translate}}"
               class="form-control form-control-fix"
               ng-model="fieldObj.field.value"
               ng-required="fieldObj.field.obligation === 'M'"
@@ -438,6 +440,7 @@
     <button type="button"
             ng-if="fieldObj.field.multiplicity > 1"
             class="pull-right btn btn-default"
+            data-test-id="add-field_occurrence"
             ng-click="addFieldOccurrence(blockObj,fieldObj);"
             title="{{'metadata.edition.occurrence.field.add' | translate}}">
         <i class="fa fa-plus"></i>

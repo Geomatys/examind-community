@@ -17,25 +17,30 @@
                     <div class="btn-group service-item pull-right"
                          style="margin-top: 2px; margin-bottom: 8px;">
                         <button ng-click="showURL=!showURL"
+                                data-test-id="edit-service-url-{{service.name}}"
                                 title="{{label.service.url}}"
                                 class="btn btn-sm btn-default"
                                 ng-class="{active:showURL}">URL
                         </button>
                         <button type="button"
+                                data-test-id="edit-service-getCapabilities-{{service.name}}"
                                 class="btn btn-default btn-sm"
                                 ng-click="showCapa(service)"
                                 ng-disabled="service.status!=='STARTED'">GetCapabilities
                         </button>
                         <button type="button"
+                                data-test-id="edit-service-logs-{{service.name}}"
                                 class="btn btn-default btn-sm"
                                 ng-click="showLogs(service)">Logs
                         </button>
                         <button type="button"
+                                data-test-id="reload-service"
                                 class="btn btn-default btn-sm btn-add"
                                 ng-click="reload(service)"
                                 translate="service.description.reload.button">Reload
                         </button>
                         <button type="button"
+                                data-test-id="edit-service-launch-{{service.name}}"
                                 class="btn btn-default btn-sm"
                                 ng-class="{'started':service.status=='STARTED','stopped':service.status!='STARTED'}"
                                 ng-click="startOrStop(service)">
@@ -43,6 +48,7 @@
                                ng-class="{'fa-play':service.status!='STARTED','fa-stop':service.status=='STARTED'}"></i>
                         </button>
                         <button type="button"
+                                data-test-id="edit-service-delete-{{service.name}}"
                                 class="btn started btn-sm"
                                 ng-click="deleteService();"
                                 data-placement="bottom"
@@ -60,6 +66,7 @@
                         <i class="fa fa-clipboard" aria-hidden="true"></i>
                     </button>
                     <input type="text"
+                           data-test-id="edit-service-readable-url-{{service.name}}"
                            class="form-control service-link"
                            style="float:right;cursor:text;border-top-right-radius: 0;border-bottom-right-radius: 0;"
                            size="{{urlBoxSize}}"
@@ -177,6 +184,7 @@
                                                     <div class="ajax-loader" style="right:0;position:absolute;"></div>
                                                     <input type="text"
                                                            ng-model="wrap.filtertext"
+                                                           data-test-id="edit-service-search"
                                                            class="searchbox search-query form-control form-control-fix"
                                                            placeholder="..."/>
                                                 </div>
@@ -228,6 +236,7 @@
                                             <div class="item-list">
                                                 <div ng-if="type !== 'csw' && type!== 'sos' && type!== 'thw' && type!== 'sts'">
                                                     <div class="item {{layer.type | lowercase}}"
+                                                         data-test-id="edit-service-layer-{{layer.alias ? layer.alias : layer.namespace ? layer.namespace + ':' + layer.name : layer.name}}"
                                                          ng-repeat="layer in wrap.dataList"
                                                          ng-class="{selected:layer.id==selected.id,coverage:layer.type.toLowerCase()==='coverage',vector:layer.type.toLowerCase()==='observation-store' || layer.type.toLowerCase()==='vector', 'col-xs-6':small, 'style-small':small}"
                                                          ng-click="select(layer);showLayerDashboardMap();">
@@ -291,6 +300,7 @@
                                                              ng-click="select(cswdata);selectMetadataChild(null)">
                                                             <div class="top">
                                                             <span class="item-title csw-title"
+                                                                  data-test-id="metadata-container-{{cswdata.title ? truncate(small,cswdata.title) : truncate(small,cswdata.identifier)}}"
                                                                   title="{{cswdata.title ? cswdata.title : cswdata.identifier}}">{{cswdata.title ? truncate(small, cswdata.title) : truncate(small, cswdata.identifier)}}</span>
                                                                 <span class="pull-right text-right item-list-style">METADATA</span>
                                                             </div>
@@ -466,6 +476,7 @@
                                 <div ng-if="service.type !== 'csw' && service.type !== 'wmts' && service.type !== 'tms' && service.type !== 'wms'">
                                     <a data-toggle="modal"
                                        class="btn btn-add btn-lg btn-block"
+                                       data-test-id="edit-service-add"
                                        ng-click="showDataToAdd()" id="showDataToAdd">
                                         <span class="fa fa-plus"
                                               style="margin-right:5px;"></span>
@@ -474,6 +485,7 @@
                                 </div>
                                 <div ng-if="service.type.toLowerCase() === 'wms'">
                                     <a id="showDataToAddWMS"
+                                       data-test-id="edit-service-add-layer"
                                        data-toggle="modal"
                                        class="btn btn-add btn-lg btn-block"
                                        ng-click="showDataToAddWMS()">
@@ -484,6 +496,7 @@
                                 </div>
                                 <div ng-if="service.type.toLowerCase() === 'wmts'">
                                     <a id="showDataToAddWMTS"
+                                       data-test-id="edit-service-add-layer"
                                        data-toggle="modal"
                                        class="btn btn-add btn-lg btn-block"
                                        ng-click="showDataToAddWMTS()">
@@ -494,6 +507,7 @@
                                 </div>
                                 <div ng-if="service.type.toLowerCase() === 'csw' && canAddMetadata()">
                                     <a data-toggle="modal"
+                                       data-test-id="edit-service-add-metadata"
                                        class="btn btn-add btn-lg btn-block btn-csw"
                                        ng-click="showMetadataModalCSW()">
                                         <span class="fa fa-plus"
@@ -552,6 +566,7 @@
                                                                         class="btn btn-info"
                                                                         data-placement="bottom"
                                                                         title="{{'layer.listing.selected.edit.layer.info' | translate }}"
+                                                                        data-test-id="edit-layer-info"
                                                                         tooltip>
                                                                     <i class="glyphicon glyphicon-pencil"></i>
                                                                 </button>
@@ -561,6 +576,7 @@
                                                             <span class="tooltipicon">
                                                                 <button type="button"
                                                                         id="deleteLayer"
+                                                                        data-test-id="delete-layer-{{selected.name}}"
                                                                         class="btn btn-danger2"
                                                                         ng-click="deleteLayer();"
                                                                         data-placement="bottom"
@@ -631,6 +647,7 @@
                                                         <div class="col-sm-3 col-md-2 tooltip-left-menu">
                                                             <span class="tooltipicon">
                                                                 <button type="button"
+                                                                        data-test-id="show-metadata-csw"
                                                                         id="seeMetadata"
                                                                         class="btn btn-csw"
                                                                         ng-click="displayMetadataFromCSW()"
@@ -645,6 +662,7 @@
                                                             <span class="tooltipicon">
                                                                 <button type="button"
                                                                         class="btn btn-csw"
+                                                                        data-test-id="edit-metadata-csw"
                                                                         ng-click="displayMetadataEditor();"
                                                                         data-placement="bottom"
                                                                         title="{{'dataset.metadata.listing.selected.edit.button' | translate }}"
@@ -656,6 +674,7 @@
                                                         <div class="col-sm-3 col-md-2 tooltip-left-menu">
                                                             <span class="tooltipicon">
                                                                 <a id="exportMD"
+                                                                   data-test-id="export-metadata-csw"
                                                                    class="btn btn-info btn-csw"
                                                                    ng-href="{{cstlUrl}}API/CSW/{{service.identifier}}/record/download/{{selected.identifier}}?token={{authToken}}"
                                                                    data-placement="bottom"
@@ -668,6 +687,7 @@
                                                         <div class="col-sm-3 col-md-2 tooltip-left-menu">
                                                             <span class="tooltipicon">
                                                                 <button type="button"
+                                                                        data-test-id="delete-metadata-csw"
                                                                         id="deleteMetadata"
                                                                         ng-if="canAddMetadata()"
                                                                         class="btn btn-danger2 btn-csw"
@@ -768,7 +788,8 @@
                                                       style="right:70px;"
                                                       tooltip-placement="bottom"
                                                       tooltip-html-unsafe="{{'label.new.style' | translate }}"
-                                                      ng-click="showStyleList();"></span>
+                                                      ng-click="showStyleList();"
+                                                      data-test-id="add-style-layer-service"></span>
                                             </div>
                                         </div>
                                         <div ng-if="assocStyle"

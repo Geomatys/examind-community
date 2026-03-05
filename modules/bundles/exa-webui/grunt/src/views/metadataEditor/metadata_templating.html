@@ -92,6 +92,7 @@
                dynamic-name="blockObj.block.name+'_'+blockIndex+'_'+fieldObj.field.name+'_'+$index"
                debounce="200"/>
         <textarea ng-if="fieldObj.field.render === 'textarea'"
+                  data-test-id="form-dataset-abstract"
                   class="form-control form-control-fix"
                   ng-model="fieldObj.field.value"
                   ng-required="fieldObj.field.obligation === 'M'"
@@ -399,6 +400,7 @@
                dynamic-name="blockObj.block.name+'_'+blockIndex+'_'+fieldObj.field.name+'_'+$index"
                debounce="200"/>
         <input ng-if="fieldObj.field.render === 'mail'"
+               data-test-id="form-dataset-mail"
                type="text"
                ng-pattern="mdCtrl.emailRegExp"
                class="form-control form-control-fix"

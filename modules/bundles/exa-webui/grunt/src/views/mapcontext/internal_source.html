@@ -43,7 +43,7 @@
                         <i class="fa fa-times"></i>
                     </button>
 
-                    <button type="button" ng-click="searchVisible= !searchVisible" class="btn btn-xs btn-data">
+                    <button type="button" ng-click="searchVisible= !searchVisible" class="btn btn-xs btn-data" data-test-id="search-icon">
                         <i class="fa fa-search"></i>
                     </button>
                     <div class="pull-right col-xs-7 col-sm-7 col-md-3 col-lg-4"
@@ -51,6 +51,7 @@
                          ng-if="searchVisible">
                         <div style="position:relative;">
                             <input type="text"
+                                   data-test-id="search-layer"
                                    ng-model="wrap.filtertext"
                                    class="search-query form-control form-control-fix"
                                    style="height: 30px;"
@@ -98,7 +99,8 @@
                                  ng-click="toggleDataInArray(data);"
                                  data-name="{{data.provider+':'+data.name}}">
                                 <div class="top">
-                                    <span class="item-title title-modal" title="{{data.name}}">{{data.title}}</span>
+                                    <span class="item-title title-modal" title="{{data.name}}"
+                                          data-test-id="choose-{{data.title}}">{{data.title}}</span>
                                     <span class="pull-right text-right item-list-style"
                                           style="font-size:14px;">{{data.type}}</span>
                                     <img ng-if="data.type=='VECTOR' && (data.subtype=='Point' || data.subtype=='MultiPoint')"

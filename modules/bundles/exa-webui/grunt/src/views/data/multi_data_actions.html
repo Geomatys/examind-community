@@ -6,7 +6,8 @@
         <span class="tooltipicon">
             <button type="button" class="btn btn-default" tooltip-placement="bottom"
                     tooltip-html-unsafe="{{'label.new.style' | translate }}"
-                    ng-click="lc.associateStyle()">
+                    ng-click="lc.associateStyle()"
+                    data-test-id="multi-data-associate-style">
                 <i class="fa fa-paint-brush"></i>
             </button>
         </span>
@@ -15,7 +16,8 @@
         <span class="tooltipicon">
             <button type="button" class="btn btn-default" tooltip-placement="bottom"
                     tooltip-html-unsafe="{{'layer.listing.selected.export.button' | translate }}"
-                    ng-click="lc.exportMultiData()">
+                    ng-click="lc.exportMultiData()"
+                    data-test-id="multi-data-export">
                 <i class="fa fa-download"></i>
             </button>
         </span>
@@ -24,7 +26,8 @@
         <span class="tooltipicon">
             <button type="button" class="btn btn-danger2" tooltip-placement="bottom"
                     tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"
-                    ng-click="lc.deleteMultiData()">
+                    ng-click="lc.deleteMultiData()"
+                    data-test-id="multi-data-delete">
                 <i class="glyphicon glyphicon-trash"></i>
             </button>
         </span>

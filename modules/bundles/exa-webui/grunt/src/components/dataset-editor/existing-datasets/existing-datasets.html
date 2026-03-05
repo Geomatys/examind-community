@@ -53,12 +53,13 @@
             </button>
             <form class="pull-right quick-search" ng-submit="ctrl.pagedSearchService.setPage(1)">
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="{{'label.search'|translate}}"
+                    <input type="text" class="form-control" placeholder="{{'label.search'|translate}}" data-test-id="search-dataset-input"
                            ng-model="ctrl.pagedSearchService.query.text"/>
                     <span class="input-group-btn">
                         <button type="button" class="btn btn-primary"
                                 ng-disabled="ctrl.searchStatus === -1"
-                                ng-click="ctrl.pagedSearchService.setPage(1)">
+                                ng-click="ctrl.pagedSearchService.setPage(1)"
+                                data-test-id="search-dataset-button">
                             <i class="fa fa-search"
                                ng-class="{'fa-search': ctrl.searchStatus > -1, 'fa-spinner': ctrl.searchStatus < 0, 'fa-spin': ctrl.searchStatus < 0}"></i>
                         </button>
@@ -92,7 +93,8 @@
             <div ng-repeat="dataset in ctrl.page.content"
                  class="col-xs-12 col-md-6"
                  ng-click="ctrl.toggleSelectDataset(dataset)">
-                <div class="item" ng-class="{'selected': ctrl.isSelectedDataset(dataset)}">
+                <div class="item" ng-class="{'selected': ctrl.isSelectedDataset(dataset)}"
+                     data-test-id="select-dataset-{{dataset.name}}">
                     <div class="top">
                         <div class="item-title" title="{{dataset.name}}" ng-bind="dataset.name"></div>
                         <span class="text-right item-list-style">{{'dataset.editor.existing.dataset' | translate}}</span>

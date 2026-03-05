@@ -37,6 +37,7 @@
                                                     </div>
                                                     <div class="col-sm-8" ng-if="!disableEditLogin">
                                                         <input class="form-control"
+                                                               data-test-id="edit-login"
                                                                ng-class="{error: userForm.login.$invalid}"
                                                                name="login"
                                                                type="text"
@@ -50,6 +51,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.email">Email</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-mail"
                                                                ng-class="{error: userForm.email.$invalid}"
                                                                name="email"
                                                                type="text"
@@ -66,6 +68,7 @@
                                                     <label class="col-sm-4 control-label" translate="name">Name</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-name"
                                                                ng-class="{error: userForm.lastname.$invalid}"
                                                                name="lastname"
                                                                type="text"
@@ -79,6 +82,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.firstname">First name</label>
                                                     <div class="col-sm-8">
                                                         <input type="text"
+                                                               data-test-id="edit-first-name"
                                                                class="form-control"
                                                                ng-class="{error: userForm.firstname.$invalid}"
                                                                name="firstname"
@@ -95,6 +99,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.address">Address</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-address"
                                                                name="address"
                                                                type="text"
                                                                ng-model="user.address"/>
@@ -106,6 +111,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.additional.address">Additional address</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-additional-address"
                                                                name="additionalAddress"
                                                                type="text"
                                                                ng-model="user.additionalAddress"/>
@@ -120,6 +126,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.zip">Zip</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-zip"
                                                                name="zip"
                                                                type="text"
                                                                ng-model="user.zip"/>
@@ -131,6 +138,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.city">City</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-city"
                                                                name="city"
                                                                type="text"
                                                                ng-model="user.city"/>
@@ -145,6 +153,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.country">Country</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-country"
                                                                name="country"
                                                                type="text"
                                                                ng-model="user.country"/>
@@ -156,6 +165,7 @@
                                                     <label class="col-sm-4 control-label" translate="settings.form.phone">Phone</label>
                                                     <div class="col-sm-8">
                                                         <input class="form-control"
+                                                               data-test-id="edit-phone"
                                                                name="phone"
                                                                type="text"
                                                                ng-model="user.phone"/>
@@ -191,6 +201,7 @@
                                                     <label class="col-sm-4 control-label" translate="profile.password.new" >Nouveau mot de passe</label>
                                                     <div class="col-sm-8">
                                                         <input type="password"
+                                                               data-test-id="edit-password"
                                                                class="form-control"
                                                                ng-class="{error: userForm.password.$invalid}"
                                                                name="password"
@@ -206,6 +217,7 @@
                                                     <label class="col-sm-4 control-label" translate="profile.password.verify" >Vérification du mot de passe</label>
                                                     <div class="col-sm-8">
                                                         <input type="password"
+                                                               data-test-id="edit-checking-password"
                                                                class="form-control"
                                                                ng-class="{error: userForm.password2.$invalid}"
                                                                name="password2"
@@ -248,6 +260,7 @@
                                                     <label for="role" class="col-sm-4 control-label" translate="settings.form.role">Role</label>
                                                     <div class="col-sm-8">
                                                         <select class="form-control"
+                                                                data-test-id="edit-role"
                                                                 ng-class="{error: userForm.role.$invalid}"
                                                                 name="role"
                                                                 id="role"
@@ -284,6 +297,7 @@
                                                     <label class="col-sm-4 control-label" translate="profile.language.choice">Language choice</label>
                                                     <div class="col-sm-8">
                                                         <select class="form-control"
+                                                                data-test-id="edit-language"
                                                                 ng-class="{error: userForm.locale.$invalid}"
                                                                 ng-model="user.locale"
                                                                 name="locale"
@@ -314,7 +328,7 @@
         <div class="modal-footer">
             <button type="button" id="cancelButton" class="btn btn-default"
                     ng-click="close()">Close</button>
-            <button type="submit" class="btn btn-add" ng-click="save()"
+            <button type="submit" class="btn btn-add" ng-click="save()" data-test-id="save"
                     ng-disabled="$root.userForm.$invalid">
                 <span>{{'settings.form.button' | translate}}</span>
             </button>

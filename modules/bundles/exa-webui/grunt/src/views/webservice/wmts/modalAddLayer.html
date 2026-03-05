@@ -34,6 +34,7 @@
                                translate="service.edit.dashboard.wmts.select.layerName">Layer name</label>
                         <div class="col-sm-7">
                             <input type="text"
+                                   data-test-id="layer-name-input"
                                    class="form-control form-control-fix"
                                    ng-class="{'highlight-invalid':!isValidWMTSLayerName()}"
                                    ng-model="values.userLayerName"
@@ -113,16 +114,19 @@
                     ng-click="mode.display=mode.previous;mode.previous='lastStep';"
                     translate="label.previous">Previous</button>
             <button type="button"
+                    data-test-id="next-step"
                     ng-if="mode.display==='internal' && values.listSelect.length > 0"
                     class="btn btn-add"
                     ng-click="goToLastStep()"
                     translate="label.next">Next</button>
             <button type="button"
+                    data-test-id="next-step"
                     ng-if="mode.display==='mapcontext' && values.selectedContext"
                     class="btn btn-add"
                     ng-click="goToLastStep()"
                     translate="label.next">Next</button>
             <button id="submitWMTSLayer"
+                    data-test-id="submit-wmts-layer"
                     ng-if="mode.display=='lastStep' && isValidWMTSLayerName() && values.userLayerName.length>0 && !isLayerNameExists() && (!pyramidFlag || existingPyramidCRS.code)"
                     type="button"
                     class="btn btn-add"

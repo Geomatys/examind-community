@@ -8,17 +8,17 @@
                class="btn btn-lg btn-add dropdown-toggle"
                style="margin-top:8px;padding:15px 19px;">
                 <span class="fa fa-plus" style="margin-right:5px;"></span>
-                <span translate="label.add.style">Add new style</span>
+                <span translate="label.add.style" data-test-id="add-style">Add new style</span>
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
                 <li>
                     <a ng-click="stlCtrl.showStyleCreate()"
-                       translate="label.create.button.new.style">Create new style</a>
+                       translate="label.create.button.new.style" data-test-id="create-new-style">Create new style</a>
                 </li>
                 <li>
                     <a ng-click="stlCtrl.showStyleImport()"
-                       translate="label.create.button.upload.style">Import XML file</a>
+                       translate="label.create.button.upload.style" data-test-id="import-style">Import XML file</a>
                 </li>
             </ul>
         </div>
@@ -86,6 +86,7 @@
                     <form class="pull-right quick-search" ng-submit="stlCtrl.setPage(1)">
                         <div class="input-group">
                             <input type="text"
+                                   data-test-id="search-input"
                                    class="form-control"
                                    ng-model="stlCtrl.query.text"
                                    placeholder="{{'label.search'|translate}}"/>
@@ -93,7 +94,8 @@
                                 <button class="btn btn-style"
                                         type="button"
                                         ng-disabled="stlCtrl.searchStatus === -1"
-                                        ng-click="stlCtrl.setPage(1)">
+                                        ng-click="stlCtrl.setPage(1)"
+                                        data-test-id="search-button">
                                     <i class="fa fa-search"
                                        ng-class="{'fa-search': stlCtrl.searchStatus > -1, 'fa-spinner': stlCtrl.searchStatus < 0, 'fa-spin': stlCtrl.searchStatus < 0}"></i>
                                 </button>
@@ -107,7 +109,7 @@
                      id="contentList"
                      style="width: 60%;margin-bottom: 5px;"
                      ng-init="stlCtrl.smallMode=false">
-                    <div id="list" data-role="list">
+                    <div id="list" data-role="list" data-test-id="style-editor-dashboard">
                         <div class="pagination-wrapper pagination-style">
                             <strong class="col-lg-6 col-xs-8 col-md-6">
                                 <span class="nb-results pull-left">{{stlCtrl.page.total || 0}}&nbsp;</span>
@@ -152,7 +154,7 @@
                                  ng-class="{selected:item.id==stlCtrl.selected.id, 'col-xs-6':stlCtrl.smallMode, 'style-small': stlCtrl.smallMode}"
                                  ng-click="stlCtrl.toggleItemSelection(item);stlCtrl.previewStyledData(null,false);">
                                 <div class="top">
-                                    <span class="item-title" title="{{item.name}}">{{item.name}}</span>
+                                    <span class="item-title" title="{{item.name}}" data-test-id="dashboard-{{item.name}}">{{item.name}}</span>
                                     <span class="pull-right text-right item-list-style"> {{item.type}}</span>
                                     <img ng-if="item.type=='VECTOR' && item.subtype=='point'"
                                          src="img/vector-point.svg"
@@ -280,8 +282,8 @@
                                                             class="btn btn-danger2"
                                                             ng-click="stlCtrl.deleteStyle()"
                                                             data-placement="bottom"
-                                                            title="{{'layer.listing.selected.delete.button' | translate }}"
-                                                            tooltip>
+                                                            data-test-id="delete-style"
+                                                            title="{{'layer.listing.selected.delete.button' | translate }}" tooltip>
                                                         <i class="fa fa-trash-o"></i>
                                                     </button>
                                                 </span>

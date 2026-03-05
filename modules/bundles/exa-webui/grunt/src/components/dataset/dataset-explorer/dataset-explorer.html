@@ -23,7 +23,8 @@
          data-ng-click="$ctrl.select(data, $event)"
          ng-mouseenter="$ctrl.hover = data"
          ng-mouseleave="$ctrl.hover = null"
-         ng-class="{'selected': $ctrl.isSelectedData(data), 'hover' : $ctrl.hover === data}">
+         ng-class="{'selected': $ctrl.isSelectedData(data), 'hover' : $ctrl.hover === data}"
+         data-test-id="data-explorer-{{data.namespace ? (data.namespace + ':' + data.name) : data.name}}">
         <div class="top">
             <span class="item-title" title="{{data.name}}" ng-bind="data.namespace ? (data.namespace + ':' + data.name) : data.name"></span>
             <span class="text-right item-list-style" ng-bind="data.type"></span>

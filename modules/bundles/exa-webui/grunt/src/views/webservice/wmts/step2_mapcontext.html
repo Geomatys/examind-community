@@ -40,6 +40,7 @@
                          ng-if="searchVisible">
                         <div style="position:relative;">
                             <input type="text"
+                                   data-test-id="search-mapcontext"
                                    ng-model="wrap.filtertext"
                                    class="search-query form-control form-control-fix"
                                    style="height: 30px;"
@@ -79,6 +80,7 @@
                                  ng-click="toggleContextSelection(context)">
                                 <div class="top">
                                     <span class="item-title title-modal"
+                                          data-test-id="choose-{{context.name}}"
                                           title="{{context.name}}">{{truncate(context.name,30)}}</span>
                                     <span class="pull-right text-right item-list-style"
                                           style="font-size:14px;"

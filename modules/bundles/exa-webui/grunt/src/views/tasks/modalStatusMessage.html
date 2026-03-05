@@ -1,7 +1,7 @@
 <div class="modal-dialog modal-dialog-resp-height modal-dialog-responsive">
-    <div class="modal-content">
+    <div class="modal-content" data-test-id="task-output-container">
         <div class="modal-header">
-            <button type="button" class="close" ng-click="close()">×</button>
+            <button type="button" class="close" ng-click="close()" data-test-id="quit-task-output">×</button>
             <h4 class="modal-title">{{taskStatus.title}} - {{statusLabelKey(taskStatus) | translate}}</h4>
         </div>
         <div class="modal-body modal-body-style" class="task-status-body" style="color:#ddd;">
@@ -25,7 +25,7 @@
                 </div>
                 <div ng-repeat='out in outputs'>
                     <span class="code-label">{{out.identifier}}</span>
-                    <pre class="code-pre">{{out.value}}</pre>
+                    <pre class="code-pre" data-test-id="task-output">{{out.value}}</pre>
                 </div>
             </div>
 

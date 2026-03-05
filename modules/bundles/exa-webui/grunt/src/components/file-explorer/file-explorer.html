@@ -11,7 +11,7 @@
                       is-sorted-by="explorerCtrl.isSortedBy">
 </file-explorer-header>
 
-<div class="container file-explorer-container">
+<div class="container file-explorer-container" data-test-id="container-data-to-upload">
     <file-explorer-icons ng-if="explorerCtrl.fileExplorerState.viewTemplate === 'icons'"
                          file-list-ref="explorerCtrl.fileListRef"
                          toggle-file-selection="explorerCtrl.toggleFileSelection"

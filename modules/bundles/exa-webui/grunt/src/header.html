@@ -5,7 +5,7 @@
         <a class="dropdown-toggle" data-toggle="dropdown">
             <span>
                 <span class="glyphicon glyphicon-user"></span>
-                <span class="hidden-tablet" >{{firstname}} {{lastname}}</span>
+                <span class="hidden-tablet" data-test-id ="profil">{{firstname}} {{lastname}}</span>
                 <span class="fa fa-caret-down"></span>
             </span>
         </a>
@@ -14,13 +14,13 @@
                 <a ng-class="navClass('profile')" ng-href="{{cstlProfileURL}}"
                    target="{{cstlProfileURL!='#/profile' ? '_blank' : '_self'}}">
                     <span class="glyphicon glyphicon-pencil"></span>
-                    <span translate="global.menu.edit">Edit profile</span>
+                    <span translate="global.menu.edit" data-test-id="my-account">Edit profile</span>
                 </a>
             </li>
             <li>
                 <a ng-click="logout()">
                     <span class="glyphicon glyphicon-log-out"></span>&nbsp;
-                    <span translate="global.menu.admin.logout">Log out</span>
+                    <span translate="global.menu.admin.logout" data-test-id="log out">Log out</span>
                 </a>
             </li>
         </ul>
@@ -64,23 +64,23 @@
             <li ng-if="permissionService.hasPermission('publish') && canShow('webservice')" class="hidden-sm hidden-md">
                 <a ng-class="navClass('webservice')" href="#/webservice" id="webserviceLink">
                     <span class="glyphicon glyphicon-cloud"></span>
-                    <span translate="global.menu.web-service">Services web</span>
+                    <span translate="global.menu.web-service" data-test-id="service">Services web</span>
                 </a>
             </li>
             <li ng-if="permissionService.hasPermission('publish') && canShow('webservice')" class="hidden-xs hidden-lg">
                 <a ng-class="navClass('webservice')" href="#/webservice">
                     <span class="glyphicon glyphicon-cloud"></span>
-                    <span translate="global.menu.web-service.min">Services web</span>
+                    <span translate="global.menu.web-service.min" data-test-id="service-min">Services web</span>
                 </a>
             </li>
             <li ng-if="canShow('data')">
                 <a ng-class="navClass('data')" href="#/data" id="dataLink">
                     <span class="glyphicon glyphicon-file"></span>
-                    <span translate="global.menu.data">Data</span>
+                    <span translate="global.menu.data" data-test-id="data">Data</span>
                 </a>
             </li>
             <li ng-if="canShow(page.cssClass)" class="hidden-sm" ng-repeat="page in navigationArray">
-                <a ng-class="navClass(page.cssClass)" href="{{page.href}}" id="{{page.id}}">
+                <a ng-class="navClass(page.cssClass)" href="{{page.href}}" id="{{page.id}}" data-test-id="{{page.id}}">
                     <span class="{{page.iconClass}}"></span>
                     <span translate="{{page.labelKey}}">{{page.defaultLabel}}</span>
                 </a>
@@ -88,32 +88,32 @@
             <li ng-if="canShow('sensors')" ng-class="{'hidden-sm':navigationArray.length>1}">
                 <a ng-class="navClass('sensors')" href="#/sensors" id="sensorLink">
                     <span ng-class="navClass('sensors')" class="icon-menu-sensor"></span>
-                    <span translate="global.menu.sensor">Sensor</span>
+                    <span translate="global.menu.sensor" data-test-id="sensor">Sensor</span>
                 </a>
             </li>
             <li ng-if="canShow('styles')"
                 ng-class="{'hidden-sm':navigationArray.length>0,'hidden-md':navigationArray.length>0}">
                 <a ng-class="navClass('styles')" href="#/styles" id="stylesLink">
                     <span class="fa fa-paint-brush"></span>
-                    <span translate="global.menu.style">Styles</span>
+                    <span translate="global.menu.style" data-test-id="styles">Styles</span>
                 </a>
             </li>
             <li ng-if="canShow('mapcontext')" class="hidden-sm hidden-md">
                 <a ng-class="navClass('mapcontext')" href="#/mapcontext" id="mapcontextLink">
                     <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext"></span>
-                    <span translate="global.menu.mapcontext">Map context</span>
+                    <span translate="global.menu.mapcontext" data-test-id="mapcontext">Map context</span>
                 </a>
             </li>
             <li ng-if="canShow('tasks')" class="hidden-sm hidden-md">
                 <a ng-class="navClass('tasks')" href="#/tasks" id="task">
                     <span class="glyphicon glyphicon-cog"></span>
-                    <span translate="global.menu.tasks">Tasks</span>
+                    <span translate="global.menu.tasks" data-test-id="task">Tasks</span>
                 </a>
             </li>
             <li class="hidden-sm hidden-md" ng-if="permissionService.hasPermission('admin') && canShow('admin')">
                 <a ng-class="navClass('admin')" href="#/admin" id="admin">
                     <span ng-class="navClass('admin')" class="glyphicon glyphicon-wrench"></span>
-                    <span translate="global.menu.admin.main">Administration</span>
+                    <span translate="global.menu.admin.main" data-test-id="admin">Administration</span>
                 </a>
             </li>
 

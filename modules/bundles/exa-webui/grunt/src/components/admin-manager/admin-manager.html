@@ -10,7 +10,7 @@
                         <div class="panel-body">
                             <div class="list-group">
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_state'}"
-                                   href="" ng-click="ctrl.changeView('system_state')">
+                                   href="" ng-click="ctrl.changeView('system_state')" data-test-id="service-status">
                                     {{'global.menu.admin.system_state' | translate}}
                                 </a>
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'build_info'}"
@@ -21,11 +21,11 @@
                                     APIs docs
                                 </a>
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_logs'}"
-                                   href="" ng-click="ctrl.changeView('system_logs')">
+                                   href="" ng-click="ctrl.changeView('system_logs')" data-test-id="logs">
                                     {{'global.menu.admin.logs' | translate}}
                                 </a>
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_contact'}"
-                                   href="" ng-click="ctrl.changeView('system_contact')">
+                                   href="" ng-click="ctrl.changeView('system_contact')" data-test-id="contact">
                                     {{'global.menu.admin.contact' | translate}}
                                 </a>
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'background-config'}"
@@ -42,7 +42,7 @@
                         <div class="panel-body">
                             <div class="list-group">
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_providers'}"
-                                   href="" ng-click="ctrl.changeView('system_providers')">
+                                   href="" ng-click="ctrl.changeView('system_providers')" data-test-id="data-providers">
                                     {{'global.menu.admin.providers' | translate}}
                                 </a>
                             </div>
@@ -55,7 +55,7 @@
                         <div class="panel-body">
                             <div class="list-group">
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_users'}"
-                                   href="" ng-click="ctrl.changeView('system_users')">
+                                   href="" ng-click="ctrl.changeView('system_users')" data-test-id="users-settings">
                                     {{'global.menu.admin.users' | translate}}
                                 </a>
                             </div>

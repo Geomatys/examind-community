@@ -2,12 +2,14 @@
     <label>{{'dataset.editor.label.select.dataset' | translate}} </label>
     <i class="fa fa-cubes" aria-hidden="true"></i>
     <button class="col-xs-12 col-sm-4 col-md-2 btn btn-primary pull-right"
+            data-test-id="existing-dataset"
             ng-if="ctrl.config.showHeaderBtn"
             ng-class="{'btn-success': ctrl.isDatasetSelectionMode('existing_dataset')}"
             ng-click="ctrl.changeDatasetSelectionMode('existing_dataset')">
         <span>{{'dataset.editor.label.existing.dataset' | translate}}</span>
     </button>
     <button class="col-xs-12 col-sm-4 col-md-2 btn btn-primary pull-right"
+            data-test-id="new-dataset"
             ng-if="ctrl.config.showHeaderBtn"
             ng-class="{'btn-success': ctrl.isDatasetSelectionMode('new_dataset')}"
             ng-click="ctrl.changeDatasetSelectionMode('new_dataset')">

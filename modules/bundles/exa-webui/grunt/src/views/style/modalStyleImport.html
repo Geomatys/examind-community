@@ -18,7 +18,9 @@
                            ng-model="import.styleName"
                            style="margin-bottom: 5pt;"
                            class="form-control form-control-fix"
-                           ng-class="{'highlight-invalid':!isValidField(uploadSLDform.name)}" required/>
+                           ng-class="{'highlight-invalid':!isValidField(uploadSLDform.name)}"
+                           data-test-id="import-style-name"
+                           required/>
                 </div>
                 <div ng-if="!isValidField(uploadSLDform.name)"
                      style="color: #d2322d;">
@@ -48,7 +50,7 @@
                             <span class="input-group-addon btn btn-default btn-file">
                                 <span class="fileinput-new" translate="data.modal.select">Select file</span>
                                 <span class="fileinput-exists" translate="data.modal.change">Change</span>
-                                <input type="file" name="data"
+                                <input type="file" name="data" data-test-id="upload-style"
                                        onchange="angular.element(this).scope().verifyExtension(this.value);"/>
                             </span>
                             <a class="input-group-addon btn btn-default fileinput-exists"
@@ -73,7 +75,8 @@
                     class="btn btn-add"
                     ng-click="uploadStyle()"
                     ng-disabled="uploadSLDform.$invalid || !import.allowSubmit"
-                    translate="data.modal.end">Finish</button>
+                    translate="data.modal.end"
+                    data-test-id="finish-import-style">Finish</button>
         </div>
     </div>
 </div>

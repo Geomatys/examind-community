@@ -8,13 +8,14 @@
                     {{'file.uploader.label.select.files.to.upload' | translate}}
                 </label>
                 <input id="files" type="file"
+                       data-test-id="upload-file"
                        onchange="angular.element(this).scope().selectFiles(this)"
                        multiple/>
             </div>
         </div>
     </file-drag-n-drop>
     <div class="files-manager-block">
-        <div ng-click="fileUplCtrl.collapsed=!fileUplCtrl.collapsed" title="file upload" class="files-manager-header">
+        <div ng-click="fileUplCtrl.collapsed=!fileUplCtrl.collapsed" title="file upload" class="files-manager-header" data-test-id="collapse-step1">
             <i class="fa" ng-class="{'fa-chevron-right':fileUplCtrl.collapsed,'fa-chevron-down':!fileUplCtrl.collapsed}"></i>
             <span>{{'file.uploader.label.files.transfer' | translate}}</span>
             <i ng-if="fileUplCtrl.selectedFiles.length !== 0" class="fa fa-cog fa-spin fa-fw"
@@ -63,6 +64,7 @@
                     </td>
                     <td class="center">
                         <button type="button" class="btn btn-success btn-xs"
+                                data-test-id="reupload-file"
                                 title="{{'file.uploader.label.reupload.file' | translate}}"
                                 ng-click="fileUplCtrl.reUploadFile(item)"
                                 ng-disabled="!item.isError || item.isUploaded">

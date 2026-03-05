@@ -3,7 +3,8 @@
         <tr ng-repeat="file in lsCtrl.fileListRef.fileList | orderBy:lsCtrl.fileExplorerState.sort.sortType:lsCtrl.fileExplorerState.sort.sortReverse"
             ng-click="lsCtrl.toggleFileSelection(file)"
             ng-dblclick="lsCtrl.openDir(file)"
-            ng-class="{'selected': lsCtrl.isSelectedFile(file),'disabled-row':lsCtrl.isDisabledFile(file)}">
+            ng-class="{'selected': lsCtrl.isSelectedFile(file),'disabled-row':lsCtrl.isDisabledFile(file)}"
+            data-test-id="file-selection-{{file.name}}">
             <td>
                 <a href="" title="{{file.name}}">
                     <i class="glyphicon glyphicon-folder-close" ng-show="file.folder"></i>

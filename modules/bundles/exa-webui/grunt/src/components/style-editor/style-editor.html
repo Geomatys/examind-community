@@ -6,7 +6,8 @@
             <button class="btn btn-primary pull-right"
                     ng-if="styleEdCtrl.styleEditorConfig.showImportModeBtn"
                     ng-class="{'btn-success': styleEdCtrl.isSelectedAddStyleMode('import')}"
-                    ng-click="styleEdCtrl.changeAddStyleMode('import')">
+                    ng-click="styleEdCtrl.changeAddStyleMode('import')"
+                    data-test-id="import-style">
                         <span>
                             {{'style.editor.import.style' | translate}}
                         </span>
@@ -14,7 +15,8 @@
             <button class="btn btn-primary pull-right"
                     ng-if="styleEdCtrl.styleEditorConfig.showNewModeBtn"
                     ng-class="{'btn-success': styleEdCtrl.isSelectedAddStyleMode('new')}"
-                    ng-click="styleEdCtrl.createNewStyle()">
+                    ng-click="styleEdCtrl.createNewStyle()"
+                    data-test-id="new-style">
                         <span>
                             {{'style.editor.new.style' | translate}}
                         </span>
@@ -22,7 +24,8 @@
             <button class="btn btn-primary pull-right"
                     ng-if="styleEdCtrl.styleEditorConfig.showExistingModeBtn"
                     ng-class="{'btn-success': styleEdCtrl.isSelectedAddStyleMode('existing')}"
-                    ng-click="styleEdCtrl.changeAddStyleMode('existing')">
+                    ng-click="styleEdCtrl.changeAddStyleMode('existing')"
+                    data-test-id="existing-style">
                         <span>
                             {{'style.editor.existing.style' | translate}}
                         </span>

@@ -5,7 +5,7 @@
     <div class="panel-body">
         <div class="logo-wrapper row">
             <div class="col-sm-12">
-                <div ng-click="ctrl.add()" class="dropdown pull-right">
+                <div data-test-id="add-user" ng-click="ctrl.add()" class="dropdown pull-right">
                     <a  data-toggle="dropdown" class="btn btn-add btn-lg add-user-btn">
                         <span class="fa fa-plus"></span>
                         <span>{{'users.add' | translate}}</span>
@@ -82,16 +82,17 @@
                     </thead>
                     <tbody>
                         <tr ng-repeat="user in ctrl.page.content">
-                            <td ng-click="ctrl.edit(user.id)">{{user.login}}</td>
+                            <td ng-click="ctrl.edit(user.id)" data-test-id="{{user.login}}-edit">{{user.login}}</td>
                             <td ng-click="ctrl.edit(user.id)">{{user.firstname}}</td>
                             <td ng-click="ctrl.edit(user.id)">{{user.lastname}}</td>
-                            <td ng-click="ctrl.edit(user.id)">{{user.email}}</td>
+                            <td ng-click="ctrl.edit(user.id)" data-test-id="{{user.login}}-edit-mail">{{user.email}}</td>
                             <td ng-click="ctrl.edit(user.id)">{{user.roles[0]}}</td>
                             <td>
                                 <button class="btn btn-sm"
                                         ng-class="{'btn-add': user.active, 'btn-warning': !user.active}"
                                         translate="{{user.active ? 'label.users.enable' : 'label.users.disable'}}"
-                                        ng-click="ctrl.updateValidation(user.id)">
+                                        ng-click="ctrl.updateValidation(user.id)"
+                                        data-test-id="{{user.login}}">
                                 </button>
                             </td>
                         </tr>

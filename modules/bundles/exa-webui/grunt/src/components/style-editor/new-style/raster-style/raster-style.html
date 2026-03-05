@@ -10,7 +10,8 @@
                         <input ng-if="!rasterCtrl.isSelectedChooser('edit')"
                                type="text"
                                class="form-control form-control-fix"
-                               ng-model="rasterCtrl.newStyle.name"/>
+                               ng-model="rasterCtrl.newStyle.name"
+                               data-test-id="input-raster-style-name"/>
                         <label ng-if="rasterCtrl.isSelectedChooser('edit')">
                             {{rasterCtrl.newStyle.name}}
                         </label>
@@ -27,24 +28,24 @@
                     <div class="panel-heading well-sld-header">
                         <strong>{{'style.editor.new.raster.label.rules' | translate}}</strong>
                         <div class="dropdown pull-right">
-                            <a data-toggle="dropdown" class="btn btn-add dropdown-toggle">
+                            <a data-toggle="dropdown" class="btn btn-add dropdown-toggle" data-test-id="new-rule">
                                 <span class="fa fa-plus"></span>
                                 <span>{{'style.editor.new.raster.label.new.rules' | translate}}</span>
                                 <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a ng-click="rasterCtrl.createColorAndPaletteRule()">
+                                    <a ng-click="rasterCtrl.createColorAndPaletteRule()" data-test-id="palette">
                                         {{'style.editor.new.raster.label.new.rules.raster.palette' | translate}}
                                     </a>
                                 </li>
                                 <li>
-                                    <a ng-click="rasterCtrl.createCellsRule()">
+                                    <a ng-click="rasterCtrl.createCellsRule()" data-test-id="cells-group">
                                         {{'style.editor.new.raster.label.new.rules.raster.cells' | translate}}
                                     </a>
                                 </li>
                                 <li>
-                                    <a ng-click="rasterCtrl.createDynamicRangesRule()">
+                                    <a ng-click="rasterCtrl.createDynamicRangesRule()" data-test-id="dynamic-ranges">
                                         {{'style.editor.new.raster.label.new.rules.raster.dynamic' | translate}}
                                     </a>
                                 </li>
@@ -84,17 +85,17 @@
         <div ng-if="rasterCtrl.helper.enableRaster !== rasterCtrl.RASTER_STYLE_TYPE.none" class="actions-tab">
             <ul class="nav nav-tabs" ng-init="rasterCtrl.initSelectedRuleTab()">
                 <li ng-class="{active: rasterCtrl.isSelectedRuleTab('description')}">
-                    <a ng-click="rasterCtrl.changeSelectedRuleTab('description');" data-toggle="tab">
+                    <a ng-click="rasterCtrl.changeSelectedRuleTab('description');" data-toggle="tab" data-test-id="description">
                         <span>{{'style.editor.new.raster.label.description' | translate}}</span>
                     </a>
                 </li>
                 <li ng-class="{active: rasterCtrl.isSelectedRuleTab('symbols')}">
-                    <a ng-click="rasterCtrl.changeSelectedRuleTab('symbols');" data-toggle="tab">
+                    <a ng-click="rasterCtrl.changeSelectedRuleTab('symbols');" data-toggle="tab" data-test-id="symbols">
                         <span>{{'style.editor.new.raster.label.symbols' | translate}}</span>
                     </a>
                 </li>
                 <li ng-class="{active: rasterCtrl.isSelectedRuleTab('filters')}">
-                    <a ng-click="rasterCtrl.changeSelectedRuleTab('filters')" data-toggle="tab">
+                    <a ng-click="rasterCtrl.changeSelectedRuleTab('filters')" data-toggle="tab" data-test-id="filters">
                         <span>{{'style.editor.new.raster.label.filters' | translate}}</span>
                     </a>
                 </li>
@@ -114,6 +115,7 @@
                                         <input type="text"
                                                class="form-control"
                                                id="inputrulename"
+                                               data-test-id="input-rule-name"
                                                ng-model="rasterCtrl.helper.selectedRule.name"
                                                debounce="200"/>
                                     </div>
@@ -127,6 +129,7 @@
                                         <input type="text"
                                                class="form-control"
                                                id="inputRuleTitle"
+                                               data-test-id="input-rule-title"
                                                ng-model="rasterCtrl.helper.selectedRule.title"
                                                debounce="200"/>
                                     </div>
@@ -140,6 +143,7 @@
                                         <textarea id="inputRuleDesc"
                                                   class="form-control"
                                                   rows="3"
+                                                  data-test-id="input-rule-desc"
                                                   ng-model="rasterCtrl.helper.selectedRule.description"
                                                   debounce="200"></textarea>
                                     </div>
@@ -257,7 +261,7 @@
             <div class="col-xs-8">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" ng-model="rasterCtrl.helper.autoPreview"/>
+                        <input type="checkbox" ng-model="rasterCtrl.helper.autoPreview" data-test-id="raster-auto-preview"/>
                             <span>
                                 {{'style.editor.new.raster.label.auto.preview' | translate}}
                             </span>
@@ -301,13 +305,15 @@
         <button type="button"
                 class="btn btn-primary pull-right"
                 ng-if="rasterCtrl.helper.enableRaster === rasterCtrl.RASTER_STYLE_TYPE.none"
-                ng-click="rasterCtrl.createStyle();">
+                ng-click="rasterCtrl.createStyle();"
+                data-test-id="create-style">
             <span>{{'style.editor.new.label.create.style' | translate}}</span>
         </button>
         <button type="button"
                 ng-if="rasterCtrl.helper.enableRaster !== rasterCtrl.RASTER_STYLE_TYPE.none"
                 class="btn btn-primary pull-right"
-                ng-click="rasterCtrl.goBackToRulesList();">
+                ng-click="rasterCtrl.goBackToRulesList();"
+                data-test-id="back-to-rule-list">
             <span>{{'style.editor.new.label.back.rules.list' | translate}}</span>
         </button>
     </div>

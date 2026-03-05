@@ -5,6 +5,7 @@
     <div class="col-sm-3">
         <div class="pull-right">
             <a class="btn btn-add btn-lg"
+               data-test-id="add-process"
                ng-click="showAddTaskPopup()"
                style="margin-top:8px;padding:15px 19px;">
                 <span class="fa fa-plus" style="margin-right:5px;"></span>
@@ -131,7 +132,7 @@
                                  ng-class="{'col-xs-6':small}" style="padding-left:0;">
                                 <div class="item registry" ng-class="{selected:task==selected, 'style-small':small}" ng-click="select(task);">
                                     <div class="top">
-                                        <span class="item-title" title="{{task.name}}">{{truncate(small,task.name)}} </span>
+                                        <span class="item-title" title="{{task.name}}" data-test-id="task-{{task.name}}">{{truncate(small,task.name)}} </span>
                                         <span class="pull-right text-right item-list-style hidden-xs hidden-sm"
                                               ng-if="task.processAuthority.indexOf('http')==0">WPS</span>
                                         <span class="pull-right text-right item-list-style hidden-xs hidden-sm"
@@ -201,7 +202,7 @@
                                 <h4 translate="label.no.selected.task">No selected task</h4>
                                 <p translate="msg.no.selected.task" style="font-weight:normal;">Click on a data to display more information</p>
                             </div>
-                            <div class="selected-item" id="selected-item" ng-if="selected !== null">
+                            <div class="selected-item" id="selected-item" ng-if="selected !== null" data-test-id="task-tools-{{selected.name}}">
                                 <div class="block-header block-header-process" ng-click="toggleUpDownSelected()">
                                     <strong class="item-title title-bloc"
                                             title="{{selected.name}}">{{truncateTitleBlock(selected.name)}}</strong>
@@ -228,8 +229,9 @@
                                         <div class="col-sm-2">
                                             <span class="tooltipicon">
                                                 <button type="button" class="btn btn-process" ng-click="executeTask(selected.id);"
-                                                        ng-disabled="!canExecuteTask(selected.id)"
-                                                        data-placement="bottom" title="{{'tasks.information.execute' | translate }}" tooltip>
+                                                        ng-disabled="!canExecuteTask(selected.id)" data-placement="bottom" title="{{'tasks.information.execute' | translate }}"
+                                                        data-test-id="task-execution"
+                                                        tooltip>
                                                     <i class="glyphicon glyphicon-flash"></i>
                                                 </button>
                                             </span>
@@ -253,7 +255,9 @@
                                         <div class="col-sm-2">
                                             <span class="tooltipicon">
                                                 <button type="button" class="btn btn-danger2" ng-click="deleteTask(selected.id);"
-                                                        data-placement="bottom" title="{{'tasks.information.delete' | translate }}" tooltip>
+                                                        data-placement="bottom" title="{{'tasks.information.delete' | translate }}"
+                                                        data-test-id="delete-task"
+                                                        tooltip>
                                                     <i class="glyphicon glyphicon-trash"></i>
                                                 </button>
                                             </span>
@@ -281,7 +285,8 @@
                                                     <td>
                                                        <span ng-click="showMessage(status)"
                                                              title="{{messageType(status) | translate }}" tooltip
-                                                             style="display: inline-block; cursor: pointer;">
+                                                             style="display: inline-block; cursor: pointer;"
+                                                             data-test-id="show-output-{{selected.name}}">
                                                            <i class="glyphicon glyphicon-info-sign"/>
                                                        </span>
                                                     </td>

@@ -33,6 +33,7 @@
                 </label>
                 <div class="col-xs-7">
                     <select id="formatSelect" class="form-control"
+                            data-test-id="detected-format"
                             ng-model="ctrl.stores.selectedStore"
                             ng-change="ctrl.selectStore()"
                             ng-options="store as store.title for store in ctrl.stores.detectedStores | orderBy:'title'">
@@ -63,7 +64,7 @@
                            ng-model="ctrl.advConfig.selectAllFlag"
                            ng-change="ctrl.selectAll()"
                            type="checkbox"/>
-                    <label class="tgl-btn" for="selectAll"></label>
+                    <label class="tgl-btn" for="selectAll" data-test-id="select-all"></label>
                 </div>
             </div>
         </form>
@@ -77,7 +78,8 @@
                        open-dir="ctrl.openDir"
                        disable-up-dir="ctrl.disableUpDir"
                        is-disabled-file="ctrl.isDisabledFile"
-                       file-explorer-state="ctrl.fileExplorerState">
+                       file-explorer-state="ctrl.fileExplorerState"
+                       data-test-id="file-explorer">
         </file-explorer>
     </div>
     <div class="row config-block" ng-hide="ctrl.stores.selectedStore.store === 'S63'">
@@ -100,7 +102,7 @@
                                ng-model="ctrl.advConfig.showAdvConfig"
                                ng-disabled="!ctrl.canShowProviderConfigProperties()"
                                type="checkbox"/>
-                        <label class="tgl-btn" ng-class="{'disabled':!ctrl.canShowProviderConfigProperties()}"
+                        <label class="tgl-btn" ng-class="{'disabled':!ctrl.canShowProviderConfigProperties()}" data-test-id="advanced-options"
                                for="showAdvanced"></label>
                     </div>
                 </div>
@@ -124,7 +126,7 @@
                         <input class="tgl tgl-ios" id="batchMode"
                                ng-model="ctrl.advConfig.batchMode"
                                type="checkbox"/>
-                        <label class="tgl-btn" for="batchMode"></label>
+                        <label class="tgl-btn" for="batchMode" data-test-id="batch-mode"></label>
                     </div>
                 </div>
             </div>

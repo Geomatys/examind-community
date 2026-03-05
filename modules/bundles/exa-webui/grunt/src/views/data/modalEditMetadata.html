@@ -18,6 +18,7 @@
                     ng-click="dismiss()"
                     translate="data.modal.cancel">Cancel</button>
             <button type="button"
+                    data-test-id="save-modifications"
                     ng-if="metadataValues.length>0"
                     class="btn {{theme=='data'?'btn-info':theme=='csw'?'btn-csw':theme=='sensor'?'btn-sos':'btn-info'}}"
                     ng-click="save2()" id="saveMetadataModification">

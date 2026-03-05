@@ -1,5 +1,6 @@
 <div class="modal-dialog" style="margin-top: 50pt;">
-    <div class="modal-content modal-confirm">
+    <div class="modal-content modal-confirm"
+         data-test-id="delete-service-window">
         <div class="modal-header">
             <button type="button" class="close" ng-click="$close()">×</button>
             <h4 class="modal-title" translate="label.confirmation">Please confirm</h4>
@@ -11,8 +12,8 @@
             <button type="button" id="yesConfirmButton"
                     class="btn btn-info"
                     ng-click="$close(true)"
-                    translate="label.yes">Yes
-            </button>
+                    translate="label.yes"
+                    data-test-id="confirm-delete">Yes</button>
             <button type="button" id="noConfirmButton"
                     class="btn btn-default"
                     ng-click="$close(false)"

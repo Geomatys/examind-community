@@ -10,13 +10,15 @@
                style="margin-top:8px;padding:15px 19px;"
                id="createServiceDropDown">
                 <span class="fa fa-plus" style="margin-right:5px;"></span>
-                <span translate="webservicepage.button.create.label">Create a service</span>
+                <span translate="webservicepage.button.create.label" data-test-id="create-service">Create a service</span>
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
                 <li ng-repeat="(key, value) in wsCtrl.availableServices" ng-if="wsCtrl.canShow(key)">
                     <a href="#/webservice/{{key}}" id="{{key}}choice"
-                       translate="webservicepage.button.dropdown.{{key}}.label"></a>
+                       translate="webservicepage.button.dropdown.{{key}}.label"
+                       data-test-id="create-{{key}}"
+                    ></a>
                 </li>
             </ul>
         </div>
@@ -40,7 +42,9 @@
                         <li ng-repeat="(key, value) in wsCtrl.availableServices | orderBy:key"
                             ng-if="wsCtrl.canShow(key)"
                             ng-class="{active:wsCtrl.typeFilter.type === key.toUpperCase()}">
-                            <a ng-click="wsCtrl.typeFilter = {type: key.toUpperCase()}">{{key.toUpperCase()}}</a>
+                            <a ng-click="wsCtrl.typeFilter = {type: key.toUpperCase()}"
+                               data-test-id="service-filter-{{key}}"
+                            >{{key.toUpperCase()}}</a>
                         </li>
                     </ul>
                 </div>
@@ -49,7 +53,7 @@
                 <div class="col-sm-6 service-item"
                      ng-repeat="service in wsCtrl.services | filter:wsCtrl.typeFilter" data-name="{{service.name}}">
                     <a href="#/webservice/{{service.type}}/{{service.identifier}}">
-                        <h3 class="text-info service-name">{{service.name}} </h3>
+                        <h3 class="text-info service-name" data-test-id="service-dashboard-{{service.name}}">{{service.name}} </h3>
                     </a>
                     <div class="well"
                          ng-class="{'started':service.status=='STARTED','stopped':service.status=='ERROR','not-started':service.status=='STOPPED'}"
@@ -58,6 +62,7 @@
                         <div class="row service-button">
                             <div class="pull-right col-xs-12">
                                 <a style="margin-left: 5px;"
+                                   data-test-id="{{service.status != 'STARTED' ? 'launch' : 'stop'}}-service-{{service.name}}"
                                    class="btn btn-sm btn-default pull-right"
                                    ng-class="{'started':service.status=='STARTED','stopped':service.status!='STARTED'}"
                                    ng-click="wsCtrl.startOrStop(service)">
@@ -66,6 +71,7 @@
                                 </a>
                                 <a style="margin-left: 5px;"
                                    class="btn btn-default pull-right btn-sm btn-add"
+                                   data-test-id="refresh-service-{{service.name}}"
                                    ng-click="wsCtrl.reload(service)">
                                     <i class="fa fa-refresh"></i>
                                 </a>
@@ -73,7 +79,8 @@
                                      class="dropdown pull-right">
                                     <a data-toggle="dropdown"
                                        class="btn btn-sm btn-default dropdown-toggle"
-                                       id="optionDropDown">
+                                       id="optionDropDown"
+                                       data-test-id="edit-service-{{service.name}}">
                                         <i class="fa fa-wrench"></i>
                                         <span class="caret"></span>
                                     </a>
@@ -95,7 +102,8 @@
                                         <li>
                                             <a ng-click="wsCtrl.deleteService(service)"
                                                translate="service.menu.delete.label"
-                                               id="deleteOption">Delete</a>
+                                               id="deleteOption"
+                                               data-test-id="delete-service-{{service.name}}">Delete</a>
                                         </li>
                                         <li ng-if="service.type === 'csw'">
                                             <a ng-click="wsCtrl.refreshIndex(service)"

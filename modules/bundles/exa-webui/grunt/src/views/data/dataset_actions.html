@@ -14,7 +14,8 @@
         <span class="tooltipicon">
             <button type="button" class="btn btn-info" tooltip-placement="bottom"
                     tooltip-html-unsafe="{{(lc.selectAllFlag ? 'layer.listing.unselect.button' : 'layer.listing.select.button') | translate }}"
-                    ng-click="lc.selectAllData()">
+                    ng-click="lc.selectAllData()"
+                    data-test-id="select-all-data-in-dataset">
                 <i ng-if="!lc.selectAllFlag" class="fa fa-toggle-on" aria-hidden="true"></i>
                 <i ng-if="lc.selectAllFlag" class="fa fa-toggle-off" aria-hidden="true"></i>
             </button>
@@ -31,8 +32,10 @@
     </div>
     <div class="col-sm-2">
         <span class="tooltipicon">
-            <button id="deleteDataset" type="button" class="btn btn-danger2" tooltip-placement="bottom" tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"
-                    ng-click="lc.deleteDataset()">
+            <button id="deleteDataset" type="button" class="btn btn-danger2" tooltip-placement="bottom"
+                    tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"
+                    ng-click="lc.deleteDataset()"
+                    data-test-id="delete-dataset">
                 <i class="glyphicon glyphicon-trash"></i>
             </button>
         </span>

@@ -3,6 +3,7 @@
         <div class="col-xs-12 col-md-3 sources-menu-block">
             <div class="data-sources-list">
                 <a class="list-group-item"
+                   data-test-id="import-by-{{source.name}}"
                    ng-class="{'active':step1WizCtrl.isSelectedSource(source.name)}"
                    ng-repeat="source in step1WizCtrl.dataSources"
                    ng-click="step1WizCtrl.selectSource(source.name)">
@@ -62,7 +63,8 @@
                            hide-field="step1WizCtrl.hideField">
                 </db-source>
             </div>
-            <div ng-if="step1WizCtrl.isSelectedSource('url')" ng-init="step1WizCtrl.initRemote()" class="step1-source-content">
+            <div ng-if="step1WizCtrl.isSelectedSource('url')" ng-init="step1WizCtrl.initRemote()" class="step1-source-content"
+                 data-test-id="import-by-file">
                 <remote-source remote="step1WizCtrl.remote"
                                processing="step1WizCtrl.processing"
                                stores="step1WizCtrl.stores"

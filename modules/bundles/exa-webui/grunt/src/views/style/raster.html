@@ -11,7 +11,9 @@
                         <input ng-if="!isSelectedChooser('edit')"
                                type="text"
                                class="form-control form-control-fix"
-                               ng-model="optionsSLD.userStyleName"/>
+                               ng-model="optionsSLD.userStyleName"
+                               data-test-id="raster-style-name"
+                        />
                         <input ng-if="isSelectedChooser('edit')"
                                type="text"
                                class="form-control form-control-fix"
@@ -31,16 +33,16 @@
                         <div class="dropdown pull-right" style="margin-top: -5px;">
                             <a data-toggle="dropdown" class="btn btn-add dropdown-toggle" style="font-size: 12px;">
                                 <span class="fa fa-plus" style="margin-right:5px;"></span>
-                                <span translate="edition.style.label.new.rules">Add rule(s)</span>
+                                <span translate="edition.style.label.new.rules" data-test-id="new-rule">Add rule(s)</span>
                                 <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu" style="font-size: 12px;">
                                 <li><a ng-click="createRules('raster_palette')"
-                                       translate="edition.style.label.new.rules.raster_palette">Colors and Palette</a></li>
+                                       translate="edition.style.label.new.rules.raster_palette" data-test-id="palette">Colors and Palette</a></li>
                                 <li><a ng-click="createRules('raster_cellule')"
-                                       translate="edition.style.label.new.rules.raster_cellule">Group of cells</a></li>
+                                       translate="edition.style.label.new.rules.raster_cellule" data-test-id="cells-group">Group of cells</a></li>
                                 <li><a ng-click="createRules('raster_dynamic')"
-                                       translate="edition.style.label.new.rules.raster_dynamic">Dynamic ranges</a></li>
+                                       translate="edition.style.label.new.rules.raster_dynamic" data-test-id="dynamic-ranges">Dynamic ranges</a></li>
                             </ul>
                         </div>
                     </div>
@@ -49,6 +51,7 @@
                             <a class="list-group-item"
                                ng-class="{active:rule===optionsSLD.selectedRule}"
                                ng-repeat="rule in newStyle.rules"
+                               data-test-id="rule-{{rule.name}}"
                                ng-click="setSelectedRule(rule);">
                                 {{rule.name}}
                             </a>
@@ -59,6 +62,7 @@
                                 type="button"
                                 style="font-size: 12px;"
                                 ng-click="editSelectedRasterRule();"
+                                data-test-id="edit"
                                 translate="label.edit">Edit</button>
                         <button class="btn btn-default"
                                 type="button"
@@ -76,11 +80,13 @@
                                 type="button"
                                 style="font-size: 12px;"
                                 ng-click="deleteSelectedRule();"
+                                data-test-id="delete"
                                 translate="label.delete">Delete</button>
                         <button class="btn btn-default"
                                 type="button"
                                 style="font-size: 12px;"
                                 ng-click="deleteAllRules();"
+                                data-test-id="delete-all"
                                 translate="edition.style.label.delete.all">Delete all</button>
                     </div>
                 </div>
@@ -105,7 +111,7 @@
                 </li>
                 <li ng-class="{active: chosenTab==='symbols'}">
                     <a ng-click="chosenTab = 'symbols'" data-toggle="tab">
-                        <span translate="label.symbols" >Symbols</span>
+                        <span translate="label.symbols" data-test-id="symbols" >Symbols</span>
                     </a>
                 </li>
                 <li ng-class="{active: chosenTab==='filters'}">
@@ -127,6 +133,7 @@
                                         <input type="text"
                                                class="form-control"
                                                id="inputrulename"
+                                               data-test-id="input-rule-name"
                                                ng-model="optionsSLD.selectedRule.name"
                                                debounce="200"/>
                                     </div>
@@ -139,6 +146,7 @@
                                         <input type="text"
                                                class="form-control"
                                                id="inputRuleTitle"
+                                               data-test-id="input-rule-title"
                                                ng-model="optionsSLD.selectedRule.title"
                                                debounce="200"/>
                                     </div>
@@ -151,6 +159,7 @@
                                         <textarea id="inputRuleDesc"
                                                   class="form-control"
                                                   rows="3"
+                                                  data-test-id="input-rule-desc"
                                                   ng-model="optionsSLD.selectedRule.description"
                                                   debounce="200"></textarea>
                                     </div>

@@ -3,16 +3,18 @@
         <button class="btn btn-primary back"
                 ng-if="!step5WizCtrl.batchMode"
                 ng-disabled="!step5WizCtrl.canGoToPreviousDataLayer()"
-                ng-click="step5WizCtrl.goToPreviousDataLayer()">
+                ng-click="step5WizCtrl.goToPreviousDataLayer()"
+                data-test-id="go-previous-layer">
             <i class="fa fa-caret-left"></i>
         </button>
-        <span class="label label-primary" ng-if="!step5WizCtrl.batchMode">
+        <span class="label label-primary" ng-if="!step5WizCtrl.batchMode" data-test-id="layer-info-{{step5WizCtrl.selectedDataRef.dataLayer.name}}">
            {{'wiz.data.import.step5.label.layer' | translate}}&nbsp;{{step5WizCtrl.dataLayersPagination.current}}/{{step5WizCtrl.dataLayersPagination.total}}&nbsp;:&nbsp;{{step5WizCtrl.selectedDataRef.dataLayer.name}}
         </span>
         <button class="btn btn-primary next"
                 ng-if="!step5WizCtrl.batchMode"
                 ng-disabled="!step5WizCtrl.canGoToNextDataLayer()"
-                ng-click="step5WizCtrl.goToNextDataLayer()">
+                ng-click="step5WizCtrl.goToNextDataLayer()"
+                data-test-id="go-next-layer">
             <i class="fa fa-caret-right"></i>
         </button>
         <div class="pull-right tgl-container">
@@ -20,8 +22,8 @@
                 <tr>
                     <td><label>{{'wiz.data.import.step5.label.one.by.one' | translate}}</label></td>
                     <td>
-                        <input class="tgl tgl-ios" id="styleBatchMode" ng-model="step5WizCtrl.batchMode" type="checkbox"/>
-                        <label class="tgl-btn" for="styleBatchMode"></label>
+                        <input class="tgl tgl-ios" id="styleBatchMode" ng-model="step5WizCtrl.batchMode" type="checkbox" data-test-id="toggle-style-batchMode"/>
+                        <label class="tgl-btn" for="styleBatchMode" data-test-id="style-batch-mode"></label>
                     </td>
                     <td><label>{{'wiz.data.import.step5.label.batch' | translate}}</label></td>
                 </tr>

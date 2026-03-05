@@ -2,7 +2,7 @@
     <div class="input-group">
         <div class="input-group-btn">
             <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">
+                    aria-haspopup="true" aria-expanded="false" data-test-id="select-protocol">
                 <span ng-show="!remoteCtrl.remote.protocol">{{'wiz.data.import.step1.label.protocol' | translate}}</span>
                 <span ng-show="remoteCtrl.remote.protocol">
                     {{remoteCtrl.remote.protocol.i18n ? (remoteCtrl.remote.protocol.i18n | translate) : remoteCtrl.remote.protocol.name}}
@@ -12,6 +12,7 @@
             <ul class="dropdown-menu glass-class">
                 <li ng-repeat="protocol in remoteCtrl.urlProtocols">
                     <a ng-click="remoteCtrl.selectProtocol(protocol)"
+                       data-test-id="{{protocol.i18n? (protocol.i18n | translate) : protocol.name}}"
                        ng-class="{'selected-protocol-dropdown' : remoteCtrl.isSelectedProtocol(protocol.id)}">
                         {{protocol.i18n ? (protocol.i18n | translate) : protocol.name}}
                     </a>
@@ -20,7 +21,8 @@
         </div>
         <input type="text" class="form-control"
                placeholder="URL..."
-               ng-model="remoteCtrl.remote.url"/>
+               ng-model="remoteCtrl.remote.url"
+               data-test-id="choose-path-file"/>
     </div>
 </form>
 
@@ -71,7 +73,8 @@
                         <div class="col-sm-9">
                             <input id="login" type="text" class="form-control"
                                    ng-model="remoteCtrl.remote.protocol.connection.login"
-                                   placeholder="{{'wiz.data.import.step1.label.login' | translate}}">
+                                   placeholder="{{'wiz.data.import.step1.label.login' | translate}}"
+                                   data-test-id="Login-remote-protocole">
                         </div>
                     </div>
                     <div class="form-group">
@@ -82,7 +85,8 @@
                         <div class="col-sm-9">
                             <input id="password" type="password" class="form-control"
                                    ng-model="remoteCtrl.remote.protocol.connection.password"
-                                   placeholder="{{'wiz.data.import.step1.label.password' | translate}}">
+                                   placeholder="{{'wiz.data.import.step1.label.password' | translate}}"
+                                   data-test-id="password-remote-protocole">
                         </div>
                     </div>
                     <div class="form-group" ng-show="remoteCtrl.remote.protocol.id === 's3'">
@@ -92,13 +96,14 @@
                         <div class="col-sm-9">
                             <input id="region" type="text" class="form-control"
                                    ng-model="remoteCtrl.remote.protocol.connection.region"
-                                   placeholder="{{'wiz.data.import.step1.label.region' | translate}}">
+                                   placeholder="{{'wiz.data.import.step1.label.region' | translate}}"
+                                   data-test-id="region-s3-remote-protocol">
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-9" ng-class="{'col-sm-offset-3':remoteCtrl.remote.protocol.connection}">
-                        <button class="btn btn-success" ng-click="remoteCtrl.urlConnection()">
+                        <button class="btn btn-success" ng-click="remoteCtrl.urlConnection()" data-test-id="load-data">
                             <span>{{remoteCtrl.getBtnLabelFor(remoteCtrl.remote.protocol.id) | translate}}</span>
                         </button>
                     </div>
@@ -118,7 +123,7 @@
                            ng-model="remoteCtrl.remote.protocol.readFromRemote"
                            ng-change="remoteCtrl.changeReadFromRemoteFlag()"
                            type="checkbox"/>
-                    <label class="tgl-btn" for="cbReadRemote"></label>
+                    <label class="tgl-btn" for="cbReadRemote" data-test-id="toggle-remote-reading"></label>
                 </div>
             </div>
             <div ng-if="remoteCtrl.showDeepOption()" class="col-sm-4 remote-flag">
@@ -134,7 +139,7 @@
                     <input class="tgl tgl-ios" id="cbDeepAnalysis"
                            ng-model="remoteCtrl.wizardValues.step1.deepAnalysis"
                            type="checkbox"/>
-                    <label class="tgl-btn" for="cbDeepAnalysis"></label>
+                    <label class="tgl-btn" for="cbDeepAnalysis" data-test-id="toggle-deep-analysis"></label>
                 </div>
             </div>
         </div>
@@ -180,7 +185,7 @@
                 </div>
             </div>
             <div class="pull-right">
-                <button class="btn btn-success" ng-click="remoteCtrl.urlConnection()">
+                <button class="btn btn-success" ng-click="remoteCtrl.urlConnection()" data-test-id="remote-connection">
                     <span>{{'wiz.data.import.step1.label.connection' | translate}}</span>
                 </button>
             </div>

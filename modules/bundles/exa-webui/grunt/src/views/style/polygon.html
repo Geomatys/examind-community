@@ -32,7 +32,8 @@
                    name="picker"
                    class="picker"
                    spectrum oncolorchanged="affectAlpha(value, symbolizer.stroke)"
-                   ng-model="symbolizer.stroke.color"/>
+                   ng-model="symbolizer.stroke.color"
+                   data-test-id="color-picker"/>
         </div>
     </div>
     <div class="form-group" ng-init="advPSize=!isExpressionNumber(symbolizer.stroke.width);">

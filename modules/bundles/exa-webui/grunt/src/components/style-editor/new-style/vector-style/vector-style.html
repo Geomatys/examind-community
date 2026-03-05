@@ -11,7 +11,8 @@
                     <input ng-if="!vectorCtrl.isSelectedChooser('edit')"
                            type="text"
                            class="form-control form-control-fix"
-                           ng-model="vectorCtrl.newStyle.name"/>
+                           ng-model="vectorCtrl.newStyle.name"
+                           data-test-id="input-vector-style-name"/>
                     <label class="title" ng-if="vectorCtrl.isSelectedChooser('edit')">
                         {{vectorCtrl.newStyle.name}}
                     </label>
@@ -28,24 +29,24 @@
                     <div class="panel-heading well-sld-header">
                         <strong>{{'style.editor.new.vector.label.rules' | translate}}</strong>
                         <div class="dropdown pull-right">
-                            <a data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
+                            <a data-toggle="dropdown" class="btn btn-primary dropdown-toggle" data-test-id="new-rule">
                                 <span class="fa fa-plus"></span>
                                 <span>{{'style.editor.new.vector.label.new.rules' | translate}}</span>
                                 <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a ng-click="vectorCtrl.createManualRule()">
+                                    <a ng-click="vectorCtrl.createManualRule()" data-test-id="manually-create-rule">
                                         {{'style.editor.new.vector.label.new.rules.manual' | translate}}
                                     </a>
                                 </li>
                                 <li ng-if="vectorCtrl.selectedDataRef.dataLayer">
-                                    <a ng-click="vectorCtrl.createAutoIntervalRule()">
+                                    <a ng-click="vectorCtrl.createAutoIntervalRule()" data-test-id="automatic-by-interval">
                                         {{'style.editor.new.vector.label.new.rules.auto_interval' | translate}}
                                     </a>
                                 </li>
                                 <li ng-if="vectorCtrl.selectedDataRef.dataLayer">
-                                    <a ng-click="vectorCtrl.createAutoValuesRule()">
+                                    <a ng-click="vectorCtrl.createAutoValuesRule()" data-test-id="auto-valeurs-uniques">
                                         {{'style.editor.new.vector.label.new.rules.auto_values' | translate}}
                                     </a>
                                 </li>
@@ -68,7 +69,8 @@
                     <div class="panel-sld-footer">
                         <button class="btn btn-primary"
                                 type="button"
-                                ng-click="vectorCtrl.editSelectedRule();">
+                                ng-click="vectorCtrl.editSelectedRule();"
+                                data-test-id="edit-rule">
                             {{'style.editor.new.vector.label.edit' | translate}}
                         </button>
                         <button class="btn btn-primary"
@@ -106,7 +108,7 @@
                     </a>
                 </li>
                 <li ng-class="{active: vectorCtrl.isSelectedRuleTab('symbols')}">
-                    <a ng-click="vectorCtrl.changeSelectedRuleTab('symbols')" data-toggle="tab">
+                    <a ng-click="vectorCtrl.changeSelectedRuleTab('symbols')" data-toggle="tab" data-test-id="symbol-tab">
                         <span>{{'style.editor.new.vector.label.symbols' | translate}}</span>
                     </a>
                 </li>
@@ -131,7 +133,8 @@
                                         <input type="text"
                                                class="form-control form-control-fix"
                                                id="inputrulename"
-                                               ng-model="vectorCtrl.helper.selectedRule.name"/>
+                                               ng-model="vectorCtrl.helper.selectedRule.name"
+                                               data-test-id="input-rule-name"/>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -143,7 +146,8 @@
                                         <input type="text"
                                                class="form-control form-control-fix"
                                                id="inputRuleTitle"
-                                               ng-model="vectorCtrl.helper.selectedRule.title"/>
+                                               ng-model="vectorCtrl.helper.selectedRule.title"
+                                               data-test-id="input-rule-title"/>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -155,7 +159,8 @@
                                         <textarea id="inputRuleDesc"
                                                   class="form-control form-control-fix"
                                                   rows="3"
-                                                  ng-model="vectorCtrl.helper.selectedRule.description"></textarea>
+                                                  ng-model="vectorCtrl.helper.selectedRule.description"
+                                                  data-test-id="input-rule-desc"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -174,13 +179,15 @@
                                     <div class="col-xs-12 col-md-10 col-md-offset-1">
                                         <select id="selectsymbolizer"
                                                 class="col-xs-8 form-control"
-                                                ng-model="vectorCtrl.helper.selectedSymbolizerType">
+                                                ng-model="vectorCtrl.helper.selectedSymbolizerType"
+                                                data-test-id="select-symbolizer">
                                             <option ng-repeat="item in vectorCtrl.symbolizerTypes track by item.id" ng-value="item.value">
                                                 {{item.translateKey | translate}}
                                             </option>
                                         </select>
                                         <button class="col-xs-3 btn btn-primary"
                                                 type="button"
+                                                data-test-id="add-new-symbolizer"
                                                 ng-click="vectorCtrl.addSymbolizer();">{{'style.editor.new.vector.label.add' | translate}}
                                         </button>
                                     </div>
@@ -196,7 +203,7 @@
                                         <div>
                                             <i class="pull-left glyphicon"
                                                ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
-                                            <span>{{symbolizer.name}}</span>
+                                            <span data-test-id="open-symbol-wizard">{{symbolizer.name}}</span>
                                             <button type="button"
                                                     class="pull-right btn btn-xs btn-remove"
                                                     ng-click="vectorCtrl.removeSymbolizer(symbolizer);$event.stopPropagation();">
@@ -409,8 +416,9 @@
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                                 <select class="form-control form-control-fix"
                                         ng-init="vectorCtrl.loadDataProperties();"
-                                        ng-model="vectorCtrl.autoIntervalValues.attr">
-                                    <option ng-repeat="dp in vectorCtrl.selectedDataProperties.attributesTypeNumber" ng-value="dp.name">
+                                        ng-model="vectorCtrl.autoIntervalValues.attr"
+                                        data-test-id="attribute-field">
+                                    <option ng-repeat="dp in vectorCtrl.selectedDataProperties.attributesExcludeGeometry" ng-value="dp.name">
                                         {{dp.name}}
                                     </option>
                                 </select>
@@ -422,6 +430,7 @@
                             </label>
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                                 <input type="number"
+                                       data-test-id="intervals-count"
                                        class="form-control form-control-fix"
                                        ng-model="vectorCtrl.autoIntervalValues.nbIntervals"
                                        min="1"/>
@@ -433,11 +442,12 @@
                             </label>
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                                 <select class="form-control form-control-fix"
+                                        data-test-id="quantization-method"
                                         ng-model="vectorCtrl.autoIntervalValues.method">
-                                    <option value="equidistant">
+                                    <option value="equidistant" data-test-id="equidistant-cutting">
                                         {{'style.editor.new.vector.label.equidistant.cutting' | translate}}
                                     </option>
-                                    <option value="mediane">
+                                    <option value="mediane" data-test-id="median-cut">
                                         {{'style.editor.new.vector.label.mediane.cut' | translate}}
                                     </option>
                                 </select>
@@ -448,11 +458,11 @@
                                 {{'style.editor.new.vector.label.symbol.type' | translate}}
                             </label>
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                                <select class="form-control form-control-fix"
+                                <select class="form-control form-control-fix" data-test-id="symbol-type"
                                         ng-model="vectorCtrl.autoIntervalValues.symbol">
-                                    <option value="point">{{'style.editor.new.vector.label.point' | translate}}</option>
-                                    <option value="line">{{'style.editor.new.vector.label.line' | translate}}</option>
-                                    <option value="polygon">{{'style.editor.new.vector.label.polygon' | translate}}</option>
+                                    <option value="point" data-test-id="symbol-point">{{'style.editor.new.vector.label.point' | translate}}</option>
+                                    <option value="line" data-test-id="symbol-line">{{'style.editor.new.vector.label.line' | translate}}</option>
+                                    <option value="polygon" data-test-id="symbol-polygon">{{'style.editor.new.vector.label.polygon' | translate}}</option>
                                 </select>
                             </div>
                         </div>
@@ -464,7 +474,7 @@
                                 <div class="pull-right btn-group dropup select select-block">
                                     <button class="btn dropdown-toggle btn-default" data-toggle="dropdown">
                                         <span class="filter-option pull-left">
-                                            <img class="img_palette img_palette_ajust"
+                                            <img class="img_palette img_palette_ajust" data-test-id="choose-palette"
                                                  ng-src="{{vectorCtrl.autoIntervalValues.palette.img_palette}}"/>
                                         </span>&nbsp;
                                         <span class="caret"></span>
@@ -472,22 +482,22 @@
                                     <span class="dropdown-arrow dropdown-arrow-inverse"></span>
                                     <ul class="dropdown-menu dropdown-inverse dropdown-images" role="menu">
                                         <li ng-click="vectorCtrl.choosePaletteVectorInterval(0)">
-                                            <a><img class="img_palette img_palette_ajust" src="img/palette0.png"/></a>
+                                            <a><img class="img_palette img_palette_ajust" data-test-id="choose-palette-1" src="img/palette0.png"/></a>
                                         </li>
                                         <li ng-click="vectorCtrl.choosePaletteVectorInterval(1)">
-                                            <a><img class="img_palette img_palette_ajust" src="img/palette1.png"/></a>
+                                            <a><img class="img_palette img_palette_ajust" data-test-id="choose-palette-2" src="img/palette1.png"/></a>
                                         </li>
                                         <li ng-click="vectorCtrl.choosePaletteVectorInterval(2)">
-                                            <a><img class="img_palette img_palette_ajust" src="img/palette2.png"/></a>
+                                            <a><img class="img_palette img_palette_ajust" data-test-id="choose-palette-3" src="img/palette2.png"/></a>
                                         </li>
                                         <li ng-click="vectorCtrl.choosePaletteVectorInterval(3)">
-                                            <a><img class="img_palette img_palette_ajust" src="img/palette3.png"/></a>
+                                            <a><img class="img_palette img_palette_ajust" data-test-id="choose-palette-4" src="img/palette3.png"/></a>
                                         </li>
                                         <li ng-click="vectorCtrl.choosePaletteVectorInterval(4)">
-                                            <a><img class="img_palette img_palette_ajust" src="img/palette4.png"/></a>
+                                            <a><img class="img_palette img_palette_ajust" data-test-id="choose-palette-5" src="img/palette4.png"/></a>
                                         </li>
                                         <li ng-click="vectorCtrl.choosePaletteVectorInterval(5)">
-                                            <a><img class="img_palette img_palette_ajust" src="img/palette5.png"/></a>
+                                            <a><img class="img_palette img_palette_ajust" data-test-id="choose-palette-6" src="img/palette5.png"/></a>
                                         </li>
                                     </ul>
                                 </div>
@@ -525,14 +535,15 @@
                                 {{'style.editor.new.vector.label.reverse.colors' | translate}}
                             </label>
                             <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
-                                <input type="checkbox" ng-model="vectorCtrl.autoIntervalValues.palette.reverseColors"/>
+                                <input type="checkbox" ng-model="vectorCtrl.autoIntervalValues.palette.reverseColors" data-test-id="reverse-colors"/>
                             </div>
                         </div>
                     </div>
                 </form>
                 <button type="button"
                         class="btn btn-primary pull-right"
-                        ng-click="vectorCtrl.generateAutoInterval()">
+                        ng-click="vectorCtrl.generateAutoInterval()"
+                        data-test-id="generate-rules">
                     <span>{{'style.editor.new.vector.label.generate.rules' | translate}}</span>
                 </button>
             </div>
@@ -550,7 +561,8 @@
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                                 <select class="form-control form-control-fix"
                                         ng-init="vectorCtrl.loadDataProperties();"
-                                        ng-model="vectorCtrl.autoUniqueValues.attr">
+                                        ng-model="vectorCtrl.autoUniqueValues.attr"
+                                        data-test-id="attribute-field">
                                     <option ng-repeat="dp in vectorCtrl.selectedDataProperties.attributesExcludeGeometry"
                                             ng-value="dp.name">{{dp.name}}
                                     </option>
@@ -563,7 +575,8 @@
                             </label>
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                                 <select class="form-control form-control-fix"
-                                        ng-model="vectorCtrl.autoUniqueValues.symbol">
+                                        ng-model="vectorCtrl.autoUniqueValues.symbol"
+                                        data-test-id="symbol-type">
                                     <option value="point">{{'style.editor.new.vector.label.point' | translate}}</option>
                                     <option value="line">{{'style.editor.new.vector.label.line' | translate}}</option>
                                     <option value="polygon">{{'style.editor.new.vector.label.polygon' | translate}}</option>
@@ -576,7 +589,7 @@
                             </label>
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                                 <div class="pull-right btn-group select select-block">
-                                    <button class="btn dropdown-toggle btn-default" data-toggle="dropdown">
+                                    <button class="btn dropdown-toggle btn-default" data-toggle="dropdown" data-test-id="choose-palette">
                                             <span class="filter-option pull-left">
                                                 <img class="img_palette img_palette_ajust"
                                                      ng-src="{{vectorCtrl.autoUniqueValues.palette.img_palette}}"/>
@@ -585,22 +598,22 @@
                                     </button>
                                     <span class="dropdown-arrow dropdown-arrow-inverse"></span>
                                     <ul class="dropdown-menu dropdown-inverse dropdown-images" role="menu">
-                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(0)">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(0)" data-test-id="first-palette">
                                             <a><img class="img_palette img_palette_ajust" src="img/palette0.png"/></a>
                                         </li>
-                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(1)">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(1)" data-test-id="second-palette">
                                             <a><img class="img_palette img_palette_ajust" src="img/palette1.png"/></a>
                                         </li>
-                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(2)">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(2)" data-test-id="third-palette">
                                             <a><img class="img_palette img_palette_ajust" src="img/palette2.png"/></a>
                                         </li>
-                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(3)">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(3)" data-test-id="fourth-palette">
                                             <a><img class="img_palette img_palette_ajust" src="img/palette3.png"/></a>
                                         </li>
-                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(4)">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(4)" data-test-id="fifth-palette">
                                             <a><img class="img_palette img_palette_ajust" src="img/palette4.png"/></a>
                                         </li>
-                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(5)">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(5)" data-test-id="sixth-palette">
                                             <a><img class="img_palette img_palette_ajust" src="img/palette5.png"/></a>
                                         </li>
                                     </ul>
@@ -646,7 +659,8 @@
                 </form>
                 <button type="button"
                         class="btn btn-primary pull-right"
-                        ng-click="vectorCtrl.generateAutoUnique()">
+                        ng-click="vectorCtrl.generateAutoUnique()"
+                        data-test-id="generate-rules">
                     <span>{{'style.editor.new.vector.label.generate.rules' | translate}}</span>
                 </button>
             </div>
@@ -658,7 +672,7 @@
             <div class="col-xs-8">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" ng-model="vectorCtrl.helper.autoPreview">
+                        <input type="checkbox" ng-model="vectorCtrl.helper.autoPreview" data-test-id="disable-preview">
                         <span>{{'style.editor.new.vector.label.auto.preview' | translate}}</span>
                     </label>
                 </div>
@@ -720,12 +734,13 @@
                 class="btn btn-primary pull-right"
                 ng-if="!vectorCtrl.helper.enableRuleEditor && !vectorCtrl.helper.enableAutoIntervalEditor && !vectorCtrl.helper.enableAutoUniqueEditor"
                 ng-click="vectorCtrl.createStyle();">
-            <span>{{'style.editor.new.label.create.style' | translate}}</span>
+            <span data-test-id="create-style">{{'style.editor.new.label.create.style' | translate}}</span>
         </button>
         <button type="button"
                 class="btn btn-primary pull-right"
                 ng-if="vectorCtrl.helper.enableRuleEditor || vectorCtrl.helper.enableAutoIntervalEditor || vectorCtrl.helper.enableAutoUniqueEditor"
-                ng-click="vectorCtrl.goBackToRulesList();">
+                ng-click="vectorCtrl.goBackToRulesList();"
+                data-test-id="back-to-rule-list">
             <span>{{'style.editor.new.label.back.rules.list' | translate}}</span>
         </button>
     </div>

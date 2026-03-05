@@ -22,13 +22,16 @@
                     <label class="control-label new-service-form-label col-sm-2"
                            translate="service.config.source">Source</label>
                     <select id="sourceType"
+                            data-test-id="select-source-csw"
                             class="form-control col-sm-5"
                             style="margin-bottom:20px;"
                             ng-model="wsChooseCtrl.guiConfig.cswMode">
                         <option value="internal"
+                                data-test-id="internal-source"
                                 translate="service.config.source.internal">Internal
                         </option>
                         <option value="filesystem"
+                                data-test-id="filesystem-source"
                                 translate="service.config.source.file">File system
                         </option>
                     </select>
@@ -138,7 +141,8 @@
                                 <label class="control-label"
                                        translate="service.config.source.file.path">Folder path</label>
                                 <input type="text" class="form-control" required
-                                       ng-model="wsChooseCtrl.guiConfig.cswDataDirectory"/>
+                                       ng-model="wsChooseCtrl.guiConfig.cswDataDirectory"
+                                       data-test-id="folder-path"/>
                             </div>
                             <div class="form-group">
                                 <div class="checkbox">
@@ -237,6 +241,7 @@
             <div class="row bg-white">
                 <div class="pull-right" style="margin: 20px 30px;">
                     <button class="btn btn-add"
+                            data-test-id="form-csw-save"
                             type="button"
                             ng-disabled="cswSourceForm.$invalid"
                             ng-click="wsChooseCtrl.saveServiceSource()"
@@ -348,6 +353,7 @@
                                 <div class="col-sm-11">
                                     <input type="text" class="form-control"
                                            name="dbName" required
+                                           data-test-id="sos-form-name-db"
                                            ng-model="wsChooseCtrl.guiConfig.name"/>
                                 </div>
                             </div>
@@ -357,6 +363,7 @@
                                 <div class="col-sm-11">
                                     <input type="text" class="form-control"
                                            name="dbUserName" required
+                                           data-test-id="sos-form-db-username"
                                            ng-model="wsChooseCtrl.guiConfig.user"/>
                                 </div>
                             </div>
@@ -366,6 +373,7 @@
                                 <div class="col-sm-11">
                                     <input type="password" class="form-control"
                                            name="dbUserPassword" required
+                                           data-test-id="sos-form-pwd"
                                            ng-model="wsChooseCtrl.guiConfig.password"/>
                                 </div>
                             </div>
@@ -391,6 +399,7 @@
                             <div class="col-sm-11">
                                 <input type="text" class="form-control"
                                        name="dbSchema"
+                                       data-test-id="sos-form-schema"
                                        ng-model="wsChooseCtrl.guiConfig.schema"/>
                             </div>
                         </div>
@@ -471,6 +480,7 @@
         <div class="row bg-white">
             <div class="pull-right" style="margin: 20px 30px;">
                 <button class="btn btn-add" type="button"
+                        data-test-id="sos-form-save"
                         ng-click="wsChooseCtrl.saveServiceSource()"
                         ng-disabled="dbSourceSOSForm.$invalid"
                         translate="label.save">Save
@@ -572,6 +582,7 @@
             <div class="pull-right" style="margin: 20px 30px;">
                 <button class="btn btn-add" type="button"
                         ng-click="wsChooseCtrl.saveServiceSource()"
+                        data-test-id="wfs-save"
                         translate="label.save">Save
                 </button>
             </div>
@@ -611,6 +622,7 @@
             <div class="pull-right" style="margin: 20px 30px;">
                 <button class="btn btn-add" type="button"
                         ng-click="wsChooseCtrl.saveServiceSource()"
+                        data-test-id="save"
                         translate="label.save">Save
                 </button>
             </div>

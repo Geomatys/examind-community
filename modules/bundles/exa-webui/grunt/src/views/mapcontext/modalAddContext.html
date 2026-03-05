@@ -1,6 +1,6 @@
 <div class="modal-dialog modal-dialog-resp-height"
      ng-class="{'modal-dialog-sld':mode.display==='general' || mode.display==='addChooseStyle' || mode.display==='chooseLayer'}">
-    <div class="modal-content modalContextEdit">
+    <div class="modal-content modalContextEdit" data-test-id="mapcontext-wizard">
         <div class="modal-header">
             <button type="button" class="close" ng-click="dismiss()">×</button>
             <h4 class="modal-title"
@@ -34,7 +34,7 @@
                                 <a ng-click="mode.selTab='tabLayers'"
                                    data-toggle="tab"
                                    style="padding-bottom: 5px; padding-top: 5px; margin-top: 6px;">
-                                    <span translate="mapcontext.modal.tab.layers">Layers</span>
+                                    <span translate="mapcontext.modal.tab.layers" data-test-id="switch-layer-tab">Layers</span>
                                 </a>
                             </li>
                         </ul>
@@ -50,6 +50,7 @@
                                         </label>
                                         <div class="col-sm-8">
                                             <input type="text"
+                                                   data-test-id="mapcontext-name"
                                                    class="form-control"
                                                    ng-model="ctxt.name"
                                                    ng-change="updateNamePresent()" required />
@@ -60,6 +61,7 @@
                                                translate="mapcontext.modal.label.description">Description</label>
                                         <div class="col-sm-8">
                                             <textarea rows="5"
+                                                      data-test-id="mapcontext-description"
                                                       class="form-control"
                                                       ng-model="ctxt.description"></textarea>
                                         </div>
@@ -154,7 +156,7 @@
                                                 ng-click="goToAddLayerToContext()">
                                             <span class="fa fa-plus"
                                                   style="margin-right:5px;"></span>
-                                            <span translate="mapcontext.modal.add.layer">Add layer</span>
+                                            <span translate="mapcontext.modal.add.layer" data-test-id="add-layer">Add layer</span>
                                         </button>
                                     </div>
                                 </div>
@@ -345,6 +347,7 @@
                     <div class="col-sm-4 col-sm-offset-2"
                          style="text-align:center;">
                         <label class="radio data-type-choose"
+                               data-test-id="internal-source"
                                ng-click="goToInternalSource()">
                             <div class="col-sm-12"
                                  style="margin-top: 5px; padding-left:5px;">
@@ -382,6 +385,7 @@
                     ng-click="cancel()"
                     translate="mapcontext.modal.cancel">Cancel</button>
             <button ng-if="mode.display=='general' || (mode.display == 'addChooseStyle' && styles.existing.length>0 && styles.selected) || (mode.display=='chooseLayer' && selection.layer) || (mode.display=='chooseLayer' && selection.extLayer) || (mode.display=='chooseLayer' && selection.internalData.length>0)"
+                    data-test-id="validate"
                     type="button"
                     id="submitButton"
                     class="btn btn-add"
