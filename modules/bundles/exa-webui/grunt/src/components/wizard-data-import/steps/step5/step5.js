@@ -138,7 +138,7 @@ function Step5WizardController($scope, $location, $translate, $q, Growl, Examind
     };
 
     self.disableAssociateBtn = function () {
-        return !self.wizardValues.step5.styleId || self.wizardValues.step1.advConfig.batchMode;
+        return !self.wizardValues.step5.styleId;
     };
 
     // Implement the conditions to disable next button in this step

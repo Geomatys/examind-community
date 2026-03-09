@@ -20,6 +20,7 @@ function vectorStyleDirective() {
             displayNewStyle: "&",
             newStyle: "=",
             selectedDataRef: "=?",
+            temporaryStyle: "=?",
             createStyle: "&"
         }
     };
@@ -159,6 +160,8 @@ function VectorStyleController($scope, $modal, $translate, $timeout, AppConfigSe
         "min": null,
         "max": null
     };
+
+    self.temporaryStyle = $scope.temporaryStyle || {id: null, name: null};
 
     self.selectedDataRef = $scope.selectedDataRef;
 
@@ -1012,7 +1015,7 @@ function VectorStyleController($scope, $modal, $translate, $timeout, AppConfigSe
         };
 
         //Now send all params to server and it will create the temporary style and returns the full style as json object.
-        Examind.styles.generateAutoInterval(wrapper, self.newStyle.id)
+        Examind.styles.generateAutoInterval(wrapper, self.temporaryStyle.id)
             .then(function (response) {
                 //push rules array in current newStyle object to trigger the changes on the map.
                 if (response.data.rules && response.data.rules.length > 0) {
@@ -1078,7 +1081,7 @@ function VectorStyleController($scope, $modal, $translate, $timeout, AppConfigSe
         };
 
         //Now send all params to server and it will create the temporary style and returns the full style as json object.
-        Examind.styles.generateAutoUniqueStyle(wrapper, self.newStyle.id)
+        Examind.styles.generateAutoUniqueStyle(wrapper, self.temporaryStyle.id)
             .then(function (response) {
                     //push rules array in current newStyle object to trigger the changes on the map.
                     if (response.data.rules && response.data.rules.length > 0) {
