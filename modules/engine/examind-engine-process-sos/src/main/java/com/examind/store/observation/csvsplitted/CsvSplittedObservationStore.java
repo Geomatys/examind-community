@@ -20,6 +20,7 @@
 package com.examind.store.observation.csvsplitted;
 
 import com.examind.store.observation.DataFileReader;
+import com.examind.store.observation.FieldInfos;
 import com.examind.store.observation.ObservationBlock;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
@@ -353,7 +354,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
             List<MeasureField> qualityFields      = buildExtraMeasureFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes);
             List<MeasureField> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes);
 
-            final Map<ObservationType, MeasureColumns> measureColumnsMap = new HashMap<>();
+            final Map<ObservationType, FieldInfos> measureColumnsMap = new HashMap<>();
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -392,7 +393,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                     currentMainColumns = mainColumns;
                 }
                 
-                MeasureColumns measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
+                FieldInfos measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
                     List<MeasureField> measureFields = new ArrayList<>();
                      // initialize description
                     int offset = PROFILE.equals(observationType) ? 1 : 0;
@@ -401,7 +402,14 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                         FieldDataType type = FieldDataType.QUANTITY;
                         measureFields.add(new MeasureField(-1, mc, type, qualityFields, parameterFields));
                     }
-                    return new MeasureColumns(measureFields, currentMainColumns, cot);
+                    MeasureField mainProfile                  = null;
+                    if (PROFILE.equals(observationType)) {
+                        if (currentMainColumns.size() > 1) {
+                            throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
+                        }
+                        mainProfile = new MeasureField(-1, currentMainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of());
+                    }
+                    return new FieldInfos(measureFields, mainProfile, cot);
                 });
 
 

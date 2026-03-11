@@ -19,6 +19,7 @@ package com.examind.store.observation.dbf;
 
 import com.examind.store.observation.AbstractCsvStore;
 import com.examind.store.observation.DataFileReader;
+import com.examind.store.observation.FieldInfos;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservationBlock;
@@ -44,6 +45,7 @@ import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
 import static org.geotoolkit.observation.model.FieldDataType.JSON;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
@@ -128,7 +130,11 @@ public class DbfObservationStore extends AbstractCsvStore {
 
            // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
-            MeasureColumns measureColumns             = new MeasureColumns(obsPropFields, mainColumns, observationType);
+            MeasureField mainProfile                  = null;
+            if (PROFILE.equals(observationType)) {
+                mainProfile = new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of());
+            }
+            FieldInfos measureColumns                 = new FieldInfos(obsPropFields, mainProfile, observationType);
 
              // final result
             final ObservationDataset result = new ObservationDataset();

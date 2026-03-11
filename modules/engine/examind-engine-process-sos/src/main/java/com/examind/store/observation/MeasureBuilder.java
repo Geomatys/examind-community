@@ -31,7 +31,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.geotoolkit.observation.result.ResultBuilder;
@@ -44,13 +43,13 @@ public class MeasureBuilder {
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
             
-    private final Map<Number, LinkedHashMap<String, Measure>> mmb = new LinkedHashMap<>();
+    private final Map<Number, LinkedHashMap<String, Measure>> measureMemoryMap = new LinkedHashMap<>();
      
     private final boolean isProfile;
      
-    private final Map<String, MeasureField> measureColumns = new LinkedHashMap<>();
+    private final Map<String, MeasureField> measureFields = new LinkedHashMap<>();
 
-    private final List<String> mainColumns;
+    private final MeasureField mainProfileField;
 
     private static class Measure {
         public final Object value;
@@ -74,40 +73,34 @@ public class MeasureBuilder {
         }
     }
 
-    public MeasureBuilder(FileParsingObservationStore.MeasureColumns measColumns) {
-        if (measColumns.mainColumns == null   || measColumns.mainColumns.isEmpty())   throw new IllegalArgumentException("mains columns should not be null or empty");
-        if (measColumns.measureFields == null || measColumns.measureFields.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
-        this.isProfile = measColumns.isProfile;
-        for (MeasureField mf : measColumns.measureFields) {
-            this.measureColumns.put(mf.name, mf);
+    public MeasureBuilder(FieldInfos fieldInfos) {
+        if (fieldInfos.measureFields == null || fieldInfos.measureFields.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
+        
+        this.isProfile = fieldInfos.isProfile;
+        for (MeasureField mf : fieldInfos.measureFields) {
+            this.measureFields.put(mf.name, mf);
         }
-        this.mainColumns = measColumns.mainColumns;
+        this.mainProfileField = fieldInfos.mainProfileField;
     }
 
-    public MeasureBuilder(MeasureBuilder cmb, boolean isProfile) {
-        this.isProfile = isProfile;
-        this.measureColumns.putAll(cmb.measureColumns);
-        this.mainColumns =  new ArrayList<>(cmb.mainColumns);
-    }
-     
     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, Object[] qualityValues, Object[] parameterValues) {
-        if (!mmb.containsKey(mainValue)) {
-            mmb.put(mainValue, new LinkedHashMap<>());
+        if (!measureMemoryMap.containsKey(mainValue)) {
+            measureMemoryMap.put(mainValue, new LinkedHashMap<>());
         }
         // add measure code
-        if (measureCode != null && !measureCode.isEmpty() && measureColumns.keySet().contains(measureCode)) {
-            LinkedHashMap<String, Measure> row = mmb.get(mainValue);
+        if (measureCode != null && !measureCode.isEmpty() && measureFields.keySet().contains(measureCode)) {
+            LinkedHashMap<String, Measure> row = measureMemoryMap.get(mainValue);
             if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
                 LOGGER.log(Level.FINE, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
             }
             row.put(measureCode, new Measure(measureValue, qualityValues, parameterValues));
-            mmb.put(mainValue, row);
+            measureMemoryMap.put(mainValue, row);
         }
     }
      
      private Set<String> getMeasureFromMap() {
         Set<String> result = new HashSet<>();
-        for (Map.Entry<Number, LinkedHashMap<String, Measure>> entry1: mmb.entrySet()) {
+        for (Map.Entry<Number, LinkedHashMap<String, Measure>> entry1: measureMemoryMap.entrySet()) {
             for (Map.Entry<String, Measure> entry2: entry1.getValue().entrySet()) {
                 final String measureName = entry2.getKey();
                 final Measure measureValue = entry2.getValue();
@@ -123,13 +116,12 @@ public class MeasureBuilder {
 
         //we complete the measure field only with those found in the data
         Set<MeasureField> filteredMeasure = new LinkedHashSet<>();
+        
+        // add the main profile field
         if (isProfile) {
-            if (mainColumns.size() > 1) {
-                throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
-            }
-            filteredMeasure.add(new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of()));
+            filteredMeasure.add(mainProfileField);
         }
-        for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
+        for (Entry<String, MeasureField> m : measureFields.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {
                 filteredMeasure.add(m.getValue());
             }
@@ -138,7 +130,7 @@ public class MeasureBuilder {
     }
 
     public void updateObservedProperty(ObservedProperty observedProperty) {
-        MeasureField field = measureColumns.get(observedProperty.id);
+        MeasureField field = measureFields.get(observedProperty.id);
         if (field != null) {
             field.label       = observedProperty.name;
             field.uom         = observedProperty.uom;
@@ -152,11 +144,11 @@ public class MeasureBuilder {
         ResultBuilder result = new ResultBuilder(resultMode, TextEncoderProperties.DEFAULT_ENCODING, false);
         boolean noneValue = true;
 
-        List<Number> keys = new ArrayList<>(mmb.keySet());
+        List<Number> keys = new ArrayList<>(measureMemoryMap.keySet());
         Collections.sort(keys, new MainColumnComparator());
         for (Number mainValue: keys) {
             // verify that the line is not all NAN
-            boolean emptyLine = mmb.get(mainValue).isEmpty();
+            boolean emptyLine = measureMemoryMap.get(mainValue).isEmpty();
             if (emptyLine) {
                 continue;
             }
@@ -168,8 +160,8 @@ public class MeasureBuilder {
             } else {
                 result.appendTime((long)mainValue, false, null);
             }
-            Map<String, Measure> measures = mmb.get(mainValue);
-            for (Entry<String,MeasureField> measureField: measureColumns.entrySet()) {
+            Map<String, Measure> measures = measureMemoryMap.get(mainValue);
+            for (Entry<String,MeasureField> measureField: measureFields.entrySet()) {
                 if (measureColumnFound.contains(measureField.getKey())) {
                     final Measure measure = measures.get(measureField.getKey());
                     
@@ -203,7 +195,7 @@ public class MeasureBuilder {
     }
 
     public int getMeasureCount() {
-        return mmb.size();
+        return measureMemoryMap.size();
     }
 
     private static class MainColumnComparator implements Comparator<Number> {

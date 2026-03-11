@@ -19,6 +19,7 @@ package com.examind.store.observation.csv;
 
 import com.examind.store.observation.AbstractCsvStore;
 import com.examind.store.observation.DataFileReader;
+import com.examind.store.observation.FieldInfos;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -49,7 +50,9 @@ import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.ObservationType;
+import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -118,7 +121,7 @@ public class CsvObservationStore extends AbstractCsvStore {
             }
             
             final List<String> measureFields = new ArrayList<>();
-            if (ObservationType.PROFILE.equals(observationType))   {
+            if (PROFILE.equals(observationType))   {
                 if (mainColumns.size() > 1) {
                     throw new DataStoreException("Multiple main columns is not yet supported for Profile");
                 }
@@ -137,8 +140,11 @@ public class CsvObservationStore extends AbstractCsvStore {
 
             // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
-
-            MeasureColumns measureColumns    = new MeasureColumns(obsPropFields, mainColumns, observationType);
+            MeasureField mainProfile                  = null;
+            if (PROFILE.equals(observationType)) {
+                mainProfile = new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of());
+            }
+            FieldInfos measureColumns                 = new FieldInfos(obsPropFields, mainProfile, observationType);
 
              // final result
             final ObservationDataset result = new ObservationDataset();

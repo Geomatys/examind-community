@@ -18,6 +18,7 @@
 package com.examind.store.observation.csvflat;
 
 import com.examind.store.observation.DataFileReader;
+import com.examind.store.observation.FieldInfos;
 import com.examind.store.observation.ObservationBlock;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
@@ -55,6 +56,7 @@ import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ObservationType;
+import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -219,7 +221,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             List<MeasureField> qualityFields      = buildExtraMeasureFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes);
             List<MeasureField> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes);
 
-            final Map<ObservationType, MeasureColumns> measureColumnsMap = new HashMap<>();
+            final Map<ObservationType, FieldInfos> measureColumnsMap = new HashMap<>();
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -258,16 +260,23 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     currentMainColumns = mainColumns;
                 }
                 
-                MeasureColumns measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
+                FieldInfos measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
                     List<MeasureField> measureFields = new ArrayList<>();
                      // initialize description
-                    int offset = ObservationType.PROFILE.equals(observationType) ? 1 : 0;
+                    int offset = ObservationType.PROFILE.equals(cot) ? 1 : 0;
                     for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
                         String mc = sortedMeasureColumns.get(j);
                         FieldDataType type = FieldDataType.QUANTITY;
                         measureFields.add(new MeasureField(-1, mc, type, qualityFields, parameterFields));
                     }
-                    return new MeasureColumns(measureFields, currentMainColumns, cot);
+                    MeasureField mainProfile                  = null;
+                    if (PROFILE.equals(cot)) {
+                        if (currentMainColumns.size() > 1) {
+                            throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
+                        }
+                        mainProfile = new MeasureField(-1, currentMainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of());
+                    }
+                    return new FieldInfos(measureFields, mainProfile, cot);
                 });
 
 
@@ -374,7 +383,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
         }
     }
     
-    private static Object[] parseExtraFields(Object[] line, List<Integer> indexes, String observedProperty, MeasureColumns measureColums, FieldType type, DateFormat sdf ) {
+    private static Object[] parseExtraFields(Object[] line, List<Integer> indexes, String observedProperty, FieldInfos measureColums, FieldType type, DateFormat sdf ) {
         Object[] values = new Object[indexes.size()];
         for (int i = 0; i < indexes.size(); i++) {
             Integer qIndex = indexes.get(i);

@@ -303,45 +303,14 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return tree;
     }
 
-    protected static class MeasureColumns {
-        public final ObservationType observationType;
-        public final boolean isProfile;
-        public final List<MeasureField> measureFields;
-        public final List<String> mainColumns;
-
-        public MeasureColumns(List<MeasureField> measureFields, List<String> mainColumns, ObservationType observationType) {
-            this.observationType = observationType;
-            this.isProfile = observationType.equals(PROFILE);
-            this.mainColumns = mainColumns;
-            this.measureFields = measureFields;
-        }
-        
-        public MeasureField getExtraField(String fieldName, int index, FieldType type) {
-            MeasureField field = null;
-            for (MeasureField mf : measureFields) {
-                if (mf.name.equals(fieldName)) {
-                    field = mf;
-                    break;
-                }
-            }
-            if (field == null) throw new IllegalStateException("Unable to find a field named: " + fieldName);
-            if (type  == null) throw new IllegalArgumentException("fieldtype must not be null");
-            return switch (type) {
-                case PARAMETER -> field.parameterFields.get(index);
-                case QUALITY   -> field.qualityFields.get(index);
-                default        -> throw new IllegalArgumentException("Only PARAMETER or QUALITY field type are expected");
-            };
-        }
-    }
-
-    protected ObservationBlock getOrCreateObservationBlock(Map<String, ObservationBlock> observationBlock, Procedure procedure, String foiID, Long time, MeasureColumns measColumns) {
+    protected ObservationBlock getOrCreateObservationBlock(Map<String, ObservationBlock> observationBlock, Procedure procedure, String foiID, Long time, FieldInfos fieldInfos) {
         String key = procedure.getId() + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
 
-            MeasureBuilder cmb = new MeasureBuilder(measColumns);
-            ObservationBlock ob = new ObservationBlock(procedure, foiID, cmb, measColumns.observationType);
+            MeasureBuilder cmb = fieldInfos.newBuilder();
+            ObservationBlock ob = new ObservationBlock(procedure, foiID, cmb, fieldInfos.observationType);
             observationBlock.put(key, ob);
             return ob;
         }
@@ -412,7 +381,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         // On extrait les types de mesure trouvées dans la donnée
         Set<MeasureField> measureFields = ob.getUsedFields();
 
-        if (measureFields.isEmpty() || ("Profile".equals(ob.observationType) && measureFields.size() == 1)) {
+        if (measureFields.isEmpty() || (PROFILE.equals(ob.observationType) && measureFields.size() == 1)) {
             LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedure.getId());
             return;
         }
