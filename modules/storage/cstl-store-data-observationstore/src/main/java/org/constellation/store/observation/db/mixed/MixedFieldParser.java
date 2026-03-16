@@ -193,7 +193,7 @@ public class MixedFieldParser extends FieldParser {
         Object prevLineKey               = null;
         Object prevObsKey                = null;
         boolean hasData                  = false;
-        Map<String, Object> properties   = Map.of("type", pti.type.name().toLowerCase());
+        Map<String, Object> properties   = Map.of("type", pti.type.name());
         Map<String, Object> blocValues   = createNewBlocValues();
         Map<String, Observation> results = new HashMap<>();
         boolean separated                = (separatedProfileObs && profile);

@@ -242,7 +242,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         // look for an conflicted observation
         final Procedure procedure  = observation.getProcedure();
         final String procedureID   = procedure.getId();
-        final ObservationType procedureOMType = ObservationType.parse((String) procedure.getProperties().getOrDefault("type", "timeseries"));
+        final ObservationType procedureOMType = ObservationType.parse((String) procedure.getProperties().getOrDefault("type", "TIMESERIES"));
 
         final TemporalPrimitive samplingTime = observation.getSamplingTime();
 

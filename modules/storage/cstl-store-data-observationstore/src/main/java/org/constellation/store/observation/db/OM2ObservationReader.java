@@ -454,7 +454,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
             Map<String, Object> properties = new HashMap<>();
             final ProcedureInfo pi = getPIDFromProcedure(procedure, c).orElseThrow(IllegalArgumentException::new);
-            properties.put("type", pi.type.name().toLowerCase());
+            properties.put("type", pi.type.name());
             final Procedure proc = getProcess(procedure, new Selection(), c);
             final Phenomenon resultPhen;
             final Result result;

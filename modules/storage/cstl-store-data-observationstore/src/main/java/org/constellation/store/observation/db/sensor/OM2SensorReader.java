@@ -94,7 +94,7 @@ public class OM2SensorReader extends OM2BaseReader implements SensorReader {
         } catch (SQLException ex) {
             throw new DataStoreException(ex);
         }
-        final String procedureOMType = (String) process.getProperties().getOrDefault("type", "timeseries");
+        final String procedureOMType = (String) process.getProperties().getOrDefault("type", "TIMESERIES");
 
         AbstractIdentification ident = SmlXMLFactory.createIdentification(SML_VERSION, sensorID);
         AbstractClassification classif = "profile".equals(procedureOMType) ? PROFILE_CLASSIF : TIMESERIE_CLASSIF;

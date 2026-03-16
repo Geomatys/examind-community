@@ -994,7 +994,7 @@ public class OM2BaseReader {
                         properties = readProperties("procedures_properties", "id_procedure", id, c);
                         String omType = rs.getString("om_type");
                         if (omType != null) {
-                            properties.putIfAbsent("type", ObservationType.parse(omType));
+                            properties.putIfAbsent("type", ObservationType.parse(omType).name());
                         }
                     }
                     if (!select.isSelected("id")) id = null;

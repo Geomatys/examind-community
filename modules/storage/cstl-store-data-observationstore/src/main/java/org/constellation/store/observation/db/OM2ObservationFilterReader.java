@@ -582,7 +582,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 boolean timeseries = (pti.type == ObservationType.TIMESERIES);
 
                 Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type.name().toLowerCase());
+                properties.put("type", pti.type.name());
                  final List<SelectionField> fields        = applySelection(fieldPhen.keySet(), pti);
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
                 final FilterSQLRequest measureRequest     = buildMesureRequests(pti, fields, measureFilter, oid, false, mode);

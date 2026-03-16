@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -234,6 +235,9 @@ public class ObservationTestUtils {
         assertEquals(expected.getName().getCode(), result.getName().getCode());
         assertEquals(expected.getObservedProperty(), result.getObservedProperty());
         assertEquals(expected.getProcedure().getId(), result.getProcedure().getId());
+        if (!Objects.equals(expected.getProcedure().getProperties(), result.getProcedure().getProperties())) {
+            System.out.println("DEBUG");
+        }
         assertEquals(expected.getProcedure().getProperties(), result.getProcedure().getProperties());
 
         assertEquals(expected.getProcedure(), result.getProcedure());
