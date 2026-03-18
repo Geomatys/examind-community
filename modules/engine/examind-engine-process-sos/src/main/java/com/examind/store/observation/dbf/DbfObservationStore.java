@@ -51,6 +51,7 @@ import static org.geotoolkit.observation.model.FieldDataType.JSON;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TEXT;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ObservationDataset;
 import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -130,11 +131,17 @@ public class DbfObservationStore extends AbstractCsvStore {
 
            // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
-            MeasureField mainProfile                  = null;
+            
+            List<MeasureField> fields = new ArrayList<>(obsPropFields);
             if (PROFILE.equals(observationType)) {
-                mainProfile = new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of());
+                if (mainColumns.size() > 1) {
+                    throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
+                }
+                fields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+            } else {
+                fields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME,     FieldType.MAIN));
             }
-            FieldInfos measureColumns                 = new FieldInfos(obsPropFields, mainProfile, observationType);
+            FieldInfos measureColumns = new FieldInfos(fields, observationType);
 
              // final result
             final ObservationDataset result = new ObservationDataset();
@@ -360,8 +367,13 @@ public class DbfObservationStore extends AbstractCsvStore {
             final List<Integer> qualityIndexes   = getColumnIndexes(qualityColumns,   headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
             final List<Integer> parameterIndexes = getColumnIndexes(parameterColumns, headers, directColumnIndex, laxHeader, PARAMETER_QUALIFIER);
             
-            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
-            final List<Field> fields               = toFields(obsPropFields, observationType);
+            List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
+            if (PROFILE.equals(observationType)) {
+                mesureFields.add(0, new MeasureField(-1, "MAIN", FieldDataType.QUANTITY, FieldType.MAIN)); // main field name lost?
+            } else {
+                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
+            }
+            final List<Field> fields               = toFields(mesureFields, observationType);
             
 
             // special case where there is no header, and a specified observation peorperty identifier

@@ -82,7 +82,7 @@ public class ObservationBlock {
     }
 
     public Set<MeasureField> getUsedFields() {
-        return cmb.getUsedMeasureColumns();
+        return cmb.getUsedFields();
     }
 
     public ResultBuilder getResults(ResultMode resultMode) {

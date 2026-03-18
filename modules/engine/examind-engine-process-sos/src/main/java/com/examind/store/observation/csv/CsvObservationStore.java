@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
-import org.geotoolkit.observation.model.ObservationType;
+import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -120,14 +120,14 @@ public class CsvObservationStore extends AbstractCsvStore {
                 throw new DataStoreException("Unable to find main column(s): " + mainColumns);
             }
             
-            final List<String> measureFields = new ArrayList<>();
+            final List<String> measureFieldNames = new ArrayList<>();
             if (PROFILE.equals(observationType))   {
                 if (mainColumns.size() > 1) {
                     throw new DataStoreException("Multiple main columns is not yet supported for Profile");
                 }
-                measureFields.add(mainColumns.get(0));
+                measureFieldNames.add(mainColumns.get(0));
             }
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFieldNames, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
             if (obsPropIndexes.isEmpty()) {
                 throw new DataStoreException("No observed properties columns have been found in the headers: "+ obsPropColumns.stream().collect(Collectors.joining(", ", "[ ", " ]")));
             }
@@ -136,15 +136,16 @@ public class CsvObservationStore extends AbstractCsvStore {
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
             }
 
-            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
-
             // special case where there is no header, and a specified observation property identifier
-            List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
-            MeasureField mainProfile                  = null;
+            List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFieldNames);
+            
+            final List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             if (PROFILE.equals(observationType)) {
-                mainProfile = new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of());
+                mesureFields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+            } else {
+                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
             }
-            FieldInfos measureColumns                 = new FieldInfos(obsPropFields, mainProfile, observationType);
+            FieldInfos measureColumns = new FieldInfos(mesureFields, observationType);
 
              // final result
             final ObservationDataset result = new ObservationDataset();
@@ -175,7 +176,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                 }
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
-                if (verifyEmptyLine(line, lineNumber, obsPropFields, sdf)) {
+                if (verifyEmptyLine(line, lineNumber, mesureFields, sdf)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }
@@ -252,7 +253,9 @@ public class CsvObservationStore extends AbstractCsvStore {
                 }
 
                 // loop over columns to build measure string
-                for (MeasureField field : obsPropFields) {
+                for (MeasureField field : mesureFields) {
+                    if (FieldType.MAIN.equals(field.type)) continue;
+                    
                     int index          = field.columnIndex;
                     Object value       = line[index];
 
@@ -402,8 +405,13 @@ public class CsvObservationStore extends AbstractCsvStore {
             
             final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
             
-            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
-            final List<Field>fields                = toFields(obsPropFields, observationType);
+            List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
+            if (PROFILE.equals(observationType)) {
+                mesureFields.add(0, new MeasureField(-1, "MAIN", FieldDataType.QUANTITY, FieldType.MAIN)); // main field name lost?
+            } else {
+                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
+            }
+            final List<Field>fields                = toFields(mesureFields, observationType);
 
             Map<String, ProcedureDataset> result = new LinkedHashMap<>();
             final Set<String> knownPositions  = new HashSet<>();
@@ -421,7 +429,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                 }
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
-                if (verifyEmptyLine(line, lineNumber, obsPropFields, sdf)) {
+                if (verifyEmptyLine(line, lineNumber, mesureFields, sdf)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }

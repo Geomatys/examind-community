@@ -218,8 +218,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             String currentFoi                     = null;
             ObservationType currentObstType       = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
-            List<MeasureField> qualityFields      = buildExtraMeasureFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes);
-            List<MeasureField> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes);
+            List<MeasureField> qualityFields      = buildExtraMeasureFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes, FieldType.QUALITY);
+            List<MeasureField> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);
 
             final Map<ObservationType, FieldInfos> measureColumnsMap = new HashMap<>();
 
@@ -260,23 +260,22 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     currentMainColumns = mainColumns;
                 }
                 
+                // initialize description
                 FieldInfos measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
                     List<MeasureField> measureFields = new ArrayList<>();
-                     // initialize description
-                    int offset = ObservationType.PROFILE.equals(cot) ? 1 : 0;
-                    for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
-                        String mc = sortedMeasureColumns.get(j);
-                        FieldDataType type = FieldDataType.QUANTITY;
-                        measureFields.add(new MeasureField(-1, mc, type, qualityFields, parameterFields));
-                    }
-                    MeasureField mainProfile                  = null;
                     if (PROFILE.equals(cot)) {
                         if (currentMainColumns.size() > 1) {
                             throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
                         }
-                        mainProfile = new MeasureField(-1, currentMainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of());
+                        measureFields.add(new MeasureField(-1, currentMainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+                    } else {
+                        measureFields.add(new MeasureField(-1, "TIME", FieldDataType.TIME,     FieldType.MAIN));
                     }
-                    return new FieldInfos(measureFields, mainProfile, cot);
+                    for (int j = 0; j < sortedMeasureColumns.size(); j++) {
+                        String mc = sortedMeasureColumns.get(j);
+                        measureFields.add(new MeasureField(-1, mc, FieldDataType.QUANTITY, qualityFields, parameterFields, FieldType.MEASURE));
+                    }
+                    return new FieldInfos(measureFields, cot);
                 });
 
 

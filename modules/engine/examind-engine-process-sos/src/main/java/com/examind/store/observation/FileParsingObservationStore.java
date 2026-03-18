@@ -316,9 +316,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
     }
 
-    protected Phenomenon buildPhenomenon(final Set<MeasureField> fields, final String phenomenonIdBase, final Set<Phenomenon> existingPhens) {
+    protected Phenomenon buildPhenomenon(final Set<MeasureField> fields, final String phenomenonIdBase, final Set<Phenomenon> existingPhens, ObservationType type) {
         final List<Phenomenon> components = new ArrayList<>();
         for (MeasureField field : fields) {
+            if (!(FieldType.MEASURE.equals(field.type) || (FieldType.MAIN.equals(field.type) && ObservationType.PROFILE.equals(type)))) continue;
+            
             String id = extractWithRegex(obsPropRegex, field.name);
             String name = field.label != null ? field.label : id;
             components.add(new Phenomenon(id, name, id, field.description, field.properties));
@@ -351,7 +353,6 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     
     protected List<Field> toFields(Collection<MeasureField> measureFields, ObservationType observationType) {
         final List<Field> fields = new ArrayList<>();
-        addMainField(observationType, fields);
         int i = 1;
         for (final MeasureField mf : measureFields) {
             String name     = mf.name;
@@ -378,10 +379,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
             Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures, String responseFormat) {
 
-        // On extrait les types de mesure trouvées dans la donnée
+        // we extract the actual used fields
         Set<MeasureField> measureFields = ob.getUsedFields();
 
-        if (measureFields.isEmpty() || (PROFILE.equals(ob.observationType) && measureFields.size() == 1)) {
+        // only main file
+        if (measureFields.size() <= 1) {
             LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedure.getId());
             return;
         }
@@ -389,7 +391,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         final List<Field> fields = toFields(measureFields, ob.observationType);
 
         // Get existing or create a new Phenomenon
-        Phenomenon phenomenon = buildPhenomenon(measureFields, "", phenomenons);
+        Phenomenon phenomenon = buildPhenomenon(measureFields, "", phenomenons, ob.observationType);
         if (!phenomenons.contains(phenomenon)) {
             phenomenons.add(phenomenon);
         }

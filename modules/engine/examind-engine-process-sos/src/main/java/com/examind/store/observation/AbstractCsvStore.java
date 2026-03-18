@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
@@ -57,10 +58,10 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
                 ft = FieldDataType.valueOf(obsPropColumnsTypes.get(i));
             }
             // for now we handle only one quality/parameter field by field
-            MeasureField qField = parseExtraField(i, qualityIndexes, qualityColumnsIds, qualityColumnsTypes, headers);
+            MeasureField qField = parseExtraField(i, qualityIndexes, qualityColumnsIds, qualityColumnsTypes, headers, FieldType.QUALITY);
             List<MeasureField> qualityFields = qField != null ? List.of(qField) : List.of();
             
-            MeasureField pField = parseExtraField(i, parameterIndexes, parameterColumnsIds, parameterColumnsTypes, headers);
+            MeasureField pField = parseExtraField(i, parameterIndexes, parameterColumnsIds, parameterColumnsTypes, headers, FieldType.PARAMETER);
             List<MeasureField> parameterFields = pField != null ? List.of(pField) : List.of();
             
             String fieldName;
@@ -69,13 +70,13 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
             } else {
                 fieldName = headers[index];
             }
-            MeasureField mf = new MeasureField(index, fieldName, ft, qualityFields, parameterFields);
+            MeasureField mf = new MeasureField(index, fieldName, ft, qualityFields, parameterFields, FieldType.MEASURE);
             results.add(mf);
         }
         return results;
     }
     
-    private static MeasureField parseExtraField(int i, List<Integer> indexes, List<String> columnIds, List<String> columnTypes, String[] headers) {
+    private static MeasureField parseExtraField(int i, List<Integer> indexes, List<String> columnIds, List<String> columnTypes, String[] headers, FieldType type) {
         if (i < indexes.size()) {
             int qIndex = indexes.get(i);
             String qName = headers[qIndex];
@@ -87,7 +88,7 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
             if (i < columnTypes.size()) {
                 qtype = FieldDataType.valueOf(columnTypes.get(i));
             }
-            return new MeasureField(qIndex, qName, qtype, List.of(), List.of());
+            return new MeasureField(qIndex, qName, qtype, type);
         }
         return null;
     }

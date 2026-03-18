@@ -399,6 +399,10 @@ public class FileParsingUtils {
      */
     public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<MeasureField> typedFields, DateFormat sdf) {
         for (MeasureField field : typedFields) {
+            
+            // apply only on measure fields
+            if (!FieldType.MEASURE.equals(field.type)) continue;
+            
             int i = field.columnIndex;
             FieldDataType ft = field.dataType;
             try {
@@ -795,7 +799,7 @@ public class FileParsingUtils {
         return s.toLowerCase().replace(" ", "_");
     }
     
-    public static List<MeasureField> buildExtraMeasureFields(List<String> nameColumns, List<String> columnIds, List<String> columnTypes) {
+    public static List<MeasureField> buildExtraMeasureFields(List<String> nameColumns, List<String> columnIds, List<String> columnTypes, FieldType type) {
         List<MeasureField> results = new ArrayList<>();
         for (int i = 0; i < nameColumns.size(); i++) {
             String qName = nameColumns.get(i);
@@ -807,7 +811,7 @@ public class FileParsingUtils {
             if (i < columnTypes.size()) {
                 qtype = FieldDataType.valueOf(columnTypes.get(i));
             }
-            results.add(new MeasureField(- 1, qName, qtype, List.of(), List.of()));
+            results.add(new MeasureField(- 1, qName, qtype, type));
         }
         return results;
     }

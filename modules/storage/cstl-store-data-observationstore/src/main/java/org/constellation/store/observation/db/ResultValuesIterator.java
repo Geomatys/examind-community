@@ -173,8 +173,10 @@ public class ResultValuesIterator {
                 case QUANTITY -> {
                     if (measure != null) {
                         if (measure instanceof Double d) {
-                            d = (Double) field.convertValue(d);
-                            value = Double.toString(d);
+                            if (!d.isNaN()) {
+                                d = (Double) field.convertValue(d); // why the conversion ?
+                                value = Double.toString(d);
+                            }
                         } else {
                             throw new DataStoreException("expecting double for field " + field.name + " value : " + measure);
                         }
