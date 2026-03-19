@@ -37,7 +37,6 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.PropertyDescription;
-import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -59,8 +58,8 @@ public class DataBusinessTest extends AbstractBusinessTest {
 
     private static boolean initialized = false;
 
-    private static int coverage1DID;
-    private static int coverage2DID;
+    private static int coverageWFiD;
+    private static int coverageTiffID;
     private static int vectorDID;
     private static int aggregatedDID;
 
@@ -80,11 +79,11 @@ public class DataBusinessTest extends AbstractBusinessTest {
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastores
-                coverage1DID = testResources.createProvider(TestResource.PNG, providerBusiness, dsId).datas.get(0).id;
-                coverage2DID = testResources.createProvider(TestResource.TIF, providerBusiness, dsId).datas.get(0).id;
+                coverageWFiD = testResources.createProvider(TestResource.PNG, providerBusiness, dsId).datas.get(0).id;
+                coverageTiffID = testResources.createProvider(TestResource.TIF, providerBusiness, dsId).datas.get(0).id;
                 vectorDID    = testResources.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).findDataByName("BuildingCenters").id;
 
-                List<Integer> dataIds = Arrays.asList(coverage1DID, coverage2DID);
+                List<Integer> dataIds = Arrays.asList(coverageWFiD, coverageTiffID);
                 aggregatedDID = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", dataIds, dsId).datas.get(0).id;
 
                 initialized = true;
@@ -99,7 +98,7 @@ public class DataBusinessTest extends AbstractBusinessTest {
      */
     @Test
     public void coverageWrappedForMetadata() throws Exception {
-        DataBrief testData = dataBusiness.getDataBrief(coverage1DID, true, true);
+        DataBrief testData = dataBusiness.getDataBrief(coverageWFiD, true, true);
         testMetadataWrapping(testData);
     }
 
@@ -139,12 +138,12 @@ public class DataBusinessTest extends AbstractBusinessTest {
     }
 
     @Test
-    public void dataCoverageTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(coverage1DID, true, true);
+    public void dataWorldFileTest() throws Exception {
+        DataBrief db = dataBusiness.getDataBrief(coverageWFiD, true, true);
         Assert.assertNotNull(db);
 
         LOGGER.info("wait for SSTMDE200305 stats to complete.....");
-        db = waitForStatsCompletion(db, coverage1DID);
+        db = waitForStatsCompletion(db, coverageWFiD);
         
         Assert.assertEquals("COMPLETED", db.getStatsState());
 
@@ -152,6 +151,33 @@ public class DataBusinessTest extends AbstractBusinessTest {
         Assert.assertTrue(db.getDataDescription() instanceof CoverageDataDescription);
         CoverageDataDescription desc = (CoverageDataDescription) db.getDataDescription();
         Assert.assertEquals(1, desc.getBands().size());
+
+        /**
+         * Test data info cache
+         */
+        Envelope env = dataBusiness.getEnvelope(db.getId()).orElse(null);
+        Assert.assertNull(env);
+
+        dataBusiness.cacheDataInformation(db.getId(), false);
+
+        env = dataBusiness.getEnvelope(db.getId()).orElse(null);
+        Assert.assertNotNull(env);
+    }
+    
+    @Test
+    public void dataTiffTest() throws Exception {
+        DataBrief db = dataBusiness.getDataBrief(coverageTiffID, true, true);
+        Assert.assertNotNull(db);
+
+        LOGGER.info("wait for martinique stats to complete.....");
+        db = waitForStatsCompletion(db, coverageTiffID);
+        
+        Assert.assertEquals("COMPLETED", db.getStatsState());
+
+        Assert.assertNotNull(db.getDataDescription());
+        Assert.assertTrue(db.getDataDescription() instanceof CoverageDataDescription);
+        CoverageDataDescription desc = (CoverageDataDescription) db.getDataDescription();
+        Assert.assertEquals(3, desc.getBands().size());
 
         /**
          * Test data info cache
@@ -226,7 +252,7 @@ public class DataBusinessTest extends AbstractBusinessTest {
 
     @Test
     public void dataCoverageRawModelTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(coverage1DID, true, true);
+        DataBrief db = dataBusiness.getDataBrief(coverageWFiD, true, true);
 
         Map<String,Object> results = dataBusiness.getDataRawModel(db.getId());
         Assert.assertNotNull(results);
@@ -238,17 +264,21 @@ public class DataBusinessTest extends AbstractBusinessTest {
         Path[] exportData = dataBusiness.exportData(vectorDID);
         Assert.assertEquals(6, exportData.length);
 
-        exportData = dataBusiness.exportData(coverage1DID);
+        exportData = dataBusiness.exportData(coverageWFiD);
         Assert.assertEquals(3, exportData.length);
 
-        exportData = dataBusiness.exportData(coverage2DID);
+        exportData = dataBusiness.exportData(coverageTiffID);
         Assert.assertEquals(1, exportData.length);
     }
     
     private DataBrief waitForStatsCompletion(DataBrief db, Integer dataId) throws Exception {
+        int cpt = 0;
         while (db.getStatsState() == null || !(db.getStatsState().equals(StatisticState.STATE_COMPLETED) || db.getStatsState().equals(StatisticState.STATE_ERROR)))  {
+            // wait for 1 minute at most
+            if (cpt > 65) throw new Exception("Stats never complete");
             db = dataBusiness.getDataBrief(dataId, true, true);
             Thread.sleep(1000);
+            cpt++;
         }
         return db;
     }
