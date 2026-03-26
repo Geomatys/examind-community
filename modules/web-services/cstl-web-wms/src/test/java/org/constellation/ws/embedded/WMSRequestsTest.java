@@ -591,6 +591,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "crs=CRS:84&BBOX=0.001,-0.002,0.005,0.003&"
             + "layers=NamedPlaces&styles=";
     
+    private static final String WMS_GETMAP_130_CSV_LAT_LON_REQUEST = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&"
+           + "FORMAT=image%2Fpng&TRANSPARENT=true&layers=shiproute&CRS=EPSG%3A3857&STYLES=&WIDTH=652&HEIGHT=372&BBOX=4627803.4404977085%2C-1761109.1316904607%2C17366492.826392047%2C5518141.945963444";
+    
+    private static final String WMS_GETMAP_130_CSV_GEOM_REQUEST = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&layers=bac-chartres"
+            + "&CRS=EPSG%3A3857&STYLES=&WIDTH=652&HEIGHT=372&BBOX=-60843.87451500035%2C6170608.419405709%2C337240.1687941977%2C6398085.015582393";
     private static boolean initialized = false;
 
     private static Path CONFIG_DIR;
@@ -601,7 +606,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         controllerConfiguration = WMSControllerConfig.class;
     }
 
-    private static final int DEF_NB_LAYER = 29;
+    private static final int DEF_NB_LAYER = 31;
 
     /**
      * Initialize the list of layers from the defined providers in
@@ -710,6 +715,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                         styleBusiness.linkToLayer(styleId1, layerId);
                     }
                 }
+                
+                // add CSV layers
+                DataImport d16 = testResource.createProvider(TestResource.CSV_LAT_LON, providerBusiness, null).datas.get(0);
+                layerBusiness.add(d16.id, null, d16.namespace,  d16.name,    null, defId, null);
+                
+                DataImport d17 = testResource.createProvider(TestResource.CSV_GEOM, providerBusiness, null).datas.get(0);
+                layerBusiness.add(d17.id, null, d17.namespace,  d17.name,    null, defId, null);
 
                 final Details serviceEng = new Details();
                 serviceEng.setDescription("Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.");
@@ -2654,6 +2666,43 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(512, image.getHeight());
 
         p = CONFIG_DIR.resolve("NP-FILTER.png");
+        writeInFile(getMapUrl, p);
+    }
+    
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapCsvLatLon() throws Exception {
+        initLayerList();
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_CSV_LAT_LON_REQUEST);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(652, image.getWidth());
+        assertEquals(372, image.getHeight());
+
+        Path p = CONFIG_DIR.resolve("shiproute.png");
+        writeInFile(getMapUrl, p);
+    }
+    
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapCsvGeom() throws Exception {
+        initLayerList();
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_CSV_GEOM_REQUEST);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(652, image.getWidth());
+        assertEquals(372, image.getHeight());
+
+        Path p = CONFIG_DIR.resolve("bac-chartres.png");
         writeInFile(getMapUrl, p);
     }
 

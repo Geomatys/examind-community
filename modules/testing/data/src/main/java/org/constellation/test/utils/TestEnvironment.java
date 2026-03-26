@@ -300,6 +300,22 @@ public class TestEnvironment {
          * - water
          */
         public static final TestResource JSON_WATER = new TestResource("org/constellation/data/geojson/water.geojson", TestEnvironment::createGeoJsonProvider);
+        
+        /**
+         * CSV file provider.
+         *
+         * data :
+         * - bac-chartres
+         */
+        public static final TestResource CSV_GEOM = new TestResource("org/constellation/data/csv/bac-chartres.csv", TestEnvironment::createCsvProvider);
+        
+        /**
+         * CSV file provider.
+         *
+         * data :
+         * - shiproute
+         */
+        public static final TestResource CSV_LAT_LON = new TestResource("org/constellation/data/csv/shiproute.csv", TestEnvironment::createCsvProviderLatLon);
 
         protected final String path;
 
@@ -687,6 +703,34 @@ public class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("geojson");
             config.parameter("path").setValue(p.toUri());
 
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+    
+    private static Integer createCsvProviderLatLon(IProviderBusiness providerBusiness, Path p) {
+        return createCsvProvider(providerBusiness, p, ',', "Latitude", "Longitude", "CRS:84");
+    }
+    
+    private static Integer createCsvProvider(IProviderBusiness providerBusiness, Path p) {
+        return createCsvProvider(providerBusiness, p, ';', null, null, null);
+    }
+    
+    private static Integer createCsvProvider(IProviderBusiness providerBusiness, Path p,Character separator, String latColumn, String lonColumn, String crs) {
+        try {
+            final DataProviderFactory factory = DataProviders.getFactory("data-store");
+            final ParameterValueGroup source = factory.getProviderDescriptor().createValue();
+            String providerIdentifier = "csvSrc" + UUID.randomUUID().toString();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
+            final ParameterValueGroup config = choice.addGroup("geotk_csv");
+            config.parameter("location").setValue(p.toUri());
+            config.parameter("separator").setValue(separator);
+            if (latColumn != null) config.parameter("lat_column").setValue(latColumn);
+            if (lonColumn != null) config.parameter("lon_column").setValue(lonColumn);
+            if (crs       != null) config.parameter("crs").setValue(crs);
+            
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
