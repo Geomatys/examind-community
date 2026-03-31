@@ -58,4 +58,16 @@
   <context:component-scan base-package="com.examind.ogc.api.rest" scoped-proxy="interfaces" />
   <context:component-scan base-package="com.examind.openeo.api.rest" scoped-proxy="interfaces" />
 
+  <!-- Scanner le package de OpenApiConfig -->
+  <context:component-scan base-package="com.examind.component" />
+
+  <!-- Nécessaire pour que @PropertySource fonctionne sans Spring Boot -->
+  <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+      <property name="locations">
+          <list>
+              <value>classpath:springdoc.properties</value>
+          </list>
+      </property>
+      <property name="ignoreUnresolvablePlaceholders" value="true"/>
+  </bean>
 </beans>

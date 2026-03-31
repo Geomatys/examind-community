@@ -130,6 +130,12 @@
         <servlet-name>examindapi</servlet-name>
         <url-pattern>/API/*</url-pattern>
     </servlet-mapping>
+    
+    <!-- /v3/* géré par examindapi qui contient springdoc -->
+    <servlet-mapping>
+    	<servlet-name>examindapi</servlet-name>
+    	<url-pattern>/api-docs/*</url-pattern>
+    </servlet-mapping>
 
     <session-config>
         <session-timeout>30</session-timeout>
