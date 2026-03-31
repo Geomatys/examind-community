@@ -1353,7 +1353,12 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                 // TODO type
                 Class type;
                 if (in.getDataDescription() instanceof LiteralData) {
+                    final LiteralData literal = (LiteralData) in.getDataDescription();
+                    // Extract the type name from the first domain (standard for OGC)
                     type = String.class;
+                    if (literal.getLiteralDataDomain() != null && !literal.getLiteralDataDomain().isEmpty()) {
+                        type = WPSUtils.getValueClass(literal.getLiteralDataDomain().get(0).getDataType());
+                    }
                 } else if (in.getDataDescription() instanceof ComplexData) {
                     type = URI.class;
                 } else if (in.getDataDescription() instanceof BoundingBoxData) {
@@ -1402,7 +1407,12 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
             for (OutputDescription out : processDescription.getOutputs()) {
                 Class type;
                 if (out.getDataDescription() instanceof LiteralData) {
+                    final LiteralData literal = (LiteralData) out.getDataDescription();
+                    // Extract the type name from the first domain (standard for OGC)
                     type = String.class;
+                    if (literal.getLiteralDataDomain() != null && !literal.getLiteralDataDomain().isEmpty()) {
+                        type = WPSUtils.getValueClass(literal.getLiteralDataDomain().get(0).getDataType());
+                    }
                 } else if (out.getDataDescription() instanceof ComplexData) {
                     type = File.class;
                 } else if (out.getDataDescription() instanceof BoundingBoxData) {
@@ -1627,4 +1637,3 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
         }
     }
 }
-

@@ -122,7 +122,7 @@ public class RunCWL extends AbstractCstlProcess {
             downloadCWLContent(cwlFile, cwlPath);
             yaml = yMapper.readValue(cwlPath.toFile(), Map.class);
         } catch (IOException ex) {
-            throw new ProcessException("Erro while downloading cwl", this, ex);
+            throw new ProcessException("Error while downloading cwl", this, ex);
         }
 
         /**
@@ -187,23 +187,28 @@ public class RunCWL extends AbstractCstlProcess {
                         Map complex = new LinkedHashMap<>();
                         complex.put("class", "File");
                         if(arg != null){
-                             complex.put("path", arg.toString());
+                            complex.put("path", arg.toString());
                         }
                         json.put(desc.getName().getCode(), complex);
                     }
-
                 } else {
                     List<Object> values = getMultipleValues(inputParameters, pDesc);
+                    String inputId = desc.getName().getCode();
+
                     if (pDesc.getMaximumOccurs() > 1) {
-                        List<String> literals = new ArrayList<>();
+                        // Use a list of Objects rather than Strings to preserve numeric types
+                        List<Object> literals = new ArrayList<>();
                         for (Object value : values) {
-                            String arg = (String) value;
-                            literals.add(arg);
+                            // No casting to String here; keep the native Integer/Double/Boolean
+                            literals.add(value);
                         }
-                        json.put(desc.getName().getCode(), literals);
-                    } else {
-                        String arg = (String) values.get(0);
-                        json.put(desc.getName().getCode(), arg);
+                        json.put(inputId, literals);
+                    } else if (!values.isEmpty()) {
+                        // Handle single value: put the object directly into JSON
+                        Object arg = values.get(0);
+                        json.put(inputId, arg);
+                    } else if (pDesc.getMinimumOccurs() >= 1 && values.isEmpty()) {
+                        throw new ProcessException("No value provided for required input: " + inputId, this);
                     }
                 }
             }
@@ -340,35 +345,37 @@ public class RunCWL extends AbstractCstlProcess {
     }
 
     private List<URI> downloadInput(URI uri, Path execDir) throws IOException {
-        if (uri.getScheme().equals("http") || uri.getScheme().equals("https")) {
-            boolean authenticated = WPSURLUtils.authenticate(uri);
-            LOGGER.log(Level.INFO, "Downloading : {0} {1}", new Object[]{uri, authenticated ? "(authenticated)" : ""});
-            HttpURLConnection conec = (HttpURLConnection) uri.toURL().openConnection();
-            String contentType = conec.getContentType();
-            if (contentType != null && contentType.contains("application/metalink+xml")) {
-                return extractMetaLinkURI(conec, execDir);
-            } else {
-                String content = conec.getHeaderField("Content-Disposition");
-                String fileName;
-                if (content != null && content.contains("=")) {
-                    fileName = content.split("=")[1]; //getting value after '='
+        if (uri.getScheme() != null) {
+            if (uri.getScheme().equals("http") || uri.getScheme().equals("https")) {
+                boolean authenticated = WPSURLUtils.authenticate(uri);
+                LOGGER.log(Level.INFO, "Downloading : {0} {1}", new Object[]{uri, authenticated ? "(authenticated)" : ""});
+                HttpURLConnection conec = (HttpURLConnection) uri.toURL().openConnection();
+                String contentType = conec.getContentType();
+                if (contentType != null && contentType.contains("application/metalink+xml")) {
+                    return extractMetaLinkURI(conec, execDir);
                 } else {
-                    // try to extract from uri last part
-                    String path = uri.getPath();
-                    fileName = path.substring(path.lastIndexOf('/') + 1, path.length());
+                    String content = conec.getHeaderField("Content-Disposition");
+                    String fileName;
+                    if (content != null && content.contains("=")) {
+                        fileName = content.split("=")[1]; //getting value after '='
+                    } else {
+                        // try to extract from uri last part
+                        String path = uri.getPath();
+                        fileName = path.substring(path.lastIndexOf('/') + 1, path.length());
+                    }
+                    if (fileName.startsWith("\"")) {
+                        fileName = fileName.substring(1);
+                    }
+                    if (fileName.endsWith("\"")) {
+                        fileName = fileName.substring(0, fileName.length() - 1);
+                    }
+                    Path p = execDir.resolve(fileName);
+                    InputStream in = conec.getInputStream();
+                    IOUtilities.writeStream(in, p);
+                    LOGGER.info("Download complete");
+                    temporaryResource.add(p);
+                    return Arrays.asList(p.toUri());
                 }
-                if (fileName.startsWith("\"")) {
-                    fileName = fileName.substring(1);
-                }
-                if (fileName.endsWith("\"")) {
-                    fileName = fileName.substring(0, fileName.length() - 1);
-                }
-                Path p = execDir.resolve(fileName);
-                InputStream in = conec.getInputStream();
-                IOUtilities.writeStream(in, p);
-                LOGGER.info("Download complete");
-                temporaryResource.add(p);
-                return Arrays.asList(p.toUri());
             }
         }
         return Arrays.asList(uri);
@@ -421,6 +428,10 @@ public class RunCWL extends AbstractCstlProcess {
         try {
             if (cwlLocation.startsWith("file")) {
 
+                if (cwlLocation.startsWith("file://")) {
+                    cwlLocation = cwlLocation.substring("file://".length());
+                    cwlLocation = "file:" + cwlLocation;
+                }
                 Path p = Paths.get(new URI(cwlLocation));
                 Files.copy(p, cwlFile, StandardCopyOption.REPLACE_EXISTING);
 

@@ -77,6 +77,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
 import org.geotoolkit.ows.xml.BoundingBox;
+import org.geotoolkit.ows.xml.DomainMetadata;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
@@ -1286,4 +1287,43 @@ public class WPSUtils {
         return isClean;
     }
 
+    /**
+     * @deprecated remove when geotk > 26.03.18 and replace by LiteralAdaptor.getValueClass
+     */
+    @Deprecated
+    public static Class getValueClass(DomainMetadata type) {
+        if (type == null) return String.class;
+        Class clazz = findClass(type.getReference());
+        if (clazz == null) clazz = findClass(type.getValue());
+        if (clazz == null) clazz = String.class;
+        return clazz;
+    }
+
+    /**
+     * @deprecated remove when geotk > 26.03.18 and replace by LiteralAdaptor.getValueClass
+     */
+    @Deprecated
+    private static Class findClass(String value) {
+        if (value == null) return null;
+        Class clazz = null;
+        try {
+            clazz = Class.forName(value);
+        } catch (ClassNotFoundException ex) {
+            value = value.toLowerCase();
+            if (value.contains("double")) {
+                clazz = Double.class;
+            } else if (value.contains("boolean")) {
+                clazz = Boolean.class;
+            } else if (value.contains("float")) {
+                clazz = Float.class;
+            } else if (value.contains("short")) {
+                clazz = Short.class;
+            } else if (value.contains("integer")) {
+                clazz = Integer.class;
+            } else if (value.contains("long")) {
+                clazz = Long.class;
+            }
+        }
+        return clazz;
+    }
 }

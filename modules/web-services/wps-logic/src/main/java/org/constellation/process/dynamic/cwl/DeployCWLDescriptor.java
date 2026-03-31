@@ -50,7 +50,7 @@ public class DeployCWLDescriptor extends AbstractCstlProcessDescriptor {
 
 
     public static final String PROCESS_DESCRIPTION_NAME = "configuration";
-    private static final String PROCESS_DESCRIPTION_REMARKS = "A document decribing the input / output of the process to deploy.";
+    private static final String PROCESS_DESCRIPTION_REMARKS = "A document describing the input / output of the process to deploy.";
     public static final ParameterDescriptor<ProcessDescription> PROCESS_DESCRIPTION = BUILDER
             .addName(PROCESS_DESCRIPTION_NAME)
             .setRemarks(PROCESS_DESCRIPTION_REMARKS)
