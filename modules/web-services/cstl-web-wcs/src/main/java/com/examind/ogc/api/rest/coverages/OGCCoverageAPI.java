@@ -25,12 +25,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import com.examind.ogc.api.rest.common.ConformanceProvider;
-import com.examind.ogc.api.rest.common.dto.Collection;
-import com.examind.ogc.api.rest.common.dto.Conformance;
-import com.examind.ogc.api.rest.common.dto.LandingPage;
-import com.examind.ogc.api.rest.coverages.dto.DataRecord;
-import com.examind.ogc.api.rest.coverages.dto.DomainSet;
-import com.examind.ogc.api.rest.coverages.dto.Schema;
 import org.constellation.admin.SpringHelper;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
@@ -42,7 +36,13 @@ import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.GridWebService;
 import org.constellation.ws.rs.ResponseObject;
-import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.ogcapi.model.common.CollectionDescription;
+import org.geotoolkit.ogcapi.model.common.LandingPage;
+import org.geotoolkit.ogcapi.model.common.Link;
+import org.geotoolkit.ogcapi.model.common.Schema;
+import org.geotoolkit.ogcapi.model.coverage.DataRecord;
+import org.geotoolkit.ogcapi.model.coverage.DomainSet;
+import org.geotoolkit.ogcapi.model.common.Conformance;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -75,18 +75,18 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 public class OGCCoverageAPI extends GridWebService<WCSWorker> implements ConformanceProvider {
 
     private static final List<Link> CONFORMS = Collections.unmodifiableList(Arrays.asList( //TODO : Conformity with Part 1 html, Part 2 simple-query & html
-            new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core", null, null, null),
-            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page", null, null, null),
-            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json", null, null, null),
+            new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core", null, null, null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page", null, null, null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json", null, null, null, null, null),
             //new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html", null, null, null), Doesn't conform
-            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30", null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30", null, null, null, null, null),
 
-            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/collections", null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/collections", null, null, null, null, null),
             //new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/simple-query", null, null, null), Doesn't conform
-            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/json", null, null, null),
+            new Link("http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/json", null, null, null, null, null),
             //new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html", null, null, null), Doesn't conform
 
-            new Link("http://www.opengis.net/spec/ogcapi-coverages-1/1.0/conf/core", null, null, null)
+            new Link("http://www.opengis.net/spec/ogcapi-coverages-1/1.0/conf/core", null, null, null, null, null)
     ));
 
     public static final String SPECIFICATION_URL = "https://docs.ogc.org/DRAFTS/19-087.html";
@@ -148,13 +148,13 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         String wcsUrl = getServiceURL() + "/wcs/" + serviceId + "?";
 
         List<Link> links = new ArrayList<>();
-        links.add(new Link(url + "/api", "service-desc", null, "the API definition"));
+        links.add(new Link(url + "/api", "service-desc", null, "en", "the API definition", null));
         buildDocumentLinks(url, asJson, links, false);
-        links.add(new Link(url + "/conformance", "conformance", MimeType.APP_JSON, "OGC API conformance classes implemented by this server as JSON"));
-        links.add(new Link(url + "/conformance?f=application/xml", "conformance", MimeType.APP_XML, "OGC API conformance classes implemented by this server as XML"));
-        links.add(new Link(url + "/collections", "data", MimeType.APP_JSON, "Information about the feature collections as JSON"));
-        links.add(new Link(url + "/collections?f=application/xml", "data", MimeType.APP_XML, "Information about the feature collections as XML"));
-        return new LandingPage(links);
+        links.add(new Link(url + "/conformance", "conformance", MimeType.APP_JSON, "en", "OGC API conformance classes implemented by this server as JSON", null));
+        links.add(new Link(url + "/conformance?f=application/xml", "conformance", MimeType.APP_XML, "en", "OGC API conformance classes implemented by this server as XML", null));
+        links.add(new Link(url + "/collections", "data", MimeType.APP_JSON, "en", "Information about the feature collections as JSON", null));
+        links.add(new Link(url + "/collections?f=application/xml", "data", MimeType.APP_XML, "en", "Information about the feature collections as XML", null));
+        return new LandingPage().links(links);
     }
 
     @RequestMapping(value = "/api", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -190,8 +190,8 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
 
         if (worker != null) {
             try {
-                List<com.examind.ogc.api.rest.common.dto.Collection> layers = worker.getCollections(new ArrayList<>(), false);
-                com.examind.ogc.api.rest.common.dto.Collections response = new com.examind.ogc.api.rest.common.dto.Collections();
+                List<CollectionDescription> layers = worker.getCollections(new ArrayList<>(), false);
+                org.geotoolkit.ogcapi.model.common.Collections response = new org.geotoolkit.ogcapi.model.common.Collections();
 
                 response.setCollections(layers);
 
@@ -230,7 +230,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         if (worker != null) {
             try {
                 // if the layer does not exist an exception will be thrown
-                final List<Collection> layers = worker.getCollections(Collections.singletonList(collectionId), false);
+                final List<CollectionDescription> layers = worker.getCollections(Collections.singletonList(collectionId), false);
                 final boolean asJson = format.contains(MimeType.APP_JSON);
                 Object result;
                 MediaType media;
@@ -239,7 +239,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
                     result = layers.get(0);
                 } else {
                     media = MediaType.APPLICATION_XML;
-                    com.examind.ogc.api.rest.common.dto.Collections collections = new com.examind.ogc.api.rest.common.dto.Collections();
+                    org.geotoolkit.ogcapi.model.common.Collections collections = new org.geotoolkit.ogcapi.model.common.Collections();
                     collections.setLinks(new ArrayList<>());
                     collections.setCollections(layers);
                     //collections.setXMLBBoxMode();
@@ -354,6 +354,11 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
 
+        final boolean asJson = format.contains(MimeType.APP_JSON);
+        if (!asJson) {
+            format = MediaType.APPLICATION_XML_VALUE;
+        }
+
         if (worker != null) {
             try {
                 // if the layer does not exist an exception will be thrown
@@ -389,6 +394,11 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
 
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
+
+        final boolean asJson = format.contains(MimeType.APP_JSON);
+        if (!asJson) {
+            format = MediaType.APPLICATION_XML_VALUE;
+        }
 
         if (worker != null) {
             try {
@@ -430,6 +440,11 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
 
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
+
+        final boolean asJson = format.contains(MimeType.APP_JSON);
+        if (!asJson) {
+            format = MediaType.APPLICATION_XML_VALUE;
+        }
 
         if (worker != null) {
             try {

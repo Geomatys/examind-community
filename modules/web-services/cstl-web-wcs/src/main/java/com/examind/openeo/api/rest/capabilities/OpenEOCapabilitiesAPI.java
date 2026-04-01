@@ -88,7 +88,7 @@ public class OpenEOCapabilitiesAPI extends GridWebService<WCSWorker> {
         String url    = getServiceURL() + "/openeo/" + serviceId;
 
         List<Link> links = new ArrayList<>();
-        buildDocumentLinks(url, asJson, links, false);
+        // TODO restore buildDocumentLinks(url, asJson, links, false);
         links.add(new Link(url + "/conformance",   "conformance",  MimeType.APP_JSON, "OGC Conformance Classes"));
         links.add(new Link(url + "/collections",   "data",         MimeType.APP_JSON, "List of Datasets"));
         links.add(new Link(url + "/file_formats",  "service-desc", MimeType.APP_JSON, "List of supported File Formats"));

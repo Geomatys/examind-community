@@ -1,7 +1,7 @@
 package org.constellation.coverage.core;
 
 import org.constellation.ws.MimeType;
-import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.ogcapi.model.common.Link;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ public class AtomLinkBuilder {
             xmlMime  = MimeType.APP_XML;
             jsonMime = MimeType.APP_JSON;
         }
-        Link linkSelf = new Link(url,                        "self", jsonMime, "this document");
-        Link linkAlt  = new Link(url + "?f=application/xml", "self", xmlMime,  "this document");
+        Link linkSelf = new Link(url,                        "self", jsonMime, "en", "this document", null);
+        Link linkAlt  = new Link(url + "?f=application/xml", "self", xmlMime, "en",  "this document", null);
         String titleSuffix;
         if (asJson) {
             titleSuffix = " as XML";
@@ -37,13 +37,13 @@ public class AtomLinkBuilder {
     }
 
     public static void buildCollectionLink(String url, List<Link> links) {
-        links.add(new Link(url,                        "collection", MimeType.APP_JSON,    "the collection document as JSON"));
-        links.add(new Link(url + "?f=application/xml", "collection", MimeType.APPLICATION_XML, "the collection document as XML"));
+        links.add(new Link(url,                        "collection", MimeType.APP_JSON, "en", "the collection document as JSON", null));
+        links.add(new Link(url + "?f=application/xml", "collection", MimeType.APPLICATION_XML, "en", "the collection document as XML", null));
     }
 
     public static void BuildCoverageLink(String url, String identifier, String title, List<Link> links) {
-        links.add(new Link(url + "/collections/" + identifier + "/coverage",                    "items", MimeType.IMAGE_TIFF, title));
-        links.add(new Link(url + "/collections/" + identifier + "/coverage?f=image/tiff",       "items", MimeType.IMAGE_TIFF, title));
-        links.add(new Link(url + "/collections/" + identifier + "/coverage?f=application/x-netcdf", "items", MimeType.NETCDF, title));
+        links.add(new Link(url + "/collections/" + identifier + "/coverage",                    "items", MimeType.IMAGE_TIFF, "en", title, null));
+        links.add(new Link(url + "/collections/" + identifier + "/coverage?f=image/tiff",       "items", MimeType.IMAGE_TIFF, "en", title, null));
+        links.add(new Link(url + "/collections/" + identifier + "/coverage?f=application/x-netcdf", "items", MimeType.NETCDF, "en", title, null));
     }
 }

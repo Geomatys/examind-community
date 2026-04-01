@@ -280,6 +280,14 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/domainset.json");
         compareJSON(expected, content);
 
+        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/domainset?f=xml");
+        conn = request.openConnection();
+        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
+
+        content = getStringResponse(conn);
+        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/domainset.xml");
+        domCompare(expected, content);
+        
         // TODO : Fix issue with NetCDF
 //        URL requestNC = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/coverage/domainset");
 //        URLConnection connNC = requestNC.openConnection();
@@ -304,7 +312,13 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/rangetype.json");
         compareJSON(expected, content);
 
-        //XML not supported for the moment
+        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/rangetype?f=xml");
+        conn = request.openConnection();
+        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
+
+        content = getStringResponse(conn);
+        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/rangetype.xml");
+        domCompare(expected, content);
     }
 
     @Test
@@ -318,6 +332,14 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String content = getStringResponse(conn);
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/schema.json");
         compareJSON(expected, content);
+
+        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema?f=xml");
+        conn = request.openConnection();
+        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
+
+        content = getStringResponse(conn);
+        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/schema.xml");
+        domCompare(expected, content);
 
         // TODO : Fix issue with NetCDF
 //        URL requestNC = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/schema");
@@ -342,6 +364,14 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String content = getStringResponse(conn);
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/schema-force.json");
         compareJSON(expected, content);
+
+        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema?f=xml");
+        conn = request.openConnection();
+        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
+
+        content = getStringResponse(conn);
+        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/schema-force.xml");
+        domCompare(expected, content);
 
         // TODO : Fix issue with NetCDF
 //        URL requestNC = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/schema?force-calculate-stats=true");

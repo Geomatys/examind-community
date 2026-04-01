@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Schema xmlns:ns2="http://www.w3.org/2005/Atom">
+    <type>object</type>
+    <properties>
+        <entry>
+            <key>Red</key>
+            <value>
+                <title>Red</title>
+                <description>Band 0 - Red</description>
+                <type>number</type>
+                <x-ogc-statistics>
+                    <min>0.0</min>
+                    <max>255.0</max>
+                </x-ogc-statistics>
+                <x-ogc-propertySeq>1</x-ogc-propertySeq>
+            </value>
+        </entry>
+        <entry>
+            <key>Green</key>
+            <value>
+                <title>Green</title>
+                <description>Band 1 - Green</description>
+                <type>number</type>
+                <x-ogc-statistics>
+                    <min>0.0</min>
+                    <max>255.0</max>
+                </x-ogc-statistics>
+                <x-ogc-propertySeq>2</x-ogc-propertySeq>
+            </value>
+        </entry>
+        <entry>
+            <key>Blue</key>
+            <value>
+                <title>Blue</title>
+                <description>Band 2 - Blue</description>
+                <type>number</type>
+                <x-ogc-statistics>
+                    <min>0.0</min>
+                    <max>255.0</max>
+                </x-ogc-statistics>
+                <x-ogc-propertySeq>3</x-ogc-propertySeq>
+            </value>
+        </entry>
+    </properties>
+    <schema>https://json-schema.org/draft/2020-12/schema</schema>
+    <title>test_tif</title>
+</Schema>

@@ -25,11 +25,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -48,10 +47,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
 
-import com.examind.ogc.api.rest.common.dto.Collection;
-import com.examind.ogc.api.rest.common.dto.Extent;
-import com.examind.ogc.api.rest.common.dto.SpatialCRS;
-import com.examind.ogc.api.rest.coverages.dto.*;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 
@@ -63,6 +58,7 @@ import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverageBuilder;
+import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.DirectPosition1D;
@@ -126,7 +122,6 @@ import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.rs.MultiPart;
-import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -158,6 +153,24 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 import org.constellation.util.Util;
 import org.constellation.util.CRSUtilities;
 import org.geotoolkit.gml.xml.v311.RectifiedGridType;
+import org.geotoolkit.ogcapi.model.common.CollectionDescription;
+import org.geotoolkit.ogcapi.model.common.Extent;
+import org.geotoolkit.ogcapi.model.common.SpatialExtent;
+import org.geotoolkit.ogcapi.model.common.TemporalExtent;
+import org.geotoolkit.ogcapi.model.jsonschema.JSONSchemaProperty;
+import org.geotoolkit.ogcapi.model.jsonschema.JSONType;
+import org.geotoolkit.ogcapi.model.jsonschema.RangeStatistics;
+import org.geotoolkit.ogcapi.model.common.Schema;
+import org.geotoolkit.ogcapi.model.coverage.Axis;
+import org.geotoolkit.ogcapi.model.coverage.DataRecord;
+import org.geotoolkit.ogcapi.model.coverage.DataRecordField;
+import org.geotoolkit.ogcapi.model.coverage.DomainSet;
+import org.geotoolkit.ogcapi.model.coverage.EncodingInfo;
+import org.geotoolkit.ogcapi.model.coverage.GeneralGrid;
+import org.geotoolkit.ogcapi.model.coverage.GridLimits;
+import org.geotoolkit.ogcapi.model.coverage.IndexAxis;
+import org.geotoolkit.ogcapi.model.coverage.IrregularAxis;
+import org.geotoolkit.ogcapi.model.coverage.RegularAxis;
 import org.geotoolkit.metadata.MetadataUtilities;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
@@ -172,7 +185,6 @@ import org.geotoolkit.ows.xml.v110.CodeType;
 import org.geotoolkit.ows.xml.v110.SectionsType;
 import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
 import org.geotoolkit.process.ProcessException;
-import org.geotoolkit.processing.coverage.bandselect.BandSelectProcess;
 import org.geotoolkit.resources.Errors;
 import org.geotoolkit.storage.ResourceProcessor;
 import org.geotoolkit.style.MutableStyle;
@@ -222,9 +234,11 @@ import org.opengis.metadata.Metadata;
 import org.opengis.metadata.content.AttributeGroup;
 import org.opengis.metadata.content.CoverageDescription;
 import org.opengis.metadata.content.RangeDimension;
+import org.opengis.metadata.Identifier;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.spatial.DimensionNameType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.SingleCRS;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.cs.CoordinateSystem;
@@ -1383,14 +1397,24 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     i++;
                 }
 
+                // In case where properties are directly bands id
+                for(String property : properties) {
+                    try {
+                        int p = Integer.parseInt(property);
+                        ids.add(p);
+                    } catch (NumberFormatException ex) {
+                        // Do Nothing
+                    }
+                }
+
                 int[] idsArray = new int[ids.size()];
                 for (i = 0; i < ids.size(); i++) {
                     idsArray[i] = ids.get(i);
                 }
 
                 if (!ids.isEmpty()) {
-                    BandSelectProcess bandSelectProcess = new BandSelectProcess(gridCoverageSource, idsArray);
-                    gridCoverageSource = bandSelectProcess.executeNow();
+                    GridCoverageProcessor processor = new GridCoverageProcessor();
+                    gridCoverageSource = processor.selectSampleDimensions(gridCoverageSource, idsArray);
                 }
             }
 
@@ -1451,9 +1475,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException("Error : Coverage geometry is not found",
                     NO_APPLICABLE_CODE, KEY_COVERAGE.toLowerCase());
-        } catch (ProcessException e) {
-            throw new CstlServiceException("Error : Coverage band selection (properties) as an error",
-                    NO_APPLICABLE_CODE, KEY_COVERAGE.toLowerCase());
         }
     }
 
@@ -1468,25 +1489,28 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
     }
 
     @Override
-    public List<Collection> getCollections(List<String> names, boolean forOpenEO) throws CstlServiceException {
+    public List<CollectionDescription> getCollections(List<String> names, boolean forOpenEO) throws CstlServiceException {
         final String userLogin  = getUserLogin();
         final List<LayerCache> layers;
+        boolean fullMetadata;
         if (names.isEmpty()) {
+            fullMetadata = false;
             // return all layers
             layers = getLayerCaches(userLogin, true);
         } else {
             layers = new ArrayList<>();
+            fullMetadata = true;
             for (String name : names) {
                 final QName collName = Util.parseQName(name);
                 layers.add(getLayerCache(userLogin, collName));
             }
         }
-        return layers.stream().map(r -> dataToCollection(r, forOpenEO)).collect(Collectors.toList());
+        return layers.stream().map(r -> dataToCollection(r, forOpenEO, fullMetadata)).collect(Collectors.toList());
     }
 
-    private Collection dataToCollection(LayerCache layer, boolean forOpenEO) {
+    private CollectionDescription dataToCollection(LayerCache layer, boolean forOpenEO, boolean fullMetadata) {
         final Data data = layer.getData();
-        final List<Link> links = new ArrayList<>();
+        final List<org.geotoolkit.ogcapi.model.common.Link> links = new ArrayList<>();
         final Extent extent = new Extent();
         final Extent readExtent = new Extent();
 
@@ -1503,39 +1527,51 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
 
         List<String> crs = new ArrayList<>();
-        crs.add(readExtent.getCrs());
-        if (!readExtent.getCrs().equalsIgnoreCase(extent.getCrs())) {
-            crs.add(extent.getCrs());
+        if (readExtent.getSpatial() != null) {
+            crs.add(readExtent.getSpatial().getCrs());
+            if (extent.getSpatial() != null && !readExtent.getSpatial().getCrs().equalsIgnoreCase(extent.getSpatial().getCrs())) {
+                crs.add(extent.getSpatial().getCrs());
+            }
         }
-        String storageCrs = extent.getCrs();
+
+        String storageCrs = extent.getSpatial().getCrs();
 
         try {
             final DefaultGeographicBoundingBox gbox = new DefaultGeographicBoundingBox();
             gbox.setBounds(readEnv);
 
-            SpatialCRS spatialCRS = new SpatialCRS();
+            SpatialExtent spatialExtent = extent.getSpatial();
+            if (spatialExtent == null) {
+                spatialExtent = new SpatialExtent();
+            }
             double[] boundingBox = {gbox.getWestBoundLongitude(), gbox.getSouthBoundLatitude(), gbox.getEastBoundLongitude(), gbox.getNorthBoundLatitude()};
             double[][] globalBoundingBox = new double[1][4];
             System.arraycopy(boundingBox, 0, globalBoundingBox[0], 0, boundingBox.length);
-            spatialCRS.setBbox(globalBoundingBox);
-            readExtent.setSpatial(spatialCRS);
+            spatialExtent.setBbox(globalBoundingBox);
+            readExtent.setSpatial(spatialExtent);
 
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Cannot set spatial extent of data " + data.getName(), ex);
             readExtent.setSpatial(null);
         }
 
-        final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+//        final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
         try {
             SortedSet<Date> dates = data.getDateRange();
             if (dates != null) {
-                com.examind.ogc.api.rest.common.dto.TemporalCRS temporalCRS = new com.examind.ogc.api.rest.common.dto.TemporalCRS();
-                String[][] temporalInterval = new String[1][2];
-                temporalInterval[0][0] = ISO8601_FORMAT.format(dates.first());
-                temporalInterval[0][1] = ISO8601_FORMAT.format(dates.last());
-                temporalCRS.setInterval(temporalInterval);
-                readExtent.setTemporal(temporalCRS);
+                TemporalExtent temporalExtent = readExtent.getTemporal();
+                if (temporalExtent == null) {
+                    temporalExtent = new TemporalExtent();
+                }
+
+                OffsetDateTime[][] temporalInterval = new OffsetDateTime[1][2];
+                temporalInterval[0][0] = OffsetDateTime.ofInstant(dates.first().toInstant(), ZoneOffset.UTC);
+                temporalInterval[0][1] = OffsetDateTime.ofInstant(dates.last().toInstant(), ZoneOffset.UTC);
+//                temporalInterval[0][0] = ISO8601_FORMAT.format(dates.first());
+//                temporalInterval[0][1] = ISO8601_FORMAT.format(dates.last());
+                temporalExtent.setInterval(temporalInterval);
+                readExtent.setTemporal(temporalExtent);
             } else {
                 readExtent.setTemporal(null);
             }
@@ -1555,11 +1591,185 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         // but it appears at https://github.com/opengeospatial/ogcapi-features/blob/master/core/xml/core.xsd
 
         if(forOpenEO) {
-            return new com.examind.openeo.api.rest.data.discovery.dto.Collection(identifier, links, title, null, title, readExtent, crs, storageCrs,
-                    "1.0.0", Set.of(), List.of(), false, "no licence specified");
+            Map<String, org.geotoolkit.stac.dto.Dimension> dimensions;
+            Map<String, Object> summaries = new HashMap<>();
+            if(fullMetadata) {
+                try {
+                    dimensions = buildOpenEoStacDimensions((CoverageData) data);
+                } catch (CstlServiceException | ConstellationStoreException e) {
+                    LOGGER.log(Level.WARNING, "Cannot build cube:dimensions attribute for this collection " + data.getName(), e);
+                    dimensions = Map.of();
+                }
+
+                try {
+                    List<SampleDimension> smList = ((CoverageData) data).getSampleDimensions();
+                    List<Map<String, String>> bands = new ArrayList<>();
+                    int i = 0;
+                    for(SampleDimension sm : smList) {
+                        Map<String, String> band = new HashMap<>();
+                        band.put("name", Integer.toString(i));
+                        band.put("description", sm.getName().toString());
+                        if (!sm.getUnits().isEmpty()) {
+                            band.put("unit", sm.getUnits().get().toString());
+                        } else {
+                            band.put("unit", "no unit");
+                        }
+                        bands.add(band);
+                        i++;
+                    }
+                    summaries.put("bands", bands);
+
+                } catch (ConstellationStoreException e) {
+                    LOGGER.log(Level.WARNING, "Cannot build summaries attribute for this collection " + data.getName(), e);
+                    dimensions = Map.of();
+                }
+            } else {
+                dimensions = Map.of();
+                summaries = Map.of();
+            }
+
+            return new org.geotoolkit.stac.dto.Collection(identifier, links, title, null, title, readExtent, crs, storageCrs,
+                    "1.0.0", Set.of(), List.of(), dimensions, false, "no licence specified", summaries);
         } else {
-            return new com.examind.ogc.api.rest.common.dto.Collection(identifier, links, title, null, title, readExtent, crs, storageCrs);
+            return new CollectionDescription(identifier, links, title, null, title, readExtent, crs, storageCrs);
         }
+    }
+
+    private Map<String, org.geotoolkit.stac.dto.Dimension> buildOpenEoStacDimensions(CoverageData data) throws CstlServiceException, ConstellationStoreException {
+        GeneralEnvelope readEnv = getGeneralEnvelope(data, null);
+        CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
+        GridGeometry readGg = getGridGeometry(data, readEnv);
+
+        Map<String, org.geotoolkit.stac.dto.Dimension> dimensions = new HashMap<>();
+        char spatialLetter = 'x';
+        char otherLetter = 'i';
+        DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        int dimensionSize = crs.getCoordinateSystem().getDimension();
+        List<SingleCRS> crsList = CRS.getSingleComponents(crs);
+
+        int dimIdx=0;
+        for(int crsIdx=0; crsIdx < crsList.size(); crsIdx++) {
+            for (int crsDim = 0; crsDim < crsList.get(crsIdx).getCoordinateSystem().getDimension(); crsDim++) {
+
+                CoordinateSystemAxis csa = crsList.get(crsIdx).getCoordinateSystem().getAxis(crsDim);
+                String abbreviation = csa.getAbbreviation().toLowerCase();
+                AxisDirection axisDirection = csa.getDirection();
+                DimensionNameType axisType = readGg.getExtent().getAxisType(dimIdx).orElse(null);
+
+                Identifier crsIdentifier = crsList.get(crsIdx).getIdentifiers().stream().findFirst().orElse(null);
+
+                double resolution = readGg.getResolution(false)[dimIdx];
+                Object lower = readEnv.getLower(dimIdx);
+                Object upper = readEnv.getUpper(dimIdx);
+                List<Object> coordinates = new ArrayList<>();
+
+                //NOTE :
+                //Now, we only manage irregular axis for time or vertical dimensions
+                //For other dimensions, we consider that the axis is regular (lat/lon)
+                //TODO : manage irregular axis for lat/lon dimensions
+
+                boolean isSpatial = false;
+                boolean isOther = false;
+                boolean isTemporal = false;
+                boolean isVertical = false;
+                if (axisDirection == AxisDirection.NORTH || axisDirection == AxisDirection.SOUTH ||
+                        axisDirection == AxisDirection.EAST || axisDirection == AxisDirection.WEST) {
+                    isSpatial = true;
+                } else if (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || abbreviation.equals("time")) {
+                    isTemporal = true;
+                    try {
+                        SortedSet<Date> dates;
+                        if (!Double.isNaN(resolution)) {
+                            dates = data.getDateRange();
+                        } else {
+                            dates = data.getAvailableTimes();
+                            for (Date date : dates) {
+                                coordinates.add(date.toInstant().atZone(ZoneOffset.UTC).format(dateFormat));
+                            }
+                        }
+
+                        if (dates == null) {
+                            throw new CstlServiceException("No date range found for the coverage", NO_APPLICABLE_CODE);
+                        }
+
+                        Instant[] instants = new Instant[2];
+                        instants[0] = dates.first().toInstant();
+                        instants[1] = dates.last().toInstant();
+
+                        LocalDateTime dateTime = LocalDateTime.ofInstant(instants[0], ZoneOffset.UTC);
+                        lower = dateTime.format(dateFormat);
+
+                        dateTime = LocalDateTime.ofInstant(instants[1], ZoneOffset.UTC);
+                        upper = dateTime.format(dateFormat);
+
+                    } catch (ConstellationStoreException e) {
+                        throw new CstlServiceException(e, NO_APPLICABLE_CODE);
+                    }
+                } else if (axisType == DimensionNameType.VERTICAL || axisDirection == AxisDirection.UP) {
+                    isVertical = true;
+                    try {
+                        SortedSet<Number> elevations = data.getAvailableElevations();
+                        coordinates.addAll(elevations);
+                    } catch (ConstellationStoreException e) {
+                        throw new CstlServiceException(e, NO_APPLICABLE_CODE);
+                    }
+                } else {
+                    isOther = true;
+                }
+
+                //REGULAR AXIS
+                if (!Double.isNaN(resolution)) {
+                    if (isSpatial || isVertical) {
+                        String letterStr = String.valueOf(Character.valueOf(spatialLetter));
+                        spatialLetter += 1;
+
+                        dimensions.put(letterStr, new org.geotoolkit.stac.dto.DimensionSpatial(letterStr, List.of(lower, upper), Double.toString(resolution), csa.getUnit().getName(), crsIdentifier == null ? null : crsIdentifier.getCode()));
+                    } else if (isTemporal) {
+                        dimensions.put("t", new org.geotoolkit.stac.dto.DimensionTemporal(Double.toString(resolution), List.of((String) lower, (String) upper)));
+                    } else if (isOther) {
+                        String otherStr = String.valueOf(Character.valueOf(otherLetter));
+                        otherLetter += 1;
+
+                        dimensions.put(otherStr, new org.geotoolkit.stac.dto.DimensionOther(List.of(lower, upper), Double.toString(resolution), csa.getUnit().getName(), crsIdentifier == null ? null : crsIdentifier.getCode()));
+                    }
+                    //IRREGULAR AXIS
+                } else {
+                    if (isSpatial) {
+                        //TODO : manage irregular axis for lat/lon dimensions
+                        String letterStr = String.valueOf(Character.valueOf(spatialLetter));
+                        spatialLetter += 1;
+
+                        dimensions.put(letterStr, new org.geotoolkit.stac.dto.DimensionSpatial(letterStr, List.of(lower, upper), List.of(), csa.getUnit().getName(), crsIdentifier == null ? null : crsIdentifier.getCode()));
+
+    //                    throw new CstlServiceException("Spatial axis cannot be irregular", NO_APPLICABLE_CODE);
+                    } else if (isVertical) {
+                        String letterStr = String.valueOf(Character.valueOf(spatialLetter));
+                        spatialLetter += 1;
+
+                        dimensions.put(letterStr, new org.geotoolkit.stac.dto.DimensionSpatial(letterStr, List.of(lower, upper), coordinates, csa.getUnit().getName(), crsIdentifier == null ? null : crsIdentifier.getCode()));
+                    } else if (isTemporal) {
+                        dimensions.put("t", new org.geotoolkit.stac.dto.DimensionTemporal(coordinates, List.of((String) lower, (String) upper)));
+                    } else if (isOther) {
+                        String otherStr = String.valueOf(Character.valueOf(otherLetter));
+                        otherLetter += 1;
+
+                        dimensions.put(otherStr, new org.geotoolkit.stac.dto.DimensionOther(List.of(lower, upper), coordinates, csa.getUnit().getName(), crsIdentifier == null ? null : crsIdentifier.getCode()));
+                    }
+                }
+                dimIdx++;
+            }
+        }
+
+//        dimensions.put("bands", new DimensionBands(List.of(data.getSampleDimensions().stream().map(s -> s.getName().toString()).toArray(String[]::new))));
+        int size = data.getSampleDimensions().size();
+        String[] indices = new String[size];
+        for (int i = 0; i < size; i++) {
+            indices[i] = String.valueOf(i);
+        }
+        dimensions.put("bands", new org.geotoolkit.stac.dto.DimensionBands(List.of(indices)));
+
+        return dimensions;
     }
 
     @Override
@@ -1727,7 +1937,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
      */
     @Override
     public Schema getSchema(String collectionId, List<String> subsetData, boolean forceCalculateStatistics) throws CstlServiceException {
-        Map<String, PropertyBand> propertyMap = new LinkedHashMap<>();
+        Map<String, JSONSchemaProperty> propertyMap = new LinkedHashMap<>();
         Map<String, Integer> nameCounter = new HashMap<>();
 
         // No subset Data or 2D data : check if statistics in metatata, if not calculate statistics
@@ -1837,12 +2047,20 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 nameCounter.put(baseName, index + 1);
             }
 
-            PropertyBand pb = new PropertyBand(baseName, baseDescription, null, null, rangeStatisticsList[i], i+1);
+            JSONSchemaProperty pb = new JSONSchemaProperty()
+                    .title(baseName)
+                    .description(baseDescription)
+                    .xOgcStatistics(rangeStatisticsList[i])
+                    .xOgcPropertySeq(i+1)
+                    .minItems(null)
+                    .type(JSONType.NUMBER);
 
             propertyMap.put(uniqueKey, pb);
         }
 
-        return new Schema(collectionId, propertyMap);
+        Schema schema = new Schema(collectionId, propertyMap);
+        schema.setType(JSONType.OBJECT);
+        return schema;
     }
 
     public List<String> getDimensionsNames(String collectionId) throws CstlServiceException {

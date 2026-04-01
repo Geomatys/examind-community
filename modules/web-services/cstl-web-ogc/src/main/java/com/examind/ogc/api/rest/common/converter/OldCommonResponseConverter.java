@@ -19,12 +19,12 @@
 
 package com.examind.ogc.api.rest.common.converter;
 
+import com.examind.ogc.api.rest.common.dto.CommonMarshallerPool;
+import com.examind.ogc.api.rest.common.dto.CommonResponse;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.xml.bind.Marshaller;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.ogcapi.marshaller.CommonResponseMarshallerPool;
-import org.geotoolkit.ogcapi.model.common.CommonResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.InvalidMediaTypeException;
@@ -40,10 +40,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * todo remove
  * @author Guilhem Legal (Geomatys)
  */
-public class CommonResponseConverter implements HttpMessageConverter<CommonResponse> {
+@Deprecated
+public class OldCommonResponseConverter implements HttpMessageConverter<CommonResponse> {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.ogc.api.rest.common.converter");
 
@@ -78,10 +79,10 @@ public class CommonResponseConverter implements HttpMessageConverter<CommonRespo
             }
 
             if (isXMLMime(media)) {
-                final Marshaller m = CommonResponseMarshallerPool.getInstance().acquireMarshaller();
+                final Marshaller m = CommonMarshallerPool.getInstance().acquireMarshaller();
 
                 m.marshal(t, outputMessage.getBody());
-                CommonResponseMarshallerPool.getInstance().recycle(m);
+                CommonMarshallerPool.getInstance().recycle(m);
             } else {
                 ObjectMapper m = new ObjectMapper();
                 m.setSerializationInclusion(Include.NON_NULL);

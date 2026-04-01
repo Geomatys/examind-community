@@ -621,6 +621,11 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-stac</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-xml-wms</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
@@ -686,6 +691,16 @@
             <dependency>
                 <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-xml-wps</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-openeo</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-ogcapi</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
             <dependency>

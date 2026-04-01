@@ -54,6 +54,10 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-kml</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-ogcapi</artifactId>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>

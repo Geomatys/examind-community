@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DataRecord>
+    <type>DataRecord</type>
+    <field>
+        <type>Quantity</type>
+        <name>Red</name>
+        <description>Red</description>
+        <encodingInfo>
+            <dataType>https://www.opengis.net/def/data-type/ogc/0/unsigned-byte</dataType>
+        </encodingInfo>
+    </field>
+    <field>
+        <type>Quantity</type>
+        <name>Green</name>
+        <description>Green</description>
+        <encodingInfo>
+            <dataType>https://www.opengis.net/def/data-type/ogc/0/unsigned-byte</dataType>
+        </encodingInfo>
+    </field>
+    <field>
+        <type>Quantity</type>
+        <name>Blue</name>
+        <description>Blue</description>
+        <encodingInfo>
+            <dataType>https://www.opengis.net/def/data-type/ogc/0/unsigned-byte</dataType>
+        </encodingInfo>
+    </field>
+</DataRecord>

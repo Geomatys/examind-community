@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 
-package com.examind.ogc.api.rest.common.converter;
+package com.examind.ogc.api.rest.coverages.converter;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.xml.bind.Marshaller;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.ogcapi.marshaller.CommonResponseMarshallerPool;
-import org.geotoolkit.ogcapi.model.common.CommonResponse;
+import org.geotoolkit.ogcapi.marshaller.CoverageResponseMarshallerPool;
+import org.geotoolkit.ogcapi.model.coverage.CoverageResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.InvalidMediaTypeException;
@@ -41,11 +41,11 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Guilhem Legal (Geomatys)
+ * @author Quentin Bialota (Geomatys)
  */
-public class CommonResponseConverter implements HttpMessageConverter<CommonResponse> {
+public class CoverageResponseConverter implements HttpMessageConverter<CoverageResponse> {
 
-    private static final Logger LOGGER = Logger.getLogger("com.examind.ogc.api.rest.common.converter");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.ogc.api.rest.coverages.converter");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
@@ -54,7 +54,7 @@ public class CommonResponseConverter implements HttpMessageConverter<CommonRespo
 
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
-        return CommonResponse.class.isAssignableFrom(clazz);
+        return CoverageResponse.class.isAssignableFrom(clazz);
     }
 
     @Override
@@ -63,12 +63,12 @@ public class CommonResponseConverter implements HttpMessageConverter<CommonRespo
     }
 
     @Override
-    public CommonResponse read(Class<? extends CommonResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("CommonResponse message converter do not support reading.", him);
+    public CoverageResponse read(Class<? extends CoverageResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
+        throw new HttpMessageNotReadableException("CoverageResponse message converter do not support reading.", him);
     }
     
     @Override
-    public void write(CommonResponse t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+    public void write(CoverageResponse t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
             MediaType media = null;
             try {
@@ -78,17 +78,17 @@ public class CommonResponseConverter implements HttpMessageConverter<CommonRespo
             }
 
             if (isXMLMime(media)) {
-                final Marshaller m = CommonResponseMarshallerPool.getInstance().acquireMarshaller();
+                final Marshaller m = CoverageResponseMarshallerPool.getInstance().acquireMarshaller();
 
                 m.marshal(t, outputMessage.getBody());
-                CommonResponseMarshallerPool.getInstance().recycle(m);
+                CoverageResponseMarshallerPool.getInstance().recycle(m);
             } else {
                 ObjectMapper m = new ObjectMapper();
                 m.setSerializationInclusion(Include.NON_NULL);
                 m.writeValue(outputMessage.getBody(), t);
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Exception while writing the CommonAPI response", ex);
+            LOGGER.log(Level.SEVERE, "Exception while writing the CoverageAPI response", ex);
         }
     }
 
