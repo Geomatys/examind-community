@@ -118,7 +118,7 @@ public class EPSGDatabaseIniter {
                 final String table = result.getString("TABLE_NAME");
                 for (final String candidate : SAMPLES) {
                     if (candidate.equalsIgnoreCase(table)) {
-                        try (PreparedStatement p = conn.prepareStatement("SELECT \"version_number\" FROM \"EPSG\".\"Version History\" ORDER BY \"version_date\" DESC LIMIT 1");
+                        try (PreparedStatement p = conn.prepareStatement("SELECT version_number FROM \"EPSG\".\"Version History\" ORDER BY version_date DESC LIMIT 1");
                              ResultSet rs = p.executeQuery();) {
                             if (rs.next()) {
                                 return new Version(rs.getString(1));
