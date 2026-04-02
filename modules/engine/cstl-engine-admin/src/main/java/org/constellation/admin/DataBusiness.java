@@ -54,7 +54,7 @@ import org.constellation.dto.Dimension;
 import org.constellation.dto.DimensionRange;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ServiceReference;
-import org.constellation.dto.SimpleDataDescription;
+import org.constellation.dto.DataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
@@ -513,14 +513,14 @@ public class DataBusiness implements IDataBusiness {
                     db.setDataDescription(dataDescription);
                 } else {
                     // because UI can't support data without data description
-                    db.setDataDescription(new SimpleDataDescription());
+                    db.setDataDescription(new DataDescription());
                     LOGGER.warning("Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
                 }
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, e.getMessage(), e);
                 // because UI can't support data without data description
                 if (db.getDataDescription() == null) {
-                    db.setDataDescription(new SimpleDataDescription());
+                    db.setDataDescription(new DataDescription());
                 }
             }
         }

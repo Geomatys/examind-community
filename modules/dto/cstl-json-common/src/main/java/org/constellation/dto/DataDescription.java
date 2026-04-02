@@ -19,16 +19,40 @@
 
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.io.Serializable;
 
 /**
- * @author Fabien Bernard (Geomatys).
- * @version 0.9
- * @since 0.9
+ *
+ * @author Guilhem Legal (Geomatys)
  */
-public interface DataDescription extends Serializable {
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = CoverageDataDescription.class, name = "coverage"),
+    @JsonSubTypes.Type(value = FeatureDataDescription.class, name = "feature")
+})
+public class DataDescription implements Serializable {
 
-    public double[] getBoundingBox();
+    protected double[] boundingBox;
 
-    public void setBoundingBox(final double[] boundingBox);
+    public DataDescription() {
+        this.boundingBox = new double[]{-180,-90,180,90};
+    }
+
+    public DataDescription(double[] boundingBox) {
+        this.boundingBox = boundingBox;
+    }
+
+    public double[] getBoundingBox() {
+        return boundingBox;
+    }
+
+    public void setBoundingBox(final double[] boundingBox) {
+        this.boundingBox = boundingBox;
+    }
+
 }

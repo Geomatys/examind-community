@@ -27,7 +27,7 @@ import java.util.List;
  * @version 0.9
  * @since 0.9
  */
-public class FeatureDataDescription extends SimpleDataDescription {
+public class FeatureDataDescription extends DataDescription {
 
     private PropertyDescription geometryProperty;
     private List<PropertyDescription> properties;

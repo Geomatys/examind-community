@@ -28,7 +28,7 @@ import java.util.List;
  * @version 0.9
  * @since 0.9
  */
-public class CoverageDataDescription extends SimpleDataDescription {
+public class CoverageDataDescription extends DataDescription {
 
     private List<BandDescription> bands;
 

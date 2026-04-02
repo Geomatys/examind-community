@@ -43,7 +43,7 @@ import org.apache.sis.style.Style;
 
 import org.constellation.api.ServiceDef.Query;
 import org.constellation.dto.DimensionRange;
-import org.constellation.dto.SimpleDataDescription;
+import org.constellation.dto.DataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -236,8 +236,8 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     }
 
     @Override
-    public SimpleDataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException {
-        final SimpleDataDescription description = new SimpleDataDescription();
+    public DataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException {
+        final DataDescription description = new DataDescription();
         try {
             if (env == null) {
                 env = getEnvelope();
