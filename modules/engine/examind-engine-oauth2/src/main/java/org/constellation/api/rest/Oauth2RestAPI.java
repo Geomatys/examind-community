@@ -23,6 +23,8 @@ import com.examind.oauth.Oauth2Client;
 import java.util.HashMap;
 import java.util.Map;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.springframework.http.HttpHeaders;
@@ -40,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Oauth2RestAPI {
 
-
+     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
     @RequestMapping(value="/oauth2/login", method=GET)
     public ResponseEntity login() {
@@ -52,6 +54,7 @@ public class Oauth2RestAPI {
             headers.add("Location", location);
             return new ResponseEntity<String>(headers,HttpStatus.FOUND);
         } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error at oauth2/login.", e);
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -76,11 +79,10 @@ public class Oauth2RestAPI {
             }
             HttpHeaders headers = new HttpHeaders();
             headers.add("Location", cstlBaseUrl);
-
-
-                return new ResponseEntity<String>(headers,HttpStatus.FOUND);
+            return new ResponseEntity<String>(headers,HttpStatus.FOUND);
 
         } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error at oauth2/callback.", e);
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -95,9 +97,8 @@ public class Oauth2RestAPI {
             headers.add("Location", location);
             return new ResponseEntity<String>(headers,HttpStatus.FOUND);
         } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error at oauth2/logout.", e);
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }
