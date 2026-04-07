@@ -34,6 +34,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,11 +58,13 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.DimensionalityReduction;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverageBuilder;
 import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.apache.sis.geometry.DirectPosition1D;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -74,6 +78,7 @@ import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
+import org.apache.sis.storage.CoverageQuery;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.Utilities;
@@ -243,6 +248,7 @@ import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.cs.CoordinateSystem;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -1309,9 +1315,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             /////////////////////////////////////////////////////////////////////////////////
 
-            //Get time and vertical dimensions
+            //Get time, vertical and longitude dimensions
             int timeDimensionId = -1;
             int verticalDimensionId = -1;
+            int lonDimensionId = -1;
             int dimensionSize = originGeometry.getDimension();
             for (int dimIdx = 0; dimIdx < dimensionSize; dimIdx++) {
                 CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(dimIdx);
@@ -1324,6 +1331,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 }
                 if (verticalDimensionId == -1 && (axisType == DimensionNameType.VERTICAL)) {
                     verticalDimensionId = dimIdx;
+                }
+                if (lonDimensionId == -1 && (axisDirection == AxisDirection.EAST || axisDirection == AxisDirection.WEST
+                        || abbreviation.equals("λ") || abbreviation.contains("lon"))) {
+                    lonDimensionId = dimIdx;
                 }
             }
 
@@ -1345,7 +1356,17 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     verticalAlreadySliced = true;
                 }
             }
-            if (!format.equalsIgnoreCase(MimeType.NETCDF) && (!timeAlreadySliced || !verticalAlreadySliced)) {
+
+            // Get if we can have more than 2 dimensions in the result
+            boolean format2D = false;
+            if (format.equalsIgnoreCase(MimeType.IMAGE_TIFF)) {
+                format2D = true;
+            } else if (format.equalsIgnoreCase(MimeType.NETCDF)) {
+                format2D = false;
+            }
+
+            if (format2D && (!timeAlreadySliced || !verticalAlreadySliced)) {
+                final MathTransform gridToCRS = originGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
                 //Slice over time and vertical axis
                 if (!timeAlreadySliced) {
                     //Slice time :
@@ -1375,16 +1396,35 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 }
             }
 
-            GridGeometry readGg = getGridGeometry(data, readEnv, scaleData);
             GridCoverage gridCoverageSource = null;
-            try {
-                var processor = new ResourceProcessor();
-                processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+            GridGeometry readGg = getGridGeometry(data, readEnv, scaleData);
+            if (format2D) {
+                try {
+                    var processor = new ResourceProcessor();
+                    processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
 
-                GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
-                gridCoverageSource = coverageResourceResampled.read(readGg);
-            } catch (Exception ex) {
-                throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+                    CoverageQuery query = new CoverageQuery();
+                    query.setSelection(readGg);
+                    query.setAxisSelection(DimensionalityReduction::select2D);
+
+                    // At the end of this request we have a 2D coverage with only horizontal component (spatial)
+                    gridCoverageSource = coverageResourceResampled.subset(query).read(null);
+                    crs = CRS.getHorizontalComponent(readGg.getCoordinateReferenceSystem());
+                } catch (Exception ex) {
+                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+                }
+            } else {
+                try {
+                    var processor = new ResourceProcessor();
+                    processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+
+                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
+                    gridCoverageSource = coverageResourceResampled.read(readGg);
+                    crs = gridCoverageSource.getCoordinateReferenceSystem();
+                } catch (Exception ex) {
+                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+                }
             }
 
             if (properties != null && !properties.isEmpty()) {
@@ -1723,7 +1763,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     if (isSpatial || isVertical) {
                         String letterStr = String.valueOf(Character.valueOf(spatialLetter));
                         spatialLetter += 1;
-
                         dimensions.put(letterStr, new org.geotoolkit.stac.dto.DimensionSpatial(letterStr, List.of(lower, upper), Double.toString(resolution), csa.getUnit().getName(), crsIdentifier == null ? null : crsIdentifier.getCode()));
                     } else if (isTemporal) {
                         dimensions.put("t", new org.geotoolkit.stac.dto.DimensionTemporal(Double.toString(resolution), List.of((String) lower, (String) upper)));
@@ -1796,7 +1835,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(dimIdx);
             String abbreviation = csa.getAbbreviation().toLowerCase();
             AxisDirection axisDirection = csa.getDirection();
-            DimensionNameType axisType = readGg.getExtent().getAxisType(dimIdx).orElse(null);
+
+            // Sometime envelope have more elements than grid extent
+            DimensionNameType axisType;
+            try {
+                axisType = readGg.getExtent().getAxisType(dimIdx).orElse(null);
+            } catch (IndexOutOfBoundsException e) {
+                continue;
+            }
 
             double resolution = readGg.getResolution(false)[dimIdx];
             Object lower = readEnv.getLower(dimIdx);
@@ -1837,10 +1883,18 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 } catch (ConstellationStoreException e) {
                     throw new CstlServiceException(e, NO_APPLICABLE_CODE);
                 }
-            } else if (axisType == DimensionNameType.VERTICAL || axisDirection == AxisDirection.UP) {
+            } else if (axisType == DimensionNameType.VERTICAL || axisDirection == AxisDirection.UP || axisDirection == AxisDirection.DOWN) {
                 try {
                     SortedSet<Number> elevations = data.getAvailableElevations();
-                    coordinates.addAll(elevations);
+                    Collection<Number> toAdd = elevations;
+
+                    if (axisDirection == AxisDirection.DOWN) {
+                        List<Number> reversedElevations = new ArrayList<>(elevations);
+                        Collections.reverse(reversedElevations);
+                        toAdd = reversedElevations;
+                    }
+
+                    coordinates.addAll(toAdd);
                 } catch (ConstellationStoreException e) {
                     throw new CstlServiceException(e, NO_APPLICABLE_CODE);
                 }
@@ -1848,9 +1902,15 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             //REGULAR AXIS
             if (!Double.isNaN(resolution)) {
-
-                RegularAxis regularAxis = new RegularAxis(abbreviation, lower,
-                        upper, csa.getUnit().getName(), resolution);
+                // Instead of storing full envelope, we store the center of each step (the list of centers are in "coordinates")
+                // So instead of having for example 0,500 with 100 in resolution ([0,100[ [100,200[ ... [400,500[)
+                // We will have 50,450 (corresponds to the center of each interval)
+                // To calculate the full interface at each step : value (+|-) resolution/2
+                if (coordinates != null && !coordinates.isEmpty()) {
+                    lower = coordinates.getFirst();
+                    upper = coordinates.getLast();
+                }
+                RegularAxis regularAxis = new RegularAxis(abbreviation, lower, upper, csa.getUnit().getName(), resolution);
                 axisList.add(regularAxis);
             //IRREGULAR AXIS
             } else {
@@ -2121,19 +2181,28 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 return readEnv;
             }
             CoordinateReferenceSystem bboxCrsData = Extent.getCrsFromName(bboxCrs);
-
-            //final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
             final CoordinateReferenceSystem defaultGeographic = (bboxCrsData == null ? CommonCRS.defaultGeographic() : bboxCrsData);
-            final CoordinateReferenceSystem temporalCRS = CRS.getTemporalComponent(readEnv.getCoordinateReferenceSystem());
-            final CoordinateReferenceSystem verticalCRS = CRS.getVerticalComponent(readEnv.getCoordinateReferenceSystem(), true);
 
-            final CoordinateReferenceSystem finalCRS;
-            if(temporalCRS != null && verticalCRS == null) finalCRS = CRS.compound(defaultGeographic, temporalCRS);
-            else if(temporalCRS == null && verticalCRS != null) finalCRS = CRS.compound(defaultGeographic, verticalCRS);
-            else if(temporalCRS != null && verticalCRS != null) finalCRS = CRS.compound(defaultGeographic, verticalCRS, temporalCRS);
-            else finalCRS = defaultGeographic;
+            // Build the target CRS by replacing only the horizontal component with defaultGeographic,
+            // preserving all other components (vertical, temporal, custom…) in their original order.
+            List<SingleCRS> sourceComponents = CRS.getSingleComponents(readEnv.getCoordinateReferenceSystem());
+            List<CoordinateReferenceSystem> finalComponents = new ArrayList<>();
+            boolean horizontalReplaced = false;
+            for (SingleCRS component : sourceComponents) {
+                // Check if the component is Horizontal and if we haven't replaced it yet
+                if (!horizontalReplaced && CRS.getHorizontalComponent(component) != null) {
+                    finalComponents.add(defaultGeographic);
+                    horizontalReplaced = true;
+                } else {
+                    finalComponents.add(component);
+                }
+            }
+            final CoordinateReferenceSystem finalCRS = (finalComponents.size() == 1)
+                    ? finalComponents.get(0)
+                    : CRS.compound(finalComponents.toArray(new CoordinateReferenceSystem[0]));
 
-            if (!Utilities.equalsIgnoreMetadata(defaultGeographic, readEnv.getCoordinateReferenceSystem())) {
+            CoordinateReferenceSystem sourceHorizontal = CRS.getHorizontalComponent(readEnv.getCoordinateReferenceSystem());
+            if (!Utilities.equalsIgnoreMetadata(defaultGeographic, sourceHorizontal)) {
                 readEnv = CRSUtilities.reprojectWithNoInfinity(readEnv, finalCRS);
             }
 
@@ -2229,7 +2298,15 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             for (int i = 0 ; i < env.getDimension(); i++ ) {
                 if (env.getMinimum(i) == env.getMaximum(i)) {
                     CoordinateSystemAxis csa = env.getCoordinateReferenceSystem().getCoordinateSystem().getAxis(i);
-                    DimensionNameType axisType = base.getExtent().getAxisType(i).orElse(null);
+
+                    // Sometimes we can have more envelope elements than extent dimensions
+                    DimensionNameType axisType;
+                    try {
+                        axisType = base.getExtent().getAxisType(i).orElse(null);
+                    } catch (IndexOutOfBoundsException e) {
+                        continue;
+                    }
+
                     AxisDirection axisDirection = csa.getDirection();
 
                     CoordinateReferenceSystem crs;
@@ -2349,14 +2426,20 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     double minVal = readEnv.getLower(dimIdx);
                     double maxVal = readEnv.getUpper(dimIdx);
 
-                    //double low = toAxisValue(trim.getTrimLow(), crs, dimIdx, minVal);
-                    //double high = toAxisValue(trim.getTrimHigh(), crs, dimIdx, maxVal);
+                    // Convention: (0, -0) or (-0, 0) on the longitude axis means "full world range".
+                    // Skip clamping so readEnv keeps its full extent for this dimension.
+                    boolean fullExtent = false;
+                    if ((Double.compare(minVal, 0.0) == 0 && Double.compare(maxVal, -0.0) == 0)
+                            || (Double.compare(minVal, -0.0) == 0 && Double.compare(maxVal, 0.0) == 0)) {
+                        fullExtent = true;
+                    }
+
                     if(dimIdx < bbox.size()/2) {
                         double low = bbox.get(dimIdx);
                         double high = bbox.get(dimIdx + bbox.size()/2);
 
                         //verif that trim value does not overlap envelope
-                        if (low < minVal || low > maxVal || high > maxVal || high < minVal) {
+                        if (!fullExtent && (low < minVal || low > maxVal || high > maxVal || high < minVal)) {
                             throw new CstlServiceException("Subsetting params overlap the envelope extent: dim=" + dimIdx + "(" + minVal + "/" + maxVal + ") for value: " + low + "/" + high ,
                                     INVALID_SUBSETTING, KEY_COVERAGE.toLowerCase());
                         }
