@@ -54,6 +54,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.crypto.SecretKey;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
@@ -89,7 +90,6 @@ import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
 import org.constellation.util.SQLUtilities;
 import org.constellation.ws.UnauthorizedException;
-import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,6 +139,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     
     // TODO: dependency injection would be preferable
     private static final DatasourceCache cache = new DatasourceCache();
+    
+    private static SecretKey SECRET_KEY;
+    static {
+        try {
+            SECRET_KEY = CipherUtilities.createKey(Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"), "examind-community");
+        } catch (GeneralSecurityException ex) {
+            LOGGER.log(Level.SEVERE, "Unable to init the secret key", ex);
+        }
+    } 
 
     /**
      * {@inheritDoc}
@@ -165,7 +174,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         ds.setType(ds.getType().toLowerCase());
         try {
             // encrypt pwd before saving
-            String encPwd = CipherUtilities.encrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+            String encPwd = CipherUtilities.encrypt(ds.getPwd(), SECRET_KEY);
             ds.setPwd(encPwd);
         } catch (GeneralSecurityException ex) {
             throw new ConfigurationException("Error while encrypting password", ex);
@@ -184,7 +193,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
         try {
             // encrypt pwd before saving
-            String encPwd = CipherUtilities.encrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+            String encPwd = CipherUtilities.encrypt(ds.getPwd(), SECRET_KEY);
             ds.setPwd(encPwd);
         } catch (GeneralSecurityException ex) {
             throw new ConfigurationException("Error while encrypting password", ex);
@@ -345,7 +354,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             var rawPwd = ds.getPwd();
             if (rawPwd != null && rawPwd.startsWith("{{") && rawPwd.endsWith("}}")) {
                 try {
-                    decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+                    decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), SECRET_KEY);
                 } catch (GeneralSecurityException ex) {
                     throw new ConfigurationException("Error while decrypting saved password", ex);
                 }
@@ -456,7 +465,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         var rawPwd = ds.getPwd();
         if (rawPwd != null && rawPwd.startsWith("{{") && rawPwd.endsWith("}}")) {
             try {
-                decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+                decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), SECRET_KEY);
             } catch (GeneralSecurityException ex) {
                 throw new ConfigurationException("Error while decrypting saved password", ex);
             }
