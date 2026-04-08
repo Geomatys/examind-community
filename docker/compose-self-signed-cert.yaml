@@ -1,0 +1,121 @@
+services:
+  # First, generate a temporary self-signed certificate
+  cert-generator:
+    image: alpine/openssl
+    restart: on-failure
+    volumes:
+      - "self-signed-certs:/tmp/cert/:rw"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        openssl req -x509 -nodes -days 1
+        -newkey rsa:2048 -keyout /tmp/cert/self-signed.key -out /tmp/cert/self-signed.crt
+        -subj "/C=FR/ST=Occitanie/L=Montpellier/O=Geomatys/CN=insecure-warehouse/emailAddress="
+        &&
+        chmod 664 /tmp/cert/*
+
+  # Deploy a simple HTTPS server serving a single data sample under the self-signed certificate
+  insecure-warehouse:
+    image: quay.io/nginx/nginx-unprivileged:1.29.5
+    ports:
+      - "9443:9443"
+    configs:
+      # Configure server to serve content using test certificate
+      - source: nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      # Expose a single data file
+      - source: geojson-sample
+        target: /usr/share/nginx/html/www/geojson-sample.json
+    # Mount self-signed certificate
+    volumes:
+      - "self-signed-certs:/tmp/cert/:ro"
+    depends_on:
+      cert-generator:
+        condition: service_completed_successfully
+
+  # Runs after certificate generation to create an adapted trust store
+  import-truststore:
+    image: images.geomatys.com/examind/examind-community:latest
+    depends_on:
+      cert-generator:
+        condition: service_completed_successfully
+    volumes:
+      # Import the self-signed certificate
+      - "self-signed-certs:/tmp/cert/:ro"
+      # Amend and store java default truststore to accept self-signed certificate
+      - "java-truststore:/tmp/truststore:rw"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        cp $$JAVA_HOME/lib/security/cacerts /tmp/truststore/
+        &&
+        keytool 
+        -importcert
+        -trustcacerts
+        -alias self-signed
+        -file /tmp/cert/self-signed.crt
+        -keystore /tmp/truststore/cacerts
+        -noprompt
+
+  examind:
+    image: images.geomatys.com/examind/examind-community:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      # Import adapted trust-store
+      - "java-truststore:/tmp/truststore/:ro"
+    environment:
+      DATABASE_URL: jdbc:hsqldb:file:/var/examind/admin_db
+      CSTL_HOME: /var/examind/home
+      CSTL_URL: "http://localhost:8080/examind"
+      # First systme property `javax.net.ssl.trustStore` replaces default truststore with amended one
+      CATALINA_OPTS: >-
+        -Djavax.net.ssl.trustStore=/tmp/truststore/cacerts
+        -Xms1G -Xmx1G 
+        -Dfile.encoding=UTF-8
+      SPRING_PROFILES_ACTIVE: standard
+    depends_on:
+      import-truststore:
+        condition: service_completed_successfully
+
+volumes:
+  self-signed-certs:
+  java-truststore:
+
+configs:
+  nginx.conf:
+    content: |
+      server {
+          listen       9443 ssl;
+          server_name  insecure-warehouse;
+          ssl_certificate     /tmp/cert/self-signed.crt;
+          ssl_certificate_key /tmp/cert/self-signed.key;
+
+          root /usr/share/nginx/html/www/;
+
+          location / {
+          }
+      }
+
+  geojson-sample:
+    content: |
+      {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {
+              "title": "Auberge de Valestalière"
+            },
+            "geometry": {
+              "coordinates": [
+                3.8503851993522638,
+                44.01664217127339
+              ],
+              "type": "Point"
+            }
+          }
+        ]
+      }

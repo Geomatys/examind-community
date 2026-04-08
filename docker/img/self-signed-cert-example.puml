@@ -1,0 +1,46 @@
+@startuml
+
+package "certificate management" {
+	file cert [
+	<i>self-signed-cert</i>
+	---
+	Self signed
+	certificate
+	]
+
+	file truststore [
+	<i>java-truststore</i>
+	----
+	List of
+	trusted
+	 certificates
+	]
+
+	component cg [
+	cert-generator
+	]
+
+
+	component it [
+	import-trustore
+	]
+}
+
+package "certificate consumers" {
+	component iw [
+	insecure-warehouse
+	]
+
+	component exa [
+	examind
+	]
+}
+
+cg -> cert : Creates
+cert -> it : read by
+it -> truststore : writes
+cert --> iw: served by
+truststore --> exa : imported by
+iw .. exa : download files
+
+@enduml
