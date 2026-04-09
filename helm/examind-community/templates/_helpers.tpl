@@ -106,7 +106,7 @@ Return the key of the variable holding password value in database credentials se
     {{- if and .Values.externalDatabase.existingSecret .Values.externalDatabase.existingSecretUserKey -}}
         {{- .Values.externalDatabase.existingSecretUserKey -}}
     {{- else -}}
-        {{- print "DATABASE_USERNAME" -}}
+        {{- print "DATABASE_PASSWORD" -}}
     {{- end -}}
 {{- end -}}
 {{- end -}}
