@@ -1,0 +1,15 @@
+apiVersion: v2
+appVersion: "0.1.0"
+version: "0.1.0"
+name: "access-self-signed-certs"
+description: |
+  . Port forward examind: kubectl port-forward ssc-examind-all-in-one-svc 8080:8080
+  . Access Examind admin UI on http://localhost:8080/examind
+  . Data > Add data > Cloud > HTTPS
+  . download sample file from https://insecure-warehouse:9443/geojson-sample.json
+
+dependencies:
+  - name: examind-community
+    alias: examind
+    version: "1.0.5"
+    repository: file://../../examind-community

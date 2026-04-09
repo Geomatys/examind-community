@@ -172,6 +172,25 @@ include::../examples/personalize-deployment/values-disable-persistence.yaml[]
 State can desynchronize between database and Examind if postgresql and Examind are not redeployed in sync. In such case, you might experience problems with data management.
 ====
 
+=== Trust a _specific_ self-signed certificate
+
+To trust a specific self-signed certificate, you must:
+
+. Make target certificate accessible to Examind pod
+. Define a custom volume (an empty dir suffice) to hold an overrided version of the java truststore
+. Use an init container that:
+** mounts the target self-signed/insecure certificate
+** mounts the truststore to amend
+** import the certificate in the Java truststore override.
+. Mount the truststore override into Examind container
+. Add a Java system property to import the new truststore
+
+Example:
+
+[source,yaml]
+----
+include::../examples/access-self-signed-certs/values.yaml[tag=ssc-instructions]
+----
 
 == Future improvements
 

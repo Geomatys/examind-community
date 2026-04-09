@@ -1,0 +1,114 @@
+# Generated test certificate manually using following command:
+#
+# openssl req -x509 -nodes -days 1
+#        -newkey rsa:2048 -keyout /tmp/cert/self-signed.key -out /tmp/cert/self-signed.crt
+#        -subj "/C=FR/ST=Occitanie/L=Montpellier/O=Geomatys/CN=insecure-warehouse/emailAddress="
+certificate:
+  cert: |
+    -----BEGIN CERTIFICATE-----
+    MIIDrzCCApegAwIBAgIUSdcC/eFNDAUvURFHgcD/wSclC0EwDQYJKoZIhvcNAQEL
+    BQAwZzELMAkGA1UEBhMCRlIxEjAQBgNVBAgMCU9jY2l0YW5pZTEUMBIGA1UEBwwL
+    TW9udHBlbGxpZXIxETAPBgNVBAoMCEdlb21hdHlzMRswGQYDVQQDDBJpbnNlY3Vy
+    ZS13YXJlaG91c2UwHhcNMjYwNDA5MTA0NzE3WhcNMzYwNDA2MTA0NzE3WjBnMQsw
+    CQYDVQQGEwJGUjESMBAGA1UECAwJT2NjaXRhbmllMRQwEgYDVQQHDAtNb250cGVs
+    bGllcjERMA8GA1UECgwIR2VvbWF0eXMxGzAZBgNVBAMMEmluc2VjdXJlLXdhcmVo
+    b3VzZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK2Gw4/rwvaTgUkw
+    2wG/Nl3psawGHIce8VE00S7pr7OTyPcYbZn21qIs0AgnUVMg1x1Gf6x8hiuo+tYH
+    x3GcxsfHEA6jq0JmdoX80l+E2MvBCSvVHuiiFSDivTIuVEHzGAeK7lqYFwwGFQM1
+    MgEn4xB21oKlbZNZIn0lXK1tiRcP0QMHxocBGJT95DQLoYAFfBG7AeKiQGLaNG+f
+    gFBT9zdxzwDR0vrm/lIhu+OPAKicXILdWzKgyGjmnTflXRjtPqeb02J/R+l+WIAA
+    4IDSBwpeF94bRxVjkMdpTg1u89xZIsV9/cMMOId5YzLNCaq/cvGEJrnZ8xcozhv5
+    S+tH4Y0CAwEAAaNTMFEwHQYDVR0OBBYEFG4rT68UyQpLOWx+/IsNVIc5/cGFMB8G
+    A1UdIwQYMBaAFG4rT68UyQpLOWx+/IsNVIc5/cGFMA8GA1UdEwEB/wQFMAMBAf8w
+    DQYJKoZIhvcNAQELBQADggEBAAf+mlz2fiGy0hIspMGv5wWPwLFLmqAvSLRSeUdx
+    i2HeFKd42KOmR8zI8vyuPmyeOkoIAeLn+/VV2JYruy+u2HsoQXVeRmBtfUS+12GM
+    ZkHDCzUZImG/hc7H2zatJljM/iskxf6WVejvfBaLrsDQyXDewGvJOXjYtj4KVAvS
+    8bGe6JTlrOAE4wiZWmg+rzHuDQp+FULxN+ZEI1iIXetrzSqR0oQhfn4Mi9zGuEI0
+    WIuEvQe2lGOrI9oY/ErxQADWjTP9SR1uXsBA9EjC9dc9UqPoFQ25yC7TpNWrwhGm
+    2rNPLGdH6QoFh6fKLOTKu6gBjbtO25Jsy+qB6vIXVJBM2a4=
+    -----END CERTIFICATE-----
+  key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCthsOP68L2k4FJ
+    MNsBvzZd6bGsBhyHHvFRNNEu6a+zk8j3GG2Z9taiLNAIJ1FTINcdRn+sfIYrqPrW
+    B8dxnMbHxxAOo6tCZnaF/NJfhNjLwQkr1R7oohUg4r0yLlRB8xgHiu5amBcMBhUD
+    NTIBJ+MQdtaCpW2TWSJ9JVytbYkXD9EDB8aHARiU/eQ0C6GABXwRuwHiokBi2jRv
+    n4BQU/c3cc8A0dL65v5SIbvjjwConFyC3VsyoMho5p035V0Y7T6nm9Nif0fpfliA
+    AOCA0gcKXhfeG0cVY5DHaU4NbvPcWSLFff3DDDiHeWMyzQmqv3LxhCa52fMXKM4b
+    +UvrR+GNAgMBAAECggEADBmAQ+YO1WYyJuIY9013s0MzEBlp/lL+RSkPZ/vD9Fva
+    8L3bkJeJXkwNInBpZ4g7767lgqe5LEyvVuK6ebXSl4YOHNM1Qx9FZvDa022+NzDp
+    3IxTCCobGoys4BWiaunSNF5v4dHGk6BN8UgRiUqYduKucPQriJF3ye2jwXUIkNq8
+    RsiA9e3MV1f66/XrBOYJXSHG56EPpuYLNA7jVZCsT9A5+Vc1lw123E36tq2LCJ6a
+    wkyQdbb2G9RMyikPBowmp64Nvh4T/CB44BG+CxSjrDr8da9BCRc8RXl1vugxY862
+    l6MsryYtKoaEFLVDY7ibDb/IbA4pfSNJVgODatkVkQKBgQDgipXa2qATzQYwx39J
+    FLgdegn9IAMwpZ8MM0XPLSHblKh2vtVS4cGJUHvUpMxSlnIgY/430/MRHE70IMGZ
+    Hbfq6sFCc9plCoO0kxkwhQfBU2S6Tx7e+6MfCXoNBmG8x4Bpl+HRty+Oo/NulNuY
+    RGi6TZN3IhkH3NrsNU8R2M+qvQKBgQDF1nlNORL7HBCAzHp52H9Ie6UyOeewvptL
+    +J3KfUpX/7HJOC+8Lfug6VgW90OLHne/AQlc+Ktmq1ei5v+fMqUQEweca7vrP6Uc
+    Xggv43BfhP6tQJK9UQr5MBsFkbS6YS7N+FyOgypjdagfQ5rNO3u4sMct2B3TlZMG
+    +9z4qXHnEQKBgFUIxrWKBANbqpOAiZiwiwVGuU+t9udOYYwqQq6x5deVVbMalAj+
+    S9/npe2it2ozZWcU1ypnTu7U7KWRXh/RXFxPqP60hymqsLQK3Qg96PDy1vujiQpi
+    +6R+X0VdfFgUqXHTvgZAvHblagQfxYXFqm+bf1Qnipkqr5Gyoo4csJB1AoGAIAy7
+    v/fkDEwinEsD+GNLU3m8bGOXFjn6vJb9MQWVGqZwrdFtYkXswseqnqXWCl6YNZg8
+    ZRRf6BUP8HMNrEOvG+iJThzh55166RqOpvtohADupTCV1Reg+HeDmSZeqeb+hx2a
+    GPhE0LIJ127DUEY3p9bznYiqZFGR7Qq2ZI5GxpECgYEAlm/8Y6oO8hw7IdzlrikH
+    RVxSOgejqHMk6d4FyHz73L4sJ3vOYU0+grkgE7b2IKEVUnEPaD9l2Kui9Qu1kjoD
+    VHz/uUWb7oHrnNN5/DU2l9nl8LJUiJoMlhHmUIqTwuzAB0c6rVH0RL6nVJ5Qdm2p
+    AmGpCFQwncjW2ZYnPFMdiFo=
+    -----END PRIVATE KEY-----
+
+examind:
+  # tag::ssc-instructions[]
+  postgresql:
+    enabled: false
+  allInOne:
+    extraVolumes:
+      # Make target insecure certificate available to Examind pod <.>
+      - name: self-signed-cert
+        secret:
+          secretName: self-signed-cert
+      # Define a volume to store trustore override into. <.>
+      # Here, an ephemeral directory is enough, as the init container generate the complete truststore
+      - name: amended-truststore
+        emptyDir: {}
+    initContainers:
+      # Adapt default Examind truststore to accept self-signed certificate mounted in /tmp/cert <.>
+      - name: amend-truststore
+        image: "images.geomatys.com/examind/examind-community:1.2.7"
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - mountPath: /tmp/cert
+            name: self-signed-cert
+          - mountPath: /tmp/truststore
+            name: amended-truststore
+        command:
+          - /bin/sh
+          - -c
+          - >-
+            ls -lh /tmp/cert
+            &&
+            cp "${JAVA_HOME}/lib/security/cacerts" /tmp/truststore/
+            &&
+            ls -lh /tmp/truststore
+            &&            
+            keytool 
+            -importcert
+            -trustcacerts
+            -alias self-signed
+            -file /tmp/cert/self-signed.crt
+            -keystore /tmp/truststore/cacerts
+            -noprompt
+    persistence:
+      enabled: false
+    ingress:
+      enabled: false
+    extraVolumeMounts:
+      # Mount amended truststore in examind <.>
+      - name: amended-truststore
+        mountPath: /tmp/truststore
+    env:
+      CSTL_URL: http://localhost:8080/examind
+      # Activate amended truststore <.>
+      JAVA_OPTS: >-
+        -Djavax.net.ssl.trustStore=/tmp/truststore/cacerts
+  # end::ssc-instructions[]

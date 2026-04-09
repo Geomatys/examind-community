@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: self-signed-cert
+type: Opaque
+stringData:
+  self-signed.key: |{{ .Values.certificate.key | nindent 4 }}
+  self-signed.crt: |{{ .Values.certificate.cert | nindent 4 }}
