@@ -16,11 +16,15 @@ Kubernetes component name to set in labels
 Full JDBC URL to use to connect Examind to its administration database
 */}}
 {{- define "examind.backend.jdbcUrl" -}}
-    {{ printf "jdbc:postgresql://%s:%s/%s"
-              (include "examind.backend.databaseHost" $)
-              (include "examind.backend.databasePort" $)
-              (include "examind.backend.databaseName" $)
-    }}
+    {{- if not (or .Values.postgresql.enabled (not (eq "" .Values.externalDatabase.host))) }}
+        {{- printf "jdbc:hsqldb:file:%s/admin_db" .Values.allInOne.persistence.mountPath }}
+    {{- else }}
+        {{- printf "jdbc:postgresql://%s:%s/%s"
+                  (include "examind.backend.databaseHost" $)
+                  (include "examind.backend.databasePort" $)
+                  (include "examind.backend.databaseName" $)
+        }}
+    {{- end }}
 {{- end }}
 
 {{/*

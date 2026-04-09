@@ -6,8 +6,8 @@ description: |
   If you are a paying customer, use `edition: server` value to deploy a complete edition.
 type: application
 home: https://www.examind.com
-version: "1.0.4"
-appVersion: "1.2.4"
+version: "1.0.5"
+appVersion: "1.2.7"
 
 maintainers:
   - name: Geomatys developer team

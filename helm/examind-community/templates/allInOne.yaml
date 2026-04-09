@@ -95,7 +95,7 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.allInOne.terminationGracePeriodSeconds }}
       {{- end }}
       initContainers:
-        {{- if .Values.allInOne.enableDefaultInitContainers }}
+        {{- if and .Values.allInOne.enableDefaultInitContainers (hasPrefix "jdbc:postgresql" (include "examind.backend.jdbcUrl" .)) }}
         # Test network connection to database service
         - name: wait-database
           image: {{ printf "%s:%s"
@@ -155,6 +155,7 @@ spec:
             {{- end }}
             - name: DATABASE_URL
               value: {{ include "examind.backend.jdbcUrl" . | quote }}
+            {{- if or (.Values.postgresql.enabled) (ne "" .Values.externalDatabase.host) }}
             - name: DATABASE_USERNAME
               {{- if (include "examind.backend.databaseSecretUsernameKey" . )}}
               valueFrom:
@@ -169,6 +170,7 @@ spec:
                 secretKeyRef:
                   name: {{ include "examind.backend.databaseSecretName" . }}
                   key: {{ include "examind.backend.databaseSecretPasswordKey" . }}
+            {{- end }}
             - name: CATALINA_OPTS
               value: >-
                 -Xms{{- .Values.allInOne.heapSize.request }}
