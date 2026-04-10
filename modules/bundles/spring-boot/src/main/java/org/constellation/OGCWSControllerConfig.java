@@ -21,6 +21,7 @@ package org.constellation;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
+import org.constellation.coverage.ws.rs.GridCoverageNetCdfWriter;
 import org.constellation.coverage.ws.rs.GridCoverageWriter;
 import org.constellation.coverage.ws.rs.WCSResponseWriter;
 import org.constellation.map.ws.rs.WMSResponseWriter;
@@ -76,6 +77,7 @@ public class OGCWSControllerConfig extends WebMvcConfigurationSupport {
         converters.add(new SOSResponseWriter());
         converters.add(new SensorMLWriter());
         converters.add(new WCSResponseWriter());
+        converters.add(new GridCoverageNetCdfWriter());
         converters.add(new GridCoverageNCWriter());
         converters.add(new GridCoverageWriter());
         converters.add(new PortrayalMessageConverter());

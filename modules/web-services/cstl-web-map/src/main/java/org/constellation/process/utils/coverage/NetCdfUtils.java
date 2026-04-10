@@ -4,15 +4,19 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
+import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.opengis.metadata.spatial.DimensionNameType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.cs.CoordinateSystem;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.Matrix;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -28,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -72,12 +77,56 @@ public final class NetCdfUtils {
         final GridGeometry              gg  = coverage.getGridGeometry();
         final GridExtent                ge  = gg.getExtent();
         final GeneralEnvelope           env = new GeneralEnvelope(gg.getEnvelope());
-        final RenderedImage             img = coverage.render(null);
         final List<SampleDimension>     sds = coverage.getSampleDimensions();
 
-        final int nDims = cs.getDimension();
+        final int nCrsDims  = cs.getDimension();
+        final int nGridDims = ge.getDimension();
 
-        // ---- Classify every CRS axis ----------------------------------------
+        // ---- Detect phantom CRS dimensions -----------------------------------
+        // A CRS dimension is "phantom" when its row in the gridToCRS matrix has
+        // all-zero coefficients in the grid-dimension columns (it is a constant
+        // value that does not vary with any grid cell — e.g. ECMWF's "expver").
+        // Such axes carry no spatial/temporal information and must be skipped so
+        // that the NetCDF writer does not try to call ge.getSize(i) for an index
+        // that does not exist in the GridExtent.
+        //
+        // crsToGrid[crsIdx] = corresponding grid dimension index, or -1 if phantom.
+        final int[] crsToGrid = new int[nCrsDims];
+        Arrays.fill(crsToGrid, -1);
+
+        final MathTransform gridToCRS = gg.getGridToCRS(PixelInCell.CELL_CENTER);
+        if (gridToCRS instanceof LinearTransform lt) {
+            final Matrix matrix = lt.getMatrix();
+            for (int crsIdx = 0; crsIdx < nCrsDims; crsIdx++) {
+                for (int gridIdx = 0; gridIdx < nGridDims; gridIdx++) {
+                    if (matrix.getElement(crsIdx, gridIdx) != 0.0) {
+                        crsToGrid[crsIdx] = gridIdx;
+                        break;
+                    }
+                }
+            }
+        } else {
+            // Non-linear transform: assume 1-1 mapping up to the grid dimension count.
+            for (int i = 0; i < Math.min(nCrsDims, nGridDims); i++) {
+                crsToGrid[i] = i;
+            }
+        }
+
+        // activeCrsDims[i] = CRS dimension index for the i-th NetCDF dimension
+        // (phantom CRS dims are excluded).
+        final int[] activeCrsDims;
+        {
+            int count = 0;
+            for (int v : crsToGrid) if (v >= 0) count++;
+            activeCrsDims = new int[count];
+            int k = 0;
+            for (int i = 0; i < nCrsDims; i++) {
+                if (crsToGrid[i] >= 0) activeCrsDims[k++] = i;
+            }
+        }
+        final int nDims = activeCrsDims.length;
+
+        // ---- Classify every active CRS axis ----------------------------------
         final AxisRole[]  roles       = new AxisRole[nDims];
         final String[]    dimNames    = new String[nDims];   // NetCDF dimension/variable names
         final int[]       dimSizes    = new int[nDims];      // number of cells along each axis
@@ -89,9 +138,12 @@ public final class NetCdfUtils {
                 ? DefaultTemporalCRS.castOrCopy(temporalCRS) : null;
 
         for (int i = 0; i < nDims; i++) {
-            final CoordinateSystemAxis axis = cs.getAxis(i);
+            final int crsIdx  = activeCrsDims[i];
+            final int gridIdx = crsToGrid[crsIdx];
+
+            final CoordinateSystemAxis axis = cs.getAxis(crsIdx);
             final AxisDirection        dir  = axis.getDirection();
-            final DimensionNameType    dnt  = ge.getAxisType(i).orElse(null);
+            final DimensionNameType    dnt  = ge.getAxisType(gridIdx).orElse(null);
 
             // --- classify ---
             if (dir == AxisDirection.EAST || dir == AxisDirection.WEST) {
@@ -115,12 +167,12 @@ public final class NetCdfUtils {
                 dimNames[i] = "dim_" + i;
             }
 
-            // --- size from GridExtent ---
-            dimSizes[i] = (int) ge.getSize(i);
+            // --- size from GridExtent (grid dimension index) ---
+            dimSizes[i] = (int) ge.getSize(gridIdx);
 
-            // --- cell-centre coordinate values ---
-            final double min  = env.getMinimum(i);
-            final double max  = env.getMaximum(i);
+            // --- cell-centre coordinate values (envelope index = CRS index) ---
+            final double min  = env.getMinimum(crsIdx);
+            final double max  = env.getMaximum(crsIdx);
             final int    size = dimSizes[i];
             final double step = (size > 1) ? (max - min) / size : 0.0;
 
@@ -145,8 +197,36 @@ public final class NetCdfUtils {
             coordValues[i] = vals;
         }
 
-        // ---- Data type from image sample model -------------------------------
-        final DataType ncDataType = toNcDataType(img.getSampleModel().getDataType());
+        // ---- Find spatial axes -----------------------------------------------
+        int xIdx = -1, yIdx = -1;
+        for (int i = 0; i < nDims; i++) {
+            if (roles[i] == AxisRole.LON) xIdx = i;
+            if (roles[i] == AxisRole.LAT) yIdx = i;
+        }
+        if (xIdx < 0 || yIdx < 0) {
+            throw new IOException("Cannot locate horizontal (lon/lat) axes in the coverage CRS");
+        }
+        // Grid dimension indices for the two spatial axes (needed to build slice extents)
+        final int gridXIdx = crsToGrid[activeCrsDims[xIdx]];
+        final int gridYIdx = crsToGrid[activeCrsDims[yIdx]];
+
+        // ---- Non-spatial dimensions ------------------------------------------
+        // Each non-spatial dimension requires its own render() call because
+        // coverage.render(null) only works when all extra dimensions are already
+        // reduced to a single cell.
+        final List<Integer> nonSpatialPositions = new ArrayList<>();
+        for (int i = 0; i < nDims; i++) {
+            if (i != xIdx && i != yIdx) nonSpatialPositions.add(i);
+        }
+        int totalSlices = 1;
+        for (int pos : nonSpatialPositions) totalSlices *= dimSizes[pos];
+
+        // ---- Data type from first slice --------------------------------------
+        final DataType ncDataType = toNcDataType(
+                renderSlice(coverage, ge, nGridDims, gridXIdx, gridYIdx,
+                        nonSpatialPositions, activeCrsDims, crsToGrid, dimSizes,
+                        new int[nonSpatialPositions.size()])
+                        .getSampleModel().getDataType());
 
         // ---- Build CF dimension order for data variables ---------------------
         // CF convention: T, Z, Y, X  (then any "other" axes appended)
@@ -170,10 +250,8 @@ public final class NetCdfUtils {
         // -- Coordinate variables (one per axis) --
         final List<Variable.Builder<?>> coordVarBuilders = new ArrayList<>(nDims);
         for (int i = 0; i < nDims; i++) {
-            final DataType type = roles[i] == AxisRole.TIME ? DataType.DOUBLE : DataType.DOUBLE;
-            final Variable.Builder<?> vb = writerBuilder.addVariable(dimNames[i], type, List.of(dimensions.get(i)));
-
-            addCfCoordAttributes(vb, roles[i], cs.getAxis(i), crs);
+            final Variable.Builder<?> vb = writerBuilder.addVariable(dimNames[i], DataType.DOUBLE, List.of(dimensions.get(i)));
+            addCfCoordAttributes(vb, roles[i], cs.getAxis(activeCrsDims[i]), crs);
             coordVarBuilders.add(vb);
         }
 
@@ -201,15 +279,12 @@ public final class NetCdfUtils {
                             ncDataType == DataType.FLOAT || ncDataType == DataType.DOUBLE
                                     ? bg.doubleValue() : bg.longValue())));
 
-            // CF requires: long_name and/or standard_name on data variables
             vb.addAttribute(new Attribute("long_name", rawName));
-
             dataVarBuilders.add(vb);
         }
 
         // ---- BUILD THE WRITER (creates the file format) ----
         try (NetcdfFormatWriter writer = writerBuilder.build()) {
-
 
             // -- Write coordinate data --
             for (int i = 0; i < nDims; i++) {
@@ -218,37 +293,117 @@ public final class NetCdfUtils {
                 writer.write(cv, arr);
             }
 
-            // -- Write band data --
-            final java.awt.image.Raster raster  = img.getData();
-            final int                   originX = img.getMinX();
-            final int                   originY = img.getMinY();
-
-            // Locate the x/y axis indices (used to drive pixel loops)
-            int xIdx = -1, yIdx = -1;
-            for (int i = 0; i < nDims; i++) {
-                if (roles[i] == AxisRole.LON) xIdx = i;
-                if (roles[i] == AxisRole.LAT) yIdx = i;
-            }
-            if (xIdx < 0 || yIdx < 0) {
-                throw new IOException("Cannot locate horizontal (lon/lat) axes in the coverage CRS");
+            // -- Write band data (ND-aware: one render() call per 2D slice) ----
+            // Locate X and Y positions in the CF-ordered dimension array
+            int cfXPos = -1, cfYPos = -1;
+            for (int p = 0; p < cfOrder.length; p++) {
+                if (cfOrder[p] == xIdx) cfXPos = p;
+                if (cfOrder[p] == yIdx) cfYPos = p;
             }
 
             final int width  = dimSizes[xIdx];
             final int height = dimSizes[yIdx];
 
-            for (int b = 0; b < sds.size(); b++) {
-                final Variable v     = writer.findVariable(dataVarNames[b]);
-                final int[]    shape = computeShape(cfOrder, dimSizes);
-                final Array    data  = Array.factory(ncDataType, shape);
+            // Precompute row-major strides over the CF-ordered shape
+            final int[] shape   = computeShape(cfOrder, dimSizes);
+            final long[] strides = new long[nDims];
+            strides[nDims - 1] = 1;
+            for (int p = nDims - 2; p >= 0; p--) strides[p] = strides[p + 1] * shape[p + 1];
 
-                // Build a flat index over the ordered (CF) dimensions.
-                // For axes that are not x or y we iterate over size 1 or their actual size.
-                writePixelData(data, raster, originX, originY, width, height,
-                        b, cfOrder, dimSizes, xIdx, yIdx, ncDataType);
+            for (int b = 0; b < sds.size(); b++) {
+                final Variable v    = writer.findVariable(dataVarNames[b]);
+                final Array    data = Array.factory(ncDataType, shape);
+
+                // Iterate over every non-spatial slice combination
+                for (int sliceFlat = 0; sliceFlat < totalSlices; sliceFlat++) {
+
+                    // Decode sliceFlat → per-non-spatial-dimension indices
+                    final int[] nsIndices = new int[nonSpatialPositions.size()];
+                    int rem = sliceFlat;
+                    for (int k = nonSpatialPositions.size() - 1; k >= 0; k--) {
+                        nsIndices[k] = rem % dimSizes[nonSpatialPositions.get(k)];
+                        rem          /= dimSizes[nonSpatialPositions.get(k)];
+                    }
+
+                    // Render the 2D spatial slice for this non-spatial combination
+                    final RenderedImage sliceImg = renderSlice(coverage, ge, nGridDims,
+                            gridXIdx, gridYIdx, nonSpatialPositions, activeCrsDims,
+                            crsToGrid, dimSizes, nsIndices);
+                    final java.awt.image.Raster raster  = sliceImg.getData();
+                    final int                   originX = sliceImg.getMinX();
+                    final int                   originY = sliceImg.getMinY();
+
+                    // Build the CF-ordered multi-index for this non-spatial slice,
+                    // then sweep through the spatial pixels
+                    final int[] idx = new int[nDims];
+                    for (int k = 0; k < nonSpatialPositions.size(); k++) {
+                        final int activeDimPos = nonSpatialPositions.get(k);
+                        for (int p = 0; p < cfOrder.length; p++) {
+                            if (cfOrder[p] == activeDimPos) { idx[p] = nsIndices[k]; break; }
+                        }
+                    }
+
+                    for (int row = 0; row < height; row++) {
+                        idx[cfYPos] = row;
+                        for (int col = 0; col < width; col++) {
+                            idx[cfXPos] = col;
+                            long flat = 0;
+                            for (int p = 0; p < nDims; p++) flat += (long) idx[p] * strides[p];
+                            final int px = originX + col;
+                            final int py = originY + row;
+                            switch (ncDataType) {
+                                case BYTE:   data.setByte  ((int) flat, (byte)  raster.getSample      (px, py, b)); break;
+                                case SHORT:  data.setShort ((int) flat, (short) raster.getSample      (px, py, b)); break;
+                                case INT:    data.setInt   ((int) flat,         raster.getSample      (px, py, b)); break;
+                                case FLOAT:  data.setFloat ((int) flat,         raster.getSampleFloat (px, py, b)); break;
+                                case DOUBLE: data.setDouble((int) flat,         raster.getSampleDouble(px, py, b)); break;
+                                default:     data.setFloat ((int) flat,         raster.getSampleFloat (px, py, b)); break;
+                            }
+                        }
+                    }
+                }
 
                 writer.write(v, data);
             }
         }
+    }
+
+    /**
+     * Renders a 2D spatial slice of the coverage by pinning all non-spatial dimensions
+     * to the cell specified by {@code nsIndices}.
+     *
+     * @param coverage             the N-D coverage to slice
+     * @param ge                   the coverage's GridExtent
+     * @param nGridDims            total number of grid dimensions
+     * @param gridXIdx             grid dimension index of the longitude axis
+     * @param gridYIdx             grid dimension index of the latitude axis
+     * @param nonSpatialPositions  active-dim positions (0..nDims-1) that are not spatial
+     * @param activeCrsDims        mapping from active-dim index to CRS dimension index
+     * @param crsToGrid            mapping from CRS dimension index to grid dimension index
+     * @param dimSizes             size of each active dimension
+     * @param nsIndices            slice index for each non-spatial position
+     * @return a 2D RenderedImage for the requested slice
+     */
+    private static RenderedImage renderSlice(GridCoverage coverage, GridExtent ge,
+            int nGridDims, int gridXIdx, int gridYIdx,
+            List<Integer> nonSpatialPositions, int[] activeCrsDims, int[] crsToGrid,
+            int[] dimSizes, int[] nsIndices) {
+
+        final long[] low  = new long[nGridDims];
+        final long[] high = new long[nGridDims];
+        for (int i = 0; i < nGridDims; i++) {
+            low[i]  = ge.getLow(i);
+            high[i] = ge.getHigh(i);
+        }
+        // Pin each non-spatial dimension to its requested slice cell
+        for (int k = 0; k < nonSpatialPositions.size(); k++) {
+            final int activeDimPos = nonSpatialPositions.get(k);
+            final int gridIdx      = crsToGrid[activeCrsDims[activeDimPos]];
+            final long sliceCell   = ge.getLow(gridIdx) + nsIndices[k];
+            low[gridIdx]  = sliceCell;
+            high[gridIdx] = sliceCell;
+        }
+        return coverage.render(new GridExtent(null, low, high, true));
     }
 
     /**
@@ -290,104 +445,6 @@ public final class NetCdfUtils {
             shape[i] = dimSizes[cfOrder[i]];
         }
         return shape;
-    }
-
-    /**
-     * Fills the flat UCAR {@link Array} with pixel data from the raster.
-     *
-     * <p>The array is shaped according to {@code cfOrder}. This method handles the general
-     * N-dimensional case by treating all non-spatial axes as having a single "slice" at index 0
-     * (the coverage has already been subsetted to the requested extent).
-     */
-    private static void writePixelData(Array data,
-                                       java.awt.image.Raster raster,
-                                       int originX, int originY,
-                                       int width, int height,
-                                       int band,
-                                       int[] cfOrder, int[] dimSizes,
-                                       int xIdx, int yIdx,
-                                       DataType ncDataType) {
-
-        // Locate the position of the X and Y axes within cfOrder
-        int cfXPos = -1, cfYPos = -1;
-        for (int p = 0; p < cfOrder.length; p++) {
-            if (cfOrder[p] == xIdx) cfXPos = p;
-            if (cfOrder[p] == yIdx) cfYPos = p;
-        }
-
-        // Strides in the flat 1-D array
-        final int nDims   = cfOrder.length;
-        final int[] shape = computeShape(cfOrder, dimSizes);
-
-        // Precompute strides (row-major)
-        final long[] strides = new long[nDims];
-        strides[nDims - 1] = 1;
-        for (int p = nDims - 2; p >= 0; p--) {
-            strides[p] = strides[p + 1] * shape[p + 1];
-        }
-
-        // Iterate: for non-spatial dims, size is ≥ 1 (coverage already sliced).
-        // We stride through all combinations to fill the flat array.
-        final int[] idx = new int[nDims]; // current multi-index in CF order
-        final long totalNonSpatial = data.getSize() / ((long) width * height);
-
-        // Outer loop: all non-spatial positions (time, z, other)
-        for (long ns = 0; ns < totalNonSpatial; ns++) {
-            // Decode ns into non-spatial multi-index
-            long rem = ns;
-            for (int p = 0; p < nDims; p++) {
-                if (p == cfXPos || p == cfYPos) {
-                    idx[p] = 0; // will be overridden in inner loops
-                    continue;
-                }
-                idx[p] = (int) (rem / nonSpatialStride(p, cfXPos, cfYPos, shape));
-                rem    = rem  %  nonSpatialStride(p, cfXPos, cfYPos, shape);
-            }
-
-            for (int row = 0; row < height; row++) {
-                idx[cfYPos] = row;
-                for (int col = 0; col < width; col++) {
-                    idx[cfXPos] = col;
-
-                    // Compute flat offset
-                    long flat = 0;
-                    for (int p = 0; p < nDims; p++) {
-                        flat += (long) idx[p] * strides[p];
-                    }
-
-                    final int px = originX + col;
-                    final int py = originY + row;
-
-                    switch (ncDataType) {
-                        case BYTE:
-                            data.setByte  ((int) flat, (byte) raster.getSample      (px, py, band)); break;
-                        case SHORT:
-                            data.setShort ((int) flat, (short) raster.getSample     (px, py, band)); break;
-                        case INT:
-                            data.setInt   ((int) flat,          raster.getSample     (px, py, band)); break;
-                        case FLOAT:
-                            data.setFloat ((int) flat,          raster.getSampleFloat (px, py, band)); break;
-                        case DOUBLE:
-                            data.setDouble((int) flat,          raster.getSampleDouble(px, py, band)); break;
-                        default:
-                            data.setFloat ((int) flat,          raster.getSampleFloat (px, py, band)); break;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Computes the stride for iterating over non-spatial axis {@code p} within the CF-ordered
-     * shape, skipping the X and Y positions.
-     */
-    private static long nonSpatialStride(int p, int cfXPos, int cfYPos, int[] shape) {
-        long s = 1;
-        for (int q = p + 1; q < shape.length; q++) {
-            if (q == cfXPos || q == cfYPos) continue;
-            s *= shape[q];
-        }
-        return Math.max(s, 1);
     }
 
     /**

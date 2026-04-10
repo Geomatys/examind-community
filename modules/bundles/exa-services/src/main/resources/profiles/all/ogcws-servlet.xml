@@ -28,6 +28,7 @@
         <bean class="com.examind.sts.ws.rs.STSResponseWriter" />
         <bean class="org.constellation.coverage.ws.rs.GridCoverageNCWriter" />
         <bean class="org.constellation.coverage.ws.rs.GridCoverageWriter" />
+        <bean class="org.constellation.coverage.ws.rs.GridCoverageNetCdfWriter" />
         <bean class="org.constellation.coverage.ws.rs.WCSResponseWriter" />
         <bean class="org.constellation.map.ws.rs.WMSResponseWriter" />
         <bean class="org.constellation.wmts.ws.rs.WMTSResponseWriter" />

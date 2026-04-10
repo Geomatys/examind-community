@@ -23,6 +23,7 @@ import java.util.List;
 import com.examind.ogc.api.rest.common.converter.CommonResponseConverter;
 import com.examind.ogc.api.rest.coverages.converter.CoverageResponseConverter;
 import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
+import org.constellation.coverage.ws.rs.GridCoverageNetCdfWriter;
 import org.constellation.coverage.ws.rs.GridCoverageWriter;
 import org.constellation.coverage.ws.rs.WCSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
@@ -50,6 +51,7 @@ public class WCSControllerConfig  extends WebMvcConfigurationSupport {
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new WCSResponseWriter());
+        converters.add(new GridCoverageNetCdfWriter());
         converters.add(new GridCoverageNCWriter());
         converters.add(new GridCoverageWriter());
         converters.add(new PortrayalMessageConverter());

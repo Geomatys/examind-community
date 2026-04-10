@@ -111,6 +111,7 @@ import static org.constellation.coverage.core.WCSConstant.getOperationMetadata;
 import org.constellation.coverage.ws.rs.GeotiffResponse;
 import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
 import org.constellation.coverage.ws.rs.GridCoverageWriter;
+import org.constellation.coverage.ws.rs.NetCdfResponse;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.FormatURL;
@@ -1459,14 +1460,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             }
 
             if (format.equalsIgnoreCase(MimeType.NETCDF)) {
-//                try {
-                    //TODO : Reuse data.getCoverage(readEnv,null) when we will use Apache SIS Tiff writer
-                    final GridCoverage coverage = gridCoverageSource; //data.getCoverage(readEnv, null);
-                    return coverage;
-
-//                } catch (ConstellationStoreException ex) {
-//                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-//                }
+                final NetCdfResponse response = new NetCdfResponse();
+                response.coverage = gridCoverageSource;
+                return response;
             }
             else if (format.equalsIgnoreCase(MimeType.IMAGE_TIFF)) {
                 try {
@@ -2413,6 +2409,15 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 throw new CstlServiceException("Subsetting params overlap the envelope extent: " + axisName + "(" + minVal + "/" + maxVal + ") for value: " + firstValue + "/" + secondValue ,
                         INVALID_SUBSETTING);
             }
+
+            // If firstValue is higher secondValue, we assume that the axis is reversed (pressure for example)
+            // In this case, we swap the values to keep the convention that firstValue is the lower value and secondValue the higher value.
+            if (firstValue > secondValue) {
+                double temp = firstValue;
+                firstValue = secondValue;
+                secondValue = temp;
+            }
+
             readEnv.setRange(axisID, firstValue, secondValue);
         }
     }
