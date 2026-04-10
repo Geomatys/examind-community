@@ -38,14 +38,12 @@ import org.geotoolkit.sml.xml.v100.Member;
 import org.geotoolkit.sml.xml.v100.SensorML;
 import org.geotoolkit.sml.xml.v100.SystemType;
 import org.junit.Test;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.Arrays;
 import java.util.UUID;
 import org.apache.sis.xml.IdentifierSpace;
+import org.constellation.util.NodeUtilities;
 
 import static org.junit.Assert.assertEquals;
 
@@ -1031,12 +1029,6 @@ public class UtilsTest {
     }
 
     private Node getOriginalMetadata(final String fileName) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-        Document document = docBuilder.parse(Util.getResourceAsStream(fileName));
-
-        return document.getDocumentElement();
+        return NodeUtilities.getNodeFromStream(Util.getResourceAsStream(fileName));
     }
 }

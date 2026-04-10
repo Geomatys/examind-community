@@ -121,18 +121,15 @@ public class CSWUtils {
      * @param pool Marshaller Pool handling the object marshalling.
      */
     public static Node transformToNode(final Object obj, final MarshallerPool pool) throws CstlServiceException {
-        if (obj instanceof Node) {
-            return (Node) obj;
-        } else {
-            try {
-                // special case for RecordType
-                if (obj instanceof RecordType) {
-                    return NodeUtilities.getNodeFromGeotkMetadata(obj, CSWMarshallerPool.getInstance());
-                }
-                return NodeUtilities.getNodeFromGeotkMetadata(obj, pool);
-            } catch (JAXBException | ParserConfigurationException ex) {
-                throw new CstlServiceException("Unable to parse the object.", ex);
+        if (obj instanceof Node n ) return n;
+        try {
+            // special case for RecordType
+            if (obj instanceof RecordType) {
+                return NodeUtilities.getNodeFromObject(obj, CSWMarshallerPool.getInstance());
             }
+            return NodeUtilities.getNodeFromObject(obj, pool);
+        } catch (JAXBException | ParserConfigurationException ex) {
+            throw new CstlServiceException("Unable to parse the object.", ex);
         }
     }
 

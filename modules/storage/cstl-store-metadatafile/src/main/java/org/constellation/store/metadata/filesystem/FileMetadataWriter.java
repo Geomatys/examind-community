@@ -29,14 +29,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -49,11 +43,9 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-import javax.xml.stream.XMLInputFactory;
 import org.constellation.admin.SpringHelper;
 
 import static java.nio.file.StandardOpenOption.*;
-import javax.xml.XMLConstants;
 import static org.constellation.metadata.CSWQueryable.ALL_PREFIX_MAPPING;
 
 import static org.constellation.util.NodeUtilities.updateObjects;
@@ -75,10 +67,6 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
      */
     protected final Path dataDirectory;
 
-    protected final DocumentBuilderFactory dbf;
-
-    protected final XMLInputFactory xif = XMLInputFactory.newFactory();
-
     private final MetadataDatasource source;
 
     /**
@@ -96,13 +84,6 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
         this.source = source;
         if (dataDirectory == null || !Files.isDirectory(dataDirectory)) {
             throw new MetadataIoException("Unable to find the data directory", NO_APPLICABLE_CODE);
-        }
-        dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        try {
-            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        } catch (ParserConfigurationException ex) {
-            throw new MetadataIoException(ex);
         }
     }
 
@@ -136,15 +117,8 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
                 f = IOUtilities.toPath(path);
             }
 
-            TransformerFactory tf = TransformerFactory.newInstance();
-            NodeUtilities.secureFactory(tf);//NOSONAR
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
             try (Writer writer = Files.newBufferedWriter(f, Charset.forName("UTF-8"), CREATE, WRITE, TRUNCATE_EXISTING)) {
-                StreamResult sr = new StreamResult(writer);
-                transformer.transform(new DOMSource(original), sr);
+                NodeUtilities.writerNode(original, writer);
             }
 
             if (path == null) {
@@ -258,8 +232,8 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
 
                 List<Node> nodes = new ArrayList<>();
                 for (Node n : nao.nodes) {
-                    if (n instanceof Attr) {
-                        nodes.add(((Attr)n).getOwnerElement());
+                    if (n instanceof Attr att) {
+                        nodes.add(att.getOwnerElement());
                     } else if (n != null && n.getParentNode() != null) {
                         nodes.add(n.getParentNode());
                     }

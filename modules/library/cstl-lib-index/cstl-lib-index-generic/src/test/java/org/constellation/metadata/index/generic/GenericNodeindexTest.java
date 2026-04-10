@@ -26,11 +26,8 @@ import org.geotoolkit.lucene.index.LuceneIndexSearcher;
 import org.geotoolkit.nio.IOUtilities;
 import org.junit.AfterClass;
 import org.junit.Test;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -282,16 +279,8 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
         return result;
     }
 
-
-
     private static Node getOriginalMetadata(final String fileName) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-        Document document = docBuilder.parse(Util.getResourceAsStream(fileName));
-
-        return document.getDocumentElement();
+        return NodeUtilities.getNodeFromStream(Util.getResourceAsStream(fileName));
     }
 }
 

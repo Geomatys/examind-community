@@ -33,11 +33,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -1324,16 +1321,8 @@ public class ElasticSearchIndexTest {
         return result;
     }
 
-
-
     private static Node getOriginalMetadata(final String fileName) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-        Document document = docBuilder.parse(Util.getResourceAsStream(fileName));
-
-        return document.getDocumentElement();
+        return NodeUtilities.getNodeFromStream(Util.getResourceAsStream(fileName));
     }
 }
 

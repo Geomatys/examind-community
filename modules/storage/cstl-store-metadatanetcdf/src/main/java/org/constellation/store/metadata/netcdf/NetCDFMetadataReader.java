@@ -19,13 +19,10 @@
 package org.constellation.store.metadata.netcdf;
 
 import java.util.*;
-import org.apache.sis.xml.internal.shared.LegacyNamespaces;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.xml.XML;
 import static org.constellation.api.CommonConstants.NETCDF_EXT;
 import org.constellation.api.PathType;
-import org.constellation.jaxb.MarshallWarnings;
 import org.constellation.metadata.utils.Utils;
 import org.geotoolkit.csw.xml.v202.*;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
@@ -33,14 +30,10 @@ import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -160,9 +153,13 @@ public class NetCDFMetadataReader extends DomMetadataReader {
         }
         // marshall to DOM
         if (obj != null) {
-            final Node metadataNode = writeObjectInNode(obj);
-            final Node n = convertAndApplyElementSet(metadataMode, mode, type, elementName, metadataNode);
-            return new RecordInfo(identifier, n, metadataMode, mode);
+            try {
+                final Node metadataNode = NodeUtilities.getNodeFromObject(obj, EBRIMMarshallerPool.getInstance(), locale);
+                final Node n = convertAndApplyElementSet(metadataMode, mode, type, elementName, metadataNode);
+                return new RecordInfo(identifier, n, metadataMode, mode);
+            } catch (ParserConfigurationException | JAXBException ex) {
+            throw new MetadataIoException(ex);
+            }
         }
         return null;
     }
@@ -434,29 +431,5 @@ public class NetCDFMetadataReader extends DomMetadataReader {
                 MetadataType.DUBLINCORE_CSW300,
                 MetadataType.EBRIM_300,
                 MetadataType.ISO_19110);
-    }
-
-    protected Node writeObjectInNode(final Object obj) throws MetadataIoException {
-        try {
-            final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setNamespaceAware(true);
-            NodeUtilities.secureFactory(dbf);//NOSONAR
-            final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-            final Document document = docBuilder.newDocument();
-            final Marshaller marshaller = EBRIMMarshallerPool.getInstance().acquireMarshaller();
-            final MarshallWarnings warnings = new MarshallWarnings();
-            marshaller.setProperty(XML.CONVERTER, warnings);
-            marshaller.setProperty(XML.TIMEZONE, TZ);
-//          marshaller.setProperty(LegacyNamespaces.APPLY_NAMESPACE_REPLACEMENTS, replace);
-            marshaller.setProperty(XML.GML_VERSION, LegacyNamespaces.VERSION_3_2_1);
-            if (locale != null) {
-                marshaller.setProperty(XML.LOCALE, locale);
-            }
-            marshaller.marshal(obj, document);
-
-            return document.getDocumentElement();
-        } catch (ParserConfigurationException | JAXBException ex) {
-            throw new MetadataIoException(ex);
-        }
     }
 }

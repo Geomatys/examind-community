@@ -85,11 +85,6 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import static junit.framework.Assert.assertTrue;
 import org.apache.catalina.Context;
 import org.constellation.business.IDatasourceBusiness;
@@ -99,14 +94,12 @@ import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.test.utils.JSONComparator;
-import org.constellation.util.NodeUtilities;
 import static org.geotoolkit.image.io.XImageIO.getWriterByMIMEType;
 import static org.geotoolkit.image.io.XImageIO.isValidType;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
-import org.w3c.dom.Node;
 
 /**
  * Launches a SPring boot server in a thread at the beginning of the testing process
@@ -850,24 +843,6 @@ public abstract class AbstractGrizzlyServer {
         sb.append(expected).append("\nbut was:\n");
         sb.append(result);
         assertTrue(sb.toString(), eq);
-    }
-
-    /**
-     * used for debug
-     *
-     * @param n
-     * @return
-     * @throws Exception
-     */
-    protected static String getStringFromNode(final Node n) throws Exception {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        NodeUtilities.secureFactory(tf);//NOSONAR
-        Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        StringWriter writer = new StringWriter();
-        transformer.transform(new DOMSource(n), new StreamResult(writer));
-        String output = writer.getBuffer().toString().replaceAll("\n|\r", "");
-        return output;
     }
 
     /**

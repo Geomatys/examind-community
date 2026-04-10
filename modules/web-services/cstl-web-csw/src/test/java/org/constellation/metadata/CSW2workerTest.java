@@ -26,7 +26,6 @@ import org.geotoolkit.test.xml.DocumentComparator;
 import org.apache.sis.util.ComparisonMode;
 import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.xml.internal.shared.LegacyNamespaces;
-import org.apache.sis.xml.XML;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -78,28 +77,17 @@ import org.geotoolkit.ows.xml.v100.SectionsType;
 import org.opengis.metadata.Datatype;
 import org.opengis.metadata.ExtendedElementInformation;
 import org.opengis.metadata.citation.Role;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import jakarta.xml.bind.JAXBElement;
-import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.StringWriter;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
 
 import static org.constellation.metadata.core.CSWConstants.OUTPUT_SCHEMA;
 import static org.constellation.metadata.core.CSWConstants.PARAMETERNAME;
@@ -2014,7 +2002,7 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
         constraint = new QueryConstraintType("identifier='11325_158_19640418141800'", "1.1.0");
         List<RecordPropertyType> properties = new ArrayList<>();
 
-        final Node languageNode = buildNode("http://www.isotc211.org/2005/gmd", "LanguageCode");
+        final Node languageNode = NodeUtilities.buildNode("http://www.isotc211.org/2005/gmd", "LanguageCode");
         final Node valueNode = languageNode.getOwnerDocument().createAttribute("codeListValue");
         valueNode.setNodeValue("fra");
         final Node clNode = languageNode.getOwnerDocument().createAttribute("codeList");
@@ -2681,7 +2669,6 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
             if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
             } else if (objRec instanceof Node isoNode) {
-                final Node e = (Node) objRec;
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -3051,77 +3038,5 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
 
 
         pool.recycle(unmarshaller);
-    }
-
-    protected Node getOriginalMetadata(final String fileName) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-        Document document = docBuilder.parse(Util.getResourceAsStream(fileName));
-
-        return document.getDocumentElement();
-    }
-
-    private Node writeMetadataInDom(final DefaultMetadata meta) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-        Document document = docBuilder.newDocument();
-        Marshaller m = pool.acquireMarshaller();
-        m.setProperty(XML.TIMEZONE, TimeZone.getTimeZone("GMT+2:00"));
-        m.marshal(meta, document);
-        pool.recycle(m);
-        return document.getDocumentElement();
-    }
-
-    private Node buildNode(final String ns, String localName) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-        Document document = docBuilder.newDocument();
-        return document.createElementNS(ns, localName);
-    }
-
-    private List<Node> getNodes(String XPath, final Node isoNode) {
-        final String[] parts = XPath.split("/");
-        List<Node> nodes = Arrays.asList(isoNode);
-        for (String part : parts) {
-            nodes = getChildNodes(nodes, part);
-        }
-        return nodes;
-    }
-
-    private List<Node> getChildNodes(final List<Node> nodes, String childName) {
-        final List<Node> result = new ArrayList<>();
-
-        for (Node node : nodes) {
-            for (int i = 0; i < node.getChildNodes().getLength(); i++) {
-                final Node n = node.getChildNodes().item(i);
-                final String nodeName = n.getLocalName();
-                if (nodeName != null && nodeName.equals(childName)) {
-                    result.add(n);
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * used for debug
-     * @param n
-     * @return
-     * @throws Exception
-     */
-    protected static String getStringFromNode(final Node n) throws Exception {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        StringWriter writer = new StringWriter();
-        transformer.transform(new DOMSource(n), new StreamResult(writer));
-        String output = writer.getBuffer().toString().replaceAll("\n|\r", "");
-        return output;
     }
 }

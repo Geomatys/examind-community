@@ -19,20 +19,11 @@
 package org.constellation.store.metadata.internal;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IInternalMetadataBusiness;
 import static org.constellation.metadata.CSWQueryable.ALL_PREFIX_MAPPING;
@@ -59,28 +50,21 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
     @Autowired
     protected IInternalMetadataBusiness internalMetadataBusiness;
 
-    protected final DocumentBuilderFactory dbf;
-
-    protected final XMLInputFactory xif = XMLInputFactory.newFactory();
-
     public InternalMetadataWriter(final Map configuration) throws MetadataIoException {
         SpringHelper.injectDependencies(this);
-        dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        try {
-            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        } catch (ParserConfigurationException ex) {
-            throw new MetadataIoException(ex);
-        }
     }
 
     @Override
     public boolean storeMetadata(Node original) throws MetadataIoException {
         final String identifier = Utils.findIdentifier(original);
         if (!internalMetadataBusiness.existMetadata(identifier)) {
-            String xml = getStringFromNode(original);
-            internalMetadataBusiness.storeMetadata(identifier, xml);
-            return true;
+            try {
+                String xml = NodeUtilities.getStringFromNode(original);
+                internalMetadataBusiness.storeMetadata(identifier, xml);
+                return true;
+            } catch (TransformerException ex) {
+                throw new MetadataIoException("Unable to transform node.into XML string", ex, NO_APPLICABLE_CODE);
+            }
         } else {
             return replaceMetadata(identifier, original);
         }
@@ -98,27 +82,16 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
 
     @Override
     public boolean replaceMetadata(String metadataID, Node original) throws MetadataIoException {
-        String xml = getStringFromNode(original);
-        String newIdentifier = Utils.findIdentifierNode(original);
-        internalMetadataBusiness.updateMetadata(metadataID, newIdentifier, xml);
-        return true;
-    }
-
-    private String getStringFromNode(Node n) throws MetadataIoException {
         try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            NodeUtilities.secureFactory(tf);//NOSONAR
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-            StringWriter sw = new StringWriter();
-            StreamResult sr = new StreamResult(sw);
-            transformer.transform(new DOMSource(n),sr);
-            return sw.toString();
+            String xml = NodeUtilities.getStringFromNode(original);
+            String newIdentifier = Utils.findIdentifierNode(original);
+            internalMetadataBusiness.updateMetadata(metadataID, newIdentifier, xml);
+            return true;
         } catch (TransformerException ex) {
             throw new MetadataIoException("Unable to transform node.into XML string", ex, NO_APPLICABLE_CODE);
         }
     }
+
 
     @Override
     public boolean deleteSupported() {

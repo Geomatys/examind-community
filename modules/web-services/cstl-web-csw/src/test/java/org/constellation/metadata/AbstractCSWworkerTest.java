@@ -24,12 +24,16 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
@@ -38,6 +42,8 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.metadata.core.CSWworker;
 import org.constellation.test.SpringContextTest;
+import org.constellation.util.NodeUtilities;
+import org.constellation.util.Util;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.junit.AfterClass;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,6 +164,37 @@ public abstract class AbstractCSWworkerTest extends SpringContextTest {
         } catch (JAXBException e) {
             throw new RuntimeException("Cannot read back XML node", e);
         }
+    }
+    
+    protected Node getOriginalMetadata(final String fileName) throws Exception {
+        return NodeUtilities.getNodeFromStream(Util.getResourceAsStream(fileName));
+    }
 
+    protected Node writeMetadataInDom(final DefaultMetadata meta) throws Exception {
+        return NodeUtilities.getNodeFromObject(meta, pool);
+    }
+
+    protected List<Node> getNodes(String XPath, final Node isoNode) {
+        final String[] parts = XPath.split("/");
+        List<Node> nodes = Arrays.asList(isoNode);
+        for (String part : parts) {
+            nodes = getChildNodes(nodes, part);
+        }
+        return nodes;
+    }
+
+    protected List<Node> getChildNodes(final List<Node> nodes, String childName) {
+        final List<Node> result = new ArrayList<>();
+
+        for (Node node : nodes) {
+            for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+                final Node n = node.getChildNodes().item(i);
+                final String nodeName = n.getLocalName();
+                if (nodeName != null && nodeName.equals(childName)) {
+                    result.add(n);
+                }
+            }
+        }
+        return result;
     }
 }

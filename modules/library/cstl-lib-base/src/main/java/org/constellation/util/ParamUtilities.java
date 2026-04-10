@@ -34,12 +34,23 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.io.StringWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 
 public final class ParamUtilities {
 
+    private static final XMLInputFactory XML_INPUT_FACTORY = XMLInputFactory.newInstance();
+    static {
+        XML_INPUT_FACTORY.setProperty("http://java.sun.com/xml/stream/properties/report-cdata-event", Boolean.TRUE);
+        XML_INPUT_FACTORY.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+    }
+    
     /**
      * Reads an {@link java.io.InputStream} to build a {@link org.opengis.parameter.GeneralParameterValue}
      * instance according the specified {@link org.opengis.parameter.ParameterDescriptorGroup}.
@@ -54,19 +65,35 @@ public final class ParamUtilities {
      */
     public static GeneralParameterValue readParameter(final InputStream stream,
                                                       final ParameterDescriptorGroup descriptor) throws IOException {
-        return readParameterInternal(stream, descriptor);
+        try {
+            XMLStreamReader reader = XML_INPUT_FACTORY.createXMLStreamReader(stream);
+            return readParameterInternal(reader, descriptor);
+        } catch (XMLStreamException ex) {
+            throw new IOException(ex);
+        }
     }
 
     public static GeneralParameterValue readParameter(final InputStream stream,
                                                       final GeneralParameterDescriptor descriptor) throws IOException {
-        return readParameterInternal(stream, descriptor);
+        try {
+            XMLStreamReader reader = XML_INPUT_FACTORY.createXMLStreamReader(stream);
+            return readParameterInternal(reader, descriptor);
+        } catch (XMLStreamException ex) {
+            throw new IOException(ex);
+        }
     }
 
     public static GeneralParameterValue readParameter(final String xml,
                                                       final GeneralParameterDescriptor descriptor) throws IOException {
-        return readParameterInternal(xml, descriptor);
+        try {
+            StringReader sr = new StringReader(xml);
+            XMLStreamReader reader = XML_INPUT_FACTORY.createXMLStreamReader(sr);
+            return readParameterInternal(reader, descriptor);
+        } catch (XMLStreamException ex) {
+            throw new IOException(ex);
+        }
     }
-
+    
     private static GeneralParameterValue readParameterInternal(final Object input,
                                                       final GeneralParameterDescriptor descriptor) throws IOException {
         ensureNonNull("input", input);
@@ -78,6 +105,11 @@ public final class ParamUtilities {
         } catch (XMLStreamException ex) {
             throw new IOException("An error occurred while parsing ParameterDescriptorGroup XML.", ex);
         }
+    }
+
+    private static final XMLOutputFactory XML_OUTPUT_FACTORY = XMLOutputFactory.newInstance();
+    static {
+        XML_OUTPUT_FACTORY.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
     }
 
     /**
@@ -95,7 +127,8 @@ public final class ParamUtilities {
         try {
             final StringWriter sw = new StringWriter();
             final ParameterValueWriter writer = new ParameterValueWriter();
-            writer.setOutput(sw);
+            XMLStreamWriter streamWriter = XML_OUTPUT_FACTORY.createXMLStreamWriter(sw);
+            writer.setOutput(streamWriter);
             writer.write(parameter);
             return sw.toString();
         } catch (XMLStreamException ex) {

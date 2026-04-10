@@ -20,12 +20,7 @@
 package org.constellation.metadata.ws.rs.provider;
 
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -67,14 +62,9 @@ public class NodeWriter implements HttpMessageConverter<Node> {
     @Override
     public void write(Node t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            NodeUtilities.secureFactory(tf);//NOSONAR
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(new DOMSource(t), new StreamResult(outputMessage.getBody()));
+            NodeUtilities.writerNode(t, outputMessage.getBody());
         } catch (TransformerException ex) {
             throw new IOException(ex);
         }
     }
-
 }

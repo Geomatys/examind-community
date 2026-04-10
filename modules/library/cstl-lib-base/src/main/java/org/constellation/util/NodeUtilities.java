@@ -46,7 +46,9 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
+import java.io.OutputStream;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -449,7 +451,7 @@ public class NodeUtilities {
                         final String[] parts = s.split(" ");
                         if (ordinal < parts.length) {
                             try {
-                                result.add(Double.parseDouble(parts[ordinal]));
+                                result.add(Double.valueOf(parts[ordinal]));
                             } catch (NumberFormatException ex) {
                                 LOGGER.log(Level.WARNING, "Unable to parse the real value:{0}", s);
                             }
@@ -461,13 +463,13 @@ public class NodeUtilities {
                     result.add(s);
                 } else if (type.equals(Double.class)) {
                     try {
-                        result.add(Double.parseDouble(s));
+                        result.add(Double.valueOf(s));
                     } catch (NumberFormatException ex) {
                         LOGGER.log(Level.WARNING, "Unable to parse the real value:{0}", s);
                     }
                 } else if (type.equals(Integer.class)) {
                     try {
-                        result.add(Integer.parseInt(s));
+                        result.add(Integer.valueOf(s));
                     } catch (NumberFormatException ex) {
                         LOGGER.log(Level.WARNING, "Unable to parse the integer value:{0}", s);
                     }
@@ -565,13 +567,25 @@ public class NodeUtilities {
         }
         return null;
     }
+    
+    private static final ThreadLocal<DocumentBuilder> THREAD_LOCAL_DB =  ThreadLocal.withInitial(() ->
+    {
+        try {
+            final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            secureFactory(dbf);//NOSONAR
+            dbf.setNamespaceAware(true);
+            return dbf.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+    });
 
     public static Node getNodeFromObject(final Object metadata, final MarshallerPool pool) throws JAXBException, ParserConfigurationException  {
+        return getNodeFromObject(metadata, pool, null);
+    }
 
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        secureFactory(dbf);//NOSONAR
-        dbf.setNamespaceAware(true);
-        final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
+    public static Node getNodeFromObject(final Object metadata, final MarshallerPool pool, Locale locale) throws JAXBException, ParserConfigurationException  {
+        final DocumentBuilder docBuilder = THREAD_LOCAL_DB.get();
         final Document document = docBuilder.newDocument();
         final Marshaller marshaller = pool.acquireMarshaller();
         final MarshallWarnings warnings = new MarshallWarnings();
@@ -581,8 +595,10 @@ public class NodeUtilities {
         gmd.put("gmd", "http://www.isotc211.org/2005/");
         gmd.put("gmi", "http://www.isotc211.org/2005/");
         marshaller.setProperty(SCHEMAS, gmd);
-//      marshaller.setProperty(LegacyNamespaces.APPLY_NAMESPACE_REPLACEMENTS, true);
         marshaller.setProperty(XML.GML_VERSION, LegacyNamespaces.VERSION_3_2_1);
+        if (locale != null) {
+            marshaller.setProperty(XML.LOCALE, locale);
+        }
         marshaller.marshal(metadata, document);
         pool.recycle(marshaller);
         return document.getDocumentElement();
@@ -590,10 +606,7 @@ public class NodeUtilities {
 
     public static Node getNodeFromString(final String string) throws ParserConfigurationException, SAXException, IOException  {
         final InputSource source = new InputSource(new StringReader(string));
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        secureFactory(dbf);//NOSONAR
-        dbf.setNamespaceAware(true);
-        final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
+        final DocumentBuilder docBuilder = THREAD_LOCAL_DB.get();
         final Document document = docBuilder.parse(source);
         return document.getDocumentElement();
     }
@@ -622,20 +635,14 @@ public class NodeUtilities {
     }
 
     public static Node getNodeFromStream(final InputStream stream) throws ParserConfigurationException, SAXException, IOException {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        secureFactory(dbf);//NOSONAR
-        final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
+        final DocumentBuilder docBuilder = THREAD_LOCAL_DB.get();
         final Document document = docBuilder.parse(stream);
         return document.getDocumentElement();
     }
 
     public static Node getNodeFromReader(final Reader reader) throws ParserConfigurationException, SAXException, IOException {
         final InputSource source = new InputSource(reader);
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        secureFactory(dbf);//NOSONAR
-        final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
+        final DocumentBuilder docBuilder = THREAD_LOCAL_DB.get();
         final Document document = docBuilder.parse(source);
         return document.getDocumentElement();
     }
@@ -647,70 +654,66 @@ public class NodeUtilities {
     }
 
     public static Document getDocumentFromStream(InputStream metadataStream) throws ParserConfigurationException, SAXException, IOException {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        secureFactory(dbf);//NOSONAR
-        final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
+        final DocumentBuilder docBuilder = THREAD_LOCAL_DB.get();
         return docBuilder.parse(metadataStream);
     }
 
     public static Document getDocumentFromString(String xml) throws ParserConfigurationException, SAXException, IOException {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        secureFactory(dbf);//NOSONAR
-        final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
+        final DocumentBuilder docBuilder = THREAD_LOCAL_DB.get();
         final InputSource source = new InputSource(new StringReader(xml));
         return docBuilder.parse(source);
     }
-
-     /**
-     * Convert geotk metadata string xml to w3c document.
-     *
-     * @param metadata the given metadata xml as string.
-     * @param pool
-     *
-     * @return {@link Node} that represents the metadata in w3c document format.
-     */
-    public static Node getNodeFromGeotkMetadata(final Object metadata, final MarshallerPool pool) throws JAXBException, ParserConfigurationException {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        secureFactory(dbf);//NOSONAR
-        final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-        final Document document = docBuilder.newDocument();
-        final Marshaller marshaller = pool.acquireMarshaller();
-        final MarshallWarnings warnings = new MarshallWarnings();
-        marshaller.setProperty(XML.CONVERTER, warnings);
-        marshaller.setProperty(XML.TIMEZONE, TZ);
-//      marshaller.setProperty(LegacyNamespaces.APPLY_NAMESPACE_REPLACEMENTS, true);
-        marshaller.setProperty(XML.GML_VERSION, LegacyNamespaces.VERSION_3_2_1);
-        marshaller.marshal(metadata, document);
-        pool.recycle(marshaller);
-
-        return document.getDocumentElement();
+    
+    public static Node buildNode(final String ns, String localName) throws Exception {
+        final DocumentBuilder docBuilder = THREAD_LOCAL_DB.get();
+        Document document = docBuilder.newDocument();
+        return document.createElementNS(ns, localName);
     }
 
+    private static final ThreadLocal<Transformer> THREAD_LOCAL_TRANSFORMER =
+    ThreadLocal.withInitial(() -> {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            secureFactory(tf);
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            return transformer;
+        } catch (TransformerConfigurationException e) {
+            throw new RuntimeException("Failed to create Transformer", e);
+        }
+    });
+
     public static void writerNode(Node n, Writer writer) throws TransformerConfigurationException, TransformerException {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        secureFactory(tf);//NOSONAR
-        Transformer transformer = tf.newTransformer();
+        Transformer transformer = THREAD_LOCAL_TRANSFORMER.get();
+        transformer.reset(); // Réinitialise l'état entre les appels
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
         StreamResult sr = new StreamResult(writer);
         transformer.transform(new DOMSource(n), sr);
     }
-
-    public static String getStringFromNode(final Node n) throws TransformerException  {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        secureFactory(tf);//NOSONAR
-        Transformer transformer = tf.newTransformer();
+    
+    public static void writerNode(Node n, OutputStream stream) throws TransformerConfigurationException, TransformerException {
+        Transformer transformer = THREAD_LOCAL_TRANSFORMER.get();
+        transformer.reset(); // Réinitialise l'état entre les appels
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+        StreamResult sr = new StreamResult(stream);
+        transformer.transform(new DOMSource(n), sr);
+    }
+    
+    public static String getStringFromNode(final Node n) throws TransformerException  {
+        Transformer transformer = THREAD_LOCAL_TRANSFORMER.get();
+        transformer.reset(); // Réinitialise l'état entre les appels
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
         StringWriter writer = new StringWriter();
         transformer.transform(new DOMSource(n), new StreamResult(writer));
-        String output = writer.getBuffer().toString().replaceAll("\n|\r", "");
-        return output;
+        return writer.toString();
     }
-
+    
     public static void secureFactory(final DocumentBuilderFactory dbf) {
         try {
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);

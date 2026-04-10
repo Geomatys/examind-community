@@ -21,8 +21,6 @@ package org.constellation.ws.rs.provider;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.constellation.util.NodeUtilities;
 import org.springframework.http.HttpInputMessage;
@@ -31,7 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
@@ -60,11 +57,7 @@ public class NodeReader implements HttpMessageConverter<Node>{
     @Override
     public Node read(Class<? extends Node> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            NodeUtilities.secureFactory(dbf);//NOSONAR
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(him.getBody());
-            return doc.getDocumentElement();
+            return NodeUtilities.getNodeFromStream(him.getBody());
         } catch (ParserConfigurationException | SAXException ex) {
             throw new IOException(ex);
         }
