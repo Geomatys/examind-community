@@ -574,16 +574,15 @@ public class ProviderBusiness implements IProviderBusiness {
     @Override
     public Integer createOrUpdateData(final int providerId, Integer datasetId,final boolean createDatasetIfNull, final boolean hideNewData, Integer owner)
             throws ConstellationException{
-        final ProviderBrief pr = providerRepository.findOne(providerId);
-        if (pr == null) {
+        if (!providerRepository.existsById(providerId)) {
             throw new TargetNotFoundException("Provider " + providerId + " does not exist.");
         }
-        final List<org.constellation.dto.Data> previousData = dataRepository.findByProviderId(pr.getId());
+        final List<org.constellation.dto.Data> previousData = dataRepository.findByProviderId(providerId);
 
         final DataProvider provider = DataProviders.getProvider(providerId);
 
         if (provider == null) {
-            throw new ConstellationException("Unable to instanciate the provider: " + pr.getIdentifier());
+            throw new ConstellationException("Unable to instanciate the provider: " + providerId);
         }
        /*
         * WARNING : do not auto inject dataset business as a class member of this class. it will cause this bean to be instanciated BEFORE the database init.
@@ -591,9 +590,9 @@ public class ProviderBusiness implements IProviderBusiness {
         final IDatasetBusiness datasetBusiness = SpringHelper.getBean(IDatasetBusiness.class)
                                                              .orElseThrow(() -> new ConstellationException("No spring context available"));
         if (datasetId == null) {
-            datasetId = datasetBusiness.getDatasetId(pr.getIdentifier());
+            datasetId = datasetBusiness.getDatasetId(provider.getId());
             if (datasetId == null && createDatasetIfNull)  {
-                datasetId = datasetBusiness.createDataset(pr.getIdentifier(), pr.getOwner(), null);
+                datasetId = datasetBusiness.createDataset(provider.getId(), owner, null);
             }
         }
 
@@ -606,7 +605,7 @@ public class ProviderBusiness implements IProviderBusiness {
             try {
                 final Set<GenericName> keys = provider.getKeys();
 
-                final List<Sensor> sensors = sensorBusiness.getByProviderId(pr.getId());
+                final List<Sensor> sensors = sensorBusiness.getByProviderId(providerId);
                 // Remove no longer existing sensors.
                 for (final Sensor sensor : sensors) {
                     if (!keys.contains(NamesExt.create(sensor.getIdentifier()))) {
@@ -632,7 +631,7 @@ public class ProviderBusiness implements IProviderBusiness {
                             final String type = sData.getSensorMLType();
                             final ObservationType omType = sData.getOMType();
                             final String parentIdentifier = null; // TODO
-                            sensorBusiness.create(key.toString(), name, description, type, omType, parentIdentifier, sml, System.currentTimeMillis(), pr.getId());
+                            sensorBusiness.create(key.toString(), name, description, type, omType, parentIdentifier, sml, System.currentTimeMillis(), providerId);
                         }
                     }
                 }
@@ -650,7 +649,7 @@ public class ProviderBusiness implements IProviderBusiness {
             try {
                 final Set<GenericName> keys = provider.getKeys();
 
-                final List<MetadataBrief> metadatas = metadataBusiness.getByProviderId(pr.getId(), "DOC");
+                final List<MetadataBrief> metadatas = metadataBusiness.getByProviderId(providerId, "DOC");
                 // Remove no longer existing metadatas.
                 List<Integer> toRemove = new ArrayList<>();
                 for (final MetadataBrief metadata : metadatas) {
@@ -675,7 +674,7 @@ public class ProviderBusiness implements IProviderBusiness {
                         Node n = mData == null? null : mData.getMetadata();
                         if (n != null) {
                             try {
-                                metadataBusiness.updateMetadata(key.tip().toString(), n, null, null, null, null, pr.getId(), "DOC", null, false);
+                                metadataBusiness.updateMetadata(key.tip().toString(), n, null, null, null, null, providerId, "DOC", null, false);
                             } catch (ConfigurationException ex) {
                                 LOGGER.log(Level.WARNING, "Error while inserting metadata: " + key + " into database:" + ex.getMessage(), ex);
                             }
@@ -727,16 +726,12 @@ public class ProviderBusiness implements IProviderBusiness {
                 }
 
                 Integer dataId = dataBusiness.create(name,
-                        pr.getId(), type.name(), provider.isSensorAffectable(),
-                        included, rendered, subType, hideNewData, owner);
+                        providerId, type.name(), provider.isSensorAffectable(),
+                        included, rendered, subType, hideNewData, owner, datasetId);
                 
                 // cache data informations in the database
                 if (cacheDataInfo) {
                     dataBusiness.cacheDataInformation(dataId, false);
-                }
-
-                if (datasetId != null) {
-                    dataBusiness.updateDataDataSetId(dataId, datasetId);
                 }
             }
         }

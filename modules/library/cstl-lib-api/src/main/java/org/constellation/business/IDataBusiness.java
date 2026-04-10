@@ -79,10 +79,11 @@ public interface IDataBusiness {
      * @param subType data subType.
      * @param hidden flag that indicates if data is hidden.
      * @param owner the owner id, or {@code null} if you want to use the current logged user.
+     * @param datasetId dataset containing the data.
      *
      * @return Return the data identifier assigned.
      */
-    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, boolean hidden, Integer owner);
+    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, boolean hidden, Integer owner, Integer datasetId);
 
     /**
      * Proceed to remove data for given provider.

@@ -631,8 +631,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                         currentProviderId = providerIdentifier;
                     }
 
-                    Integer provider = providerBusiness.getIDFromIdentifier(currentProviderId);
-                    if (provider != null) {
+                    if (providerBusiness.existIdentifier(currentProviderId)) {
                         throw new ConstellationException("Duplicated provider:" + currentProviderId);
                     }
 

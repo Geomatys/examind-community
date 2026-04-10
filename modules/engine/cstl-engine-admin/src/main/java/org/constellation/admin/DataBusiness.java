@@ -658,7 +658,7 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, boolean hidden, Integer owner) {
+    public Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, boolean hidden, Integer owner, Integer datasetId) {
         if (providerId != null) {
             Data data = new Data();
             data.setDate(new Date());
@@ -679,6 +679,7 @@ public class DataBusiness implements IDataBusiness {
             data.setIncluded(included);
             data.setRendered(rendered);
             data.setHidden(hidden);
+            data.setDatasetId(datasetId);
             int id = dataRepository.create(data);
             data.setId(id);
             dataBusinessListener.postDataCreate(data);
@@ -933,6 +934,10 @@ public class DataBusiness implements IDataBusiness {
     @Transactional
     public MetadataLightBrief initDataMetadata(final int dataId, final boolean hidden) throws ConstellationException {
         final Data data         = dataRepository.findById(dataId);
+        return initDataMetadata(data, hidden);
+    }
+
+    private MetadataLightBrief initDataMetadata(final Data data, final boolean hidden) throws ConstellationException {
         final ProviderBrief provider = providerRepository.findOne(data.getProviderId());
         final String dataType   = data.getType();
         final org.constellation.provider.Data dataP = DataProviders.getProviderData(provider.getId(), data.getNamespace(), data.getName());
@@ -961,15 +966,14 @@ public class DataBusiness implements IDataBusiness {
 
         // initialize metadata
         final Properties prop = configBusiness.getMetadataTemplateProperties();
-        final String xml = MetadataUtilities.fillMetadataFromProperties(prop, dataType, metadataID, title, dataP.getResourceCRSName(), optUser, keywords);
-        final DefaultMetadata templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
+        final DefaultMetadata templateMetadata = MetadataUtilities.buildMetadataFromProperties(prop, dataType, metadataID, title, dataP.getResourceCRSName(), optUser, keywords);
 
         DefaultMetadata mergedMetadata = Utils.mergeMetadata(templateMetadata, extractedMetadata);
 
         //merge with uploaded metadata
         DefaultMetadata uploadedMetadata;
         try {
-            uploadedMetadata = (DefaultMetadata) metadataBusiness.getIsoMetadataForData(dataId);
+            uploadedMetadata = (DefaultMetadata) metadataBusiness.getIsoMetadataForData(data.getId());
         } catch (Exception ex) {
             uploadedMetadata = null;
         }
@@ -979,7 +983,7 @@ public class DataBusiness implements IDataBusiness {
         mergedMetadata.prune();
 
         //Save metadata
-        return updateMetadata(dataId, mergedMetadata, hidden);
+        return updateMetadata(data.getId(), mergedMetadata, hidden);
     }
 
     private void tryFillMetadata(Resource origin, DefaultMetadata target) {
@@ -1091,7 +1095,7 @@ public class DataBusiness implements IDataBusiness {
 
         // 4. Initialize the default metadata.
         if (generateMetadata) {
-            initDataMetadata(data.getId(), hidden);
+            initDataMetadata(data, hidden);
 
             // if enable and for vector data, we generate feature catalog metadata
             boolean generateFeatCat = Application.getBooleanProperty(AppProperty.GENERATE_FEATURE_CATALOG, true);

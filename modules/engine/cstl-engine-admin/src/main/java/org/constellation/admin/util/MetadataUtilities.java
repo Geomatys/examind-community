@@ -36,11 +36,30 @@ import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.metadata.iso.DefaultIdentifier;
+import org.apache.sis.metadata.iso.citation.DefaultAddress;
+import org.apache.sis.metadata.iso.citation.DefaultCitation;
+import org.apache.sis.metadata.iso.citation.DefaultCitationDate;
+import org.apache.sis.metadata.iso.citation.DefaultContact;
 import org.apache.sis.metadata.iso.citation.DefaultOnlineResource;
+import org.apache.sis.metadata.iso.citation.DefaultResponsibleParty;
+import org.apache.sis.metadata.iso.citation.DefaultTelephone;
 import org.apache.sis.metadata.iso.distribution.DefaultDigitalTransferOptions;
 import org.apache.sis.metadata.iso.distribution.DefaultDistribution;
+import org.apache.sis.metadata.iso.distribution.DefaultDistributor;
+import org.apache.sis.metadata.iso.distribution.DefaultFormat;
+import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
+import org.apache.sis.metadata.iso.identification.DefaultKeywords;
+import org.apache.sis.metadata.iso.identification.DefaultRepresentativeFraction;
+import org.apache.sis.metadata.iso.identification.DefaultResolution;
+import org.apache.sis.metadata.iso.maintenance.DefaultScope;
+import org.apache.sis.metadata.iso.quality.DefaultCompletenessCommission;
+import org.apache.sis.metadata.iso.quality.DefaultDataQuality;
+import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
+import org.apache.sis.referencing.internal.shared.NilReferencingObject;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.SimpleInternationalString;
+import org.apache.sis.xml.bind.metadata.replace.ReferenceSystemMetadata;
 import org.constellation.dto.metadata.MetadataBbox;
 import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -50,9 +69,18 @@ import org.constellation.dto.CstlUser;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
 import org.geotoolkit.nio.IOUtilities;
+import org.opengis.metadata.citation.CitationDate;
+import org.opengis.metadata.citation.DateType;
 import org.opengis.metadata.citation.OnlineResource;
+import org.opengis.metadata.citation.Role;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
 import org.opengis.metadata.distribution.Distribution;
+import org.opengis.metadata.identification.CharacterSet;
+import org.opengis.metadata.identification.TopicCategory;
+import org.opengis.metadata.maintenance.ScopeCode;
+import org.opengis.metadata.quality.Element;
+import org.opengis.metadata.spatial.SpatialRepresentationType;
+import org.opengis.referencing.ReferenceSystem;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -204,34 +232,167 @@ public final class MetadataUtilities {
         feeder.updateServiceURL(serviceURL);
     }
 
-    public static String fillMetadataFromProperties(final Properties prop, final String dataType, final String metadataID, final String title, final String crsName,
+    public static DefaultMetadata buildMetadataFromProperties(final Properties prop, final String dataType, final String metadataID, final String title, final String crsName,
             final Optional<CstlUser> optUser, final List<String> keywords) {
-        prop.put("fileId", metadataID);
-        prop.put("dataTitle", title);
-        prop.put("dataAbstract", "");
-        final String dateIso = Instant.now().toString();
-        prop.put("isoCreationDate", dateIso);
-        prop.put("creationDate", dateIso);
-        if ("raster".equalsIgnoreCase(dataType)) {
-            prop.put("dataType", "grid");
-        } else if("vector".equalsIgnoreCase(dataType)) {
-            prop.put("dataType", "vector");
+        
+        final CstlUser user  = optUser.orElse(null);
+        
+        DefaultMetadata templateMetadata = new DefaultMetadata();
+        templateMetadata.setFileIdentifier(metadataID);
+        templateMetadata.setLanguage(Locale.ENGLISH);
+        templateMetadata.setCharacterSet(CharacterSet.UTF_8);
+        
+        // does this property is fill a some point??
+        if (prop.contains("parentId")) {
+            templateMetadata.setParentIdentifier(prop.getProperty("parentId"));
         }
+        DefaultResponsibleParty contact = new DefaultResponsibleParty();
+        
+        if (user != null) {
+            contact.setIndividualName(user.getFirstname() + " " + user.getLastname());
+        }
+        if (prop.contains("organisationName")) {
+            contact.setOrganisationName(new SimpleInternationalString(prop.getProperty("organisationName")));
+        }
+        if (prop.contains("position")) {
+            contact.setPositionName(new SimpleInternationalString(prop.getProperty("position")));
+        }
+        
+        DefaultContact conInfo = new DefaultContact();
+        if (prop.contains("phone") || prop.contains("fax")) {
+            DefaultTelephone phone = new DefaultTelephone();
+            if (prop.contains("phone")) {
+                phone.setNumber(prop.getProperty("phone"));
+            }
+            if (prop.contains("fax")) {
+                phone.setFacsimiles(List.of(prop.getProperty("fax")));
+            }
+            conInfo.setPhones(List.of(phone));
+        }
+        DefaultAddress address = new DefaultAddress();
+        if (prop.contains("address")) {
+            address.setDeliveryPoints(List.of(new SimpleInternationalString(prop.getProperty("address"))));
+        }
+        if (prop.contains("city")) {
+            address.setCity(new SimpleInternationalString(prop.getProperty("city")));
+        }
+        if (prop.contains("postalCode")) {
+            address.setPostalCode(prop.getProperty("postalCode"));
+        }
+        if (prop.contains("country")) {
+            address.setCountry(new SimpleInternationalString(prop.getProperty("country")));
+        }
+        if (user != null) {
+            address.setElectronicMailAddresses(List.of(user.getEmail()));
+        }
+        conInfo.setAddresses(List.of(address));
+        contact.setContactInfo(conInfo);
+        
+        if (prop.contains("role")) {
+            contact.setRole(Role.valueOf(prop.getProperty("role")));
+        }
+        templateMetadata.setContacts(List.of(contact));
+        
+        templateMetadata.setDateStamp(new Date(System.currentTimeMillis()));
+        
+        templateMetadata.setMetadataStandardName("ISO19115");
+        templateMetadata.setMetadataStandardVersion("2003/Cor.1:2006");
 
+        ReferenceSystem refSystem;
         if (crsName != null) {
-            prop.put("srs", crsName);
+            refSystem = new ReferenceSystemMetadata(new DefaultIdentifier(crsName));
+        } else {
+            refSystem = NilReferencingObject.INSTANCE;
         }
-
-        if (optUser.isPresent()) {
-            final CstlUser user = optUser.get();
-            prop.put("contactName", user.getFirstname()+" "+user.getLastname());
-            prop.put("contactEmail", user.getEmail());
+        templateMetadata.setReferenceSystemInfo(List.of(refSystem));
+        
+        DefaultDataIdentification dataIdent = new DefaultDataIdentification();
+        
+        DefaultCitation citation = new DefaultCitation();
+        citation.setTitle(new SimpleInternationalString(title));
+        
+        List<CitationDate> dates = new ArrayList<>();
+        if (prop.contains("publicationDate")) {
+            DefaultCitationDate cd = new DefaultCitationDate(Instant.parse(prop.getProperty("publicationDate")), DateType.PUBLICATION);
+            dates.add(cd);
         }
+        dates.add(new DefaultCitationDate(Instant.now(), DateType.CREATION));
+        if (prop.contains("revisionDate")) {
+            DefaultCitationDate cd = new DefaultCitationDate(Instant.parse(prop.getProperty("revisionDate")), DateType.REVISION);
+            dates.add(cd);
+        }
+        citation.setDates(dates);
+        dataIdent.setCitation(citation);
+        dataIdent.setAbstract(new SimpleInternationalString(""));
+        
         if (keywords != null && !keywords.isEmpty()) {
-            prop.put("keywords",keywords);
+            DefaultKeywords kw = new DefaultKeywords();
+            List<SimpleInternationalString> kws = new ArrayList<>();
+            for (String keyword : keywords) {
+                kws.add(new SimpleInternationalString(keyword));
+            }
+            kw.setKeywords(kws);
+            dataIdent.setDescriptiveKeywords(List.of(kw));
         }
+        
+        if ("raster".equalsIgnoreCase(dataType)) {
+            dataIdent.setSpatialRepresentationTypes(List.of(SpatialRepresentationType.GRID));
+        } else if("vector".equalsIgnoreCase(dataType)) {
+            dataIdent.setSpatialRepresentationTypes(List.of(SpatialRepresentationType.VECTOR));
+        }
+        
+        if (prop.contains("groundResolution")) {
+            DefaultResolution resolution = new DefaultResolution(new DefaultRepresentativeFraction(Long.parseLong(prop.getProperty("groundResolution"))));
+            dataIdent.setSpatialResolutions(List.of(resolution));
+        }
+        
+        if (prop.contains("dataLocale")) {
+            dataIdent.setLanguages(List.of(Locale.of(prop.getProperty("dataLocale"))));
+        }
+        
+        if (prop.contains("topicCategory")) {
+            dataIdent.setTopicCategories(List.of(TopicCategory.valueOf(prop.getProperty("topicCategory"))));
+        }
+        templateMetadata.setIdentificationInfo(List.of(dataIdent));
+        
+        DefaultDistribution distribInfo = new DefaultDistribution();
+        if (prop.contains("distributionFormat")) {
+            DefaultFormat format = new DefaultFormat();
+            format.setName(new SimpleInternationalString(prop.getProperty("distributionFormat")));
+            distribInfo.setDistributionFormats(List.of(format));
+        }
+        DefaultDistributor distributor = new DefaultDistributor();
+        distributor.setDistributorContact(contact);
+        distribInfo.setDistributors(List.of(distributor));
 
-        return MetadataUtilities.getTemplateMetadata(prop, "org/constellation/engine/template/mdTemplDataset.xml");
+        templateMetadata.setDistributionInfo(List.of(distribInfo));
+        
+        DefaultDataQuality qualityInfo = new DefaultDataQuality();
+        qualityInfo.setScope(new DefaultScope(ScopeCode.DATASET));
+        
+        List<Element> reports = new ArrayList();
+        if (prop.contains("acquisitionQualityValue")) {
+            DefaultCompletenessCommission cc = new DefaultCompletenessCommission();
+            cc.setNamesOfMeasure(List.of(new SimpleInternationalString("Quality percent value")));
+            cc.setMeasureDescription(new SimpleInternationalString("Overall quality of the data"));
+            DefaultQuantitativeResult result = new DefaultQuantitativeResult();
+            // TODO result.setValues(newValues);
+            cc.setResults(List.of(result));
+        }
+        
+        if (prop.contains("percentCloudCover")) {
+            DefaultCompletenessCommission cc = new DefaultCompletenessCommission();
+            cc.setNamesOfMeasure(List.of(new SimpleInternationalString(prop.getProperty("measureName"))));
+            cc.setMeasureDescription(new SimpleInternationalString("Percent of Missing Data (Cloud Coverage)"));
+            DefaultQuantitativeResult result = new DefaultQuantitativeResult();
+            // TODO result.setValues(newValues);
+            cc.setResults(List.of(result));
+        }
+        qualityInfo.setReports(reports);
+        
+        templateMetadata.setDataQualityInfo(List.of(qualityInfo));
+        
+        return templateMetadata;
     }
 
     private static final Map<String, String> PROTOCOL_MAP = new HashMap<>();

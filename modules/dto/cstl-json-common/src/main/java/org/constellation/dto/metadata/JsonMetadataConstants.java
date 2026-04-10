@@ -17,6 +17,9 @@
  * limitations under the License.
  */
 package org.constellation.dto.metadata;
+
+import java.util.regex.Pattern;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -24,10 +27,11 @@ package org.constellation.dto.metadata;
 public class JsonMetadataConstants {
 
     public static final String DATE_READ_ONLY = "DATE.readonly";
+    
+    private static final Pattern NUMERATED_BRACKETS = Pattern.compile("\\[[0-9]*\\]|\\+");
 
     public static String cleanNumeratedPath(final String numeratedPath) {
-        String s = numeratedPath.replaceAll("\\[[0-9]*\\]", "");
-        return s.replace("+", "");
+        return NUMERATED_BRACKETS.matcher(numeratedPath).replaceAll("");
     }
 
     public static String removeLastNumeratedPathPart(final String numeratedPath) {
