@@ -411,7 +411,7 @@ public class MetadataBusiness implements IMetadataBusiness {
                 if (update) {
                     mdProvider.replaceMetadata(metadataId, metaNode);
                 } else {
-                    mdProvider.storeMetadata(metaNode);
+                    mdProvider.insertMetadata(metadataId, metaNode);
                 }
             } catch (ConstellationStoreException ex) {
                 throw new ConfigurationException(ex);
@@ -1452,7 +1452,7 @@ public class MetadataBusiness implements IMetadataBusiness {
                 final int newID = metadataRepository.create(duplicated);
                 try {
                     Node finalNode = getNodeFromObject(metaObj, EBRIMMarshallerPool.getInstance());
-                    mdProvider.storeMetadata(finalNode);
+                    mdProvider.insertMetadata(newMetadataID, finalNode);
                 } catch (ConstellationStoreException | JAXBException | ParserConfigurationException ex) {
                     throw new ConfigurationException(ex);
                 }

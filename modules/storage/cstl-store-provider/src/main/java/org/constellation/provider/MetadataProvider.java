@@ -35,6 +35,8 @@ public interface MetadataProvider extends DataProvider {
     Map<String, URI> getConceptMap();
 
     boolean storeMetadata(final Node obj) throws ConstellationStoreException;
+    
+    boolean insertMetadata(String metadataID,final Node obj) throws ConstellationStoreException;
 
     boolean replaceMetadata(String metadataID, Node any) throws ConstellationStoreException;
 

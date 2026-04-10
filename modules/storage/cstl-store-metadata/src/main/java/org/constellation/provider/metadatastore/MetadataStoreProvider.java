@@ -123,6 +123,11 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
     protected Class getStoreClass() {
         return MetadataStore.class;
     }
+    
+    @Override
+    public boolean deleteMetadata(String metadataID) throws ConstellationStoreException {
+        return remove(NamesExt.create(metadataID));
+    }
 
     @Override
     public synchronized boolean remove(GenericName key) {
@@ -130,7 +135,9 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
         boolean result = false;
         try {
             result = store.deleteMetadata(key.toString());
-            reload();
+            if (result) {
+                removeKey(key);
+            }
         } catch (MetadataIoException ex) {
             LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
@@ -149,7 +156,7 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
         boolean result = false;
         try {
             result = store.storeMetadata(obj);
-            visit();
+            visit();  // we should not visit, but at this point we do not got the metadata id and we are either in a insert or update mode.
         } catch (MetadataIoException ex) {
             LOGGER.log(Level.INFO, "Unable to store a new metadata in provider:" + id, ex);
         }
@@ -157,12 +164,27 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
     }
 
     @Override
+    public boolean insertMetadata(String metadataID, Node obj) throws ConstellationStoreException {
+        final MetadataStore store = getMainStore();
+        boolean result = false;
+        try {
+            result = store.storeMetadata(obj);
+            if (result) {
+                addKey(NamesExt.create(metadataID));
+            }
+        } catch (MetadataIoException ex) {
+            LOGGER.log(Level.INFO, "Unable to store a new metadata in provider:" + id, ex);
+        }
+        return result;
+    }
+    
+    @Override
     public boolean replaceMetadata(String metadataID, Node any) throws ConstellationStoreException {
         final MetadataStore store = getMainStore();
         boolean result = false;
         try {
             result = store.replaceMetadata(metadataID, any);
-            visit();
+            // visit(); no visit needed unless we changed the metadata ID, but we should not allow this
         } catch (MetadataIoException ex) {
             LOGGER.log(Level.INFO, "Unable to replace a metadata in provider:" + id, ex);
         }
@@ -175,24 +197,9 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
         boolean result = false;
         try {
             result = store.updateMetadata(metadataID, properties);
-            visit();
+            // visit(); no visit needed unless we changed the metadata ID, but we should not allow this
         } catch (MetadataIoException ex) {
             LOGGER.log(Level.INFO, "Unable to update a metadata in provider:" + id, ex);
-        }
-        return result;
-    }
-
-    @Override
-    public boolean deleteMetadata(String metadataID) throws ConstellationStoreException {
-        final MetadataStore store = getMainStore();
-        boolean result = false;
-        try {
-            if (store != null) {
-                result = store.deleteMetadata(metadataID);
-                visit();
-            }
-        } catch (MetadataIoException ex) {
-            LOGGER.log(Level.INFO, "Unable to delete a metadata in provider:" + id, ex);
         }
         return result;
     }

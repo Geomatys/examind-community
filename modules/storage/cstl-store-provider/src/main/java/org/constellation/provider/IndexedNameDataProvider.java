@@ -208,6 +208,20 @@ public abstract class IndexedNameDataProvider<T extends DataStore> extends Abstr
         }
     }
 
+    protected synchronized boolean removeKey(GenericName key) {
+        if (!noKeyCache) {
+            return index.remove(key);
+        }
+        return true;
+    }
+    
+    protected synchronized boolean addKey(GenericName key) {
+        if (!noKeyCache) {
+            return index.add(key);
+        }
+        return true;
+    }
+
     /**
      * {@inheritDoc }
      */
