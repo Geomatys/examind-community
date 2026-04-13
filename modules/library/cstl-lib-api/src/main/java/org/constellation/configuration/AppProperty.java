@@ -317,7 +317,9 @@ public enum AppProperty {
     
     EXA_OM2_DUCKDB_EXTENSION_DIRECTORY("examind.om2.duckdb.extension.directory", false, String.class),
     
-    EXA_ALLOWED_ORIGIN("examind.allowed.origin", false, List.class);
+    EXA_ALLOWED_ORIGIN("examind.allowed.origin", false, List.class),
+    
+    EXA_FS_STARTUP("examind.filesystem.clear.at.startup", false, Boolean.class);
 
     private final String key;
     private final boolean secure;

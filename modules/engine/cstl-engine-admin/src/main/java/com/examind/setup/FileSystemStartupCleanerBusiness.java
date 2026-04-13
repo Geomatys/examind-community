@@ -28,6 +28,8 @@ import org.constellation.business.IFileSystemStartupCleanerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.metadata.Metadata;
 import org.constellation.exception.ConstellationException;
@@ -68,7 +70,9 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
     
     @PostConstruct
     public void initFsConfiguration() {
-        cleanupDatas();
+        if (Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE)) {
+            cleanupDatas();
+        }
     }
     
     @Override

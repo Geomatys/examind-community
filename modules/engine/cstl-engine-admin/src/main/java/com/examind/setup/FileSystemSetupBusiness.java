@@ -59,6 +59,8 @@ import static com.examind.setup.FileSystemUtilities.*;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.Data;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.AbstractConfigurationObject;
@@ -134,7 +136,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     @PostConstruct
     public void initFsConfiguration() {
-        installDatas();
+        if (Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE)) {
+            installDatas();
+        }
     }
 
     @Override
