@@ -155,7 +155,7 @@ public class MetadataRestAPI extends AbstractRestAPI {
             for (final Map.Entry<String, Integer> entry : map.entrySet()) {
                 result.add(new Profile(entry.getKey(), entry.getValue()));
             }
-            
+
             // complete with profiles not registered yet in database
             if (all) {
                 final List<String> allProfiles = metadataBusiness.getProfilesMatchingType(dataType);
@@ -412,7 +412,7 @@ public class MetadataRestAPI extends AbstractRestAPI {
             map.put("general",general);
 
             return new ResponseEntity(map, OK);
-            
+
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING,"Cannot get metadata stats due to exception error : "+ ex.getLocalizedMessage());
             return new ErrorMessage(ex).build();
@@ -524,6 +524,20 @@ public class MetadataRestAPI extends AbstractRestAPI {
                 return new ResponseEntity(NOT_FOUND);
             }
 
+        } catch (Exception ex) {
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    @RequestMapping(value="/metadatas/import/{id}",method=POST,consumes=TEXT_PLAIN_VALUE)
+    public ResponseEntity<Void> importMetadata(@RequestBody String xml, @PathVariable("id") Integer id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
+        try {
+            final Object iso = metadataBusiness.unmarshallMetadata(xml);  // pour avoir l'object geotk
+            String identifier = Utils.findIdentifier(iso);
+            metadataBusiness.updateMetadata(identifier, iso, null, null, null, null, null, null, null, false); // pour save
+
+            return new ResponseEntity("Metadata updated with success", OK);
         } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }

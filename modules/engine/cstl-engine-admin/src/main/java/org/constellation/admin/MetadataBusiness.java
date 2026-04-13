@@ -972,7 +972,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<Metadata> metas = metadataRepository.findByDataId(dataId);
         List<Integer> metaIds = metas.stream().map(m -> m.getId()).collect(Collectors.toList());
         deleteMetadata(metaIds);
-        
+
     }
 
     /**
@@ -1083,7 +1083,7 @@ public class MetadataBusiness implements IMetadataBusiness {
             for (MetadataWithState metadata : metadatas) {
 
                 LinkedProvider lp = serviceRepository.isLinkedMetadataProviderAndService(service.getId(), metadata.getProviderId());
-                
+
                 /* Matching case :
                  * - The CSW take all the system metadata
                  * - The CSW is partial :
@@ -1103,14 +1103,14 @@ public class MetadataBusiness implements IMetadataBusiness {
                         }
                     }
                 }
-                
+
             }
             if (needRefresh) {
                 refreshCSWIndex(service.getIdentifier(), identifierToRemove, identifierToUpdate);
             }
         }
     }
-    
+
     private void refreshCSWIndex(String cswIdentifier, List<String> identifierToRemove, List<String> identifierToUpdate) throws ConstellationException {
         try {
             ICSWConfigurer configurer = (ICSWConfigurer) wsengine.newInstance(ServiceDef.Specification.CSW);

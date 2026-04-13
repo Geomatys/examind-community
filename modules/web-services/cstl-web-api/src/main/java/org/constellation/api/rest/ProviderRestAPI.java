@@ -96,7 +96,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
      * Reload a provider.
      *
      * @param providerId the provider ID as integer.
-     * 
+     *
      * @return HTTP code 200 if the reload went well.
      */
     @RequestMapping(value="/{id}/reload",method=GET,produces=APPLICATION_JSON_VALUE)
@@ -112,10 +112,10 @@ public class ProviderRestAPI extends AbstractRestAPI {
 
     /**
      * Test a provider configuration to see if its valid an contains recognized data.
-     * 
+     *
      * @param providerIdentifier assigned identifier.
      * @param configuration provider configuration.
-     * 
+     *
      * @return HTTP code 200 if the configuration is valid.
      */
     @RequestMapping(value="/{id}/test",method=POST,produces=APPLICATION_JSON_VALUE)
@@ -134,6 +134,12 @@ public class ProviderRestAPI extends AbstractRestAPI {
             return new ErrorMessage(e).build();
         }
         return new ResponseEntity(OK);
+    }
+
+    @RequestMapping(value="/{id}",method=GET,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity get(
+            @PathVariable("id") final int id) {
+        return new ResponseEntity(providerBusiness.getProvider(id), OK);
     }
 
     @RequestMapping(value="/{id}",method=PUT,produces=APPLICATION_JSON_VALUE)

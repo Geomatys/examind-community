@@ -221,6 +221,33 @@ public class DatasetRestAPI extends AbstractRestAPI {
     }
 
     /**
+     * Get the dataset with the specified {@literal datasetId}.
+     *
+     * @param datasetId the dataset id.
+     * @return a {@link ResponseEntity} with the appropriate HTTP status (and entity).
+     */
+    @RequestMapping(value = "/datasets/{datasetId}", method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity getDataset(
+            @PathVariable(value = "datasetId") int datasetId,
+            @RequestParam(value="includeData", required=true, defaultValue = "false") boolean includeData,
+            @RequestParam(value="published",   required=false) Boolean published,
+            @RequestParam(value="sensorable",  required=false) Boolean sensorable) {
+        try {
+            final List<DataBrief> datas;
+            if (includeData) {
+                datas = dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, sensorable, published, true, true);
+            } else {
+                datas = List.of();
+            }
+            final DataSetBrief brief = datasetBusiness.getDatasetBrief(datasetId, datas);
+            if (brief == null) return new ResponseEntity(NOT_FOUND);
+            return new ResponseEntity(brief, OK);
+        } catch (ConstellationException ex) {
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
      * Deletes the dataset with the specified {@literal datasetId}.
      *
      * @param datasetId the dataset id.
@@ -289,7 +316,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-    
+
     @RequestMapping(value="/datasets/{datasetId}/identifier/{newIdentifier}",method=POST)
     public ResponseEntity updateDatasetIdentifier(@PathVariable(value = "datasetId") int datasetId, @PathVariable(value = "newIdentifier") String newIdentifier) {
         if (readOnlyAPI) return readOnlyModeActivated();
@@ -537,7 +564,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
         }
         return results;
     }
-    
+
     @RequestMapping(value="/datasets/{datasetId}/export",method=POST,produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity exportDataset(@PathVariable("datasetId") int datasetId) {
         try {
@@ -575,7 +602,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
                     return new ErrorMessage(ex).build();
                 }
             }
-        
+
             //create ZIP
             final Path zip = Files.createTempFile("exported_data" , ".zip");
             Files.deleteIfExists(zip);
