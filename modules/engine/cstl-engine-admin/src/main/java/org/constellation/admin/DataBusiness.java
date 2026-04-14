@@ -48,7 +48,6 @@ import org.constellation.configuration.Application;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.DataDescription;
 import org.constellation.dto.DataSet;
 import org.constellation.dto.Dimension;
 import org.constellation.dto.DimensionRange;
@@ -616,8 +615,8 @@ public class DataBusiness implements IDataBusiness {
 
     protected void deleteDatasetIfEmpty(Integer datasetID) throws ConstellationException {
         if (datasetID != null) {
-            List<Data> datas = dataRepository.findAllByDatasetId(datasetID);
-            if (datas.isEmpty()) {
+            Integer dataCount = datasetRepository.getDataCount(datasetID);
+            if (dataCount <= 0) {
                 metadataBusiness.deleteDatasetMetadata(datasetID);
                 datasetRepository.delete(datasetID);
             }
@@ -805,8 +804,7 @@ public class DataBusiness implements IDataBusiness {
     @Override
     @Transactional
     public MetadataLightBrief updateMetadata(int dataId, Object newMetadata, final boolean hidden) throws ConstellationException {
-        final Data data = dataRepository.findById(dataId);
-        if (data != null) {
+        if (dataRepository.existsById(dataId)) {
             Integer internalProviderID = metadataBusiness.getDefaultInternalProviderID();
             if (internalProviderID != null) {
                 Object oldMetadata = metadataBusiness.getIsoMetadataForData(dataId);
@@ -882,9 +880,7 @@ public class DataBusiness implements IDataBusiness {
     @Override
     @Transactional
     public void updateDataDataSetId(final Integer dataId, final Integer datasetId) {
-        final Data data = dataRepository.findById(dataId);
-        data.setDatasetId(datasetId);
-        dataRepository.update(data);
+        dataRepository.updateDatasetId(dataId, datasetId);
     }
 
     /**
@@ -893,9 +889,7 @@ public class DataBusiness implements IDataBusiness {
     @Override
     @Transactional
     public void updateDataHidden(final int dataId, boolean value) {
-        final Data data = dataRepository.findById(dataId);
-        data.setHidden(value);
-        dataRepository.update(data);
+        dataRepository.updateDataHidden(dataId, value);
     }
 
 
@@ -963,12 +957,7 @@ public class DataBusiness implements IDataBusiness {
         }
 
         // find unused title
-        String title = data.getName();
-        int i = 1;
-        while (metadataBusiness.existMetadataTitle(title)) {
-            title = data.getName() + '_' + i;
-            i++;
-        }
+        String title = metadataBusiness.findAvailableTitle(data.getName());
 
         // initialize metadata
         final Properties prop = configBusiness.getMetadataTemplateProperties();

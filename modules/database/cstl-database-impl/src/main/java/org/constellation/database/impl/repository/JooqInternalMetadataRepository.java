@@ -24,7 +24,6 @@ import org.constellation.dto.metadata.InternalMetadata;
 import com.examind.database.api.jooq.tables.records.InternalMetadataRecord;
 import org.constellation.repository.InternalMetadataRepository;
 import org.jooq.Select;
-import org.jooq.UpdateSetFirstStep;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -52,17 +51,30 @@ public class JooqInternalMetadataRepository extends AbstractJooqRespository<Inte
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(INTERNAL_METADATA)
-                .where(INTERNAL_METADATA.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(INTERNAL_METADATA)
+               .where(INTERNAL_METADATA.ID.eq(id))
+        );
     }
+    
+    @Override
+    public boolean existsByMetadataId(String id) {
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(INTERNAL_METADATA)
+               .where(INTERNAL_METADATA.METADATA_ID.eq(id))
+        );
+    }
+
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public InternalMetadata update(InternalMetadata metadata) {
-        UpdateSetFirstStep<InternalMetadataRecord> update = dsl.update(INTERNAL_METADATA);
-        update.set(INTERNAL_METADATA.METADATA_ID, metadata.getMetadataId());
-        update.set(INTERNAL_METADATA.METADATA_ISO, metadata.getMetadataIso()).where(INTERNAL_METADATA.ID.eq(metadata.getId())).execute();
+        dsl.update(INTERNAL_METADATA)
+        .set(INTERNAL_METADATA.METADATA_ID, metadata.getMetadataId())
+        .set(INTERNAL_METADATA.METADATA_ISO, metadata.getMetadataIso())
+        .where(INTERNAL_METADATA.ID.eq(metadata.getId())).execute();
         return metadata;
     }
 

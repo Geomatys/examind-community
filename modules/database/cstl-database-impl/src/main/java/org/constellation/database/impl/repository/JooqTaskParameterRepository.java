@@ -81,9 +81,11 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(Tables.TASK_PARAMETER)
-                .where(Tables.TASK_PARAMETER.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(Tables.TASK_PARAMETER)
+               .where(Tables.TASK_PARAMETER.ID.eq(id))
+        );
     }
 
     @Override

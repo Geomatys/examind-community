@@ -35,6 +35,8 @@ public interface ProviderRepository extends AbstractRepository {
     List<String> getProviderIds();
 
     Integer findIdForIdentifier(String providerIdentifier);
+    
+    boolean existsByIdentifier(String providerIdentifier);
 
     ProviderBrief findByIdentifier(String providerIdentifier);
 

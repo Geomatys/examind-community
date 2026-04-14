@@ -102,10 +102,12 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
     }
 
     @Override
-    public boolean existsById(Integer styleId) {
-        return dsl.selectCount().from(ATTACHMENT)
-                .where(ATTACHMENT.ID.eq(styleId))
-                .fetchOne(0, Integer.class) > 0;
+    public boolean existsById(Integer attId) {
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(ATTACHMENT)
+               .where(ATTACHMENT.ID.eq(attId))
+        );
     }
 
     @Override
@@ -142,8 +144,8 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
                                   .where(METADATA_X_ATTACHMENT.METADATA_ID.eq(metadataId))
                                   .fetchInto(Integer.class);
         dsl.delete(METADATA_X_ATTACHMENT).where(METADATA_X_ATTACHMENT.METADATA_ID.eq(metadataId)).execute();
-        for (Integer attId : attIds) {
-            dsl.delete(ATTACHMENT).where(ATTACHMENT.ID.eq(attId)).execute();
+        if (!attIds.isEmpty()) {
+            dsl.delete(ATTACHMENT).where(ATTACHMENT.ID.in(attIds)).execute();
         }
     }
 

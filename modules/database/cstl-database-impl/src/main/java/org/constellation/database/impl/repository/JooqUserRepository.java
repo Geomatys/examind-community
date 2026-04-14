@@ -89,9 +89,11 @@ public class JooqUserRepository extends
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(CSTL_USER)
-                .where(CSTL_USER.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(CSTL_USER)
+               .where(CSTL_USER.ID.eq(id))
+        );
     }
 
     /**

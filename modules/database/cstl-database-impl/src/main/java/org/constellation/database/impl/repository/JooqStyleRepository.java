@@ -216,9 +216,11 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
 
     @Override
     public boolean existsById(Integer styleId) {
-        return dsl.selectCount().from(STYLE)
-                .where(STYLE.ID.eq(styleId))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(STYLE)
+               .where(STYLE.ID.eq(styleId))
+        );
     }
 
     @Override

@@ -59,9 +59,11 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(PROVIDER)
-                .where(PROVIDER.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(PROVIDER)
+               .where(PROVIDER.ID.eq(id))
+        );
     }
 
     @Override
@@ -90,6 +92,15 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     }
 
     @Override
+    public boolean existsByIdentifier(String providerIdentifier) {
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(PROVIDER)
+               .where(PROVIDER.IDENTIFIER.eq(providerIdentifier))
+        );
+    }
+    
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Integer create(ProviderBrief provider) {
         ProviderRecord newRecord = dsl.newRecord(PROVIDER);
@@ -105,10 +116,13 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(Integer id) {
-        List<Integer> metadIds = dsl.select(METADATA.ID).from(METADATA).where(METADATA.PROVIDER_ID.eq(id)).fetchInto(Integer.class);
-        for (Integer metadId : metadIds) {
-            dsl.delete(INTERNAL_METADATA).where(INTERNAL_METADATA.ID.eq(metadId)).execute();
-        }
+        dsl.delete(INTERNAL_METADATA)
+           .where(INTERNAL_METADATA.ID.in(
+                dsl.select(METADATA.ID)
+                   .from(METADATA)
+                   .where(METADATA.PROVIDER_ID.eq(id))
+            ))
+           .execute();
         dsl.delete(METADATA).where(METADATA.PROVIDER_ID.eq(id)).execute();
         dsl.delete(SENSOR).where(SENSOR.PROVIDER_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_SOS).where(PROVIDER_X_SOS.PROVIDER_ID.eq(id)).execute();

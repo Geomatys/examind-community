@@ -70,9 +70,11 @@ public class JooqInternalSensorRepository extends AbstractJooqRespository<Intern
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(INTERNAL_SENSOR)
-                .where(INTERNAL_SENSOR.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(INTERNAL_SENSOR)
+               .where(INTERNAL_SENSOR.ID.eq(id))
+        );
     }
 
     @Override

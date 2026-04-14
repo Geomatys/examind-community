@@ -65,9 +65,9 @@ public class InternalMetadataBusiness implements IInternalMetadataBusiness{
         InternalMetadata metadata = new InternalMetadata();
         metadata.setMetadataIso(metadataXMl);
         metadata.setMetadataId(metadataID);
-        Metadata global = metadataRepository.findByMetadataId(metadataID);
+        Integer global = metadataRepository.findIdByMetadataId(metadataID);
         if (global != null) {
-            metadata.setId(global.getId());
+            metadata.setId(global);
         } else {
             metadata.setId(metadataRepository.create(meta));
         }
@@ -94,7 +94,7 @@ public class InternalMetadataBusiness implements IInternalMetadataBusiness{
 
     @Override
     public boolean existMetadata(String metadataID) {
-        return intMetadataRepository.findByMetadataId(metadataID) != null;
+        return intMetadataRepository.existsByMetadataId(metadataID);
     }
 
     @Override

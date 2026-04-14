@@ -1,6 +1,5 @@
 package org.constellation.provider.datastore;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -208,6 +207,11 @@ public class ProxyTest {
         @Override
         public boolean existMetadataTitle(String title) {
             throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
+        }
+
+        @Override
+        public String findAvailableTitle(String title) {
+            throw new UnsupportedOperationException("Not supported yet"); // "Guilhem Legal (Geomatys)" on 09/04/2026
         }
 
         @Override

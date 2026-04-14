@@ -28,7 +28,9 @@ import org.constellation.dto.metadata.InternalMetadata;
 public interface InternalMetadataRepository extends AbstractRepository {
 
     InternalMetadata findByMetadataId(String metadataId);
-
+    
+    boolean existsByMetadataId(String metadataId);
+    
     InternalMetadata update(InternalMetadata metadata);
 
     int create(InternalMetadata metadata);

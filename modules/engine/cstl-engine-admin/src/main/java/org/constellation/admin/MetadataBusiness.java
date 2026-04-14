@@ -69,7 +69,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
@@ -285,7 +284,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final String resume    = MetadataUtilities.extractResume(meta);
         Integer parentID       = null;
         final String parent    = MetadataUtilities.extractParent(meta);
-        Metadata parentRecord  = metadataRepository.findByMetadataId(parent);
+        Metadata parentRecord  = parent != null ? metadataRepository.findByMetadataId(parent) : null;
         if (parentRecord != null) {
             parentID = parentRecord.getId();
         }
@@ -407,8 +406,7 @@ public class MetadataBusiness implements IMetadataBusiness {
 
         // update in store
         final DataProvider provider = DataProviders.getProvider(providerId);
-        if (provider instanceof MetadataProvider) {
-            final MetadataProvider mdProvider = (MetadataProvider) provider;
+        if (provider instanceof MetadataProvider mdProvider) {
             try {
                 if (update) {
                     mdProvider.replaceMetadata(metadataId, metaNode);
@@ -430,8 +428,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     public boolean updatePartialMetadata(String metadataId, Map<String, Object> properties, Integer providerId) throws ConstellationException {
         // update in store ? update metadata table properties?
         final DataProvider provider = DataProviders.getProvider(providerId);
-        if (provider instanceof MetadataProvider) {
-            final MetadataProvider mdProvider = (MetadataProvider) provider;
+        if (provider instanceof MetadataProvider mdProvider) {
             Metadata metadata = metadataRepository.findByMetadataId(metadataId);
             try {
                 boolean result = mdProvider.updateMetadata(metadataId, properties);
@@ -463,6 +460,14 @@ public class MetadataBusiness implements IMetadataBusiness {
         return metadataRepository.existMetadataTitle(title);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String findAvailableTitle(String title) {
+        return metadataRepository.findAvailableTitle(title);
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -969,8 +974,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void deleteDataMetadata(final int dataId) throws ConstellationException {
-        final List<Metadata> metas = metadataRepository.findByDataId(dataId);
-        List<Integer> metaIds = metas.stream().map(m -> m.getId()).collect(Collectors.toList());
+        List<Integer> metaIds = metadataRepository.findMetataDataIdsByDataId(dataId);
         deleteMetadata(metaIds);
 
     }
@@ -1032,10 +1036,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void deleteFromProvider(int identifier) throws ConstellationException {
-        deleteMetadata(metadataRepository.findByProviderId(identifier, null)
-                                         .stream()
-                                         .map(m -> m.getId())
-                                         .collect(Collectors.toList()));
+        deleteMetadata(metadataRepository.findIdByProviderId(identifier, null));
     }
 
     /**
@@ -1808,8 +1809,7 @@ public class MetadataBusiness implements IMetadataBusiness {
 
     private String getMetadataXMLFromStore(final int providerId, final String metadataId) throws ConfigurationException {
         final org.constellation.provider.Data data = DataProviders.getProviderData(providerId, null, metadataId);
-        if (data instanceof MetadataData) {
-            final MetadataData md = (MetadataData) data;
+        if (data instanceof MetadataData md) {
             try {
                 final Node n = md.getMetadata();
                 return NodeUtilities.getStringFromNode(n);
@@ -1929,8 +1929,8 @@ public class MetadataBusiness implements IMetadataBusiness {
             }
 
             //update dateStamp for metadata
-            if (isoMetadata instanceof DefaultMetadata) {
-                ((DefaultMetadata)isoMetadata).setDateStamp(new Date());
+            if (isoMetadata instanceof DefaultMetadata dmt) {
+                dmt.setDateStamp(new Date());
             }
             final String metadataID = Utils.findIdentifier(isoMetadata);
 
@@ -1962,8 +1962,8 @@ public class MetadataBusiness implements IMetadataBusiness {
             }
 
             //update dateStamp for metadata
-            if (isoMetadata instanceof DefaultMetadata) {
-                ((DefaultMetadata)isoMetadata).setDateStamp(new Date());
+            if (isoMetadata instanceof DefaultMetadata dmt) {
+                dmt.setDateStamp(new Date());
             }
             final String metadataID = Utils.findIdentifier(isoMetadata);
 

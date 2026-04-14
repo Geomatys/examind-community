@@ -229,16 +229,20 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     public boolean existsById(Integer sensorId) {
-        return dsl.selectCount().from(SENSOR)
-                .where(SENSOR.ID.eq(sensorId))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(SENSOR)
+               .where(SENSOR.ID.eq(sensorId))
+        );
     }
 
     @Override
     public boolean existsByIdentifier(String sensorId) {
-        return dsl.selectCount().from(SENSOR)
-                .where(SENSOR.IDENTIFIER.eq(sensorId))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(SENSOR)
+               .where(SENSOR.IDENTIFIER.eq(sensorId))
+        );
     }
 
     @Override

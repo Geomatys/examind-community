@@ -59,7 +59,11 @@ public class JooqSceneRepository extends AbstractJooqRespository<SceneRecord, co
 
     @Override
     public boolean isUsedName(String name) {
-        return dsl.fetchCount(dsl.select().from(Tables.SCENE).where(Tables.SCENE.NAME.eq(name))) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(Tables.SCENE)
+               .where(Tables.SCENE.NAME.eq(name))
+        );
     }
 
     @Override

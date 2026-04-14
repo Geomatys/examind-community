@@ -72,6 +72,14 @@ public interface IMetadataBusiness {
      * @return boolean to indicates if metadata with the specified title is present or not.
      */
     boolean existMetadataTitle(final String title);
+    
+    /**
+     * Returns a suffixed metadata title if the specified title is already used.
+     * 
+     * @param title
+     * @return  a suffixed metadata title if the specified title is already used.
+     */
+    String findAvailableTitle(final String title);
 
     /**
      * Returns a cout of all metadata wuth the specified filters.

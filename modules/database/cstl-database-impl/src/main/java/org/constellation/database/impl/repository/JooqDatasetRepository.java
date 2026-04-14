@@ -159,16 +159,20 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
 
     @Override
     public boolean existsById(Integer datasetId) {
-        return dsl.selectCount().from(DATASET)
-                .where(DATASET.ID.eq(datasetId))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(DATASET)
+               .where(DATASET.ID.eq(datasetId))
+        );
     }
 
     @Override
     public boolean existsByName(String datasetName) {
-        return dsl.selectCount().from(DATASET)
-                .where(DATASET.IDENTIFIER.eq(datasetName))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(DATASET)
+               .where(DATASET.IDENTIFIER.eq(datasetName))
+        );
     }
 
     @Override

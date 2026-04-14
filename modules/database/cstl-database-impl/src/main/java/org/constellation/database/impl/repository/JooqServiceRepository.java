@@ -372,11 +372,12 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void linkSensorProvider(int serviceId, int providerID, boolean allSensor) {
-        boolean exist = dsl.selectCount()
-                           .from(PROVIDER_X_SOS)
-                           .where(PROVIDER_X_SOS.PROVIDER_ID.eq(providerID))
-                           .and(PROVIDER_X_SOS.SOS_ID.eq(serviceId))
-                           .fetchOneInto(Integer.class) > 0;
+        boolean exist = dsl.fetchExists(
+            dsl.selectOne()
+               .from(PROVIDER_X_SOS)
+               .where(PROVIDER_X_SOS.PROVIDER_ID.eq(providerID))
+               .and(PROVIDER_X_SOS.SOS_ID.eq(serviceId)));
+        
         if (exist) {
             dsl.update(PROVIDER_X_SOS).set(PROVIDER_X_SOS.ALL_SENSOR, allSensor)
                                       .where(PROVIDER_X_SOS.PROVIDER_ID.eq(providerID))

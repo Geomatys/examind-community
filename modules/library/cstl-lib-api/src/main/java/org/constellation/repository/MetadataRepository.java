@@ -36,6 +36,8 @@ public interface MetadataRepository extends AbstractRepository {
     Metadata update(MetadataComplete metadata);
 
     List<Metadata> findByDataId(int dataId);
+    
+    List<Integer> findMetataDataIdsByDataId(int dataId);
 
     Metadata findByDatasetId(int id);
 
@@ -44,10 +46,14 @@ public interface MetadataRepository extends AbstractRepository {
     Metadata findByMapContextId(int mapContextId);
 
     Metadata findByMetadataId(String metadataId);
+   
+    Integer findIdByMetadataId(String metadataId);
 
     Metadata findById(int id);
 
     List<Metadata> findByProviderId(final Integer providerId, final String type);
+    
+    List<Integer> findIdByProviderId(final Integer providerId, final String type);
 
     List<Metadata> findAll(final boolean includeService, final boolean onlyPublished);
 
@@ -70,12 +76,12 @@ public interface MetadataRepository extends AbstractRepository {
     List<String> findMetadataIDByProviderId(final Integer providerID, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
     
     List<String> findLinkedMetadataID(final Integer serviceID, final Integer providerID, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
+    
+    List<String> findMetadataID(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type, final Boolean hidden);
 
     int countLinkedMetadata(final Integer serviceId, final Integer providerId, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
 
     int countMetadataByProviderId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
-
-    List<String> findMetadataID(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type, final Boolean hidden);
 
     int countMetadata(final boolean includeService, final boolean onlyPublished, final Integer providerID, final String type);
 
@@ -126,6 +132,8 @@ public interface MetadataRepository extends AbstractRepository {
     boolean existInternalMetadata(final String metadataID, final boolean includeService, final boolean onlyPublished, final Integer providerID);
 
     boolean existMetadataTitle(final String title);
+    
+    String findAvailableTitle(final String baseTitle);
 
     void linkMetadataData(int metadataID, int dataId);
 

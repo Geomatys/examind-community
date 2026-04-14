@@ -9,13 +9,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.opengis.geometry.Envelope;
@@ -112,14 +110,14 @@ final class DataStoreHandle implements AutoCloseable {
         final GenericName key = forceAbsolutePath(dataName);
         final CachedData data = index.get(store, key.toString());
 
-        if (store instanceof FeatureStore) {
-            ((FeatureStore) store).deleteFeatureType(data.dataName.toString());
-        } else if (store instanceof WritableAggregate) {
+        if (store instanceof FeatureStore fs) {
+            fs.deleteFeatureType(data.dataName.toString());
+        } else if (store instanceof WritableAggregate wa) {
             Resource sisData = data.getOrCreate(null).getOrigin();
-            if (sisData instanceof ResourceProxy) {
-                sisData = ((ResourceProxy)sisData).getOrigin();
+            if (sisData instanceof ResourceProxy rp) {
+                sisData = rp.getOrigin();
             }
-            ((WritableAggregate) store).remove(sisData);
+            wa.remove(sisData);
         } else return false;
 
         index.remove(store, key);
@@ -183,10 +181,9 @@ final class DataStoreHandle implements AutoCloseable {
         String local = dataName.tip().toString();
         if ("".equals(ns)) ns = null;
         
-        final org.constellation.dto.Data databaseData = dataBiz.findDataFromProvider(ns, local, providerName);
-        if (databaseData == null || databaseData.getId() == null)
-            throw new ConstellationException(String.format("No data found for name %s in provider %s", dataName, providerName));
-        return databaseData.getId();
+        final Integer dataId = dataBiz.findIdFromProvider(ns, local, providerName);
+        if (dataId == null) throw new ConstellationException(String.format("No data found for name %s in provider %s", dataName, providerName));
+        return dataId;
     }
 
     /**

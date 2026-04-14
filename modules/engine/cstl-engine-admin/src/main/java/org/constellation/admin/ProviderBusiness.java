@@ -138,6 +138,11 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
     @Override
+    public boolean existIdentifier(String providerId) {
+         return providerRepository.existsByIdentifier(providerId);
+    }
+
+    @Override
     public ProviderBrief getProvider(Integer id) {
         return providerRepository.findOne(id);
     }

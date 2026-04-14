@@ -114,9 +114,11 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(THESAURUS)
-                .where(THESAURUS.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(THESAURUS)
+               .where(THESAURUS.ID.eq(id))
+        );
     }
 
     @Override

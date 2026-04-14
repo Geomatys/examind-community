@@ -58,6 +58,8 @@ public interface IProviderBusiness {
     List<ProviderBrief> getProviders();
 
     Integer getIDFromIdentifier(String providerId);
+    
+    boolean existIdentifier(String providerId);
 
     /**
      * Create and save a provider object from input identifier and {@link org.constellation.dto.ProviderConfiguration} object.

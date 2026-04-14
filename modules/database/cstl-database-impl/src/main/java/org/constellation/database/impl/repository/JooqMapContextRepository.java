@@ -121,9 +121,11 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
 
     @Override
     public boolean existsByName(String name) {
-        return dsl.selectCount().from(MAPCONTEXT)
-                .where(MAPCONTEXT.NAME.eq(name))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(MAPCONTEXT)
+               .where(MAPCONTEXT.NAME.eq(name))
+        );
     }
 
     @Override
@@ -187,9 +189,11 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(MAPCONTEXT)
-                .where(MAPCONTEXT.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(MAPCONTEXT)
+               .where(MAPCONTEXT.ID.eq(id))
+        );
     }
 
     @Override

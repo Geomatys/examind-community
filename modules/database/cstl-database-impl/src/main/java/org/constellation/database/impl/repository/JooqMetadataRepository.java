@@ -169,9 +169,11 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(METADATA)
-                .where(METADATA.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(METADATA)
+               .where(METADATA.ID.eq(id))
+        );
     }
 
     @Override
@@ -186,6 +188,11 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     }
 
     @Override
+    public Integer findIdByMetadataId(String metadataId) {
+        return dsl.select(METADATA.ID).from(METADATA).where(METADATA.METADATA_ID.eq(metadataId)).fetchOneInto(Integer.class);
+    }
+    
+    @Override
     public Metadata findById(int id) {
         return convertToDto(
                 dsl.select().from(METADATA).where(METADATA.ID.eq(id)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
@@ -196,6 +203,11 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         return convertListToDto(dsl.select().from(METADATA).where(METADATA.DATA_ID.eq(dataId)).fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
+    @Override
+    public List<Integer> findMetataDataIdsByDataId(int dataId) {
+        return dsl.select(METADATA.ID).from(METADATA).where(METADATA.DATA_ID.eq(dataId)).fetchInto(Integer.class);
+    }
+    
     @Override
     public Metadata findByDatasetId(int datasetId) {
         return convertToDto(
@@ -428,6 +440,15 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
             filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
         }
         return convertListToDto(filterQuery.fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
+    }
+    
+    @Override
+    public List<Integer> findIdByProviderId(final Integer providerId, final String type) {
+        SelectConditionStep<Record1<Integer>> filterQuery = dsl.select(METADATA.ID).from(METADATA).where(METADATA.PROVIDER_ID.eq(providerId));
+        if (type != null) {
+            filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
+        }
+        return filterQuery.fetchInto(Integer.class);
     }
 
     @Override
@@ -761,11 +782,38 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
     @Override
     public boolean existMetadataTitle(final String title) {
-        SelectConditionStep query = dsl.select(METADATA.ID).from(METADATA)
-                                       .where(METADATA.TITLE.eq(title));
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(METADATA)
+               .where(METADATA.TITLE.eq(title))
+        );
+    }
+    
+    @Override
+    public String findAvailableTitle(final String baseTitle) {
+        // Verify if the title exist as it.
+        boolean baseExists = dsl.fetchExists(dsl.selectOne().from(METADATA).where(METADATA.TITLE.eq(baseTitle)));
 
+        if (!baseExists) return baseTitle;
 
-        return dsl.fetchCount(query) != 0;
+        String regex = baseTitle + "_([0-9]+)";
+
+        Integer maxIndex = dsl.select(
+            DSL.max(
+                DSL.field(
+                    "CAST(REGEXP_REPLACE({0}, {1}, '\\1') AS INTEGER)",
+                    Integer.class,
+                    METADATA.TITLE,
+                    DSL.val(regex)
+                )
+            )
+        )
+        .from(METADATA)
+        .where(METADATA.TITLE.likeRegex(regex))
+        .fetchOneInto(Integer.class);
+
+        int next = (maxIndex == null ? 0 : maxIndex) + 1;
+        return baseTitle + "_" + next;
     }
 
     @Override

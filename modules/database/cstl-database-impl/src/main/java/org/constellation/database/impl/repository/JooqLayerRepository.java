@@ -151,9 +151,11 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, co
      */
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(LAYER)
-                .where(LAYER.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(LAYER)
+               .where(LAYER.ID.eq(id))
+        );
     }
 
     /**

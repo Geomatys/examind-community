@@ -60,9 +60,11 @@ public class JooqChainProcessRepository extends AbstractJooqRespository<ChainPro
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(CHAIN_PROCESS)
-                .where(CHAIN_PROCESS.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(CHAIN_PROCESS)
+               .where(CHAIN_PROCESS.ID.eq(id))
+        );
     }
 
     @Override

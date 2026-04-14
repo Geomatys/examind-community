@@ -70,9 +70,11 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
 
     @Override
     public boolean existsById(Integer id) {
-        return dsl.selectCount().from(DATASOURCE)
-                .where(DATASOURCE.ID.eq(id))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(DATASOURCE)
+               .where(DATASOURCE.ID.eq(id))
+        );
     }
 
     @Override
@@ -151,11 +153,11 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
 
     @Override
     public boolean hasSelectedPath(int id) {
-        int exist = dsl.selectCount()
-                       .from(DATASOURCE_SELECTED_PATH)
-                       .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
-                       .fetchOneInto(Integer.class);
-        return exist > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(DATASOURCE_SELECTED_PATH)
+               .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
+        );
     }
 
     @Override
@@ -184,11 +186,12 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
 
     @Override
     public boolean existSelectedPath(int id, String path) {
-        return dsl.selectCount()
-                  .from(DATASOURCE_SELECTED_PATH)
-                  .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
-                  .and(DATASOURCE_SELECTED_PATH.PATH.eq(path))
-                  .fetchOneInto(Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(DATASOURCE_SELECTED_PATH)
+               .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
+               .and(DATASOURCE_SELECTED_PATH.PATH.eq(path))
+        );
     }
 
     @Override
@@ -208,17 +211,19 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                                                  .set(DATASOURCE_PATH_STORE.PATH, dsPath.getPath())
                                                  .set(DATASOURCE_PATH_STORE.STORE, type.getKey())
                                                  .set(DATASOURCE_PATH_STORE.TYPE,  type.getValue()).execute();
-            int exist = dsl.selectCount().from(DATASOURCE_STORE)
-                             .where(DATASOURCE_STORE.DATASOURCE_ID.eq(dsPath.getDatasourceId()))
-                             .and(DATASOURCE_STORE.STORE.eq(type.getKey()))
-                             .and(DATASOURCE_STORE.TYPE.eq(type.getValue()))
-                             .fetchOneInto(Integer.class);
-            if (exist == 0) {
+            boolean exist = dsl.fetchExists(
+                dsl.selectOne()
+                   .from(DATASOURCE_STORE)
+                   .where(DATASOURCE_STORE.DATASOURCE_ID.eq(dsPath.getDatasourceId()))
+                   .and(DATASOURCE_STORE.STORE.eq(type.getKey()))
+                   .and(DATASOURCE_STORE.TYPE.eq(type.getValue()))
+            );
+            if (!exist) {
                 dsl.insertInto(DATASOURCE_STORE)
-                        .set(DATASOURCE_STORE.DATASOURCE_ID, dsPath.getDatasourceId())
-                        .set(DATASOURCE_STORE.STORE, type.getKey())
-                        .set(DATASOURCE_STORE.TYPE, type.getValue())
-                        .execute();
+                   .set(DATASOURCE_STORE.DATASOURCE_ID, dsPath.getDatasourceId())
+                   .set(DATASOURCE_STORE.STORE, type.getKey())
+                   .set(DATASOURCE_STORE.TYPE, type.getValue())
+                   .execute();
             }
         }
 
@@ -305,13 +310,15 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                 .set(DATASOURCE_PATH_STORE.STORE, type.getKey())
                 .set(DATASOURCE_PATH_STORE.TYPE,  type.getValue())
                 .execute();
-            int exist = dsl.selectCount()
-                           .from(DATASOURCE_STORE)
-                           .where(DATASOURCE_STORE.DATASOURCE_ID.eq(dsPath.getDatasourceId()))
-                           .and(DATASOURCE_STORE.STORE.eq(type.getKey()))
-                           .and(DATASOURCE_STORE.TYPE.eq(type.getValue()))
-                           .fetchOneInto(Integer.class);
-            if (exist == 0) {
+            
+            boolean exist = dsl.fetchExists(
+                dsl.selectOne()
+                   .from(DATASOURCE_STORE)
+                   .where(DATASOURCE_STORE.DATASOURCE_ID.eq(dsPath.getDatasourceId()))
+                   .and(DATASOURCE_STORE.STORE.eq(type.getKey()))
+                   .and(DATASOURCE_STORE.TYPE.eq(type.getValue()))
+            );
+            if (!exist) {
                 dsl.insertInto(DATASOURCE_STORE)
                    .set(DATASOURCE_STORE.DATASOURCE_ID, dsPath.getDatasourceId())
                    .set(DATASOURCE_STORE.STORE, type.getKey())

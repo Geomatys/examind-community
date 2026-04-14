@@ -273,7 +273,24 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
                 .execute();
 
     }
-
+    
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateDatasetId(int dataId, int datasetId) {
+        dsl.update(DATA)
+                .set(DATA.DATASET_ID, datasetId)
+                .where(DATA.ID.eq(dataId))
+                .execute();
+    }
+    
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateDataHidden(int dataId, boolean hidden) {
+        dsl.update(DATA)
+                .set(DATA.HIDDEN, hidden)
+                .where(DATA.ID.eq(dataId))
+                .execute();
+    }
 
     @Override
     public Data findByIdentifierWithEmptyMetadata(String localPart) {
@@ -353,9 +370,11 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
 
     @Override
     public boolean existsById(Integer dataId) {
-        return dsl.selectCount().from(DATA)
-                .where(DATA.ID.eq(dataId))
-                .fetchOne(0, Integer.class) > 0;
+        return dsl.fetchExists(
+            dsl.selectOne()
+               .from(DATA)
+               .where(DATA.ID.eq(dataId))
+        );
     }
 
     /**
