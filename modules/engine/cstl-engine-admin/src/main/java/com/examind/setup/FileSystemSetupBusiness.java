@@ -18,14 +18,10 @@
  */
 package com.examind.setup;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import jakarta.annotation.PostConstruct;
-import java.net.URI;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +30,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.sis.io.stream.IOUtilities;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.util.ObjectConverters;
@@ -53,7 +48,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataSource;
 import com.examind.dto.fs.Collection;
 import com.examind.dto.fs.CollectionItem;
@@ -61,10 +55,11 @@ import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.DimensionItem;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
-import java.net.URISyntaxException;
+import static com.examind.setup.FileSystemUtilities.*;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import org.constellation.dto.Data;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.constellation.dto.service.config.generic.Automatic;
@@ -79,6 +74,7 @@ import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
+import org.constellation.repository.DataRepository;
 import org.geotoolkit.style.MutableStyle;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
@@ -114,6 +110,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     private IDataBusiness dataBusiness;
     
     @Autowired
+    private DataRepository dataRepository;
+    
+    @Autowired
     private IDatasourceBusiness datasourceBusiness;
     
     @Autowired
@@ -133,12 +132,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url");
     
-    private static final String COMPUTED_PROVIDER = "computed-resource";
-    
-    private static final List<String> DATA_CREATING_SERVICE = List.of("sts", "sos");
-    
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    
     @PostConstruct
     public void initFsConfiguration() {
         installDatas();
@@ -157,7 +150,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             // 1. install styles
             Path styleDir = configBusiness.getStylesDirectory();
             try (Stream<Path> stream = Files.walk(styleDir)) {
-                 stream.filter(this::sldFileFilter).forEach(path -> {
+                 stream.filter(FileSystemUtilities::sldFileFilter).forEach(path -> {
                     createStyleFromFile(path);
                 });
             }
@@ -200,7 +193,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private void createServiceFromFile(Path path) {
         try {
-            Service instance = mapper.readValue(path.toFile(), Service.class);
+            Service instance = FS_MAPPER.readValue(path.toFile(), Service.class);
             if (serviceBusiness.getServiceIdentifiers(instance.getType()).contains(instance.getIdentifier())) {
                 throw new ConfigurationException("Service identifier: " + instance.getIdentifier() + "(" +  instance.getType() + ") already used");
             }
@@ -218,11 +211,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     serviceBusiness.setConfiguration(sid, conf);
                 }
                 
-                Integer datasourceId  = null;
-                Datasource source = instance.getSource();
-                if (source != null) {
-                    datasourceId = createDatasource(source);
-                }
+                Integer datasourceId = createDatasource(instance.getSource());
+                
                 int pid = createOM2DatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                 serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
                 
@@ -315,9 +305,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 if (col.getDataSet() != null) {
                     
                     Integer styleId = (col.getDatasetStyle() != null) ? styleBusiness.getStyleId("sld", col.getDatasetStyle()) : null;
-                    List<DataBrief> datas = getDataFromCollection(col);
+                    List<Data> datas = getDataFromCollection(col);
                     
-                    for (DataBrief data : datas) {
+                    for (Data data : datas) {
                         
                         if (!isAllowedDataTypeForService(instance.getType(), data.getType(), data.getSubtype())) {
                             LOGGER.log(Level.FINER, "Data type: {0} not allowed for service: {1}", new Object[]{data.getType(), instance.getType()});
@@ -338,20 +328,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                                 styleId = styleBusiness.getStyleId("sld", custom.getStyle());
                             }
                             for (DimensionItem di : custom.getDimensions()) {
-                                final DimensionDefinition dimensionDef = new DimensionDefinition();
-                                dimensionDef.setCrs(di.getName());
-                                if (di.getColumn() != null) {
-                                    dimensionDef.setLower(di.getColumn());
-                                    dimensionDef.setUpper(di.getColumn());
-                                } else if (di.getColumnLower() != null && di.getColumnUpper() != null) {
-                                    dimensionDef.setLower(di.getColumnLower());
-                                    dimensionDef.setUpper(di.getColumnUpper());
-                                }
-
-                                newLayer.getDimensions().add(dimensionDef);
+                                newLayer.addDimension(new DimensionDefinition(di));
                             }
                         } else {
-                            title = data.getTitle();
+                            title = data.getName();
                         }
                         int layerId = layerBusiness.add(data.getId(), alias, data.getNamespace(), data.getName(), title, sid, newLayer);
                         if (styleId != null) {
@@ -367,7 +347,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
-    private List<DataBrief> getDataFromCollection(Collection col) throws ConstellationException {
+    private List<Data> getDataFromCollection(Collection col) throws ConstellationException {
         Integer dsId  = col.getDataSet() != null ? datasetBusiness.getDatasetId(col.getDataSet()) : null;
         
         if (col.getDataSet() != null && dsId == null) {
@@ -375,13 +355,13 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             return List.of();
         }
                     
-        List<DataBrief> datas = new ArrayList<>();
+        List<Data> datas = new ArrayList<>();
         if (col.isIncludeAll()) {
             if (dsId == null) {
                 LOGGER.log(Level.WARNING, "Include All collection require a dataset declaration");
                 return List.of();
             }
-            datas.addAll(dataBusiness.getDataBriefsFromDatasetId(dsId, true, false, null, null, false, false));
+            datas.addAll(dataRepository.findByDatasetId(dsId, true, false));
         } else {
             for (CollectionItem it : col.getData()) {
                 Map filter = new HashMap();
@@ -390,7 +370,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 if (it.getNamespace() != null) filter.put("namespace",   it.getNamespace());
                 if (it.getProvider()  != null) filter.put("provider_id", it.getProvider());
 
-                Entry<Integer, List<DataBrief>> candidates = dataBusiness.filterAndGetBrief(filter, null, 1, 2);
+                Entry<Integer, List<Data>> candidates = dataRepository.filterAndGet(filter, null, 1, 2);
                 if (candidates.getKey() == 0) {
                     LOGGER.log(Level.WARNING, "No data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
                 } else if (candidates.getKey() > 1) {
@@ -398,10 +378,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                                                        .append("\nname: ").append(it.getName())
                                                        .append("\nnamespace: ").append(it.getNamespace())
                                                        .append("\nAvailable candidates:");
-                    for (DataBrief db : candidates.getValue()) {
+                    for (Data db : candidates.getValue()) {
                         errorMsg.append("\n - name: ").append(db.getName());
                         if (db.getNamespace() != null) errorMsg.append(" namespace: ").append(db.getNamespace());
-                        errorMsg.append("provider_id: ").append(db.getProvider());
+                        errorMsg.append("provider_id: ").append(db.getProviderId());
                     }
                     LOGGER.warning(errorMsg.toString());
                 } else {
@@ -535,20 +515,21 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     }
     
     private Integer createDatasource(Datasource source) throws ConstellationException {
+        if (source == null) return null;
         String location = source.getLocation();
         String userName = source.getUserName();
         String pwd = source.getPassword();
         DataSource ds = new DataSource(null, "database", location, userName, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
-        return datasourceBusiness.create(ds);
+        return datasourceBusiness.getOrcreate(ds);
     }
     
     private void createProviderFromFile(final Path path) {
         try {
-            Provider providerConf = mapper.readValue(path.toFile(), Provider.class);
+            Provider providerConf = FS_MAPPER.readValue(path.toFile(), Provider.class);
 
             String dataType = providerConf.getDataType();
             String impl = providerConf.getProviderType();
-            String dataStr = providerConf.getLocation() != null ? providerConf.getLocation() : null;
+            String dataStr = providerConf.getLocation();
             String dataset = providerConf.getDataset();
             String providerIdentifier = providerConf.getIdentifier();
             String dirFilter = providerConf.getDirectoryFilter();
@@ -562,64 +543,35 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             
             // special case
             String pathParamName = null;
-            if ("coverage-xml-pyramid".equals(impl)) {
+            if (providerConf.getSource() != null) {
+                datasourceId  = createDatasource(providerConf.getSource());
+                if (datasourceId == null) throw new ConstellationException("Provider source missing for SQL provider.");
+            } else if ("coverage-xml-pyramid".equals(impl)) {
                 pathParamName = "path";
-            } else if (providerConf.getSource() != null) {
-                pathParamName = "datasourceId";
-                Datasource source = providerConf.getSource();
-                if (source != null) {
-                    datasourceId = createDatasource(source);
-                } else {
-                    throw new ConstellationException("Provider source missing for SQL provider.");
-                }
             // default case for file provider    
             } else if (dataStr != null) {
                 pathParamName = "location";
             }
             
-            // special case for folder
             List<Object> files = new ArrayList<>();
-            
-            if (datasourceId != null) {
-                files.add(datasourceId);
-            } else if (dataStr != null) {
+            if (dataStr != null) {
                 try {
-                    URI dataUri = getDataPath(path.getParent(), dataStr);
-                    Path dataDir = Paths.get(dataUri);
-                    if (dirPattern != null && Files.isDirectory(dataDir)) {
-                        try (Stream<Path> stream = Files.walk(dataDir)) {
-                            files.addAll(
-                                stream.filter(p -> regexFileFilter(p, dirPattern))
-                                      .map(p -> p.toUri())
-                                      .toList()
-                            );
-                        }
-                    } else {
-                        files.add(dataUri);
-                    }
+                    files.addAll(listFiles(path, dataStr, dirPattern));
                 } catch (FileSystemNotFoundException ex) {
                     LOGGER.log(Level.FINER, ex.getMessage(), ex);
                     files = List.of(dataStr);
                 }
-            } else {
+            } 
+            if (files.isEmpty()) {
                 files = List.of("NO_FILES");
             }
-
-            Integer dsId = dataset != null ? datasetBusiness.getDatasetId(dataset) : null;
-            if (dsId == null && dataset != null) {
-                dsId = datasetBusiness.createDataset(dataset, null, null);
-            }
+            
+            Integer dsId = dataset != null ? datasetBusiness.getOrCreateDataset(dataset, null) : null;
             
             // Acquire provider service instance.
-            DataProviderFactory storeService = null;
-            for (final DataProviderFactory service : DataProviders.getFactories()) {
-                if (service.getName().equals(dataType)) {
-                    storeService = service;
-                    break;
-                }
-            }
+            DataProviderFactory storeService = DataProviders.getFactory(dataType);
             if (storeService == null) {
-                throw new ConstellationException("Provider service not found.");
+                throw new ConstellationException("Provider service not found: " + dataType);
             }
             
             for (Object fileUri : files) {
@@ -635,7 +587,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                         throw new ConstellationException("Duplicated provider:" + currentProviderId);
                     }
 
-                    final ParameterValueGroup source = Parameters.castOrWrap(storeService.getProviderDescriptor().createValue());
+                    final Parameters source = Parameters.castOrWrap(storeService.getProviderDescriptor().createValue());
                     source.parameter("id").setValue(currentProviderId);
                     source.parameter("providerType").setValue(dataType);
 
@@ -646,10 +598,20 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     } else {
                         choice = choices.get(0);
                     }
-
-                    final ParameterValueGroup config = choice.addGroup(impl);
+                    
+                    final ParameterValueGroup config;
+                    try {
+                        config = choice.addGroup(impl);
+                    } catch(ParameterNotFoundException ex) {
+                        throw new ConstellationException("Unknow provider type: " + impl);
+                    }
+                    
                     if (pathParamName != null) {
                         config.parameter(pathParamName).setValue(fileUri);
+                    }
+                    
+                    if (datasourceId != null) {
+                        config.parameter("datasourceId").setValue(datasourceId);
                     }
 
                     ParameterDescriptorGroup configDescriptor = config.getDescriptor();
@@ -669,19 +631,18 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                      * special case for computed resource
                      */
                     if (COMPUTED_PROVIDER.equals(dataType)) {
-                        List<DataBrief> datas = new ArrayList<>();
+                        List<Data> datas = new ArrayList<>();
                         for (Collection col : providerConf.getComputedData()) {
                             datas.addAll(getDataFromCollection(col));
                         }
                         GeneralParameterDescriptor genParamDesc = configDescriptor.descriptor("data_ids");
                         if (genParamDesc instanceof ParameterDescriptor paramDesc) {
-                            for (DataBrief brief : datas) {
+                            for (Data brief : datas) {
                                 ParameterValue value = paramDesc.createValue();
                                 value.setValue(brief.getId());
                                 config.values().add(value);
                             }
                         }
-                        
                     }
 
                     // Create provider and generate data.
@@ -720,72 +681,5 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error while importing style file: " + path.getFileName().toString(), ex);
         }
-    }
-    
-    private static final List<String> VECTOR_ALLOWED = List.of("wfs", "wms");
-    private static final List<String> COVERAGE_ALLOWED = List.of("wcs", "wms");
-    
-    private boolean isAllowedDataTypeForService(String serviceType, String dataType, String subDataType) {
-        return switch (dataType.toLowerCase()) {
-            case "vector"     -> VECTOR_ALLOWED.contains(serviceType.toLowerCase());
-            case "coverage"   -> ("pyramid".equals(subDataType.toLowerCase()) && "wmts".equals(serviceType.toLowerCase())) ||
-                               (!"pyramid".equals(subDataType.toLowerCase()) && COVERAGE_ALLOWED.contains(serviceType.toLowerCase()));
-                
-            case "observation" -> ("VECTOR".equals(subDataType) && VECTOR_ALLOWED.contains(serviceType.toLowerCase())); 
-            
-            default -> false;
-        };
-    }
-    
-    private boolean regexFileFilter(Path path, Pattern dirPattern) {
-        return !Files.isDirectory(path) && dirPattern.matcher(path.getFileName().toString()).matches();
-    }
-    
-    private static URI getDataPath(Path parentDir, String dataStr) {
-        URI uri;
-        try {
-            URI parsed = new URI(dataStr);
-            if (parsed.getScheme() != null) {
-                uri = parsed;
-            } else {
-                uri = parentDir.resolve(dataStr).normalize().toUri();
-            }
-        } catch (URISyntaxException e) {
-            uri = parentDir.resolve(dataStr).toUri();
-        }
-        return uri;
-    }
-    
-    
-    private boolean providerFileFilter(Path path, boolean computedResource) {
-        if (!fileFilter(path, List.of("yaml", "yml"))) return false;
-        try {
-            Provider providerConf = mapper.readValue(path.toFile(), Provider.class);
-            return providerConf.getDataType()!= null && COMPUTED_PROVIDER.equals(providerConf.getDataType()) == computedResource;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-    
-    private boolean serviceFileFilter(Path path, boolean creatingData) {
-        if (!fileFilter(path, List.of("yaml", "yml"))) return false;
-        try {
-            Service serviceConf = mapper.readValue(path.toFile(), Service.class);
-            return serviceConf.getType() != null && DATA_CREATING_SERVICE.contains(serviceConf.getType()) == creatingData;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-    
-    private boolean ymlFileFilter(Path path) {
-        return fileFilter(path, List.of("yaml", "yml"));
-    }
-    
-    private boolean sldFileFilter(Path path) {
-        return fileFilter(path, List.of("sld", "xml"));
-    }
-    
-    private boolean fileFilter(Path path, List<String> allowedExt) {
-        return !Files.isDirectory(path) && allowedExt.contains(FileNameUtils.getExtension(path));
     }
 }
