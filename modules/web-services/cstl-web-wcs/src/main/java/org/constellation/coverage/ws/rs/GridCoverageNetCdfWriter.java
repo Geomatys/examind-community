@@ -64,6 +64,9 @@ public class GridCoverageNetCdfWriter implements HttpMessageConverter<NetCdfResp
     public void write(NetCdfResponse entry, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         File f = null;
         try {
+            // Adding attachement filename specification solve issues with downloaded content without extension
+            // (Without this line, the browser download `coverage` instead of `coverage.nc`)
+            outputMessage.getHeaders().set("Content-Disposition", "attachment; filename=\"coverage.nc\"");
             f = writeInFile(entry);
             byte[] buf = new byte[8192];
             try (FileInputStream is = new FileInputStream(f);
