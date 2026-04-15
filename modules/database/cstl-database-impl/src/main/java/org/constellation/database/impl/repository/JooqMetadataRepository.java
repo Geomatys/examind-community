@@ -47,6 +47,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.SQLDialect;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectConnectByStep;
@@ -790,32 +791,61 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     }
     
     @Override
-    public String findAvailableTitle(final String baseTitle) {
-        // Verify if the title exist as it.
-        boolean baseExists = dsl.fetchExists(dsl.selectOne().from(METADATA).where(METADATA.TITLE.eq(baseTitle)));
+    public String findAvailableTitle(final String baseName) {
+        boolean baseExists = dsl.fetchExists(
+                dsl.selectOne().from(METADATA).where(METADATA.TITLE.eq(baseName))
+        );
 
-        if (!baseExists) return baseTitle;
+        if (!baseExists) {
+            return baseName;
+        }
 
-        String regex = baseTitle + "_([0-9]+)";
-
-        Integer maxIndex = dsl.select(
-            DSL.max(
-                DSL.field(
-                    "CAST(REGEXP_REPLACE({0}, {1}, '\\1') AS INTEGER)",
-                    Integer.class,
-                    METADATA.TITLE,
-                    DSL.val(regex)
-                )
-            )
-        )
-        .from(METADATA)
-        .where(METADATA.TITLE.likeRegex(regex))
-        .fetchOneInto(Integer.class);
-
-        int next = (maxIndex == null ? 0 : maxIndex) + 1;
-        return baseTitle + "_" + next;
+        int next = isPostgres() ? findMaxIndexPostgres(baseName) : findMaxIndexHsql(baseName);
+        return baseName + "_" + next;
     }
 
+    private boolean isPostgres() {
+        return dsl.dialect() == SQLDialect.POSTGRES;
+    }
+
+    private int findMaxIndexPostgres(final String baseName) {
+        Integer maxIndex = dsl.select(
+                DSL.max(
+                        DSL.field(
+                                "CAST(SUBSTRING({0} FROM {1}) AS INTEGER)",
+                                Integer.class,
+                                METADATA.TITLE,
+                                DSL.val("^" + baseName + "_(\\d+)$")
+                        )
+                )
+        )
+                .from(METADATA)
+                .where(METADATA.TITLE.likeRegex("^" + baseName + "_\\d+$"))
+                .fetchOneInto(Integer.class);
+
+        return (maxIndex == null ? 0 : maxIndex) + 1;
+    }
+
+    private int findMaxIndexHsql(final String baseName) {
+        String regex = "^" + baseName + "_([0-9]+)";
+
+        Integer maxIndex = dsl.select(
+                DSL.max(
+                        DSL.field(
+                                "CAST(REGEXP_REPLACE({0}, {1}, '\\1') AS INTEGER)",
+                                Integer.class,
+                                METADATA.TITLE,
+                                DSL.val(regex)
+                        )
+                )
+        )
+                .from(METADATA)
+                .where(METADATA.TITLE.likeRegex(regex))
+                .fetchOneInto(Integer.class);
+
+        return (maxIndex == null ? 0 : maxIndex) + 1;
+    }
+    
     @Override
     public List<Integer> findAllIds() {
         return dsl.select(METADATA.ID).from(METADATA).fetchInto(Integer.class);

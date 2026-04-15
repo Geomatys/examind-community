@@ -19,9 +19,14 @@
 package org.constellation.admin;
 
 import jakarta.annotation.PostConstruct;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.util.NodeUtilities;
@@ -62,6 +67,57 @@ public class MetadataBusinessTest extends AbstractBusinessTest {
         }
         Assert.assertTrue(exlanched);
 
+    }
+    
+    /**
+     * A bug was appearing on this test with an older version of metadataBusiness#findAvailableTitle but only in postgresql
+     * @throws Exception 
+     */
+    @Test
+    public void findAvailableTitleTest() throws Exception {
+        AtomicInteger cpt = new AtomicInteger();
+        
+        String title = metadataBusiness.findAvailableTitle("barotropic_sea_water_velocity");
+        Assert.assertEquals("barotropic_sea_water_velocity", title);
+        String metadataID = "some-id-" + cpt.incrementAndGet();
+        String xml = MetadataUtilities.fillMetadataFromProperties(new Properties(), "raster", metadataID , title, null, Optional.empty(), List.of());
+        DefaultMetadata templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
+        metadataBusiness.updateMetadata(metadataID, templateMetadata, null, null, null, null, providerID, "DOC", null, false);
+        
+        title = metadataBusiness.findAvailableTitle("barotropic_sea_water_velocity");
+        Assert.assertEquals("barotropic_sea_water_velocity_1", title);
+        metadataID = "some-id-" + cpt.incrementAndGet();
+        xml = MetadataUtilities.fillMetadataFromProperties(new Properties(), "raster", metadataID , title, null, Optional.empty(), List.of());
+        templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
+        metadataBusiness.updateMetadata(metadataID, templateMetadata, null, null, null, null, providerID, "DOC", null, false);
+        
+        title = metadataBusiness.findAvailableTitle("barotropic_sea_water_velocity");
+        Assert.assertEquals("barotropic_sea_water_velocity_2", title);
+        metadataID = "some-id-" + cpt.incrementAndGet();
+        xml = MetadataUtilities.fillMetadataFromProperties(new Properties(), "raster", metadataID , title, null, Optional.empty(), List.of());
+        templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
+        metadataBusiness.updateMetadata(metadataID, templateMetadata, null, null, null, null, providerID, "DOC", null, false);
+        
+        title = metadataBusiness.findAvailableTitle("sea_water_velocity");
+        Assert.assertEquals("sea_water_velocity", title);
+        metadataID = "some-id-" + cpt.incrementAndGet();
+        xml = MetadataUtilities.fillMetadataFromProperties(new Properties(), "raster", metadataID , title, null, Optional.empty(), List.of());
+        templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
+        metadataBusiness.updateMetadata(metadataID, templateMetadata, null, null, null, null, providerID, "DOC", null, false);
+        
+        title = metadataBusiness.findAvailableTitle("sea_water_velocity");
+        Assert.assertEquals("sea_water_velocity_1", title);
+        metadataID = "some-id-" + cpt.incrementAndGet();
+        xml = MetadataUtilities.fillMetadataFromProperties(new Properties(), "raster", metadataID , title, null, Optional.empty(), List.of());
+        templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
+        metadataBusiness.updateMetadata(metadataID, templateMetadata, null, null, null, null, providerID, "DOC", null, false);
+        
+        title = metadataBusiness.findAvailableTitle("sea_water_velocity");
+        Assert.assertEquals("sea_water_velocity_2", title);
+        metadataID = "some-id-" + cpt.incrementAndGet();
+        xml = MetadataUtilities.fillMetadataFromProperties(new Properties(), "raster", metadataID , title, null, Optional.empty(), List.of());
+        templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
+        metadataBusiness.updateMetadata(metadataID, templateMetadata, null, null, null, null, providerID, "DOC", null, false);
     }
 
 
