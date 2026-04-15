@@ -18,6 +18,7 @@
  */
 package com.examind.setup;
 
+import com.examind.community.storage.sql.CoverageSQLProvider.CoverageSQLStore;
 import jakarta.annotation.PostConstruct;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
@@ -56,11 +57,14 @@ import com.examind.dto.fs.DimensionItem;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import static com.examind.setup.FileSystemUtilities.*;
+import java.net.URI;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import org.apache.sis.storage.DataStoreException;
 import org.constellation.dto.Data;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.AbstractConfigurationObject;
@@ -73,6 +77,7 @@ import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
+import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
@@ -501,6 +506,58 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    private Integer createCoverageSQLProvider(Provider providerConf, Integer datasetId, Integer datasourceId, List<Object> files) throws Exception {
+        if (datasourceId == null) {
+            throw new ConstellationException("Provider source missing for SQL provider.");
+        }
+        
+        final String providerIdentifier = "csql-" + datasourceId;
+        Integer prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
+        
+        // we keep only one provider by datasource
+        if (prId == null) {
+            final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
+            final ParameterValueGroup source    = dsFactory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dsFactory.getStoreDescriptor(), source);
+            final ParameterValueGroup config = choice.addGroup("exa-coverage-sql");
+            config.parameter("datasourceId").setValue(datasourceId);
+            config.parameter("rootDirectory").setValue(Path.of("/"));
+            prId = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
+        }
+        
+        DataProvider provider = DataProviders.getProvider(prId);
+        CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
+        
+        String productName = providerConf.getAdvancedParameters().get("productName");
+        boolean asChild   = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("asChild", "false"));
+        boolean worldGG   = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("worldGG", "false"));
+        String wgrStr     = providerConf.getAdvancedParameters().get("worldGGResolution");
+        Double worldGGRes = wgrStr != null ? Double.valueOf(wgrStr) : null;
+        
+        List<Path> dataPaths = files.stream().map(uri -> Paths.get((URI)uri)).toList();
+        try {
+            store.createProduct(productName, worldGG, worldGGRes, asChild, dataPaths);
+        } catch (DataStoreException ex) {
+            throw new ConstellationException("Error while adding raster into coverage sql", ex);
+        }
+        
+        provider.reload();
+        providerBusiness.createOrUpdateData(prId, null, false, false, null);
+
+        List<Integer> productIds = new ArrayList<>();
+        List<Data> datas = dataRepository.findByProviderId(prId);
+        for (Data data : datas) {
+            if (data.getName().equals(productName)     ||  // single product
+                data.getNamespace().equals(productName)) { // aggregated product
+                productIds.add(data.getId());
+                dataBusiness.updateDataDataSetId(data.getId(), datasetId);
+            }
+        }
+        dataBusiness.acceptDatas(productIds, null, false);
+        return prId;
+    }
+    
     private Integer createSensorFSProvider(String serviceId, String path) {
         try {
             final String providerIdentifier = "sensorSrc-" + serviceId;
@@ -571,6 +628,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             }
             
             Integer dsId = dataset != null ? datasetBusiness.getOrCreateDataset(dataset, null) : null;
+            
+            if ("coverage-sql".equals(impl)) {
+                createCoverageSQLProvider(providerConf, dsId, datasourceId, files);
+                return;
+            }
             
             // Acquire provider service instance.
             DataProviderFactory storeService = DataProviders.getFactory(dataType);

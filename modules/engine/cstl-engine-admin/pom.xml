@@ -48,6 +48,11 @@
             <artifactId>cstl-store-provider</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.examind.community.storage.sql</groupId>
+            <artifactId>exa-store-data-coveragesql</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Geotk dependencies -->
         <dependency>

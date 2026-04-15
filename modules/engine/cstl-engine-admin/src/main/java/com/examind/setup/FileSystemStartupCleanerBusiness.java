@@ -18,6 +18,7 @@
  */
 package com.examind.setup;
 
+import com.examind.community.storage.sql.CoverageSQLProvider.CoverageSQLStore;
 import jakarta.annotation.PostConstruct;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +34,8 @@ import org.constellation.configuration.Application;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.metadata.Metadata;
 import org.constellation.exception.ConstellationException;
+import org.constellation.provider.DataProvider;
+import org.constellation.provider.DataProviders;
 import org.constellation.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -87,8 +90,12 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
             // clear previous configuration
             serviceBusiness.deleteAll();
             
-            // we need to put on a special case for fs metadata provider in order to not delete the metatadata files
+           
             for (ProviderBrief pb : providerBusiness.getProviders()) {
+                
+                 DataProvider provider = DataProviders.getProvider(pb.getId(), true);
+                 
+                // special case for fs metadata provider in order to not delete the metatadata files
                 if ("metadata-store".equals(pb.getImpl()) && pb.getConfig().contains("FilesystemMetadata")) {
                     for (Metadata m : metadataRepository.findByProviderId(pb.getId(), null)) {
                         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
@@ -99,6 +106,22 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
                         });
                     }
                 }
+                
+                // special case for coverage-sql removal
+                if ("data-store".equals(pb.getImpl()) && pb.getConfig().contains("coverage-sql")) {
+                    try {
+                        // this time we really want to instanciate it if not alread
+                        if (provider == null) {
+                            provider = DataProviders.getProvider(pb.getId());
+                        }
+                        CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
+                        store.removeAllProducts();
+                        
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, "Unable to remove the coverage-sql store.", ex);
+                    }
+                }
+                if (provider != null) provider.dispose();
             }
             
             providerBusiness.removeAll();
