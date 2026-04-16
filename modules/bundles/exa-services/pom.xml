@@ -234,6 +234,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.examind.community.storage.sql</groupId>
+            <artifactId>exa-store-data-coveragesql</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>examind-engine-computed-data</artifactId>
             <version>${project.version}</version>
@@ -308,6 +313,17 @@
         <dependency>
             <groupId>org.apache.sis.storage</groupId>
             <artifactId>sis-earth-observation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sis.profiles</groupId>
+            <artifactId>sis-japan-profile</artifactId>
+            <version>${sis.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Logging -->
         <dependency>

@@ -11,14 +11,14 @@
     </parent>
 
     <groupId>com.examind.community.storage.sql</groupId>
-    <artifactId>exa-store-data-sql</artifactId>
+    <artifactId>exa-store-data-coveragesql</artifactId>
     <packaging>jar</packaging>
-    <name>Provider : SQL datastore</name>
-    <description>Thin wrapper over Apache SIS SQL datastore to ease configuration and usage</description>
+    <name>Provider : COVERAGE SQL datastore</name>
+    <description>Thin wrapper over Geotoolkit coverage-sql datastore to ease configuration and usage</description>
     <dependencies>
         <dependency>
-            <groupId>org.apache.sis.storage</groupId>
-            <artifactId>sis-sqlstore</artifactId>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-coverage-sql</artifactId>
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
