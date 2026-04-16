@@ -135,15 +135,20 @@ public final class DataProviders {
         return getProvider(id);
     }
 
+    public synchronized static DataProvider getProvider(final int providerId) throws ConfigurationException{
+        return getProvider(providerId, false);
+    }
+    
     /**
      * Get DataProvider from identifier.
      *
      * @param providerId provider identifier.
+     * @param fromCacheOnly if set to {@code true} the provider will not be instanciated if not already cached.
      * @return Never {@code null}.
      */
-    public synchronized static DataProvider getProvider(final int providerId) throws ConfigurationException{
+    public synchronized static DataProvider getProvider(final int providerId, boolean fromCacheOnly) throws ConfigurationException{
         DataProvider provider = CACHE.get(providerId);
-        if(provider!=null) return provider;
+        if (provider != null || fromCacheOnly) return provider;
 
         //load provider from configuration
         final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class)

@@ -52,13 +52,13 @@ public class DatasetStyleLinkerProcess extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
 
-        final StyleProcessReference style   = inputParameters.getValue(STYLE);
+        final StyleProcessReference style     = inputParameters.getValue(STYLE);
         final DatasetProcessReference dataset = inputParameters.getValue(DATASET);
 
-        final List<Data> briefs = dataRepository.findByDatasetId(dataset.getId());
-        for (Data brief : briefs) {
+        final List<Integer> dIds = dataRepository.findIdsByDatasetId(dataset.getId(), true, false);
+        for (Integer dId : dIds) {
             try {
-                styleBusiness.linkToData(style.getId(), brief.getId());
+                styleBusiness.linkToData(style.getId(), dId);
             } catch (ConfigurationException ex) {
                 throw new ProcessException("Error while linking data and style", this, ex);
             }

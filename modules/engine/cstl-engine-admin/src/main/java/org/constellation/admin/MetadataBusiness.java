@@ -351,7 +351,7 @@ public class MetadataBusiness implements IMetadataBusiness {
             String dataType = null;
             if (dataset != null) {
                 metadata.setDatasetId(dataset.getId());
-                List<Data> datas = dataRepository.findByDatasetId(dataset.getId());
+                List<Data> datas = dataRepository.findByDatasetId(dataset.getId(), true, false);
                 if (!datas.isEmpty()) {
                     dataType = datas.get(0).getType();
                 }

@@ -403,10 +403,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
 
             try {
-                Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
-                if (datasetId == null)  {
-                    datasetId = datasetBusiness.createDataset(datasetIdentifier, null, null);
-                }
+                Integer datasetId = datasetBusiness.getOrCreateDataset(datasetIdentifier, null);
 
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
 

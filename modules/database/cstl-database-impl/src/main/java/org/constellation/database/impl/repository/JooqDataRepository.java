@@ -68,6 +68,7 @@ import static com.examind.database.api.jooq.Tables.SENSORED_DATA;
 import static com.examind.database.api.jooq.Tables.SERVICE;
 import static com.examind.database.api.jooq.Tables.STYLED_DATA;
 import org.constellation.exception.ConstellationPersistenceException;
+import org.jooq.Record;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
@@ -153,22 +154,23 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
 
     @Override
     public List<Data> findByProviderId(Integer id) {
-        return convertDataListToDto(dsl.select()
-                                   .from(DATA)
-                                   .where(DATA.PROVIDER.eq(id))
-                                   .fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
+        return findByProviderId(id, null, null, null);
     }
 
-
     @Override
-    public List<Data> findByProviderId(Integer id, String dataType, boolean included, boolean hidden) {
-        SelectConditionStep c = dsl.select(DATA.fields()).from(DATA)
-                .where(DATA.PROVIDER.eq(id)).and(DATA.INCLUDED.eq(included)).and(DATA.HIDDEN.eq(hidden));
+    public List<Data> findByProviderId(Integer id, String dataType, Boolean included, Boolean hidden) {
+        SelectConditionStep where = dsl.selectFrom(DATA).where(DATA.PROVIDER.eq(id));
 
-        if (dataType != null) {
-            c = c.and(DATA.TYPE.eq(dataType));
+        if (included != null) {
+            where = where.and(DATA.INCLUDED.eq(included));
         }
-        return convertDataListToDto(c.fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
+        if (hidden != null) {
+            where = where.and(DATA.HIDDEN.eq(hidden));
+        }
+        if (dataType != null) {
+            where = where.and(DATA.TYPE.eq(dataType));
+        }
+        return convertDataListToDto(where.fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
     }
 
     @Override
@@ -189,37 +191,28 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
-    public List<Integer> findIdsByDatasetId(Integer id, boolean included, boolean hidden) {
-        SelectConditionStep c = dsl.select(DATA.ID).from(DATA)
-                .where(DATA.DATASET_ID.eq(id)).and(DATA.INCLUDED.eq(included)).and(DATA.HIDDEN.eq(hidden));
-        return c.fetchInto(Integer.class);
+    public List<Integer> findIdsByDatasetId(Integer id, Boolean included, Boolean hidden) {
+        SelectConditionStep where = dsl.select(DATA.ID).from(DATA).where(DATA.DATASET_ID.eq(id));
+        if (included != null) {
+            where = where.and(DATA.INCLUDED.eq(included));
+        }
+        if (hidden != null) {
+            where = where.and(DATA.HIDDEN.eq(hidden));
+        }
+        return where.fetchInto(Integer.class);
     }
 
     @Override
-    public List<Data> findByDatasetId(Integer id) {
-        return convertDataListToDto(dsl.select()
-                                   .from(DATA)
-                                   .where(DATA.DATASET_ID.eq(id))
-                                   .and(DATA.INCLUDED.eq(Boolean.TRUE))
-                                   .and(DATA.HIDDEN.isNull().or(DATA.HIDDEN.isFalse()))
-                                   .fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    @Override
-    public List<Data> findByDatasetId(Integer id, boolean included, boolean hidden) {
-        return convertDataListToDto(dsl.select().from(DATA)
-                                   .where(DATA.DATASET_ID.eq(id))
-                                   .and(DATA.INCLUDED.eq(included))
-                                   .and(DATA.HIDDEN.eq(hidden))
-                                   .fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    @Override
-    public List<Data> findAllByDatasetId(Integer id) {
-        return convertDataListToDto(dsl.select()
-                                   .from(DATA)
-                                   .where(DATA.DATASET_ID.eq(id))
-                                   .fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
+    public List<Data> findByDatasetId(Integer id, Boolean included, Boolean hidden) {
+        
+        SelectConditionStep<Record> where = dsl.select().from(DATA).where(DATA.DATASET_ID.eq(id));
+        if (included != null) {
+            where = where.and(DATA.INCLUDED.eq(included));
+        }
+        if (hidden != null) {
+            where = where.and(DATA.HIDDEN.eq(hidden));
+        }
+        return convertDataListToDto(where.fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
     }
 
     @Override

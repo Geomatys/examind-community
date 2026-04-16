@@ -22,7 +22,6 @@ import static com.examind.process.datacombine.AbstractDataCombineDescriptor.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.process.DataProcessReference;
@@ -66,7 +65,7 @@ public abstract class AbstractDataCombineProcess extends AbstractCstlProcess {
 
         List<Integer> dataIds;
         if (dataset != null) {
-            dataIds = dataRepository.findByDatasetId(dataset.getId()).stream().map(f -> f.getId()).collect(Collectors.toList());
+            dataIds = dataRepository.findIdsByDatasetId(dataset.getId(), true, false);
         } else {
             dataIds = new ArrayList<>();
             for (DataProcessReference dp : datas) {

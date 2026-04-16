@@ -58,21 +58,17 @@ public interface DataRepository extends AbstractRepository {
 
     Data findByMetadataId(String metadataId);
 
-    List<Data> findByProviderId(Integer id);
-
     List<Integer> findIdsByProviderId(Integer id);
-
-    List<Data> findByProviderId(Integer id, String dataType, boolean included, boolean hidden);
 
     List<Integer> findIdsByProviderId(Integer id, String dataType, boolean included, boolean hidden);
 
-    List<Integer> findIdsByDatasetId(Integer id, boolean included, boolean hidden);
+    List<Integer> findIdsByDatasetId(Integer id, Boolean included, Boolean hidden);
+    
+    List<Data> findByProviderId(Integer id);
+    
+    List<Data> findByProviderId(Integer id, String dataType, Boolean included, Boolean hidden);
 
-    List<Data> findByDatasetId(Integer id);
-
-    List<Data> findByDatasetId(Integer datasetId, boolean included, boolean hidden);
-
-    List<Data> findAllByDatasetId(Integer id);
+    List<Data> findByDatasetId(Integer datasetId, Boolean included, Boolean hidden);
 
     List<Data> findByServiceId(Integer id);
 

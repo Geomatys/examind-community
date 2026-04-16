@@ -314,6 +314,13 @@ public class LayerConfig extends Layer {
         }
         return dimensions;
     }
+    
+    public void addDimension(DimensionDefinition dd) {
+        if (dimensions == null) {
+            dimensions = new ArrayList<>();
+        }
+        dimensions.add(dd);
+    }
 
     public void setDimensions(final List<DimensionDefinition> dimensions) {
         this.dimensions = dimensions;

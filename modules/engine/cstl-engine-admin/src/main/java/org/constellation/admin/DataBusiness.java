@@ -346,7 +346,7 @@ public class DataBusiness implements IDataBusiness {
         final Data data         = dataRepository.findByMetadataId(metadataId);
         final Service service   = serviceRepository.findByMetadataId(metadataId);
         if (dataset != null){
-            dataResult = dataRepository.findByDatasetId(dataset.getId());
+            dataResult = dataRepository.findByDatasetId(dataset.getId(), true, false);
         } else if (service!= null) {
             dataResult = dataRepository.findByServiceId(service.getId());
         } else if (data != null) {

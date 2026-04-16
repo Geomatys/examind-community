@@ -121,12 +121,12 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals(Integer.valueOf(3), dataRepository.countAll(false));
         Assert.assertEquals(Integer.valueOf(5), dataRepository.countAll(true));
 
-        List<Data> datas = dataRepository.findAllByDatasetId(dsid);
+        List<Data> datas = dataRepository.findByDatasetId(dsid, null, null);
         Assert.assertTrue(datas.contains(data1));
         Assert.assertTrue(datas.contains(data2));
         Assert.assertTrue(datas.contains(data3));
 
-        datas = dataRepository.findAllByDatasetId(dsid2);
+        datas = dataRepository.findByDatasetId(dsid2, null, null);
         Assert.assertTrue(datas.contains(data4));
         Assert.assertTrue(datas.contains(data5));
 

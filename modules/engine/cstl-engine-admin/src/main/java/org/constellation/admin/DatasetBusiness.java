@@ -115,6 +115,14 @@ public class DatasetBusiness implements IDatasetBusiness {
     }
 
     @Override
+    @Transactional
+    public Integer getOrCreateDataset(String identifier, Integer userId) throws ConstellationException {
+        Integer pid = datasetRepository.findIdForIdentifier(identifier);
+        if (pid != null) return pid;
+        return createDataset(identifier, userId, null);
+    }
+
+    @Override
     public List<Integer> getAllDatasetIds() {
         List<Integer> result = datasetRepository.getAllIds();
         if (result == null) {
@@ -222,6 +230,7 @@ public class DatasetBusiness implements IDatasetBusiness {
         if (ds != null) {
             final Integer p = providerRepository.findIdForIdentifier(providerId);
             if (p != null) {
+                // TODO optimize this update
                 final List<Data> datas = dataRepository.findByProviderId(p);
                 for (Data data : datas) {
                     data.setDatasetId(ds);
@@ -239,14 +248,14 @@ public class DatasetBusiness implements IDatasetBusiness {
     @Override
     public void removeDataset(Integer datasetId) throws ConstellationException {
         if (datasetId != null) {
-            final Set<Data> linkedData = new HashSet<>();
+            final Set<Integer> linkedData = new HashSet<>();
 
             // 1. List dataset data
-            linkedData.addAll(dataRepository.findAllByDatasetId(datasetId));
+            linkedData.addAll(dataRepository.findIdsByDatasetId(datasetId, null, null));
 
             // 2. delete data
-            for (Data data : linkedData) {
-                dataBusiness.removeData(data.getId(), false);
+            for (Integer dataId : linkedData) {
+                dataBusiness.removeData(dataId, false);
             }
 
             // 4. remove dataset metadata

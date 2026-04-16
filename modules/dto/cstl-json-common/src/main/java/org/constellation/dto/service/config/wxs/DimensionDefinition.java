@@ -18,6 +18,7 @@
  */
 package org.constellation.dto.service.config.wxs;
 
+import com.examind.dto.fs.DimensionItem;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -46,6 +47,17 @@ public class DimensionDefinition {
         this.crs = crs;
         this.lower = lower;
         this.upper = upper;
+    }
+    
+    public DimensionDefinition(DimensionItem di) {
+        this.crs = di.getName();
+        if (di.getColumn() != null) {
+            this.lower = di.getColumn();
+            this.upper = lower;
+        } else if (di.getColumnLower() != null && di.getColumnUpper() != null) {
+            this.lower = di.getColumnLower();
+            this.upper = di.getColumnUpper();
+        }
     }
 
     public String getCrs() {

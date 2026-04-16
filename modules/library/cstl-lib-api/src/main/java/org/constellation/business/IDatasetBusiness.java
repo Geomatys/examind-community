@@ -115,6 +115,8 @@ public interface IDatasetBusiness {
     void linkDataTodataset(DataSet dataset, List<Data> datas);
 
     Integer getDatasetId(String identifier);
+    
+    Integer getOrCreateDataset(String identifier, Integer userId) throws ConstellationException;
 
     List<DatasetProcessReference> getAllDatasetReference();
 
