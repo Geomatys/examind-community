@@ -17,12 +17,10 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.matrix.Matrices;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
-import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.aggregate.CoverageAggregator;
-import org.apache.sis.storage.aggregate.MergeStrategy;
 import org.apache.sis.util.iso.Names;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.Data;
@@ -129,7 +127,7 @@ public class CoverageTimeSeriesProvider extends ComputedResourceProvider {
                 }
                 final OffsetDateTime startDate = getStartDate(r);
                 var target = addTime(r.getGridGeometry(), startDate.toInstant(), Duration.between(startDate, startDate.plusYears(1)));
-                r = new ResourceProcessor().resample(r, target, null);
+                r = new ResourceProcessor().resample(r, target);
                 agg.add(r);
             } catch (DataStoreException e) {
                 throw new IllegalArgumentException("Cannot add data in aggregate", e);

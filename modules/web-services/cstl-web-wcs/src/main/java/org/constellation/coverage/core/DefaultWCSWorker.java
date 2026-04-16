@@ -190,7 +190,6 @@ import org.geotoolkit.ows.xml.v110.BoundingBoxType;
 import org.geotoolkit.ows.xml.v110.CodeType;
 import org.geotoolkit.ows.xml.v110.SectionsType;
 import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
-import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.resources.Errors;
 import org.geotoolkit.storage.ResourceProcessor;
 import org.geotoolkit.style.MutableStyle;
@@ -1403,7 +1402,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 try {
                     var processor = new ResourceProcessor();
                     processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
-                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
+                    processor.setIdentifier(data.getName());
+                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg);
 
                     CoverageQuery query = new CoverageQuery();
                     query.setSelection(readGg);
@@ -1419,8 +1419,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 try {
                     var processor = new ResourceProcessor();
                     processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+                    processor.setIdentifier(data.getName());
 
-                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
+                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg);
                     gridCoverageSource = coverageResourceResampled.read(readGg);
                     crs = gridCoverageSource.getCoordinateReferenceSystem();
                 } catch (Exception ex) {
@@ -2053,8 +2054,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 try {
                     var processor = new ResourceProcessor();
                     processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+                    processor.setIdentifier(data.getName());
 
-                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
+                    GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg);
                     gridCoverageSource = coverageResourceResampled.read(readGg);
                 } catch (Exception ex) {
                     throw new CstlServiceException("Error while resampling the coverage to calculate statistics.", ex, NO_APPLICABLE_CODE);

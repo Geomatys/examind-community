@@ -598,7 +598,7 @@ public class GridAggregation extends DataStore implements GridCoverageResource {
                 GridGeometry resultGeometry = addTime(gcr.getGridGeometry(), fileConfiguration.startdate().toInstant(),
                         Duration.between(fileConfiguration.startdate(), fileConfiguration.enddate()));
 
-                gcr = new ResourceProcessor().resample(gcr, resultGeometry, null);
+                gcr = new ResourceProcessor().resample(gcr, resultGeometry);
                 stores.add(ds);
                 resources.add(gcr);
             }
