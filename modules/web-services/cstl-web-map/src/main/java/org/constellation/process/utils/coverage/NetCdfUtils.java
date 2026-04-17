@@ -35,6 +35,7 @@ import org.opengis.referencing.cs.CoordinateSystem;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.Matrix;
+import org.opengis.referencing.operation.TransformException;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -54,30 +55,20 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Utilities for writting NetCDF
+ * Utilities for writing NetCDF. Includes phantom axis detection,
+ * non-spatial multidimensional handling, regular grid bounds check,
+ * and swath/curvilinear auxiliary coordinate formatting.
  *
  * @author Quentin Bialota (Geomatys)
  */
 public final class NetCdfUtils {
-    /**
-     * Axis role deduced from CRS inspection
-     */
+    /** Axis role deduced from CRS inspection */
     private enum AxisRole { LON, LAT, TIME, VERTICAL, OTHER }
 
     /**
-     * Writes a {@link GridCoverage} to a CF-1.8 compliant NetCDF-4 file using the UCAR library.
-     *
-     * <p>The output file will contain:
-     * <ul>
-     *   <li>Global attributes: {@code Conventions = "CF-1.8"}, {@code history}.</li>
-     *   <li>One 1-D coordinate variable per CRS axis (lat, lon, time, depth/height, …)
-     *       with CF-standard attributes ({@code standard_name}, {@code units}, {@code axis}).</li>
-     *   <li>One data variable per {@link SampleDimension} (band), with dimensions ordered
-     *       following CF convention: {@code (time?, z?, lat, lon, …)}</li>
-     * </ul>
-     *
-     * <p><strong>Important:</strong> NetCDF-4 writing requires the native {@code libnetcdf}
-     * C library at runtime (loaded via JNI by the UCAR {@code Nc4Iosp}).
+     * Writes a {@link GridCoverage} to a CF-1.8 compliant NetCDF file using the UCAR library.
+     * <p>Detects phantom dimensions, regular vs. swath grids, and writes everything
+     * into a properly formatted structure using NetCDF-3.
      *
      * @param coverage   source coverage — packed (non-converted) values are used
      * @param outputFile target path (created / overwritten)
@@ -112,23 +103,27 @@ public final class NetCdfUtils {
         final int[] crsToGrid = new int[nCrsDims];
         Arrays.fill(crsToGrid, -1);
 
-        final MathTransform gridToCRS = gg.getGridToCRS(PixelInCell.CELL_CENTER);
-        if (gridToCRS instanceof LinearTransform lt) {
-            final Matrix matrix = lt.getMatrix();
-            for (int crsIdx = 0; crsIdx < nCrsDims; crsIdx++) {
-                for (int gridIdx = 0; gridIdx < nGridDims; gridIdx++) {
-                    if (matrix.getElement(crsIdx, gridIdx) != 0.0) {
-                        crsToGrid[crsIdx] = gridIdx;
-                        break;
+        MathTransform gridToCRS = null;
+        boolean isCurvilinear = false;
+        try {
+            gridToCRS = gg.getGridToCRS(PixelInCell.CELL_CENTER);
+            if (gridToCRS instanceof LinearTransform lt) {
+                final Matrix matrix = lt.getMatrix();
+                for (int crsIdx = 0; crsIdx < nCrsDims; crsIdx++) {
+                    for (int gridIdx = 0; gridIdx < nGridDims; gridIdx++) {
+                        if (matrix.getElement(crsIdx, gridIdx) != 0.0) {
+                            crsToGrid[crsIdx] = gridIdx;
+                            break;
+                        }
                     }
                 }
+            } else {
+                isCurvilinear = true;
+                for (int i = 0; i < Math.min(nCrsDims, nGridDims); i++) {
+                    crsToGrid[i] = i;
+                }
             }
-        } else {
-            // Non-linear transform: assume 1-1 mapping up to the grid dimension count.
-            for (int i = 0; i < Math.min(nCrsDims, nGridDims); i++) {
-                crsToGrid[i] = i;
-            }
-        }
+        } catch (Exception ignored) { }
 
         // activeCrsDims[i] = CRS dimension index for the i-th NetCDF dimension
         // (phantom CRS dims are excluded).
@@ -151,9 +146,11 @@ public final class NetCdfUtils {
         final double[][]  coordValues = new double[nDims][]; // cell-centre coordinate values
 
         // Identify the temporal CRS once (needed for time→epoch conversion)
-        final TemporalCRS temporalCRS       = CRS.getTemporalComponent(crs);
-        final DefaultTemporalCRS defTmpCRS  = temporalCRS != null
+        final TemporalCRS temporalCRS      = CRS.getTemporalComponent(crs);
+        final DefaultTemporalCRS defTmpCRS = temporalCRS != null
                 ? DefaultTemporalCRS.castOrCopy(temporalCRS) : null;
+
+        int xIdx = -1, yIdx = -1;
 
         for (int i = 0; i < nDims; i++) {
             final int crsIdx  = activeCrsDims[i];
@@ -163,26 +160,16 @@ public final class NetCdfUtils {
             final AxisDirection        dir  = axis.getDirection();
             final DimensionNameType    dnt  = ge.getAxisType(gridIdx).orElse(null);
 
-            // --- classify ---
             if (dir == AxisDirection.EAST || dir == AxisDirection.WEST) {
-                roles[i]    = AxisRole.LON;
-                dimNames[i] = "lon";
+                roles[i] = AxisRole.LON; dimNames[i] = "lon"; xIdx = i;
             } else if (dir == AxisDirection.NORTH || dir == AxisDirection.SOUTH) {
-                roles[i]    = AxisRole.LAT;
-                dimNames[i] = "lat";
-            } else if (dnt == DimensionNameType.TIME
-                    || dir == AxisDirection.FUTURE
-                    || dir == AxisDirection.PAST
-                    || axis.getAbbreviation().toLowerCase().contains("t")) {
-                roles[i]    = AxisRole.TIME;
-                dimNames[i] = "time";
-            } else if (dir == AxisDirection.UP || dir == AxisDirection.DOWN
-                    || dnt == DimensionNameType.VERTICAL) {
-                roles[i]    = AxisRole.VERTICAL;
-                dimNames[i] = (dir == AxisDirection.DOWN) ? "depth" : "height";
+                roles[i] = AxisRole.LAT; dimNames[i] = "lat"; yIdx = i;
+            } else if (dnt == DimensionNameType.TIME || dir == AxisDirection.FUTURE || dir == AxisDirection.PAST || axis.getAbbreviation().toLowerCase().contains("t")) {
+                roles[i] = AxisRole.TIME; dimNames[i] = "time";
+            } else if (dir == AxisDirection.UP || dir == AxisDirection.DOWN || dnt == DimensionNameType.VERTICAL) {
+                roles[i] = AxisRole.VERTICAL; dimNames[i] = (dir == AxisDirection.DOWN) ? "depth" : "height";
             } else {
-                roles[i]    = AxisRole.OTHER;
-                dimNames[i] = "dim_" + i;
+                roles[i] = AxisRole.OTHER; dimNames[i] = "dim_" + i;
             }
 
             // --- size from GridExtent (grid dimension index) ---
@@ -196,9 +183,9 @@ public final class NetCdfUtils {
 
             final double[] vals = new double[size];
             if (roles[i] == AxisRole.LAT) {
-                // image row 0 = northernmost cell
+                final boolean rowZeroIsNorth = isRowZeroNorth(gg, crsIdx, size, nCrsDims);
                 for (int k = 0; k < size; k++) {
-                    vals[k] = max - (k + 0.5) * step;
+                    vals[k] = rowZeroIsNorth ? max - (k + 0.5) * step : min + (k + 0.5) * step;
                 }
             } else if (roles[i] == AxisRole.TIME && defTmpCRS != null) {
                 // Convert CRS temporal values → seconds since Unix epoch
@@ -215,23 +202,18 @@ public final class NetCdfUtils {
             coordValues[i] = vals;
         }
 
-        // ---- Find spatial axes -----------------------------------------------
-        int xIdx = -1, yIdx = -1;
-        for (int i = 0; i < nDims; i++) {
-            if (roles[i] == AxisRole.LON) xIdx = i;
-            if (roles[i] == AxisRole.LAT) yIdx = i;
-        }
         if (xIdx < 0 || yIdx < 0) {
             throw new IOException("Cannot locate horizontal (lon/lat) axes in the coverage CRS");
         }
-        // Grid dimension indices for the two spatial axes (needed to build slice extents)
-        final int gridXIdx = crsToGrid[activeCrsDims[xIdx]];
-        final int gridYIdx = crsToGrid[activeCrsDims[yIdx]];
 
-        // ---- Non-spatial dimensions ------------------------------------------
-        // Each non-spatial dimension requires its own render() call because
-        // coverage.render(null) only works when all extra dimensions are already
-        // reduced to a single cell.
+        final int crsXIdx  = activeCrsDims[xIdx];
+        final int crsYIdx  = activeCrsDims[yIdx];
+        final int gridXIdx = crsToGrid[crsXIdx];
+        final int gridYIdx = crsToGrid[crsYIdx];
+        final int width    = dimSizes[xIdx];
+        final int height   = dimSizes[yIdx];
+
+        // Create the non-spatial iterations configuration
         final List<Integer> nonSpatialPositions = new ArrayList<>();
         for (int i = 0; i < nDims; i++) {
             if (i != xIdx && i != yIdx) nonSpatialPositions.add(i);
@@ -239,25 +221,36 @@ public final class NetCdfUtils {
         int totalSlices = 1;
         for (int pos : nonSpatialPositions) totalSlices *= dimSizes[pos];
 
-        // ---- Data type from first slice --------------------------------------
-        final DataType ncDataType = toNcDataType(
-                renderSlice(coverage, ge, nGridDims, gridXIdx, gridYIdx,
-                        nonSpatialPositions, activeCrsDims, crsToGrid, dimSizes,
-                        new int[nonSpatialPositions.size()])
-                        .getSampleModel().getDataType());
+        final RenderedImage firstSlice = renderSlice(coverage, ge, nGridDims, gridXIdx, gridYIdx,
+                nonSpatialPositions, activeCrsDims, crsToGrid, dimSizes, new int[nonSpatialPositions.size()]);
+        final DataType ncDataType = toNcDataType(firstSlice.getSampleModel().getDataType());
 
-        // ---- Build CF dimension order for data variables ---------------------
-        // CF convention: T, Z, Y, X  (then any "other" axes appended)
+        if (isCurvilinear && gridToCRS != null) {
+            writeCurvilinear(outputFile, gridToCRS, crs, cs, ge, sds, nDims, nCrsDims, activeCrsDims, roles,
+                    dimNames, dimSizes, coordValues, xIdx, yIdx, gridXIdx, gridYIdx, crsXIdx, crsYIdx, width, height,
+                    nonSpatialPositions, totalSlices, ncDataType, coverage, nGridDims, crsToGrid);
+        } else {
+            writeRegular(outputFile, crs, cs, ge, sds, nDims, activeCrsDims, roles,
+                    dimNames, dimSizes, coordValues, xIdx, yIdx, gridXIdx, gridYIdx, width, height,
+                    nonSpatialPositions, totalSlices, ncDataType, coverage, nGridDims, crsToGrid);
+        }
+    }
+
+    // =========================================================================
+    // Regular grid
+    // =========================================================================
+
+    private static void writeRegular(Path outputFile, CoordinateReferenceSystem crs, CoordinateSystem cs, GridExtent ge,
+            List<SampleDimension> sds, int nDims, int[] activeCrsDims, AxisRole[] roles, String[] dimNames, int[] dimSizes,
+            double[][] coordValues, int xIdx, int yIdx, int gridXIdx, int gridYIdx, int width, int height,
+            List<Integer> nonSpatialPositions, int totalSlices, DataType ncDataType, GridCoverage coverage, int nGridDims, int[] crsToGrid)
+            throws IOException, InvalidRangeException {
+
         final int[] cfOrder = buildCfDimOrder(roles, nDims);
 
-        // ---- Open / write the NetCDF-4 file ----------------------------------
-        NetcdfFormatWriter.Builder writerBuilder =
-                NetcdfFormatWriter.createNewNetcdf3(outputFile.toString());
-
-        // -- Global attributes --
+        NetcdfFormatWriter.Builder writerBuilder = NetcdfFormatWriter.createNewNetcdf3(outputFile.toString());
         writerBuilder.addAttribute(new Attribute("Conventions", "CF-1.8"));
-        writerBuilder.addAttribute(new Attribute("history",
-                Instant.now() + " - Written by Examind using UCAR cdm-core"));
+        writerBuilder.addAttribute(new Attribute("history", Instant.now() + " - Written by Examind using UCAR cdm-core"));
 
         // -- Dimensions --
         final List<Dimension> dimensions = new ArrayList<>(nDims);
@@ -266,39 +259,26 @@ public final class NetCdfUtils {
         }
 
         // -- Coordinate variables (one per axis) --
-        final List<Variable.Builder<?>> coordVarBuilders = new ArrayList<>(nDims);
         for (int i = 0; i < nDims; i++) {
             final Variable.Builder<?> vb = writerBuilder.addVariable(dimNames[i], DataType.DOUBLE, List.of(dimensions.get(i)));
-            addCfCoordAttributes(vb, roles[i], cs.getAxis(activeCrsDims[i]), crs);
-            coordVarBuilders.add(vb);
+            addCfCoordAttributes(vb, roles[i], cs.getAxis(activeCrsDims[i]));
         }
 
         // -- Data variables (one per SampleDimension / band) --
         final List<Dimension> dataDimsOrdered = new ArrayList<>(nDims);
-        for (int idx : cfOrder) {
-            dataDimsOrdered.add(dimensions.get(idx));
-        }
+        for (int idx : cfOrder) dataDimsOrdered.add(dimensions.get(idx));
 
-        final List<Variable.Builder<?>> dataVarBuilders = new ArrayList<>(sds.size());
         final String[] dataVarNames = new String[sds.size()];
         for (int b = 0; b < sds.size(); b++) {
             final SampleDimension sd = sds.get(b);
-            final String rawName = (sd.getName() != null)
-                    ? sd.getName().tip().toString()
-                    : "band_" + b;
-            final String varName = NetcdfFileFormat.makeValidNetcdfObjectName(
-                    rawName.replaceAll("[^A-Za-z0-9_]", "_"));
+            final String rawName = (sd.getName() != null) ? sd.getName().tip().toString() : "band_" + b;
+            final String varName = NetcdfFileFormat.makeValidNetcdfObjectName(rawName.replaceAll("[^A-Za-z0-9_]", "_"));
             dataVarNames[b] = varName;
 
             final Variable.Builder<?> vb = writerBuilder.addVariable(varName, ncDataType, dataDimsOrdered);
-
-            sd.getBackground().ifPresent(bg ->
-                    vb.addAttribute(new Attribute("_FillValue",
-                            ncDataType == DataType.FLOAT || ncDataType == DataType.DOUBLE
-                                    ? bg.doubleValue() : bg.longValue())));
-
+            sd.getBackground().ifPresent(bg -> vb.addAttribute(new Attribute("_FillValue",
+                    ncDataType == DataType.FLOAT || ncDataType == DataType.DOUBLE ? bg.doubleValue() : bg.longValue())));
             vb.addAttribute(new Attribute("long_name", rawName));
-            dataVarBuilders.add(vb);
         }
 
         // ---- BUILD THE WRITER (creates the file format) ----
@@ -306,9 +286,7 @@ public final class NetCdfUtils {
 
             // -- Write coordinate data --
             for (int i = 0; i < nDims; i++) {
-                final Variable cv  = writer.findVariable(dimNames[i]);
-                final Array    arr = Array.makeFromJavaArray(coordValues[i]);
-                writer.write(cv, arr);
+                writer.write(writer.findVariable(dimNames[i]), Array.makeFromJavaArray(coordValues[i]));
             }
 
             // -- Write band data (ND-aware: one render() call per 2D slice) ----
@@ -319,18 +297,14 @@ public final class NetCdfUtils {
                 if (cfOrder[p] == yIdx) cfYPos = p;
             }
 
-            final int width  = dimSizes[xIdx];
-            final int height = dimSizes[yIdx];
-
-            // Precompute row-major strides over the CF-ordered shape
-            final int[] shape   = computeShape(cfOrder, dimSizes);
+            final int[] shape = computeShape(cfOrder, dimSizes);
             final long[] strides = new long[nDims];
             strides[nDims - 1] = 1;
             for (int p = nDims - 2; p >= 0; p--) strides[p] = strides[p + 1] * shape[p + 1];
 
             for (int b = 0; b < sds.size(); b++) {
-                final Variable v    = writer.findVariable(dataVarNames[b]);
-                final Array    data = Array.factory(ncDataType, shape);
+                final Variable v = writer.findVariable(dataVarNames[b]);
+                final Array data = Array.factory(ncDataType, shape);
 
                 // Iterate over every non-spatial slice combination
                 for (int sliceFlat = 0; sliceFlat < totalSlices; sliceFlat++) {
@@ -340,16 +314,15 @@ public final class NetCdfUtils {
                     int rem = sliceFlat;
                     for (int k = nonSpatialPositions.size() - 1; k >= 0; k--) {
                         nsIndices[k] = rem % dimSizes[nonSpatialPositions.get(k)];
-                        rem          /= dimSizes[nonSpatialPositions.get(k)];
+                        rem /= dimSizes[nonSpatialPositions.get(k)];
                     }
 
                     // Render the 2D spatial slice for this non-spatial combination
-                    final RenderedImage sliceImg = renderSlice(coverage, ge, nGridDims,
-                            gridXIdx, gridYIdx, nonSpatialPositions, activeCrsDims,
-                            crsToGrid, dimSizes, nsIndices);
-                    final java.awt.image.Raster raster  = sliceImg.getData();
-                    final int                   originX = sliceImg.getMinX();
-                    final int                   originY = sliceImg.getMinY();
+                    final RenderedImage sliceImg = renderSlice(coverage, ge, nGridDims, gridXIdx, gridYIdx,
+                            nonSpatialPositions, activeCrsDims, crsToGrid, dimSizes, nsIndices);
+                    final java.awt.image.Raster raster = sliceImg.getData();
+                    final int originX = sliceImg.getMinX();
+                    final int originY = sliceImg.getMinY();
 
                     // Build the CF-ordered multi-index for this non-spatial slice,
                     // then sweep through the spatial pixels
@@ -380,9 +353,206 @@ public final class NetCdfUtils {
                         }
                     }
                 }
-
                 writer.write(v, data);
             }
+        }
+    }
+
+    // =========================================================================
+    // Curvilinear (swath) grid
+    // =========================================================================
+
+    private static void writeCurvilinear(Path outputFile, MathTransform mt, CoordinateReferenceSystem crs, CoordinateSystem cs,
+            GridExtent ge, List<SampleDimension> sds, int nDims, int nCrsDims, int[] activeCrsDims, AxisRole[] roles,
+            String[] dimNames, int[] dimSizes, double[][] coordValues, int xIdx, int yIdx, int gridXIdx, int gridYIdx,
+            int crsXIdx, int crsYIdx, int width, int height, List<Integer> nonSpatialPositions, int totalSlices,
+            DataType ncDataType, GridCoverage coverage, int nGridDims, int[] crsToGrid)
+            throws IOException, InvalidRangeException {
+
+        NetcdfFormatWriter.Builder writerBuilder = NetcdfFormatWriter.createNewNetcdf3(outputFile.toString());
+        writerBuilder.addAttribute(new Attribute("Conventions", "CF-1.8"));
+        writerBuilder.addAttribute(new Attribute("history", Instant.now() + " - Written by Examind using UCAR cdm-core"));
+
+        final int[] cfOrder = buildCfDimOrder(roles, nDims);
+
+        final List<Dimension> nonSpatialDims = new ArrayList<>();
+        for (int idx : cfOrder) {
+            if (roles[idx] == AxisRole.LAT || roles[idx] == AxisRole.LON) continue;
+            final Dimension d = writerBuilder.addDimension(dimNames[idx], dimSizes[idx]);
+            nonSpatialDims.add(d);
+            final Variable.Builder<?> vb = writerBuilder.addVariable(dimNames[idx], DataType.DOUBLE, List.of(d));
+            addCfCoordAttributes(vb, roles[idx], cs.getAxis(activeCrsDims[idx]));
+        }
+
+        final Dimension njDim = writerBuilder.addDimension("nj", height);
+        final Dimension niDim = writerBuilder.addDimension("ni", width);
+        final List<Dimension> njNi = List.of(njDim, niDim);
+
+        final Variable.Builder<?> latAuxVb = writerBuilder.addVariable("lat", DataType.FLOAT, njNi);
+        latAuxVb.addAttribute(new Attribute("standard_name", "latitude"));
+        latAuxVb.addAttribute(new Attribute("long_name", "latitude"));
+        latAuxVb.addAttribute(new Attribute("units", "degrees_north"));
+
+        final Variable.Builder<?> lonAuxVb = writerBuilder.addVariable("lon", DataType.FLOAT, njNi);
+        lonAuxVb.addAttribute(new Attribute("standard_name", "longitude"));
+        lonAuxVb.addAttribute(new Attribute("long_name", "longitude"));
+        lonAuxVb.addAttribute(new Attribute("units", "degrees_east"));
+
+        final List<Dimension> dataDims = new ArrayList<>(nonSpatialDims);
+        dataDims.add(njDim);
+        dataDims.add(niDim);
+
+        final int nsCount = nonSpatialDims.size();
+        final int[] dataShape = new int[nsCount + 2];
+        int nsIndexShape = 0;
+        for (int idx : cfOrder) {
+            if (roles[idx] == AxisRole.LAT || roles[idx] == AxisRole.LON) continue;
+            dataShape[nsIndexShape++] = dimSizes[idx];
+        }
+        dataShape[nsCount] = height;
+        dataShape[nsCount + 1] = width;
+
+        final String[] dataVarNames = new String[sds.size()];
+        for (int b = 0; b < sds.size(); b++) {
+            final SampleDimension sd = sds.get(b);
+            final String rawName = (sd.getName() != null) ? sd.getName().tip().toString() : "band_" + b;
+            final String varName = NetcdfFileFormat.makeValidNetcdfObjectName(rawName.replaceAll("[^A-Za-z0-9_]", "_"));
+            dataVarNames[b] = varName;
+
+            final Variable.Builder<?> vb = writerBuilder.addVariable(varName, ncDataType, dataDims);
+            sd.getBackground().ifPresent(bg -> vb.addAttribute(new Attribute("_FillValue",
+                    ncDataType == DataType.FLOAT || ncDataType == DataType.DOUBLE ? bg.doubleValue() : bg.longValue())));
+            vb.addAttribute(new Attribute("long_name", rawName));
+            vb.addAttribute(new Attribute("coordinates", "lat lon"));
+        }
+
+        try (NetcdfFormatWriter writer = writerBuilder.build()) {
+            for (int idx : cfOrder) {
+                if (roles[idx] == AxisRole.LAT || roles[idx] == AxisRole.LON) continue;
+                writer.write(writer.findVariable(dimNames[idx]), Array.makeFromJavaArray(coordValues[idx]));
+            }
+
+            final float[] latVals = new float[height * width];
+            final float[] lonVals = new float[height * width];
+            try {
+                computeCurvilinearCoords(mt, ge, nGridDims, nCrsDims, gridXIdx, gridYIdx, crsXIdx, crsYIdx, width, height, latVals, lonVals);
+            } catch (TransformException e) {
+                throw new IOException("Failed to evaluate localization grid transform: " + e.getMessage(), e);
+            }
+            final int[] shape2D = {height, width};
+            writer.write(writer.findVariable("lat"), Array.factory(DataType.FLOAT, shape2D, latVals));
+            writer.write(writer.findVariable("lon"), Array.factory(DataType.FLOAT, shape2D, lonVals));
+
+            final long[] dataStrides = new long[dataShape.length];
+            dataStrides[dataShape.length - 1] = 1;
+            for (int p = dataShape.length - 2; p >= 0; p--) dataStrides[p] = dataStrides[p + 1] * dataShape[p + 1];
+
+            for (int b = 0; b < sds.size(); b++) {
+                final Variable v = writer.findVariable(dataVarNames[b]);
+                final Array data = Array.factory(ncDataType, dataShape);
+
+                for (int sliceFlat = 0; sliceFlat < totalSlices; sliceFlat++) {
+                    final int[] nsIndices = new int[nonSpatialPositions.size()];
+                    int rem = sliceFlat;
+                    for (int k = nonSpatialPositions.size() - 1; k >= 0; k--) {
+                        nsIndices[k] = rem % dimSizes[nonSpatialPositions.get(k)];
+                        rem /= dimSizes[nonSpatialPositions.get(k)];
+                    }
+
+                    final RenderedImage sliceImg = renderSlice(coverage, ge, nGridDims, gridXIdx, gridYIdx,
+                            nonSpatialPositions, activeCrsDims, crsToGrid, dimSizes, nsIndices);
+                    final java.awt.image.Raster raster = sliceImg.getData();
+                    final int originX = sliceImg.getMinX();
+                    final int originY = sliceImg.getMinY();
+
+                    final int[] loopDataIdx = new int[dataShape.length];
+                    int nsIdx = 0;
+                    for (int idx : cfOrder) {
+                        if (roles[idx] == AxisRole.LAT || roles[idx] == AxisRole.LON) continue;
+                        int listIndex = nonSpatialPositions.indexOf(idx);
+                        loopDataIdx[nsIdx++] = nsIndices[listIndex];
+                    }
+
+                    long baseFlat = 0;
+                    for (int p = 0; p < nsCount; p++) baseFlat += (long) loopDataIdx[p] * dataStrides[p];
+
+                    for (int row = 0; row < height; row++) {
+                        for (int col = 0; col < width; col++) {
+                            long flat = baseFlat + (long) row * width + col;
+                            int px = originX + col, py = originY + row;
+
+                            switch (ncDataType) {
+                                case BYTE:   data.setByte((int)flat, (byte)raster.getSample(px, py, b)); break;
+                                case SHORT:  data.setShort((int)flat, (short)raster.getSample(px, py, b)); break;
+                                case INT:    data.setInt((int)flat, raster.getSample(px, py, b)); break;
+                                case FLOAT:  data.setFloat((int)flat, raster.getSampleFloat(px, py, b)); break;
+                                case DOUBLE: data.setDouble((int)flat, raster.getSampleDouble(px, py, b)); break;
+                                default:     data.setFloat((int)flat, raster.getSampleFloat(px, py, b)); break;
+                            }
+                        }
+                    }
+                }
+                writer.write(v, data);
+            }
+        }
+    }
+
+    private static void computeCurvilinearCoords(MathTransform mt, GridExtent ge, int nGridDims, int nCrsDims,
+            int gridXIdx, int gridYIdx, int crsXIdx, int crsYIdx, int width, int height,
+            float[] latOut, float[] lonOut) throws TransformException {
+
+        final double[] srcRow = new double[width * nGridDims];
+        final double[] dstRow = new double[width * nCrsDims];
+
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                final int base = col * nGridDims;
+                for (int d = 0; d < nGridDims; d++) srcRow[base + d] = ge.getLow(d) + 0.5;
+                srcRow[base + gridYIdx] = ge.getLow(gridYIdx) + row + 0.5;
+                srcRow[base + gridXIdx] = ge.getLow(gridXIdx) + col + 0.5;
+            }
+            mt.transform(srcRow, 0, dstRow, 0, width);
+
+            for (int col = 0; col < width; col++) {
+                final int base = col * nCrsDims;
+                latOut[row * width + col] = (float) dstRow[base + crsYIdx];
+                lonOut[row * width + col] = (float) dstRow[base + crsXIdx];
+            }
+        }
+    }
+
+    private static boolean isRowZeroNorth(GridGeometry gg, int crsLatAxis, int latSize, int nCrsDims) {
+        try {
+            final MathTransform mt = gg.getGridToCRS(PixelInCell.CELL_CENTER);
+            final GridExtent    ge = gg.getExtent();
+            final int nGridDims = ge.getDimension();
+
+            final double[] firstRow = new double[nGridDims];
+            final double[] lastRow  = new double[nGridDims];
+            for (int d = 0; d < nGridDims; d++) {
+                firstRow[d] = ge.getLow(d) + 0.5;
+                lastRow[d]  = ge.getLow(d) + 0.5;
+            }
+
+            int gridLatAxis = -1;
+            if (mt instanceof LinearTransform lt) {
+                for (int gridIdx = 0; gridIdx < nGridDims; gridIdx++) {
+                    if (lt.getMatrix().getElement(crsLatAxis, gridIdx) != 0.0) {
+                        gridLatAxis = gridIdx; break;
+                    }
+                }
+            }
+            if (gridLatAxis >= 0) lastRow[gridLatAxis] = ge.getLow(gridLatAxis) + latSize - 0.5;
+            else lastRow[crsLatAxis] = ge.getLow(crsLatAxis) + latSize - 0.5;
+
+            final double[] crsFirst = new double[nCrsDims];
+            final double[] crsLast  = new double[nCrsDims];
+            mt.transform(firstRow, 0, crsFirst, 0, 1);
+            mt.transform(lastRow,  0, crsLast,  0, 1);
+
+            return crsFirst[crsLatAxis] > crsLast[crsLatAxis];
+        } catch (Exception e) {
+            return true;
         }
     }
 
@@ -402,11 +572,8 @@ public final class NetCdfUtils {
      * @param nsIndices            slice index for each non-spatial position
      * @return a 2D RenderedImage for the requested slice
      */
-    private static RenderedImage renderSlice(GridCoverage coverage, GridExtent ge,
-            int nGridDims, int gridXIdx, int gridYIdx,
-            List<Integer> nonSpatialPositions, int[] activeCrsDims, int[] crsToGrid,
-            int[] dimSizes, int[] nsIndices) {
-
+    private static RenderedImage renderSlice(GridCoverage coverage, GridExtent ge, int nGridDims, int gridXIdx, int gridYIdx,
+            List<Integer> nonSpatialPositions, int[] activeCrsDims, int[] crsToGrid, int[] dimSizes, int[] nsIndices) {
         final long[] low  = new long[nGridDims];
         final long[] high = new long[nGridDims];
         for (int i = 0; i < nGridDims; i++) {
@@ -471,45 +638,38 @@ public final class NetCdfUtils {
      * @param vb   the variable builder to annotate
      * @param role the classified axis role
      * @param axis the CRS axis (unit string retrieved from here)
-     * @param crs  the full CRS (unused currently, reserved for future grid_mapping)
      */
-    private static void addCfCoordAttributes(Variable.Builder<?> vb,
-                                              AxisRole role,
-                                              CoordinateSystemAxis axis,
-                                              CoordinateReferenceSystem crs) {
+    private static void addCfCoordAttributes(Variable.Builder<?> vb, AxisRole role, CoordinateSystemAxis axis) {
         switch (role) {
             case LON -> {
                 vb.addAttribute(new Attribute("standard_name", "longitude"));
-                vb.addAttribute(new Attribute("long_name",     "longitude"));
-                vb.addAttribute(new Attribute("units",         "degrees_east"));
-                vb.addAttribute(new Attribute("axis",          "X"));
+                vb.addAttribute(new Attribute("long_name", "longitude"));
+                vb.addAttribute(new Attribute("units", "degrees_east"));
+                vb.addAttribute(new Attribute("axis", "X"));
             }
             case LAT -> {
                 vb.addAttribute(new Attribute("standard_name", "latitude"));
-                vb.addAttribute(new Attribute("long_name",     "latitude"));
-                vb.addAttribute(new Attribute("units",         "degrees_north"));
-                vb.addAttribute(new Attribute("axis",          "Y"));
+                vb.addAttribute(new Attribute("long_name", "latitude"));
+                vb.addAttribute(new Attribute("units", "degrees_north"));
+                vb.addAttribute(new Attribute("axis", "Y"));
             }
             case TIME -> {
                 vb.addAttribute(new Attribute("standard_name", "time"));
-                vb.addAttribute(new Attribute("long_name",     "time"));
-                vb.addAttribute(new Attribute("units",         "seconds since 1970-01-01T00:00:00Z"));
-                vb.addAttribute(new Attribute("calendar",      "gregorian"));
-                vb.addAttribute(new Attribute("axis",          "T"));
+                vb.addAttribute(new Attribute("long_name", "time"));
+                vb.addAttribute(new Attribute("units", "seconds since 1970-01-01T00:00:00Z"));
+                vb.addAttribute(new Attribute("calendar", "gregorian"));
+                vb.addAttribute(new Attribute("axis", "T"));
             }
             case VERTICAL -> {
                 final String unitStr = axis.getUnit() != null ? axis.getUnit().toString() : "m";
                 final boolean isDown = axis.getDirection() == AxisDirection.DOWN;
                 vb.addAttribute(new Attribute("standard_name", isDown ? "depth" : "height"));
-                vb.addAttribute(new Attribute("long_name",     isDown ? "depth" : "height"));
-                vb.addAttribute(new Attribute("units",         unitStr));
-                vb.addAttribute(new Attribute("positive",      isDown ? "down" : "up"));
-                vb.addAttribute(new Attribute("axis",          "Z"));
+                vb.addAttribute(new Attribute("long_name", isDown ? "depth" : "height"));
+                vb.addAttribute(new Attribute("units", unitStr));
+                vb.addAttribute(new Attribute("positive", isDown ? "down" : "up"));
+                vb.addAttribute(new Attribute("axis", "Z"));
             }
-            default -> {
-                // Generic: at least give a long_name from the CRS axis name
-                vb.addAttribute(new Attribute("long_name", axis.getName().getCode()));
-            }
+            default -> vb.addAttribute(new Attribute("long_name", axis.getName().getCode()));
         }
     }
 
