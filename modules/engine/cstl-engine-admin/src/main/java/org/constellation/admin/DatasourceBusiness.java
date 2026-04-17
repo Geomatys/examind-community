@@ -187,6 +187,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
+    public Integer getOrcreate(DataSource ds) throws ConstellationException {
+        List<DataSource> candidates = search(ds.getUrl(), ds.getStoreId(), ds.getFormat(), ds.getUsername());
+        if (!candidates.isEmpty()) return candidates.get(0).getId();
+        return create(ds);
+    }
+    
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
     public void update(DataSource ds) throws ConstellationException {
         if (("file".equals(ds.getType()) || "local_files".equals(ds.getType())) && !configBusiness.allowedFilesystemAccess(ds.getUrl())) {
             throw new UnauthorizedException("You are not authorized to access this filesystem path");

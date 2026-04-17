@@ -62,6 +62,16 @@ public interface IDatasourceBusiness {
      * @throws org.constellation.exception.ConstellationException
      */
     Integer create(DataSource ds) throws ConstellationException;
+    
+    /**
+     * Look for an existing datasource. If not found store a new Datasource.
+     *
+     * @param ds the new datasource to store.
+     * @return the assigned or existing datasource id.
+     * 
+     * @throws org.constellation.exception.ConstellationException
+     */
+    Integer getOrcreate(DataSource ds) throws ConstellationException;
 
     /**
      * Update a Datasource.
