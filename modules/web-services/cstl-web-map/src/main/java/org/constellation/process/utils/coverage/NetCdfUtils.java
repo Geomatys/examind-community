@@ -66,6 +66,32 @@ public final class NetCdfUtils {
     private enum AxisRole { LON, LAT, TIME, VERTICAL, OTHER }
 
     /**
+     * Writes a {@link GridCoverage} to a CF-1.8 compliant NetCDF file using the UCAR library,
+     * and streams the output to the provided {@link java.io.OutputStream}.
+     *
+     * <p>Note: The NetCDF format requires random-access for writing headers and data chunks.
+     * This method writes to a temporary file locally and copies the result to the stream.
+     *
+     * @param coverage     source coverage
+     * @param outputStream the stream to write to
+     * @throws IOException           on I/O error
+     * @throws InvalidRangeException if a UCAR array operation fails
+     */
+    public static void writeNetcdf(GridCoverage coverage, java.io.OutputStream outputStream)
+            throws IOException, InvalidRangeException {
+        final Path tempFile = java.nio.file.Files.createTempFile("examind_netcdf_", ".nc");
+        try {
+            writeNetcdf(coverage, tempFile);
+            java.nio.file.Files.copy(tempFile, outputStream);
+            outputStream.flush();
+        } finally {
+            try {
+                java.nio.file.Files.deleteIfExists(tempFile);
+            } catch (IOException ignored) {}
+        }
+    }
+
+    /**
      * Writes a {@link GridCoverage} to a CF-1.8 compliant NetCDF file using the UCAR library.
      * <p>Detects phantom dimensions, regular vs. swath grids, and writes everything
      * into a properly formatted structure using NetCDF-3.

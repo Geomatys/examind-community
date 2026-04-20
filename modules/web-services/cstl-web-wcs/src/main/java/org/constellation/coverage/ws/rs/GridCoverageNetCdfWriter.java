@@ -25,7 +25,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.constellation.process.utils.coverage.NetCdfUtils;
+import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.geotoolkit.nio.IOUtilities;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -33,6 +36,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
 
 /**
  *
@@ -62,33 +69,15 @@ public class GridCoverageNetCdfWriter implements HttpMessageConverter<NetCdfResp
 
     @Override
     public void write(NetCdfResponse entry, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        File f = null;
         try {
             // Adding attachement filename specification solve issues with downloaded content without extension
             // (Without this line, the browser download `coverage` instead of `coverage.nc`)
             outputMessage.getHeaders().set("Content-Disposition", "attachment; filename=\"coverage.nc\"");
-            f = writeInFile(entry);
-            byte[] buf = new byte[8192];
-            try (FileInputStream is = new FileInputStream(f);
-                    OutputStream out = outputMessage.getBody()) {
-                int c;
-                while ((c = is.read(buf, 0, buf.length)) > 0) {
-                    out.write(buf, 0, c);
-                    out.flush();
-                }
-            }
+            NetCdfUtils.writeNetcdf(entry.coverage, outputMessage.getBody());
         } catch (IOException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new HttpMessageNotWritableException("Error while writing coverage as NetCDF", ex);
-        } finally {
-            if (f != null) IOUtilities.deleteSilently(f.toPath());
         }
-    }
-
-    public static File writeInFile(final NetCdfResponse entry) throws Exception {
-        final File f = File.createTempFile("data", ".nc");
-        NetCdfUtils.writeNetcdf(entry.coverage, f.toPath());
-        return f;
     }
 }
