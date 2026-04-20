@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import java.util.Comparator;
+import java.util.List;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.junit.Assert;
 
 /**
@@ -41,6 +43,10 @@ public class JSONComparator implements Comparator<JsonNode>
             "<whatever>".equals(o2.asText())) {
             return 0;
         }
+        if (o1.asText() != null && o1.asText().startsWith("<?xml") &&
+            o2.asText() != null && o2.asText().startsWith("<?xml")) {
+            return 0;
+        }
         if ((o1 instanceof NumericNode) && (o2 instanceof NumericNode)){
             Double d1 = ((NumericNode) o1).asDouble();
             Double d2 = ((NumericNode) o2).asDouble();
@@ -48,11 +54,26 @@ public class JSONComparator implements Comparator<JsonNode>
             return 0;
         }
         // TODO
-        if (o1.isContainerNode() && o2 != null && o2.isContainerNode()) {
+        if (o1.isContainerNode() && o2.isContainerNode()) {
             ContainerNode c1 = (ContainerNode) o1;
             ContainerNode c2 = (ContainerNode) o2;
         }
         throw new AssertionError("expected:" + o1 +" but was " + o2);
+    }
+    
+    protected static void xmlCompare(final Object actual, final Object expected, List<String> extraIgnoredAttributes, List<String> extraIgnoredNodes) throws Exception {
+
+        final DocumentComparator comparator = new DocumentComparator(expected, actual);
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("updateSequence");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        if (extraIgnoredAttributes != null) {
+            comparator.ignoredAttributes.addAll(extraIgnoredAttributes);
+        }
+        if (extraIgnoredNodes != null) {
+            comparator.ignoredNodes.addAll(extraIgnoredNodes);
+        }
+        comparator.compare();
     }
 }
 

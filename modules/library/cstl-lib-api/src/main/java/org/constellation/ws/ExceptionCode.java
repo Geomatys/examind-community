@@ -18,6 +18,7 @@
  */
 package org.constellation.ws;
 
+import java.util.List;
 import org.opengis.util.CodeList;
 
 /**
@@ -213,13 +214,43 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
         super(name);
     }
 
+    private static final List<ExceptionCode> VALUES = initialValues(
+            INVALID_FORMAT,
+            INVALID_REQUEST,
+            CURRENT_UPDATE_SEQUENCE,
+            INVALID_UPDATE_SEQUENCE,
+            MISSING_PARAMETER_VALUE,
+            INVALID_PARAMETER_VALUE,
+            OPERATION_NOT_SUPPORTED,
+            VERSION_NEGOTIATION_FAILED,
+            NO_APPLICABLE_CODE,
+            INVALID_CRS,
+            INVALID_SRS,
+            LAYER_NOT_DEFINED,
+            STYLE_NOT_DEFINED,
+            LAYER_NOT_QUERYABLE,
+            INVALID_POINT,
+            MISSING_DIMENSION_VALUE,
+            INVALID_DIMENSION_VALUE,
+            COMPRESSION_NOT_SUPPORTED,
+            COMPRESSION_INVALID,
+            JPEG_QUALITY_INVALID ,
+            PREDICTOR_NOT_SUPPORTED,
+            PREDICTOR_INVALID ,
+            INTERLEAVING_INVALID,
+            INTERLEAVING_NOT_SUPPORTED,
+            TILING_NOT_SUPPORTED,
+            TILING_INVALID ,
+            AXIS_LABEL_INVALID ,
+            INVALID_SUBSETTING
+    );
     /**
      * Returns the list of exception codes.
      *
      * @return The list of codes declared in the current JVM.
      */
     public static ExceptionCode[] values() {
-        return CodeList.values(ExceptionCode.class);
+        return VALUES.toArray(ExceptionCode[]::new);
     }
 
     /**
@@ -227,7 +258,7 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
      */
     @Override
     public ExceptionCode[] family() {
-        return values(ExceptionCode.class);
+        return values();
     }
 
     /**
@@ -238,6 +269,6 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
      * @return A code matching the given name.
      */
     public static ExceptionCode valueOf(String code) {
-        return valueOf(ExceptionCode.class, code, ExceptionCode::new).get();
+        return valueOf(VALUES, code, ExceptionCode::new);
     }
 }

@@ -7,7 +7,7 @@
         }, {
             "id": "urn:exa:wps:examind::test.echo:output:boundingbox.output",
             "value": {
-                "inlineValue": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<ns4:BoundingBox crs=\"urn:ogc:def:crs:EPSG:12.047:4326\" dimensions=\"2\" xmlns=\"http://www.inspire.org\" xmlns:ns2=\"http://www.w3.org/1999/xlink\" xmlns:ns4=\"http://www.opengis.net/ows/2.0\" xmlns:ns3=\"http://www.opengis.net/ows\">\n  <ns4:LowerCorner>51.9 7.0</ns4:LowerCorner>\n  <ns4:UpperCorner>52.0 7.1</ns4:UpperCorner>\n</ns4:BoundingBox>\n"
+                "inlineValue": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<ns4:BoundingBox crs=\"urn:ogc:def:crs:EPSG:12.047:4326\" dimensions=\"2\" xmlns=\"http://www.opengis.net/ows\" xmlns:ns2=\"http://www.w3.org/1999/xlink\" xmlns:ns4=\"http://www.opengis.net/ows/2.0\" xmlns:ns3=\"http://www.inspire.org\">\n  <ns4:LowerCorner>51.9 7.0</ns4:LowerCorner>\n  <ns4:UpperCorner>52.0 7.1</ns4:UpperCorner>\n</ns4:BoundingBox>\n"
             }
         }, {
             "id": "urn:exa:wps:examind::test.echo:output:complex.output",
