@@ -149,12 +149,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Override
     public List<String> getProviderIds() {
-        final List<String> ids = new ArrayList<>();
-        final List<ProviderBrief> providers = providerRepository.findAll();
-        for (ProviderBrief p : providers) {
-            ids.add(p.getIdentifier());
-        }
-        return ids;
+        return providerRepository.getProviderIds();
     }
 
     @Override
@@ -243,9 +238,8 @@ public class ProviderBusiness implements IProviderBusiness {
     @Override
     @Transactional
     public void removeAll() throws ConstellationException {
-        final List<ProviderBrief> providers = providerRepository.findAll();
-        for (ProviderBrief p : providers) {
-            removeProvider(p.getId());
+        for (int pid :  providerRepository.getAllIds()) {
+            removeProvider(pid);
         }
     }
 

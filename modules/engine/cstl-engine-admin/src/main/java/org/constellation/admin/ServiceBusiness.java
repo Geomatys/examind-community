@@ -327,9 +327,9 @@ public class ServiceBusiness implements IServiceBusiness {
     @Override
     @Transactional
     public void deleteAll() throws ConstellationException {
-        final List<Service> services = serviceRepository.findAll();
-        for (Service service : services) {
-            delete(service.getId());
+        final List<Integer> services = serviceRepository.findAllIds();
+        for (Integer serviceId : services) {
+            delete(serviceId);
         }
     }
 

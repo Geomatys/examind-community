@@ -112,7 +112,7 @@ public interface IDatasetBusiness {
      * @param dataset given dataset.
      * @param datas given data to link.
      */
-    void linkDataTodataset(DataSet dataset, List<Data> datas);
+    void linkDataTodataset(int datasetId, List<Integer> dataIds);
 
     Integer getDatasetId(String identifier);
     

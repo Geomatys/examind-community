@@ -205,7 +205,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     }
 
     @Override
-    public List<Integer> findMetataDataIdsByDataId(int dataId) {
+    public List<Integer> findMetadataIdsByDataId(int dataId) {
         return dsl.select(METADATA.ID).from(METADATA).where(METADATA.DATA_ID.eq(dataId)).fetchInto(Integer.class);
     }
     
@@ -214,11 +214,21 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         return convertToDto(
             dsl.select().from(METADATA).where(METADATA.DATASET_ID.eq(datasetId)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
+    
+    @Override
+    public Integer findIdByDatasetId(int datasetId) {
+        return dsl.select(METADATA.ID).from(METADATA).where(METADATA.DATASET_ID.eq(datasetId)).fetchOneInto(Integer.class);
+    }
 
     @Override
     public Metadata findByServiceId(int serviceId) {
         return convertToDto(
             dsl.select().from(METADATA).where(METADATA.SERVICE_ID.eq(serviceId)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
+    }
+    
+    @Override
+    public Integer findIdByServiceId(int serviceId) {
+        return dsl.select(METADATA.ID).from(METADATA).where(METADATA.SERVICE_ID.eq(serviceId)).fetchOneInto(Integer.class);
     }
 
     @Override

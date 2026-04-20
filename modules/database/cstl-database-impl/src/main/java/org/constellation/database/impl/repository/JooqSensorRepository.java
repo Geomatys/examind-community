@@ -113,6 +113,11 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     public List<Sensor> findByProviderId(int providerId) {
         return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.PROVIDER_ID.eq(providerId)).fetchInto(com.examind.database.api.jooq.tables.pojos.Sensor.class));
     }
+    
+    @Override
+    public List<Integer> findIdByProviderId(int providerId) {
+        return dsl.select(SENSOR.ID).from(SENSOR).where(SENSOR.PROVIDER_ID.eq(providerId)).fetchInto(Integer.class);
+    }
 
     @Override
     public List<Sensor> findByServiceId(Integer serviceId, String sensorType) {

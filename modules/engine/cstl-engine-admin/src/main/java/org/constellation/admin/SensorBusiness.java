@@ -547,10 +547,10 @@ public class SensorBusiness implements ISensorBusiness {
          // if all the sensor provider is linked we must link individually all the other sensors
         if (serviceRepository.isAllLinked(serviceID, s.getProviderId())) {
             serviceRepository.linkSensorProvider(serviceID, s.getProviderId(), false);
-            List<Sensor> sensors = sensorRepository.findByProviderId(s.getProviderId());
-            for (Sensor ss : sensors) {
-                if (!ss.getId().equals(s.getId())) {
-                    sensorRepository.linkSensorToService(ss.getId(), serviceID);
+            List<Integer> sensors = sensorRepository.findIdByProviderId(s.getProviderId());
+            for (Integer sensorId : sensors) {
+                if (!sensorId.equals(s.getId())) {
+                    sensorRepository.linkSensorToService(sensorId, serviceID);
                 }
             }
         } else {

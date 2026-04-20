@@ -80,7 +80,13 @@ public interface DataRepository extends AbstractRepository {
     
     void updateDatasetId(int dataId, int datasetId);
     
+    void updateDatasetIds(List<Integer> dataIds, int datasetId);
+    
+    void updateDatasetIdForProvider(int providerId, int datasetId);
+    
     void updateDataHidden(int dataId, boolean hidden);
+    
+    void updateDataRendered(int dataId, boolean rendered);
 
     Data findByIdentifierWithEmptyMetadata(String localPart);
 

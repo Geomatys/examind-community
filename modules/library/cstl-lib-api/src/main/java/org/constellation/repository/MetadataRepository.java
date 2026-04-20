@@ -37,11 +37,15 @@ public interface MetadataRepository extends AbstractRepository {
 
     List<Metadata> findByDataId(int dataId);
     
-    List<Integer> findMetataDataIdsByDataId(int dataId);
+    List<Integer> findMetadataIdsByDataId(int dataId);
 
     Metadata findByDatasetId(int id);
+    
+    Integer findIdByDatasetId(int id);
 
     Metadata findByServiceId(int serviceId);
+    
+    Integer findIdByServiceId(int serviceId);
 
     Metadata findByMapContextId(int mapContextId);
 

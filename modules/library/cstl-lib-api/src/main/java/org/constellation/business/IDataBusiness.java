@@ -266,16 +266,6 @@ public interface IDataBusiness {
      * Update {@link org.constellation.dto.Data#getRendered()} attribute that define
      * if a data is Rendered or Geophysic.
      *
-     * @param fullName data name
-     * @param providerIdentifier provider identifier name
-     * @param isRendered if true data is Rendered, otherwise it's Geophysic
-     */
-    void updateDataRendered(QName fullName, String providerIdentifier, boolean isRendered);
-
-    /**
-     * Update {@link org.constellation.dto.Data#getRendered()} attribute that define
-     * if a data is Rendered or Geophysic.
-     *
      * @param dataId data identifier
      * @param isRendered if true data is Rendered, otherwise it's Geophysic
      */

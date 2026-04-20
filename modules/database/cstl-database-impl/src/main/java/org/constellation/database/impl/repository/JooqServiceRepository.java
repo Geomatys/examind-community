@@ -456,6 +456,11 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     public List<Service> findAll() {
         return convertListToDto(dsl.select().from(SERVICE).fetchInto(com.examind.database.api.jooq.tables.pojos.Service.class));
     }
+    
+    @Override
+    public List<Integer> findAllIds() {
+        return dsl.select(SERVICE.ID).from(SERVICE).fetchInto(Integer.class);
+    }
 
     private List<Service> convertListToDto(Collection<com.examind.database.api.jooq.tables.pojos.Service> daos) {
         Map<Integer, Service> results = new LinkedHashMap<>();

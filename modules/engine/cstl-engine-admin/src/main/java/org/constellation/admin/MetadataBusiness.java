@@ -769,9 +769,9 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     public Object getIsoMetadataForData(final int dataId) throws ConstellationException {
-        final List<Metadata> metadatas = metadataRepository.findByDataId(dataId);
-        for (Metadata metadata : metadatas) {
-            Object obj = getMetadata(metadata.getId());
+        final List<Integer> metadatas = metadataRepository.findMetadataIdsByDataId(dataId);
+        for (Integer metadataId : metadatas) {
+            Object obj = getMetadata(metadataId);
 
             // HACK for now we want only the ISO 19115 metadata
             if (obj instanceof DefaultMetadata) {
@@ -787,18 +787,18 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     public List<Object> getIsoMetadatasForData(final int dataId) throws ConstellationException {
         List<Object> results = new ArrayList<>();
-        final List<Metadata> metadatas = metadataRepository.findByDataId(dataId);
-        for (Metadata metadata : metadatas) {
-            results.add(getMetadata(metadata.getId()));
+        final List<Integer> metadatas = metadataRepository.findMetadataIdsByDataId(dataId);
+        for (Integer metadataId : metadatas) {
+            results.add(getMetadata(metadataId));
         }
         return results;
     }
 
     @Override
     public Object getIsoMetadataForService(final int serviceId) throws ConstellationException {
-        final Metadata metadata = metadataRepository.findByServiceId(serviceId);
-        if (metadata != null) {
-            return getMetadata(metadata.getId());
+        final Integer metadataId = metadataRepository.findIdByServiceId(serviceId);
+        if (metadataId != null) {
+            return getMetadata(metadataId);
         }
         return null;
     }
@@ -808,9 +808,9 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     public Object getIsoMetadataForDataset(final int datasetId) throws ConstellationException {
-        final Metadata metadata = metadataRepository.findByDatasetId(datasetId);
-        if (metadata != null) {
-            return getMetadata(metadata.getId());
+        final Integer metadataId = metadataRepository.findIdByDatasetId(datasetId);
+        if (metadataId != null) {
+            return getMetadata(metadataId);
         }
         return null;
     }
@@ -889,8 +889,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void updateSharedProperty(final int id, final boolean shared) throws ConfigurationException {
-        final Metadata metadata = metadataRepository.findById(id);
-        if (metadata != null) {
+        if (metadataRepository.existsById(id)) {
             metadataRepository.changeSharedProperty(id, shared);
         }
     }
@@ -959,9 +958,9 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public boolean deleteMetadata(String metadataID) throws ConstellationException {
-        final Metadata meta = metadataRepository.findByMetadataId(metadataID);
-        if (meta != null) {
-            deleteMetadata(Arrays.asList(meta.getId()));
+        final Integer metaId = metadataRepository.findIdByMetadataId(metadataID);
+        if (metaId != null) {
+            deleteMetadata(Arrays.asList(metaId));
             return true;
         }
         return false;
@@ -974,7 +973,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void deleteDataMetadata(final int dataId) throws ConstellationException {
-        List<Integer> metaIds = metadataRepository.findMetataDataIdsByDataId(dataId);
+        List<Integer> metaIds = metadataRepository.findMetadataIdsByDataId(dataId);
         deleteMetadata(metaIds);
 
     }
@@ -985,9 +984,9 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void deleteDatasetMetadata(final int datasetId) throws ConstellationException {
-        final Metadata meta = metadataRepository.findByDatasetId(datasetId);
-        if (meta != null) {
-            deleteMetadata(meta.getId());
+        final Integer metaId = metadataRepository.findIdByDatasetId(datasetId);
+        if (metaId != null) {
+            deleteMetadata(metaId);
         }
     }
 

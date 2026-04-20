@@ -46,6 +46,8 @@ public interface SensorRepository extends AbstractRepository {
     List<Sensor> findAll();
 
     List<Sensor> findByProviderId(int providerId);
+    
+    List<Integer> findIdByProviderId(int providerId);
 
     List<Sensor> findByServiceId(Integer id, String sensorType);
 

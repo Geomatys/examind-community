@@ -856,23 +856,8 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public void updateDataRendered(final QName fullName, final String providerIdentifier, boolean isRendered) {
-        final Data data = dataRepository.findDataFromProvider(fullName.getNamespaceURI(),
-                fullName.getLocalPart(),
-                providerIdentifier);
-        data.setRendered(isRendered);
-        dataRepository.update(data);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    @Transactional
     public void updateDataRendered(final int dataId, boolean isRendered) {
-        final Data data = dataRepository.findById(dataId);
-        data.setRendered(isRendered);
-        dataRepository.update(data);
+        dataRepository.updateDataRendered(dataId, isRendered);
     }
 
     /**
@@ -916,11 +901,10 @@ public class DataBusiness implements IDataBusiness {
 
     @Override
     public Path[] exportData(int dataId) throws ConstellationException {
-        final Data data = dataRepository.findById(dataId);
-
+        final Integer providerId = dataRepository.getProviderId(dataId);
         final DataProvider provider;
         try {
-            provider = DataProviders.getProvider(data.getProviderId());
+            provider = DataProviders.getProvider(providerId);
             return provider.getFiles();
         } catch (Exception ex) {
             throw new ConstellationException("Error while accessing provider for data:" + dataId, ex);
@@ -1124,20 +1108,12 @@ public class DataBusiness implements IDataBusiness {
 
     @Override
     public Integer getDataProvider(Integer dataId) {
-        final Data data = dataRepository.findById(dataId);
-        if (data != null) {
-            return data.getProviderId();
-        }
-        return null;
+        return dataRepository.getProviderId(dataId);
     }
 
     @Override
     public Integer getDataDataset(Integer dataId) {
-        final Data data = dataRepository.findById(dataId);
-        if (data != null) {
-            return data.getDatasetId();
-        }
-        return null;
+        return dataRepository.getDatasetId(dataId);
     }
 
     /**
@@ -1203,7 +1179,7 @@ public class DataBusiness implements IDataBusiness {
     @Override
     @Transactional
     public void cacheDataInformation(int dataId, boolean refresh) throws ConstellationException {
-        DataBrief db = getDataBrief(dataId, false, false);
+        Data db = dataRepository.findById(dataId);
         if (db == null) {
             throw new TargetNotFoundException("Unable to find a data with the id:" + dataId);
         }

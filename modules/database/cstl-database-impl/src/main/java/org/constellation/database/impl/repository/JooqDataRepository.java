@@ -278,9 +278,36 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
+    public void updateDatasetIds(List<Integer> dataIds, int datasetId) {
+        dsl.update(DATA)
+                .set(DATA.DATASET_ID, datasetId)
+                .where(DATA.ID.in(dataIds))
+                .execute();
+    }
+    
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateDatasetIdForProvider(int providerId, int datasetId) {
+        dsl.update(DATA)
+                .set(DATA.DATASET_ID, datasetId)
+                .where(DATA.PROVIDER.eq(providerId))
+                .execute();
+    }
+    
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateDataHidden(int dataId, boolean hidden) {
         dsl.update(DATA)
                 .set(DATA.HIDDEN, hidden)
+                .where(DATA.ID.eq(dataId))
+                .execute();
+    }
+    
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateDataRendered(int dataId, boolean rendered) {
+        dsl.update(DATA)
+                .set(DATA.RENDERED, rendered)
                 .where(DATA.ID.eq(dataId))
                 .execute();
     }

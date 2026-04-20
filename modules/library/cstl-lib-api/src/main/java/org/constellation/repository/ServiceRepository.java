@@ -30,6 +30,8 @@ public interface ServiceRepository extends AbstractRepository {
     int create(Service service);
 
     List<Service> findAll();
+    
+    List<Integer> findAllIds();
 
     Service findById(int id);
 

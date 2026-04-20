@@ -28,7 +28,6 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataSetBrief;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
 import org.constellation.dto.DataSet;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
@@ -124,11 +123,7 @@ public class DatasetBusiness implements IDatasetBusiness {
 
     @Override
     public List<Integer> getAllDatasetIds() {
-        List<Integer> result = datasetRepository.getAllIds();
-        if (result == null) {
-            return new ArrayList<>();
-        }
-        return result;
+        return datasetRepository.getAllIds();
     }
 
     /**
@@ -136,13 +131,8 @@ public class DatasetBusiness implements IDatasetBusiness {
      */
     @Override
     public List<DataSet> getAllDataset() {
-        List<DataSet> result = datasetRepository.findAll();
-        if (result == null) {
-            return new ArrayList<>();
-        }
-        return result;
-     }
-
+        return datasetRepository.findAll();
+    }
 
     /**
      * {@inheritDoc}
@@ -151,7 +141,6 @@ public class DatasetBusiness implements IDatasetBusiness {
     public DataSet getDataset(final int id) {
         return datasetRepository.findById(id);
     }
-
 
     /**
      * {@inheritDoc}
@@ -226,18 +215,13 @@ public class DatasetBusiness implements IDatasetBusiness {
     @Override
     @Transactional
     public void addProviderDataToDataset(final String datasetId, final String providerId) throws ConfigurationException {
-        final Integer ds = datasetRepository.findIdForIdentifier(datasetId);
-        if (ds != null) {
-            final Integer p = providerRepository.findIdForIdentifier(providerId);
-            if (p != null) {
-                // TODO optimize this update
-                final List<Data> datas = dataRepository.findByProviderId(p);
-                for (Data data : datas) {
-                    data.setDatasetId(ds);
-                    dataRepository.update(data);
-                }
+        final Integer dsId = datasetRepository.findIdForIdentifier(datasetId);
+        if (dsId != null) {
+            final Integer pid = providerRepository.findIdForIdentifier(providerId);
+            if (pid != null) {
+                dataRepository.updateDatasetIdForProvider(pid, dsId);
             } else {
-                throw new TargetNotFoundException("Unable to find a profile: " + providerId);
+                throw new TargetNotFoundException("Unable to find a provider: " + providerId);
             }
         } else {
             throw new TargetNotFoundException("Unable to find a dataset: " + datasetId);
@@ -348,11 +332,8 @@ public class DatasetBusiness implements IDatasetBusiness {
      */
     @Override
     @Transactional
-    public void linkDataTodataset(final DataSet dataset, final List<Data> datas) {
-        for (final Data data : datas) {
-            data.setDatasetId(dataset.getId());
-            dataRepository.update(data);
-        }
+    public void linkDataTodataset(final int datasetId, final List<Integer> dataIds) {
+        dataRepository.updateDatasetIds(dataIds, datasetId);
     }
 
     @Override
