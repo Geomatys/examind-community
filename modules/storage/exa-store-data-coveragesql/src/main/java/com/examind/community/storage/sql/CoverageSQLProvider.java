@@ -42,6 +42,7 @@ import org.constellation.business.IDatasourceBusiness;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.coverage.sql.AddOption;
 import org.geotoolkit.coverage.sql.DatabaseStore;
+import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -145,7 +146,7 @@ public class CoverageSQLProvider extends DataStoreProvider {
             geotkStore = geotkProvider.open(geotkParams);
         }
         
-        public void createProduct(String productName, boolean worldGG, Double worldGGRes, boolean asChild, List<Path> dataPaths) throws DataStoreException {
+        public void createProduct(String productName, boolean worldGG, Double worldGGRes, boolean asChild, String subDataType, List<Path> dataPaths) throws DataStoreException {
             GridGeometry gg = null;
             if (worldGG) {
                 if (worldGGRes == null) worldGGRes = defaultWorldGGRes;
@@ -155,7 +156,11 @@ public class CoverageSQLProvider extends DataStoreProvider {
             if (asChild) {
                 opt = AddOption.CREATE_AS_CHILD_PRODUCT;
             }
-            geotkStore.addRaster(productName, gg, opt, dataPaths.toArray(Path[]::new));
+            DataStoreProvider provider = null;
+            if (subDataType != null) {
+                provider = DataStores.getProviderById(subDataType);
+            }
+            geotkStore.addRaster(productName, gg, opt, null, provider, dataPaths.toArray(Path[]::new));
         }
         
         public void removeAllProducts() throws DataStoreException {

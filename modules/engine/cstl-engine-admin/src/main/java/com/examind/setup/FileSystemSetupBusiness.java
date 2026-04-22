@@ -530,14 +530,15 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
         
         String productName = providerConf.getAdvancedParameters().get("productName");
-        boolean asChild   = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("asChild", "false"));
-        boolean worldGG   = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("worldGG", "false"));
-        String wgrStr     = providerConf.getAdvancedParameters().get("worldGGResolution");
-        Double worldGGRes = wgrStr != null ? Double.valueOf(wgrStr) : null;
+        String subDataType = providerConf.getAdvancedParameters().get("subDataType");
+        boolean asChild    = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("asChild", "false"));
+        boolean worldGG    = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("worldGG", "false"));
+        String wgrStr      = providerConf.getAdvancedParameters().get("worldGGResolution");
+        Double worldGGRes  = wgrStr != null ? Double.valueOf(wgrStr) : null;
         
         List<Path> dataPaths = files.stream().map(uri -> Paths.get((URI)uri)).toList();
         try {
-            store.createProduct(productName, worldGG, worldGGRes, asChild, dataPaths);
+            store.createProduct(productName, worldGG, worldGGRes, asChild, subDataType, dataPaths);
         } catch (DataStoreException ex) {
             throw new ConstellationException("Error while adding raster into coverage sql", ex);
         }
