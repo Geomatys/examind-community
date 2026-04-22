@@ -48,7 +48,6 @@ import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
 
@@ -325,21 +324,7 @@ public class DataStoreProvider extends AbstractDataProvider {
                 throw new DataStoreException("Could not create feature store for parameters : "+factoryconfig);
             }
         } catch (Exception ex) {
-            // fallback : Try to find a factory matching given parameters.
-            store = null;
-            try {
-                final Iterator<DataStoreFactory> ite = DataStores.getProviders(DataStoreFactory.class).iterator();
-                while (store == null && ite.hasNext()) {
-                    final DataStoreFactory factory = ite.next();
-                    if (factory.getOpenParameters().getName().equals(factoryconfig.getDescriptor().getName())) {
-                        store = factory.open(factoryconfig);
-                    }
-                }
-            } catch (Exception fallbackError) {
-                ex.addSuppressed(fallbackError);
-            }
-
-            if (store == null) throw new RuntimeException(ex);
+            throw new RuntimeException(ex);
         }
 
         return store;
