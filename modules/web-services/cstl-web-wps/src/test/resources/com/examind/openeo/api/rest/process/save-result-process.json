@@ -1,0 +1,41 @@
+{
+    "id" : "save_result",
+    "summary" : "Save a coverage in a specified format",
+    "description" : "Save a coverage in a specified format",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+        "name" : "data",
+        "description" : "The data to save",
+        "schema" : [ {
+            "type" : "object",
+            "subtype" : "raster-cube"
+        } ],
+        "optional" : false
+    }, {
+        "name" : "format",
+        "description" : "Format used to save the coverage",
+        "schema" : [ {
+            "type" : "string"
+        } ],
+        "optional" : true
+    }, {
+        "name" : "options",
+        "description" : "The file format parameters to be used to create the file(s)",
+        "schema" : [ {
+            "type" : "object"
+        } ],
+        "optional" : true
+    } ],
+    "returns" : {
+        "description" : "Result",
+        "schema" : {
+            "type" : null
+        }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+}

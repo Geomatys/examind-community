@@ -18,6 +18,10 @@
  */
 package com.examind.openeo.api.rest.process;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
@@ -51,6 +55,7 @@ import java.util.logging.Level;
 
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -137,6 +142,29 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
         stopServer();
     }
 
+    /**
+     * Utility method to extract a specific process from the response of the "get all processes" endpoint.
+     * @param allProcessesResponse String form the /processes endpoint
+     * @param processId The id of the process you want to extract
+     * @return The json (String) of the process you want
+     */
+    private static String getSpecificProcessFromOpenEO(String allProcessesResponse, String processId) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode rootNode = mapper.readTree(allProcessesResponse);
+        ArrayNode processes = (ArrayNode) rootNode.get("processes");
+
+        JsonNode wantedProcess = null;
+        for (JsonNode process : processes) {
+            if (processId.equals(process.get("id").asText())) {
+                wantedProcess = process;
+                break;
+            }
+        }
+
+        assertNotNull("Process " + processId + " not found", wantedProcess);
+        return wantedProcess.toString();
+    }
+
 // Disabled because the list of processes can change even if we don't change anything in the tested code.
 // It depends on the processes available in the process factories at the time of the test execution.
 //    @Test
@@ -156,6 +184,40 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order = 2)
+    public void testOpenEOGetLoadCollectionProcess() throws Exception {
+
+        initWPSServer();
+
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/processes/").toURL();
+
+        waitForRestStart(executeUrl.toString());
+
+        String result = getStringResponse(executeUrl);
+        String filteredResult = getSpecificProcessFromOpenEO(result, "load_collection");
+
+        String expected = getStringFromFile("com/examind/openeo/api/rest/process/load-collection-process.json");
+        compareJSON(expected, filteredResult);
+    }
+
+    @Test
+    @Order(order = 3)
+    public void testOpenEOGetSaveResultProcess() throws Exception {
+
+        initWPSServer();
+
+        final URL executeUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/openeo/default/processes/").toURL();
+
+        waitForRestStart(executeUrl.toString());
+
+        String result = getStringResponse(executeUrl);
+        String filteredResult = getSpecificProcessFromOpenEO(result, "save_result");
+
+        String expected = getStringFromFile("com/examind/openeo/api/rest/process/save-result-process.json");
+        compareJSON(expected, filteredResult);
+    }
+
+    @Test
+    @Order(order = 4)
     public void testOpenEOValidation() throws Exception {
 
         initWPSServer();
@@ -171,7 +233,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 3)
+    @Order(order = 5)
     public void testOpenEOPutProcessGraph() throws Exception {
 
         initWPSServer();
@@ -186,7 +248,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 4)
+    @Order(order = 6)
     public void testOpenEOGetAllUserProcesses() throws Exception {
         //Needs to run testOpenEOPutProcessGraph before /!\
 
@@ -202,7 +264,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 5)
+    @Order(order = 7)
     public void testOpenEOValidationErrorAlreadyExist() throws Exception {
         //Needs to run testOpenEOPutProcessGraph before /!\
 
