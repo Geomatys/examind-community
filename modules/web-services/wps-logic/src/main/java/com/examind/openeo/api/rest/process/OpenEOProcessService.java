@@ -435,10 +435,12 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             }
 
             String type = null;
+            Class<?> clazz = null;
             boolean isArray = false;
             if (descriptor.getOutputDescriptor().descriptors().get(0) instanceof DefaultParameterDescriptor<?> outputDefaultParameterDescriptor) {
                 try {
                     if (outputDefaultParameterDescriptor.getValueClass() != null) {
+                        clazz = outputDefaultParameterDescriptor.getValueClass();
                         isArray = outputDefaultParameterDescriptor.getValueClass().isArray();
                     }
                 } catch (Exception ex) {
@@ -453,7 +455,9 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 }
             }
 
-            process.setReturns(new ProcessReturn(description, new DataTypeSchema(type == null ? List.of() : List.of(DataTypeSchema.Type.fromValue(type, isArray)), null)));
+            process.setReturns(new ProcessReturn(description,
+                    buildDataTypeSchema(descriptor, outputDescriptor.getName().getCode(), type, clazz, isArray, (outputDescriptor.getMinimumOccurs() > 0))[0]
+            ));
         } else {
             process.setReturns(new ProcessReturn("No data returned", null));
         }
