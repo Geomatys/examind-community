@@ -47,10 +47,10 @@ public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
 
         sqlRequest.removeOrderBy();
         StringBuilder select  = new StringBuilder();
-        select.append("time as \"step\", value as \"").append(f.name);
+        select.append("time as \"step\", value as \"").append(f.getName());
         select.append("\" FROM unnest ((SELECT asap_smooth(");
-        select.append("\"").append(procedure.mainField.name).append("\",");
-        select.append("\"").append(f.name).append("\",");
+        select.append("\"").append(procedure.mainField.getName()).append("\",");
+        select.append("\"").append(f.getName()).append("\",");
         select.append(width).append(")");
 
         sqlRequest.replaceSelect(select.toString());

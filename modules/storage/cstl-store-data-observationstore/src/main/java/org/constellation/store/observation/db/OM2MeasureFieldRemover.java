@@ -65,7 +65,7 @@ public class OM2MeasureFieldRemover extends OM2MeasureHandler {
     private Collection<String> buildEmptyRequests() throws DataStoreException {
         Map<Integer, StringBuilder> builders = new HashMap<>();
         for (DbField field : fields) {
-            if (Util.containsForbiddenCharacter(field.name)) {
+            if (Util.containsForbiddenCharacter(field.getName())) {
                 throw new DataStoreException("Invalid field name");
             }
             StringBuilder sql = builders.computeIfAbsent(field.tableNumber, tn ->
@@ -76,7 +76,7 @@ public class OM2MeasureFieldRemover extends OM2MeasureHandler {
                 }
                 return new StringBuilder("UPDATE \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" SET ");
             });
-            sql.append('"').append(field.name).append("\" = NULL ,");
+            sql.append('"').append(field.getName()).append("\" = NULL ,");
         }
 
         List<String> results = new ArrayList<>();

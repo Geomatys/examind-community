@@ -131,7 +131,7 @@ public class ResultValuesIterator {
 
         private String extractNextValue(Object measure, InsertDbField field) throws DataStoreException {
             String value = null;
-            switch (field.dataType) {
+            switch (field.getDataType()) {
                 case TIME -> {
                     //format time
                     if (measure != null) {
@@ -141,7 +141,7 @@ public class ResultValuesIterator {
                         } else if (measure instanceof Long millis) {
                             value = "'" + new Timestamp(millis).toString() + "'";
                         } else {
-                            throw new DataStoreException("expecting timestamp for field " + field.name+ " value : " +measure);
+                            throw new DataStoreException("expecting timestamp for field " + field.getName()+ " value : " +measure);
                         }
                     }
                 }
@@ -153,7 +153,7 @@ public class ResultValuesIterator {
                             }
                             value = "'" + s + "'";
                         } else {
-                            throw new DataStoreException("expecting timestamp for field " + field.name + " value : " +measure);
+                            throw new DataStoreException("expecting timestamp for field " + field.getName() + " value : " +measure);
                         }
                     }
                 }
@@ -166,7 +166,7 @@ public class ResultValuesIterator {
                                 value = Boolean.toString(b);
                             }
                         } else {
-                            throw new DataStoreException("expecting boolean for field " + field.name + " value : " + measure);
+                            throw new DataStoreException("expecting boolean for field " + field.getName() + " value : " + measure);
                         }
                    }
                 }
@@ -178,7 +178,7 @@ public class ResultValuesIterator {
                                 value = Double.toString(d);
                             }
                         } else {
-                            throw new DataStoreException("expecting double for field " + field.name + " value : " + measure);
+                            throw new DataStoreException("expecting double for field " + field.getName() + " value : " + measure);
                         }
                     }
                 }
@@ -265,7 +265,7 @@ public class ResultValuesIterator {
                 }
             }
 
-            switch (field.dataType) {
+            switch (field.getDataType()) {
                 case TIME -> {
                     //format time
                     if (value != null && !(value = value.trim()).isEmpty()) {
@@ -273,7 +273,7 @@ public class ResultValuesIterator {
                             final long millis = dateParser.parseToMillis(value);
                             value = "'" + new Timestamp(millis).toString() + "'";
                         } catch (IllegalArgumentException ex) {
-                            throw new DataStoreException("Bad format of timestamp for:" + value + " for field " + field.name);
+                            throw new DataStoreException("Bad format of timestamp for:" + value + " for field " + field.getName());
                         }
                     }
                 }
@@ -298,7 +298,7 @@ public class ResultValuesIterator {
                             d = (Double) field.convertValue(d);
                             value = Double.toString(d);
                         } catch (NumberFormatException ex) {
-                            throw new DataStoreException("Unable to parse double:" + value + " for field " + field.name);
+                            throw new DataStoreException("Unable to parse double:" + value + " for field " + field.getName());
                         }
                     }
                 }

@@ -70,7 +70,7 @@ public class CompositeTextField extends SelectionField {
                 if (!first) {
                     sb.append(" , ");
                 }
-                sb.append("\"" + sf.name + "\"");
+                sb.append("\"" + sf.getName() + "\"");
             }
              first = false;
         }

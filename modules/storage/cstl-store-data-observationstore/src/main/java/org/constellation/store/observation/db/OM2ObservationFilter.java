@@ -1281,10 +1281,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         Map<String, StringBuilder> replace = new HashMap<>();
         for (DbField field : fields) {
             if (isMeasureField(field, pti) && field.tableNumber == tableNum) {
-                List<Field> subFields = fType == FieldType.QUALITY ? field.qualityFields : field.parameterFields; 
+                List<Field> subFields = fType == FieldType.QUALITY ? field.getQualityFields() : field.getParameterFields(); 
                 for (Field subField : subFields) {
-                    final String allExtraPhenKeyword = "${allphen_extra_" + subField.name;
-                    List<Param> allExtraPhenParams = single.getParamsByName( "allphen_extra_" + subField.name);
+                    final String allExtraPhenKeyword = "${allphen_extra_" + subField.getName();
+                    List<Param> allExtraPhenParams = single.getParamsByName( "allphen_extra_" + subField.getName());
                     for (Param param : allExtraPhenParams) {
                         extraFilter.computeIfAbsent(param, f -> new AtomicInteger(-1));
                         // it must be one ${allphen _extra_ ...} for each "allPhen _extra_" param
@@ -1294,10 +1294,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                         StringBuilder sb = replace.computeIfAbsent(block, f -> new StringBuilder());
                         if (matchType(param, subField)) {
-                            sb.append(" (").append(block.replace(allExtraPhenKeyword, "\"" + field.name + fieldSuffix + subField.name + "\" ").replace('}', ' ')).append(") OR ");
+                            sb.append(" (").append(block.replace(allExtraPhenKeyword, "\"" + field.getName() + fieldSuffix + subField.getName() + "\" ").replace('}', ' ')).append(") OR ");
                             extraFilter.get(param).incrementAndGet();
                         } else {
-                            LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + subField.dataType);
+                            LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + subField.getDataType());
                             sb.append(" FALSE ");
                         }
                     }
@@ -1325,7 +1325,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected void handleTimeMeasureFilterInRequest(SingleFilterSQLRequest single, ProcedureInfo pti) {
         // $time will be present only for timeseries in this implementation
         if (pti.type == ObservationType.TIMESERIES) {
-            single.replaceAll("$time", pti.mainField.name);
+            single.replaceAll("$time", pti.mainField.getName());
         }
     }
     
@@ -1343,10 +1343,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 if (isMeasureField(field, pti) && field.tableNumber == tableNum) {
                     if (!first) sb.append(" AND ");
                     if (matchType(param, field)) {
-                        sb.append(" (").append(block.replace(allPhenKeyword, "\"" + field.name + "\" ").replace('}', ' ')).append(") ");
+                        sb.append(" (").append(block.replace(allPhenKeyword, "\"" + field.getName() + "\" ").replace('}', ' ')).append(") ");
                         extraFilter++;
                     } else {
-                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.dataType);
+                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.getDataType());
                         sb.append(" FALSE ");
                     }
                     first = false;
@@ -1372,21 +1372,21 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected static boolean matchType(Param param, Field field) {
         //we want to let pass different numbers type
         if (Number.class.isAssignableFrom(param.type) &&
-            Number.class.isAssignableFrom(field.dataType.getJavaType()))  {
+            Number.class.isAssignableFrom(field.getDataType().getJavaType()))  {
             return true;
         }
-        return param.type.isAssignableFrom(field.dataType.getJavaType());
+        return param.type.isAssignableFrom(field.getDataType().getJavaType());
     }
 
     protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent, String extraSubType) {
         String columnName;
         String extraSuffix;
         if (parent != null) {
-            extraSuffix = "_extra_" + field.name;
-            columnName = parent.name + extraSubType + field.name;
+            extraSuffix = "_extra_" + field.getName();
+            columnName = parent.getName() + extraSubType + field.getName();
         } else {
             extraSuffix = "";
-            columnName = field.name;
+            columnName = field.getName();
         }
         final String phenKeyword = " (\"$phen" + pIndex + extraSuffix;
         List<Param> phenParams = single.getParamsByName("phen" + pIndex + extraSuffix);
@@ -1404,7 +1404,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                 // the parameter type does not match, we must invalidate the results
                 if (!typeMatch) {
-                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.dataType);
+                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.getDataType());
                     single.replaceFirst(block, " FALSE ");
 
                 // we need to remove the filter fom the request, as it does not apply to this table
@@ -1415,10 +1415,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
         }
         // treat the extra fields
-        for (Field qField : field.qualityFields) {
+        for (Field qField : field.getQualityFields()) {
             treatPhenFilterForField((DbField)qField, pIndex, single, curTable, field, "_quality_");
         }
-        for (Field qField : field.parameterFields) {
+        for (Field qField : field.getParameterFields()) {
             treatPhenFilterForField((DbField)qField, pIndex, single, curTable, field, "_parameter_");
         }
     }
@@ -1621,9 +1621,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 if (measurement) {
                     for (DbField field : fields) {
                         // in measurement mode we only want the non empty measure
-                        final String value = rs2.getString(field.name, field.tableNumber);
+                        final String value = rs2.getString(field.getName(), field.tableNumber);
                         if (value != null) {
-                            results.add(name + '-' + field.index + '-' + rid);
+                            results.add(name + '-' + field.getIndex() + '-' + rid);
                         }
                     }
                 } else {
@@ -2169,7 +2169,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected Map<DbField, Phenomenon> getPhenomenonFields(ProcedureInfo procedure, Connection c) {
         try {
-            boolean removeMainField  = procedure.mainField.dataType == FieldDataType.TIME;
+            boolean removeMainField  = procedure.mainField.getDataType() == FieldDataType.TIME;
             List<DbField> fields = readFields(procedure.id, removeMainField, c, fieldIndexFilters, fieldIdFilters, true);
             return getPhenomenonFields(fields, c);
         } catch (Exception ex) {
@@ -2181,7 +2181,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         try {
             final Map<DbField, Phenomenon> results = new LinkedHashMap<>();
             for (DbField f : fields) {
-                results.put(f, getSinglePhenomenon(f.name, c));
+                results.put(f, getSinglePhenomenon(f.getName(), c));
             }
             return results;
         } catch (Exception ex) {
@@ -2192,7 +2192,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected List<Field> getFieldsForPhenomenon(final Phenomenon fullPhen, List<Field> fields, Connection c) throws DataStoreException {
         final List<Field> results = new ArrayList<>();
         for (Field f : fields) {
-            if (isIncludedField(f.name, f.description, f.index) && isFieldInPhenomenon(f.name, fullPhen)) {
+            if (isIncludedField(f.getName(), f.getDescription(), f.getIndex()) && isFieldInPhenomenon(f.getName(), fullPhen)) {
                 results.add(f);
             }
         }

@@ -20,6 +20,7 @@ package org.constellation.store.observation.db.model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import org.constellation.util.SQLResult;
 import org.geotoolkit.observation.OMUtils;
@@ -45,7 +46,7 @@ public class DbField extends Field {
     
     public DbField(Integer index, FieldDataType dataType, String name, String label, String description, String uom, FieldType type, int tableNumber,
             List<Field> qualityFields, List<Field> parameterFields) {
-        super(index, dataType, name, label, description, uom, type, qualityFields, parameterFields);
+        super(index, dataType, name, label, description, uom, type, qualityFields, parameterFields, new HashMap<>());
         this.tableNumber = tableNumber;
     }
     
@@ -58,7 +59,7 @@ public class DbField extends Field {
         this.tableNumber = tableNumber;
         // overide quality Fields type
         this.qualityFields.clear();
-        for (Field qField : original.qualityFields) {
+        for (Field qField : original.getQualityFields()) {
             if (qField instanceof DbField dqField) {
                 tableNumber = dqField.tableNumber;
             }
@@ -68,7 +69,7 @@ public class DbField extends Field {
         }
         // overide parameter Fields type
         this.parameterFields.clear();
-        for (Field pField : original.parameterFields) {
+        for (Field pField : original.getParameterFields()) {
             if (pField instanceof DbField dqField) {
                 tableNumber = dqField.tableNumber;
             }
@@ -81,11 +82,11 @@ public class DbField extends Field {
     public Object getValueFromResult(ResultSet rs) throws SQLException {
         String fieldName;
         if (parent != null) {
-            fieldName = parent.name + "_" + type.name().toLowerCase() + "_" + name;
+            fieldName = parent.getName() + "_" + getType().name().toLowerCase() + "_" + getName();
         } else {
-            fieldName = name;
+            fieldName = getName();
         }
-        return switch(this.dataType) {
+        return switch(this.getDataType()) {
             case BOOLEAN  -> rs.getBoolean(fieldName);
             case QUANTITY -> rs.getDouble(fieldName);
             case TIME     -> rs.getTimestamp(fieldName);
@@ -102,11 +103,11 @@ public class DbField extends Field {
     public Object getValueFromResult(SQLResult rs, int tableNumber) throws SQLException {
         String fieldName;
         if (parent != null) {
-            fieldName = parent.name + "_" + type.name().toLowerCase() + "_" + name;
+            fieldName = parent.getName() + "_" + getType().name().toLowerCase() + "_" + getName();
         } else {
-            fieldName = name;
+            fieldName = getName();
         }
-        return switch(this.dataType) {
+        return switch(this.getDataType()) {
             case BOOLEAN  -> rs.getBoolean(fieldName, tableNumber);
             case QUANTITY -> notNullDouble(rs, fieldName, tableNumber);
             case TIME     -> rs.getTimestamp(fieldName, tableNumber);

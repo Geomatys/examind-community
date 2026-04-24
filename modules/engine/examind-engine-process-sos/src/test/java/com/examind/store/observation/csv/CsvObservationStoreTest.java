@@ -205,10 +205,10 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(3, cr.getFields().size());
 
         Field f = cr.getFields().get(1);
-        Assert.assertEquals("degree_Celsius", f.uom);
+        Assert.assertEquals("degree_Celsius", f.getUom());
 
         f = cr.getFields().get(2);
-        Assert.assertEquals("meter2 second", f.uom);
+        Assert.assertEquals("meter2 second", f.getUom());
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
@@ -526,10 +526,10 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(2, cr.getFields().size());
 
         Field f = cr.getFields().get(1);
-        Assert.assertEquals(1, f.qualityFields.size());
+        Assert.assertEquals(1, f.getQualityFields().size());
 
-        Field qualityField = f.qualityFields.get(0);
-        Assert.assertEquals("qua_lity_fi", qualityField.name);
+        Field qualityField = f.getQualityFields().get(0);
+        Assert.assertEquals("qua_lity_fi", qualityField.getName());
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
@@ -702,10 +702,10 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(2, cr.getFields().size());
 
         Field f = cr.getFields().get(1);
-        Assert.assertEquals(1, f.qualityFields.size());
+        Assert.assertEquals(1, f.getQualityFields().size());
 
-        Field qualityField = f.qualityFields.get(0);
-        Assert.assertEquals("new_quality_name", qualityField.name);
+        Field qualityField = f.getQualityFields().get(0);
+        Assert.assertEquals("new_quality_name", qualityField.getName());
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
@@ -802,10 +802,10 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(3, cr.getFields().size());
 
         Field f = cr.getFields().get(1);
-        Assert.assertEquals("°C", f.uom);
+        Assert.assertEquals("°C", f.getUom());
 
         f = cr.getFields().get(2);
-        Assert.assertEquals("m2/s", f.uom);
+        Assert.assertEquals("m2/s", f.getUom());
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());

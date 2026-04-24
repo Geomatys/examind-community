@@ -72,7 +72,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
         }
         Map<Integer, StringBuilder> builders = new HashMap<>();
         for (DbField field : fields) {
-            if (Util.containsForbiddenCharacter(field.name)) {
+            if (Util.containsForbiddenCharacter(field.getName())) {
                 throw new DataStoreException("Invalid field name");
             }
             StringBuilder sql = builders.computeIfAbsent(field.tableNumber, tn ->
@@ -84,7 +84,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
                 }
                 return new StringBuilder("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" (\"id_observation\", \"id\", ");
             });
-            sql.append('"').append(field.name).append("\",");
+            sql.append('"').append(field.getName()).append("\",");
         }
 
         // add statement for un involved tables
@@ -145,7 +145,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
                 if (update) {
                     final Entry<InsertDbField, String> main = fieldValues.get(0);
                     try (final PreparedStatement measExist = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" " +
-                                                                        "WHERE \"id_observation\" = ? AND \"" + main.getKey().name + "\" = " + main.getValue())) {
+                                                                        "WHERE \"id_observation\" = ? AND \"" + main.getKey().getName() + "\" = " + main.getValue())) {
                         measExist.setLong(1, oid);
                         try (final ResultSet rs = measExist.executeQuery()) {
                             // there is an existing line
@@ -258,7 +258,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
                 }
                 return new StringBuilder("UPDATE \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" SET ");
             });
-            sql.append('"').append(entry.getKey().name).append("\" = ");
+            sql.append('"').append(entry.getKey().getName()).append("\" = ");
             String value = entry.getValue();
             if (value != null && !value.isEmpty()) {
                 sql.append(value).append(",");

@@ -62,26 +62,26 @@ public class MeasureField {
     
     public MeasureField(int columnIndex, Field f) {
         this.columnIndex = columnIndex;
-        this.name = f.name;
-        this.dataType = f.dataType;
-        this.type = f.type;
+        this.name = f.getName();
+        this.dataType = f.getDataType();
+        this.type = f.getType();
         
         this.qualityFields = new ArrayList<>();
-        if (f.qualityFields != null) {
-            for (Field qf : f.qualityFields) {
+        if (f.getQualityFields() != null) {
+            for (Field qf : f.getQualityFields()) {
                 this.qualityFields.add(new MeasureField(-1, qf));
             }
         }
         
         this.parameterFields = new ArrayList<>();
-        if (f.parameterFields != null) {
-            for (Field pf : f.parameterFields) {
+        if (f.getParameterFields() != null) {
+            for (Field pf : f.getParameterFields()) {
                 this.parameterFields.add(new MeasureField(-1, pf));
             }
         }
-        this.label = f.label;
-        this.uom = f.uom;
-        this.description = f.description;
+        this.label = f.getLabel();
+        this.uom = f.getUom();
+        this.description = f.getDescription();
         this.properties = new HashMap<>();
     }
 }

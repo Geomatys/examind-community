@@ -68,15 +68,15 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
         } else {
             select.append("time_bucket('").append(getTimeScalePeriod(step)).append("', \"");
         }
-        select.append(procedure.mainField.name).append("\") AS \"step\"");
+        select.append(procedure.mainField.getName()).append("\") AS \"step\"");
         List<? extends DbField> measureFields = OM2Utils.getMeasureFields(fields, procedure);
         for (DbField f : measureFields) {
-             select.append(", avg(\"").append(f.name).append("\") AS \"").append(f.name).append("\"");
+             select.append(", avg(\"").append(f.getName()).append("\") AS \"").append(f.getName()).append("\"");
         }
         
         if (nonTimeseries) {
             select.append(", o.\"id\" as \"oid\" ");
-            if (fields.stream().anyMatch(f -> f.dataType.equals(FieldDataType.TIME) && f.type.equals(FieldType.METADATA))) {
+            if (fields.stream().anyMatch(f -> f.getDataType().equals(FieldDataType.TIME) && f.getType().equals(FieldType.METADATA))) {
                 select.append(", o.\"time_begin\" "); // todo use the field name directly?
             }
         }

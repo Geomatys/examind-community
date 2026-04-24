@@ -85,7 +85,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         Date t               = null;
         AtomicInteger cpt    = new AtomicInteger();
         AtomicBoolean first  = new AtomicBoolean(true);
-        while (rs.nextOnField(procedure.mainField.name)) {
+        while (rs.nextOnField(procedure.mainField.getName())) {
             Long currentObs;
             if (nonTimeseries) {
                 currentObs = rs.getLong("oid");
@@ -123,20 +123,20 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 int rsIndex = field.tableNumber;
 
                 // already extracted
-                if (field.type.equals(FieldType.MAIN)) {
+                if (field.getType().equals(FieldType.MAIN)) {
 
                 // time for nonTimeseries field (present in all resultSets)
-                } else if (field.dataType == FieldDataType.TIME && field.type.equals(FieldType.METADATA)) {
-                    t = dateFromTS(rs.getTimestamp(field.name));
+                } else if (field.getDataType() == FieldDataType.TIME && field.getType().equals(FieldType.METADATA)) {
+                    t = dateFromTS(rs.getTimestamp(field.getName()));
 
                 // identifier field
-                } else if (field.dataType == FieldDataType.TEXT && field.type.equals(FieldType.METADATA)) {
+                } else if (field.getDataType() == FieldDataType.TEXT && field.getType().equals(FieldType.METADATA)) {
                     // nothing to extract
 
                 } else {
-                    double value = rs.getDouble(field.name, rsIndex);
+                    double value = rs.getDouble(field.getName(), rsIndex);
                     if (!rs.wasNull(rsIndex)) {
-                        mapValues.addToMapVal(currentMainValue, field.name, value);
+                        mapValues.addToMapVal(currentMainValue, field.getName(), value);
                     }
                 }
             }
@@ -165,7 +165,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             this.step = step;
             this.fields = fields;
             mapValues =  fields.stream().collect(Collectors.toMap(
-                    field -> field.name,
+                    field -> field.getName(),
                     key -> new double[] { Double.MAX_VALUE, -Double.MAX_VALUE }));
 
         }
@@ -188,8 +188,8 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
         private boolean minMaxEquals() {
             return fields.stream()
-                         .filter(field -> field.type == FieldType.MEASURE)
-                         .map(field -> mapValues.get(field.name))
+                         .filter(field -> field.getType() == FieldType.MEASURE)
+                         .map(field -> mapValues.get(field.getName()))
                          .noneMatch(minMax -> minMax[0] != minMax[1]);
         }
 
@@ -251,8 +251,8 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             Field field = fields.get(i);
 
             // main field
-            if (field.type.equals(FieldType.MAIN)) {
-                switch( field.dataType) {
+            if (field.getType().equals(FieldType.MAIN)) {
+                switch( field.getDataType()) {
                     case TIME -> values.appendTime(new Date(mainValue), false, field);
                     case QUANTITY -> {
                         // special case for nonTimeseries + datastream on another phenomenon that the main field.
@@ -265,13 +265,13 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 }
 
             // time for nonTimeseries field
-            } else if (field.dataType.equals(FieldDataType.TIME) && field.type.equals(FieldType.METADATA)) {
+            } else if (field.getDataType().equals(FieldDataType.TIME) && field.getType().equals(FieldType.METADATA)) {
                 values.appendTime(t, false, field);
             // id field
-            } else if (field.dataType.equals(FieldDataType.TEXT) && field.type.equals(FieldType.METADATA) ) {
+            } else if (field.getDataType().equals(FieldDataType.TEXT) && field.getType().equals(FieldType.METADATA) ) {
                 values.appendString(procedure.id + "-dec-" + cpt, false, field);
             } else {
-                final double value = fieldValues.get(field.name)[index];
+                final double value = fieldValues.get(field.getName())[index];
                 if (value != undefinedValue) {
                     values.appendDouble(value, true, field);
                 } else {
@@ -283,13 +283,13 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
     }
 
     protected long extractMainValue(Field field, SQLResult rs) throws SQLException {
-        switch(field.dataType) {
+        switch(field.getDataType()) {
             case TIME -> {
-                final Timestamp currentTime = rs.getTimestamp(field.name);
+                final Timestamp currentTime = rs.getTimestamp(field.getName());
                 return currentTime.getTime();
             }
             case QUANTITY -> {
-                final double d = rs.getDouble(field.name);
+                final double d = rs.getDouble(field.getName());
                 return (long) d;
             }
             default -> throw new IllegalArgumentException("Main field should be time or quantity type :" + field);

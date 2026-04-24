@@ -80,7 +80,7 @@ public class AbstractCsvStoreTest {
     
     protected void verifyTSFields(ProcedureDataset proc, int nbField) {
         Assert.assertEquals(nbField, proc.fields.size());
-        Assert.assertEquals(FieldDataType.TIME, proc.fields.get(0).dataType);
-        Assert.assertEquals(FieldType.MAIN, proc.fields.get(0).type);
+        Assert.assertEquals(FieldDataType.TIME, proc.fields.get(0).getDataType());
+        Assert.assertEquals(FieldType.MAIN, proc.fields.get(0).getType());
     }
 }

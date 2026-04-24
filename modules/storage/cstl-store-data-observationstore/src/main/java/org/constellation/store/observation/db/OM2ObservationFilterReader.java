@@ -371,7 +371,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     String timeKey =  procedure + "-" + observedProperty + "-" + featureID;
                     tempTime = timeMap.computeIfAbsent(timeKey, k -> getTimeForTemplate(c, procedure, observedProperty, featureID));
                 }
-                final String observationType         = getOmTypeFromFieldType(field.dataType);
+                final String observationType         = getOmTypeFromFieldType(field.getDataType());
                 MeasureResult result                 = new MeasureResult(field, null);
                 final List<Element> resultQuality    = buildResultQuality(field, null);
                 Observation observation = new Observation(obsID + '-' + fieldIndex,
@@ -597,7 +597,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 LOGGER.fine(measureRequest.toString());
                 try (final SQLResult rs2 = measureRequest.execute(c, SQLResult.NextMode.UNION, dialect)) {
             
-                    while (rs2.nextOnField(mainField.name, SQLResult.NextMode.UNION)) {
+                    while (rs2.nextOnField(mainField.getName(), SQLResult.NextMode.UNION)) {
                         // get the first for now
                         int tableNum = rs2.getFirstTableNumber();
                         final Long rid = aggregate ? null : rs2.getLong("id", tableNum);
@@ -614,7 +614,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             for (Entry<DbField, Phenomenon> entry : fieldPhen.entrySet()) {
                                 Phenomenon fphen     = entry.getValue();
                                 DbField field        = entry.getKey();
-                                final String obsType = getOmTypeFromFieldType(field.dataType);
+                                final String obsType = getOmTypeFromFieldType(field.getDataType());
                                 Object resultValue = null;
                                 try {
                                     resultValue   = field.getValueFromResult(rs2);
@@ -626,8 +626,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 
                                 if (resultValue != null && !(resultValue instanceof Double d && d.isNaN())) {
                                     MeasureResult result  = new MeasureResult(field, resultValue);
-                                    final String measId   = ((String) identifierField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
-                                    final String measName = ((String) nameField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
+                                    final String measId   = ((String) identifierField.getValueFromResult(rs2)).replace("<field-id>", field.getIndex().toString());
+                                    final String measName = ((String) nameField.getValueFromResult(rs2)).replace("<field-id>", field.getIndex().toString());
                                     if (!timeseries) {
                                         measureTime = time;
                                     } else {
@@ -676,7 +676,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         List<SelectionField> overriden = new ArrayList<>();
         for (DbField f : fields) {
             // replace main field by a fixed one
-            if (f.type.equals(FieldType.MAIN)) {
+            if (f.getType().equals(FieldType.MAIN)) {
                 overriden.add(new FixedValueField(f, "N/D"));
 
             // replace measure fields by aggregated one    
@@ -684,8 +684,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 overriden.add(new AggregationField(f, agg));
 
             // replace some metadata fields wth fixed value
-            } else if (f.type.equals(FieldType.METADATA)) {
-                if (nonTimeseries && f.label.equals("time")) {
+            } else if (f.getType().equals(FieldType.METADATA)) {
+                if (nonTimeseries && f.getLabel().equals("time")) {
                     overriden.add(new FixedValueField(f, "N/D"));
                 }
             } else {
@@ -720,7 +720,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (measureFields.size() > 1) {
                 idPrefix = idPrefix + "<field-id>"; // will be replaced lated
             } else {
-                idPrefix = idPrefix + measureFields.get(0).index;
+                idPrefix = idPrefix + measureFields.get(0).getIndex();
             }
         }
         if (mode == AGGREGATE) {

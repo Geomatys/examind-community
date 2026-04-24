@@ -163,15 +163,11 @@ public class STSUtils {
         final List<Field> results = new ArrayList<>();
         for (Field field : fields) {
             results.add(field);
-            if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
-                for (Field qField : field.qualityFields) {
-                    results.add(qField);
-                }
+            for (Field qField : field.getQualityFields()) {
+                results.add(qField);
             }
-            if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
-                for (Field pField : field.parameterFields) {
-                    results.add(pField);
-                }
+            for (Field pField : field.getParameterFields()) {
+                results.add(pField);
             }
         }
         return results;

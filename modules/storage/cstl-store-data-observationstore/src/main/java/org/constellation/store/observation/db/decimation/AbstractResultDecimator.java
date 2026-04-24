@@ -40,8 +40,8 @@ public abstract class AbstractResultDecimator extends ResultProcessor {
         super(fields, false, false, procedure);
         this.width = width;
         List<? extends DbField> measureFields = getMeasureFields(fields, procedure);
-        onlyProfileMain = measureFields.size() == 1 && measureFields.get(0).type.equals(FieldType.MAIN); // main field will only be included in measure fields for profile
-        skipProfileMain = nonTimeseries && !measureFields.stream().anyMatch(mf -> mf.type.equals(FieldType.MAIN));
+        onlyProfileMain = measureFields.size() == 1 && measureFields.get(0).getType().equals(FieldType.MAIN); // main field will only be included in measure fields for profile
+        skipProfileMain = nonTimeseries && !measureFields.stream().anyMatch(mf -> mf.getType().equals(FieldType.MAIN));
     }
 
 }

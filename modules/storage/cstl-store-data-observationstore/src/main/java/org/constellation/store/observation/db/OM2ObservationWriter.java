@@ -226,7 +226,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         throw new DataStoreException("The observation is in temporal conflict with other (already conflicting observation present)");
                     }
 
-                } else if (samplingTime instanceof Period p) {
+                } else if (samplingTime instanceof Period) {
                      return obs;
 
                 // unexpected case
@@ -403,7 +403,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 // for now we write the full procedure phenomenon. we should build a more precise phenomenon
                 if (replacePhen) {
-                    boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
+                    boolean removeMainField  = pi.mainField.getDataType() == FieldDataType.TIME;
                     List<DbField> readFields = readFields(procedureID, removeMainField, c, new ArrayList<>(), new ArrayList<>(), true);
                     Phenomenon replacingPhen = getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
                     writePhenomenon(replacingPhen, c, false);
@@ -457,7 +457,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 resultEvent.setValues(cr.getValues());
                 List<String> headers = new ArrayList<>();
                 for (Field field : cr.getFields()) {
-                    headers.add(field.name);
+                    headers.add(field.getName());
                 }
                 resultEvent.setHeaders(headers);
                 resultEvent.setProcedureID(procedureID);
@@ -949,7 +949,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private void setResultField(PreparedStatement stmt, int index, MeasureResult result) throws SQLException {
-        switch (result.getField().dataType) {
+        switch (result.getField().getDataType()) {
             case BOOLEAN  -> stmt.setBoolean(index,   (boolean) result.getValue());
             case QUANTITY -> stmt.setDouble(index,    (double) result.getValue());
             case TEXT     -> stmt.setString(index,    (String) result.getValue());
@@ -1795,8 +1795,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private void updateObservationTemporalBounds(ObservationInfos obsInfo, Connection c) throws SQLException, DataStoreException {
         // only for timeseries
         Field mainField = obsInfo.pi.mainField;
-        if (mainField.dataType.equals(FieldDataType.TIME)) {
-            String boundSQL  = "SELECT min(\"" + mainField.name + "\"), max(\"" + mainField.name + "\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + obsInfo.pi.pid + "\" WHERE \"id_observation\" = ?" ;
+        if (mainField.getDataType().equals(FieldDataType.TIME)) {
+            String boundSQL  = "SELECT min(\"" + mainField.getName() + "\"), max(\"" + mainField.getName() + "\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + obsInfo.pi.pid + "\" WHERE \"id_observation\" = ?" ;
             String updateObs = "UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"time_begin\"=?, \"time_end\"=? WHERE \"id\"=?";
             try (PreparedStatement bStmt  = c.prepareStatement(boundSQL);
                  PreparedStatement upStmt = c.prepareStatement(updateObs)) {
@@ -1829,7 +1829,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     private int removeEmptyMeasures(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
+        boolean removeMainField  = pi.mainField.getDataType() == FieldDataType.TIME;
         List<DbField> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>(), true);
 
         List<String> rmSQLs = new ArrayList<>();
@@ -1842,7 +1842,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
         sb.append("WHERE m.\"id_observation\" = ? ");
         for (Field f : fields) {
-            sb.append(" AND \"").append(f.name).append("\" IS NULL");
+            sb.append(" AND \"").append(f.getName()).append("\" IS NULL");
         }
         List<PreparedStatement> rmStmts = new ArrayList<>();
         for (String sql : rmSQLs) {
@@ -1876,13 +1876,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private List<Field> getEmptyFieldsForObservation(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
+        boolean removeMainField  = pi.mainField.getDataType() == FieldDataType.TIME;
         List<DbField> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>(), true);
 
         StringBuilder sql = new StringBuilder("SELECT ");
 
         for (DbField db : fields) {
-            sql.append(" COUNT(m" + db.tableNumber + ".\"" + db.name + "\") as \"" + db.name + "\",");
+            sql.append(" COUNT(m" + db.tableNumber + ".\"" + db.getName() + "\") as \"" + db.getName() + "\",");
         }
         sql.deleteCharAt(sql.length() - 1);
         sql.append(" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m1");
@@ -1931,7 +1931,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         List<Field> initialFields = OMUtils.getPhenomenonsFields(obsInfo.phenomenon);
         ini:for (Field initialField : initialFields) {
             for (Field rmField : fieldsToRemove) {
-                if (Objects.equals(initialField.name, rmField.name)) {
+                if (Objects.equals(initialField.getName(), rmField.getName())) {
                     continue ini;
                 }
             }
@@ -1941,7 +1941,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         Phenomenon phen;
         if (remainingFields.size() == 1) {
             // should never return null
-            phen = getPhenomenon(remainingFields.get(0).name, c);
+            phen = getPhenomenon(remainingFields.get(0).getName(), c);
         } else {
             phen = getPhenomenonForFields(remainingFields, c);
             // no existing phenomenon for remaning fields
@@ -2001,14 +2001,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
         @Override
         public void appendField(Field field, boolean isMain, String parentName, String subType) throws SQLException, DataStoreException {
-            if (Util.containsForbiddenCharacter(field.name)) {
+            if (Util.containsForbiddenCharacter(field.getName())) {
                 throw new DataStoreException("Invalid field name");
             }
             String columnName;
             if (parentName != null) {
-                columnName = parentName + "_" + subType + "_" + field.name;
+                columnName = parentName + "_" + subType + "_" + field.getName();
             } else {
-                columnName = field.name;
+                columnName = field.getName();
             }
             StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + columnName + "\" ");
 
@@ -2041,14 +2041,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
         @Override
         public void appendField(Field field, boolean isMain, String parentName, String subType) throws SQLException, DataStoreException {
-            if (Util.containsForbiddenCharacter(field.name)) {
+            if (Util.containsForbiddenCharacter(field.getName())) {
                 throw new DataStoreException("Invalid field name");
             }
             String columnName;
             if (parentName != null) {
-                columnName = parentName + "_" + subType + "_" + field.name;
+                columnName = parentName + "_" + subType + "_" + field.getName();
             } else {
-                columnName = field.name;
+                columnName = field.getName();
             }
 
             // TODO verify. for now we use the same datatype for postgres and duckdb
@@ -2118,15 +2118,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 tc.appendField(field, firstField, null, null);
                 firstField = false;
 
-                if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
-                    for (Field qField : field.qualityFields) {
-                        tc.appendField(qField, false, field.name, "quality");
+                if (field.getQualityFields() != null && !field.getQualityFields().isEmpty()) {
+                    for (Field qField : field.getQualityFields()) {
+                        tc.appendField(qField, false, field.getName(), "quality");
                         nbTabField++;
                     }
                 }
-                if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
-                    for (Field pField : field.parameterFields) {
-                        tc.appendField(pField, false, field.name, "parameter");
+                if (field.getParameterFields() != null && !field.getParameterFields().isEmpty()) {
+                    for (Field pField : field.getParameterFields()) {
+                        tc.appendField(pField, false, field.getName(), "parameter");
                         nbTabField++;
                     }
                 }
@@ -2147,7 +2147,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                     String mainFieldPk = "";
                     if (tc.mainField != null) {
-                        mainFieldPk = ", \"" + tc.mainField.name + "\"";
+                        mainFieldPk = ", \"" + tc.mainField.getName() + "\"";
                     }
                     String primaryKey = "PRIMARY KEY (\"id_observation\", \"id\"" + mainFieldPk + ")";
 
@@ -2158,8 +2158,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     stmt.executeUpdate(tableStsmt.toString());
 
                     //only for timeseries for now
-                    if (timescaleDB && tc.mainField != null && FieldDataType.TIME.equals(tc.mainField.dataType)) {
-                        stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + baseTableName + "', '" + tc.mainField.name + "')");//NOSONAR
+                    if (timescaleDB && tc.mainField != null && FieldDataType.TIME.equals(tc.mainField.getDataType())) {
+                        stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + baseTableName + "', '" + tc.mainField.getName() + "')");//NOSONAR
                     }
 
                     // for extra table, we prefill the observation measures
@@ -2197,17 +2197,17 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?,?,?,?)")) {//NOSONAR
             for (DbField field : fields) {
                 insertField(insertFieldStmt, procedureID, field, null, offset, null);
-                if (field.qualityFields != null) {
+                if (field.getQualityFields() != null) {
                     int qOffset = 1;
-                    for (Field qfield : field.qualityFields) {
-                        insertField(insertFieldStmt, procedureID, (DbField)qfield, field.name, qOffset, "QUALITY");
+                    for (Field qfield : field.getQualityFields()) {
+                        insertField(insertFieldStmt, procedureID, (DbField)qfield, field.getName(), qOffset, "QUALITY");
                         qOffset++;
                     }
                 }
-                if (field.parameterFields != null) {
+                if (field.getParameterFields() != null) {
                     int pOffset = 1;
-                    for (Field pfield : field.parameterFields) {
-                        insertField(insertFieldStmt, procedureID, (DbField)pfield, field.name, pOffset, "PARAMETER");
+                    for (Field pfield : field.getParameterFields()) {
+                        insertField(insertFieldStmt, procedureID, (DbField)pfield, field.getName(), pOffset, "PARAMETER");
                         pOffset++;
                     }
                 }
@@ -2219,15 +2219,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private void insertField(PreparedStatement insertFieldStmt, String procedureID, DbField field, String parent, int offset, String subFieldType) throws SQLException {
         insertFieldStmt.setString(1, procedureID);
         insertFieldStmt.setInt(2, offset);
-        insertFieldStmt.setString(3, field.name);
-        insertFieldStmt.setString(4, field.dataType.label);
-        if (field.description != null) {
-            insertFieldStmt.setString(5, field.description);
+        insertFieldStmt.setString(3, field.getName());
+        insertFieldStmt.setString(4, field.getDataType().label);
+        if (field.getDescription() != null) {
+            insertFieldStmt.setString(5, field.getDescription());
         } else {
             insertFieldStmt.setNull(5, java.sql.Types.VARCHAR);
         }
-        if (field.uom != null) {
-            insertFieldStmt.setString(6, field.uom);
+        if (field.getUom() != null) {
+            insertFieldStmt.setString(6, field.getUom());
         } else {
             insertFieldStmt.setNull(6, java.sql.Types.VARCHAR);
         }
@@ -2237,7 +2237,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             insertFieldStmt.setNull(7, java.sql.Types.VARCHAR);
         }
         insertFieldStmt.setInt(8, field.tableNumber);
-        insertFieldStmt.setString(9, field.label);
+        insertFieldStmt.setString(9, field.getLabel());
         if (subFieldType != null) {
             insertFieldStmt.setString(10, subFieldType);
         } else {
@@ -2325,8 +2325,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             final PreparedSQLBatch stmtBatch = new PreparedSQLBatch(rmFieldStmt, dialect.supportBatch);
                             for (Field field : fields) {
                                 stmtBatch.setString(1, pi.id);
-                                stmtBatch.setString(2, field.name);
-                                stmtBatch.setString(3, field.name);
+                                stmtBatch.setString(2, field.getName());
+                                stmtBatch.setString(3, field.getName());
                                 stmtBatch.addBatch();
                             }
                             stmtBatch.executeBatch();

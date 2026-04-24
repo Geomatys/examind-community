@@ -152,7 +152,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         int tNum = rs2.getFirstTableNumber();
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             Map<String, Integer> fieldIndex = new HashMap<>();
-            fields.forEach(f -> fieldIndex.put(f.name, f.index));
+            fields.forEach(f -> fieldIndex.put(f.getName(), f.getIndex()));
             while (rs2.nextOnField("id")) {
                 final Long rid = rs2.getLong("id", tNum);
                 final Integer index = fieldIndex.get(rs2.getString("obsprop_id"));
@@ -201,7 +201,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             if (measureFields.size() > 1) {
                 idPrefix = idPrefix + "<field-id>"; // will be replaced lated
             } else {
-                idPrefix = idPrefix + measureFields.get(0).index;
+                idPrefix = idPrefix + measureFields.get(0).getIndex();
             }
         }
         if (mode == AGGREGATE) {
@@ -245,7 +245,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     @Override
     protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<SelectionField> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, MesureRequestMode mode) {
         final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
-        final String mainFieldName = pti.mainField.name;
+        final String mainFieldName = pti.mainField.getName();
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         final int tableNum = 1;
         
@@ -255,7 +255,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             int mainFieldIndex = queryFields.indexOf(pti.mainField);
             onlyMain = true;
             for (Field field : queryFields) {
-                if (field.index > mainFieldIndex + 1) {
+                if (field.getIndex() > mainFieldIndex + 1) {
                     onlyMain = false;
                     break;
                 }
@@ -273,9 +273,9 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         } else {
             if (mode != AGGREGATE) {
                 if (nonTimeseries) {
-                    select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\", m.\"time\" ";
+                    select = "m.\"" + pti.mainField.getName() + "\", m.\"obsprop_id\", m.\"result\", m.\"time\" ";
                 } else {
-                    select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\" ";
+                    select = "m.\"" + pti.mainField.getName() + "\", m.\"obsprop_id\", m.\"result\" ";
                 }
             } else {
                 Aggregation agg = extractSelectAggregation(queryFields);
@@ -294,9 +294,9 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 where = where + " AND ( ";
                 boolean first = true;
                 for (Field df : queryFields) {
-                    if (!df.name.equals(mainFieldName)) {
+                    if (!df.getName().equals(mainFieldName)) {
                         if (!first) where = where + " OR ";
-                        where = where + "m.\"obsprop_id\" = '" + df.name + "' ";
+                        where = where + "m.\"obsprop_id\" = '" + df.getName() + "' ";
                         first = false;
                     }
                 }
@@ -348,7 +348,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             if (!includeConditional) {
                 measureRequests.append("m.\"time\",");
             }
-            measureRequests.append("m.\"" + pti.mainField.name + "\"");
+            measureRequests.append("m.\"" + pti.mainField.getName() + "\"");
         } else if (mode == AGGREGATE) {
             measureRequests.append("GROUP BY  m.\"obsprop_id\"");
         }
@@ -434,7 +434,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                     // get the first for now
                     int tableNum = rs2.getFirstTableNumber();
             
-                    while (rs2.nextOnField(mainField.name)) {
+                    while (rs2.nextOnField(mainField.getName())) {
                         final Long rid = aggregate ? null : rs2.getLong("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalPrimitive measureTime = null;
@@ -452,7 +452,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                             Entry<DbField, Phenomenon> entry = getPhenomenonFromFieldName(currentFname, fieldPhen);
                             Phenomenon fphen    = entry.getValue();
                             DbField field       = entry.getKey();
-                            FieldDataType fType = field.dataType;
+                            FieldDataType fType = field.getDataType();
                             final String observationType = getOmTypeFromFieldType(fType);
                             final String value = rs2.getString("result");
                             if (value != null) {
@@ -465,8 +465,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                                         case JSON     -> OMUtils.readJsonMap(value);
                                     };
                                 final MeasureResult result = new MeasureResult(field, resultValue);
-                                final String measId   = ((String) identifierField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
-                                final String measName = ((String) nameField.getValueFromResult(rs2)).replace("<field-id>", field.index.toString());
+                                final String measId   = ((String) identifierField.getValueFromResult(rs2)).replace("<field-id>", field.getIndex().toString());
+                                final String measName = ((String) nameField.getValueFromResult(rs2)).replace("<field-id>", field.getIndex().toString());
                                     
                                 List<Element> resultQuality = buildResultQuality(field, rs2);
                                 Map<String, Object> parameters = buildParameters(field, rs2);
@@ -505,7 +505,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     
     private static Entry<DbField, Phenomenon> getPhenomenonFromFieldName(String name, Map<DbField, Phenomenon> fieldPhen) {
         for (Entry<DbField, Phenomenon> entry : fieldPhen.entrySet()) {
-            if (entry.getKey().name.equals(name)) {
+            if (entry.getKey().getName().equals(name)) {
                 return entry;
             }
         }
@@ -528,12 +528,12 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             for (int i = 0; i < fields.size(); i++) {
                 if (fields.get(i) instanceof DbField field && isMeasureField(field, pti)) {
                     if (matchType(param, field)) {
-                        String mFilter = " m.\"obsprop_id\" = '" + field.name + "' AND m.\"result\" ";
+                        String mFilter = " m.\"obsprop_id\" = '" + field.getName() + "' AND m.\"result\" ";
                         if (!first) sb.append(" OR"); // not for the first
                         sb.append(" (").append(block.replace(allPhenKeyword, mFilter).replace('}', ' ')).append(") ");
                         extraFilter++;
                     } else {
-                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.dataType);
+                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.getDataType());
                         if (!first) sb.append(" AND"); // not for the first
                         sb.append(" (FALSE) ");  // TODO is this invalidating anything?
                     }
@@ -567,10 +567,10 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent, String extraSubType) {
          String replacement;
         // special case for profile main field
-        if (field.name.equals("z_value")) {
+        if (field.getName().equals("z_value")) {
             replacement = "z_value";
         } else {
-            replacement = "obsprop_id\" = '" + field.name + "' AND m.\"result";
+            replacement = "obsprop_id\" = '" + field.getName() + "' AND m.\"result";
         }
        
         final String phenKeyword = " AND (\"$phen" + pIndex;
@@ -589,7 +589,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
 
                 // the parameter type does not match, we must invalidate the results
                 if (!typeMatch) {
-                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.dataType);
+                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.getDataType());
                     single.replaceFirst(block, " AND FALSE ");
 
                 // we need to remove the filter fom the request, as it does not apply to this table

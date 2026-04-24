@@ -55,7 +55,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
     
     public MixedResultDecimator(List<? extends DbField> fields, int width, ProcedureInfo procedure) {
         super(fields, width, procedure);
-        includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
+        includedFields = fields.stream().map(f -> f.getName()).collect(Collectors.toSet());
     }
     
     @Override
@@ -70,15 +70,15 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
         final Boolean profile = getLoc ? null : proc.type == ObservationType.PROFILE;
         if (getLoc) {
-            request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
+            request.replaceSelect("MIN(\"" + mainField.getName() + "\") as tmin, MAX(\"" + mainField.getName() + "\") as tmax, hl.\"procedure\" ");
             request.append(" GROUP BY hl.\"procedure\" order by hl.\"procedure\"");
 
         } else {
             if (profile) {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), m.\"time\" ");
+                request.replaceSelect(" MIN(\"" + mainField.getName() + "\"), MAX(\"" + mainField.getName() + "\"), m.\"time\" ");
                 request.append(" GROUP BY m.\"time\"");
             } else {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
+                request.replaceSelect(" MIN(\"" + mainField.getName() + "\"), MAX(\"" + mainField.getName() + "\") ");
             }
         }
         LOGGER.fine(request.toString());
@@ -89,7 +89,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
-                switch (mainField.dataType) {
+                switch (mainField.getDataType()) {
                     case TIME -> {
                         final Timestamp minT = rs.getTimestamp(1, tableNum);
                         final Timestamp maxT = rs.getTimestamp(2, tableNum);
@@ -110,7 +110,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
                         long step = (max - min) / width;
                         result[1] = step;
                     }
-                    default -> throw new SQLException("unable to extract bound from a " + mainField.dataType + " main field.");
+                    default -> throw new SQLException("unable to extract bound from a " + mainField.getDataType() + " main field.");
                 }
                 final Object key;
                 if (getLoc) {
@@ -150,7 +150,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         
         Long previousMainValue = null;
         
-        while (rs.nextOnField(procedure.mainField.name)) {
+        while (rs.nextOnField(procedure.mainField.getName())) {
             final Object currentObs;
             if (nonTimeseries) {
                 currentObs = rs.getTimestamp("time");

@@ -64,7 +64,7 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
      * @throws DataStoreException If a field contains forbidden characters.
      */
     private List<String> buildDeleteRequests() {
-        final String mainFieldName = pi.mainField.name;
+        final String mainFieldName = pi.mainField.getName();
         List<String> results = new ArrayList<>();
         for (int i = 0 ; i < pi.nbTable; i++) {
             final String sql;

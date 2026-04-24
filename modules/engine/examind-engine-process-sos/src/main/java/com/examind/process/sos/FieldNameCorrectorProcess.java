@@ -131,10 +131,10 @@ public class FieldNameCorrectorProcess extends AbstractCstlProcess {
                     stmt.setString(2, pid);
                     if (ob.getResult() instanceof ComplexResult cr) {
                         for (Field f : cr.getFields()) {
-                            String label = getFieldLabel(f.name, phenomenons, phenLabels);
+                            String label = getFieldLabel(f.getName(), phenomenons, phenLabels);
                             if (label != null) {
                                 stmt.setString(1, label);
-                                stmt.setString(3, f.name);
+                                stmt.setString(3, f.getName());
                                 stmt.executeUpdate();
                             }
                         }

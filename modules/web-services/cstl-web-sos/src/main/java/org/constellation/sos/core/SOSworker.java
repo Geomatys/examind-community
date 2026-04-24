@@ -1933,8 +1933,8 @@ public class SOSworker extends SensorWorker {
             Field tmpMainField = tmpResult.getFields().get(0);
             Field cdtMainField = cdtResult.getFields().get(0);
             // look onlly for id and type because definition can vary
-            if (!(Objects.equals(tmpMainField.name, cdtMainField.name) &&
-                  Objects.equals(tmpMainField.dataType, cdtMainField.dataType))) {
+            if (!(Objects.equals(tmpMainField.getName(), cdtMainField.getName()) &&
+                  Objects.equals(tmpMainField.getDataType(), cdtMainField.getDataType()))) {
                 return false;
             }
         }

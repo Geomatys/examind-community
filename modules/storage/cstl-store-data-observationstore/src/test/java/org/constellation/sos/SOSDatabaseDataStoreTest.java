@@ -494,8 +494,8 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
 
         Assert.assertNotNull(resultDAP.getFields());
         Assert.assertEquals(2, resultDAP.getFields().size());
-        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
-        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).getName());
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).getName());
 
         Assert.assertEquals(Integer.valueOf(5), resultDAP.getNbValues());
         String expectedValues = "2009-05-01T13:47:00.0,4.5@@"
@@ -516,8 +516,8 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
 
         Assert.assertNotNull(resultDAP.getFields());
         Assert.assertEquals(2, resultDAP.getFields().size());
-        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
-        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).getName());
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).getName());
 
         Assert.assertEquals(Integer.valueOf(1), resultDAP.getNbValues());
         expectedValues = "2009-05-01T13:47:00.0,4.5@@";
@@ -533,7 +533,7 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
         MeasureResult resultMeas = (MeasureResult)result.getResult();
 
         Assert.assertNotNull(resultMeas.getField());
-        Assert.assertEquals("depth", resultMeas.getField().name);
+        Assert.assertEquals("depth", resultMeas.getField().getName());
 
         Assert.assertEquals(4.5, resultMeas.getValue());
     }
@@ -557,8 +557,8 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
 
         Assert.assertNotNull(resultDAP.getFields());
         Assert.assertEquals(2, resultDAP.getFields().size());
-        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
-        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).getName());
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).getName());
 
         Assert.assertNull(resultDAP.getValues());
 
@@ -572,7 +572,7 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
         MeasureResult resultMeas = (MeasureResult)result.getResult();
 
         Assert.assertNotNull(resultMeas.getField());
-        Assert.assertEquals("depth", resultMeas.getField().name);
+        Assert.assertEquals("depth", resultMeas.getField().getName());
 
         Assert.assertNull(resultMeas.getValue());
     }
@@ -655,10 +655,10 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
 
         Assert.assertNotNull(resultDAP.getFields());
         Assert.assertEquals(4, resultDAP.getFields().size());
-        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
-        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
-        Assert.assertEquals("temperature", resultDAP.getFields().get(2).name);
-        Assert.assertEquals("salinity", resultDAP.getFields().get(3).name);
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).getName());
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).getName());
+        Assert.assertEquals("temperature", resultDAP.getFields().get(2).getName());
+        Assert.assertEquals("salinity", resultDAP.getFields().get(3).getName());
 
         Assert.assertEquals(Integer.valueOf(5), resultDAP.getNbValues());
         String expectedValues = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
@@ -679,10 +679,10 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
 
         Assert.assertNotNull(resultDAP.getFields());
         Assert.assertEquals(4, resultDAP.getFields().size());
-        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
-        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
-        Assert.assertEquals("temperature", resultDAP.getFields().get(2).name);
-        Assert.assertEquals("salinity", resultDAP.getFields().get(3).name);
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).getName());
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).getName());
+        Assert.assertEquals("temperature", resultDAP.getFields().get(2).getName());
+        Assert.assertEquals("salinity", resultDAP.getFields().get(3).getName());
 
         Assert.assertEquals(Integer.valueOf(1), resultDAP.getNbValues());
         expectedValues = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@";
@@ -698,7 +698,7 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
         MeasureResult resultMeas = (MeasureResult)result.getResult();
 
         Assert.assertNotNull(resultMeas.getField());
-        Assert.assertEquals("depth", resultMeas.getField().name);
+        Assert.assertEquals("depth", resultMeas.getField().getName());
 
          Assert.assertEquals(2.5, resultMeas.getValue());
     }
@@ -722,8 +722,8 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
 
         Assert.assertNotNull(resultDAP.getFields());
         Assert.assertEquals(2, resultDAP.getFields().size());
-        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
-        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).getName());
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).getName());
 
         Assert.assertEquals(Integer.valueOf(5), resultDAP.getNbValues());
         String expectedValues = "2007-05-01T17:59:00.0,6.56@@" +

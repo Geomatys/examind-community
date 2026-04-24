@@ -42,7 +42,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         // remove fields before first measure field
         int i = 0;
         for (; i < fields.size(); i++) {
-            if (fields.get(i).type == FieldType.MEASURE) break;
+            if (fields.get(i).getType() == FieldType.MEASURE) break;
         }
         this.fields = fields.subList(i, fields.size());
         this.phenomenons = phenomenons != null ? phenomenons : Map.of();
@@ -64,7 +64,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     public void newBlock() {
         currentLines.clear();
         for (DbField field : fields) {
-            currentLines.put(field.name, new csvFlatLine(field, procedure, phenomenons.get(field), procedureProperties, encoding));
+            currentLines.put(field.getName(), new csvFlatLine(field, procedure, phenomenons.get(field), procedureProperties, encoding));
         }
     }
 
@@ -143,15 +143,15 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     @Override
     public void appendDouble(Double value, boolean measureField, Field f) {
         if (value != null && !value.isNaN()) {
-            if (profile && f.name.equals(procedure.mainField.name)) {
+            if (profile && f.getName().equals(procedure.mainField.getName())) {
                 for (csvFlatLine line : currentLines.values()) {
                     line.appendZvalue(value);
                 }
             } else if (f.getParent() != null) {
-                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                csvFlatLine currentLine = getCurrentLine(f.getParent().getName());
                 currentLine.appendSubField(f, value);
             } else {     
-                csvFlatLine currentLine = getCurrentLine(f.name);
+                csvFlatLine currentLine = getCurrentLine(f.getName());
                 currentLine.appendResult(value);
             }
         }
@@ -164,10 +164,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     public void appendBoolean(Boolean value, boolean measureField, Field f) {
         if (value != null) {
             if (f.getParent() != null) {
-                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                csvFlatLine currentLine = getCurrentLine(f.getParent().getName());
                 currentLine.appendSubField(f, value);
             } else {
-                csvFlatLine currentLine = getCurrentLine(f.name);
+                csvFlatLine currentLine = getCurrentLine(f.getName());
                 currentLine.appendResult(value);
             }
         }
@@ -180,10 +180,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     public void appendFloat(Float value, boolean measureField, Field f) {
         if (value != null && !Float.isNaN(value)) {
             if (f.getParent() != null) {
-                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                csvFlatLine currentLine = getCurrentLine(f.getParent().getName());
                 currentLine.appendSubField(f, value);
             } else {
-                csvFlatLine currentLine = getCurrentLine(f.name);
+                csvFlatLine currentLine = getCurrentLine(f.getName());
                 currentLine.appendResult(value);
             }
         }
@@ -196,10 +196,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     public void appendInteger(Integer value, boolean measureField, Field f) {
         if (value != null) {
             if (f.getParent() != null) {
-                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                csvFlatLine currentLine = getCurrentLine(f.getParent().getName());
                 currentLine.appendSubField(f, value);
             } else {
-                csvFlatLine currentLine = getCurrentLine(f.name);
+                csvFlatLine currentLine = getCurrentLine(f.getName());
                 currentLine.appendResult(value);
             }
         }
@@ -211,12 +211,12 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     @Override
     public void appendString(String value, boolean measureField, Field f) {
          // we don't want to add the id
-        if (!f.type.equals(FieldType.METADATA) && value != null) {
+        if (!f.getType().equals(FieldType.METADATA) && value != null) {
             if (f.getParent() != null) {
-                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                csvFlatLine currentLine = getCurrentLine(f.getParent().getName());
                 currentLine.appendSubField(f, value);
             } else {
-                csvFlatLine currentLine = getCurrentLine(f.name);
+                csvFlatLine currentLine = getCurrentLine(f.getName());
                 currentLine.appendResult(value);
             }
         }
@@ -229,10 +229,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     public void appendLong(Long value, boolean measureField, Field f) {
         if (value != null) {
             if (f.getParent() != null) {
-                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                csvFlatLine currentLine = getCurrentLine(f.getParent().getName());
                 currentLine.appendSubField(f, value);
             } else {
-                csvFlatLine currentLine = getCurrentLine(f.name);
+                csvFlatLine currentLine = getCurrentLine(f.getName());
                 currentLine.appendResult(value);
             }
         }
@@ -263,10 +263,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
             }
             sb.deleteCharAt(sb.length() -1);
             if (f.getParent() != null) {
-                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                csvFlatLine currentLine = getCurrentLine(f.getParent().getName());
                 currentLine.appendSubField(f, sb.toString());
             } else {
-                csvFlatLine currentLine = getCurrentLine(f.name);
+                csvFlatLine currentLine = getCurrentLine(f.getName());
                 currentLine.appendResult(sb.toString());
             }
         }
@@ -350,10 +350,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
             sb.append(valueOrEmpty(procedure.name)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(procedure.description)).append(encoding.getTokenSeparator());
             sb.append(mapToString(procedureProperties)).append(encoding.getTokenSeparator());
-            sb.append(valueOrEmpty(field.name)).append(encoding.getTokenSeparator());
-            sb.append(valueOrEmpty(field.label)).append(encoding.getTokenSeparator());
-            sb.append(valueOrEmpty(field.description)).append(encoding.getTokenSeparator());
-            sb.append(valueOrEmpty(field.uom)).append(encoding.getTokenSeparator());
+            sb.append(valueOrEmpty(field.getName())).append(encoding.getTokenSeparator());
+            sb.append(valueOrEmpty(field.getLabel())).append(encoding.getTokenSeparator());
+            sb.append(valueOrEmpty(field.getDescription())).append(encoding.getTokenSeparator());
+            sb.append(valueOrEmpty(field.getUom())).append(encoding.getTokenSeparator());
             sb.append(mapToString(phen.getProperties())).append(encoding.getTokenSeparator());
             sb.append("${z_value}").append(encoding.getTokenSeparator());
             sb.append("${result}").append(encoding.getTokenSeparator());
@@ -399,10 +399,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         }
         
         public void appendSubField(Field field, Object value) {
-            switch (field.type) {
-                case FieldType.PARAMETER -> parameterValues.put(field.name, value);
-                case FieldType.QUALITY   -> qualityValues.put(field.name, value);
-                default                  -> throw new IllegalArgumentException("Unknow sub field type:" + field.type);
+            switch (field.getType()) {
+                case FieldType.PARAMETER -> parameterValues.put(field.getName(), value);
+                case FieldType.QUALITY   -> qualityValues.put(field.getName(), value);
+                default                  -> throw new IllegalArgumentException("Unknow sub field type:" + field.getType());
             }
         }
         

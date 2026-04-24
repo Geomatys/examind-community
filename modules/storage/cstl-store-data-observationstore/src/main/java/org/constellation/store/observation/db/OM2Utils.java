@@ -124,19 +124,19 @@ public class OM2Utils {
         final List<InsertDbField> results = new ArrayList<>();
         for (InsertDbField field : fields) {
             results.add(field);
-            if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
-                for (Field qField : field.qualityFields) {
-                    String name = field.name + "_quality_" + qField.name;
+            if (field.getQualityFields() != null && !field.getQualityFields().isEmpty()) {
+                for (Field qField : field.getQualityFields()) {
+                    String name = field.getName() + "_quality_" + qField.getName();
                     // TODO parent ?
-                    InsertDbField newField = new InsertDbField(null, qField.dataType, name, qField.label, qField.description, qField.uom, qField.type, field.tableNumber, List.of(), List.of());
+                    InsertDbField newField = new InsertDbField(null, qField.getDataType(), name, qField.getLabel(), qField.getDescription(), qField.getUom(), qField.getType(), field.tableNumber, List.of(), List.of());
                     results.add(newField);
                 }
             }
-            if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
-                for (Field pField : field.parameterFields) {
-                    String name = field.name + "_parameter_" + pField.name;
+            if (field.getParameterFields() != null && !field.getParameterFields().isEmpty()) {
+                for (Field pField : field.getParameterFields()) {
+                    String name = field.getName() + "_parameter_" + pField.getName();
                     // TODO parent ?
-                    InsertDbField newField = new InsertDbField(null, pField.dataType, name, pField.label, pField.description, pField.uom, pField.type, field.tableNumber, List.of(), List.of());
+                    InsertDbField newField = new InsertDbField(null, pField.getDataType(), name, pField.getLabel(), pField.getDescription(), pField.getUom(), pField.getType(), field.tableNumber, List.of(), List.of());
                     results.add(newField);
                 }
             }
@@ -155,8 +155,8 @@ public class OM2Utils {
     public static boolean containsField(List<Field> fields, Field field) {
         for (Field f : fields) {
             // only compare name and type
-            boolean found = Objects.equals(f.name, field.name)
-                        && Objects.equals(f.dataType, field.dataType);
+            boolean found = Objects.equals(f.getName(), field.getName())
+                        && Objects.equals(f.getDataType(), field.getDataType());
             if (found) {
                 return true;
             }
@@ -211,12 +211,12 @@ public class OM2Utils {
     public static boolean containField(Field field, Phenomenon phen) {
         if (phen instanceof CompositePhenomenon composite) {
             for (Phenomenon component : composite.getComponent()) {
-                if (component.getId().equals(field.name)) {
+                if (component.getId().equals(field.getName())) {
                     return true;
                 }
             }
         } else if (phen != null) {
-            return phen.getId().equals(field.name);
+            return phen.getId().equals(field.getName());
         }
         return false;
     }
@@ -228,14 +228,14 @@ public class OM2Utils {
         // only id count for removal
         for (Field of : obsFields) {
             for (Field rmf : rmFields) {
-                if (of.name.equals(rmf.name)) {
+                if (of.getName().equals(rmf.getName())) {
                     toRm.add(of);
                     break;
                 }
             }
         }
         obsFields.removeAll(toRm);
-        return (obsFields.size() == 1 && obsFields.get(0).name.equals(main.name));
+        return (obsFields.size() == 1 && obsFields.get(0).getName().equals(main.getName()));
     }
 
     public static String getTimeScalePeriod(long millisecond) throws SQLException {
@@ -283,15 +283,15 @@ public class OM2Utils {
         final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
         final Boolean profile = getLoc ? null : proc.type == ObservationType.PROFILE;
         if (getLoc) {
-            request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
+            request.replaceSelect("MIN(\"" + mainField.getName() + "\") as tmin, MAX(\"" + mainField.getName() + "\") as tmax, hl.\"procedure\" ");
             request.append(" GROUP BY hl.\"procedure\" order by hl.\"procedure\"");
 
         } else {
             if (profile) {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), m.\"id_observation\" ");
+                request.replaceSelect(" MIN(\"" + mainField.getName() + "\"), MAX(\"" + mainField.getName() + "\"), m.\"id_observation\" ");
                 request.append(" GROUP BY m.\"id_observation\"");
             } else {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
+                request.replaceSelect(" MIN(\"" + mainField.getName() + "\"), MAX(\"" + mainField.getName() + "\") ");
             }
             
             // append filter on null values
@@ -300,9 +300,9 @@ public class OM2Utils {
             // 1. we sort the field identified as measure field along their table number
             for (DbField f : measureFields) {
                 // index 0 are non measure fields
-                if (f.index != 0 && !f.name.equals(mainField.name)) {
+                if (f.getIndex() != 0 && !f.getName().equals(mainField.getName())) {
                     List<String> tf = tableConditions.computeIfAbsent(f.tableNumber, k -> new ArrayList<>());
-                    tf.add(f.name);
+                    tf.add(f.getName());
                 }
                 
             }
@@ -328,7 +328,7 @@ public class OM2Utils {
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
-                switch (mainField.dataType) {
+                switch (mainField.getDataType()) {
                     case TIME -> {
                         final Timestamp minT = rs.getTimestamp(1, tableNum);
                         final Timestamp maxT = rs.getTimestamp(2, tableNum);
@@ -349,7 +349,7 @@ public class OM2Utils {
                         long step = (max - min) / width;
                         result[1] = step;
                     }
-                    default -> throw new SQLException("unable to extract bound from a " + mainField.dataType + " main field.");
+                    default -> throw new SQLException("unable to extract bound from a " + mainField.getDataType() + " main field.");
                 }
                 final Object key;
                 if (getLoc) {
@@ -376,12 +376,12 @@ public class OM2Utils {
      * @param f The field to modify.
      */
     public static void clearExtraFields(Field f) {
-        if (!f.qualityFields.isEmpty()) f.qualityFields.clear();
-        if (!f.parameterFields.isEmpty()) f.parameterFields.clear();
+        if (!f.getQualityFields().isEmpty()) f.getQualityFields().clear();
+        if (!f.getParameterFields().isEmpty()) f.getParameterFields().clear();
     }
     
     public static boolean isMeasureField(Field field, ProcedureInfo pti) {
-       return (field.type == FieldType.MEASURE || (field.type == FieldType.MAIN && pti.type != ObservationType.TIMESERIES));
+       return (field.getType() == FieldType.MEASURE || (field.getType() == FieldType.MAIN && pti.type != ObservationType.TIMESERIES));
     }
     
     public static List<? extends DbField> getMeasureFields(List<? extends DbField> fields, ProcedureInfo pti) {
@@ -390,7 +390,7 @@ public class OM2Utils {
     
     public static boolean updatePrefixField(String fieldName, String newPrefix, List<? extends Field> fields) {
         for (Field f : fields) {
-             if (f.name.equals(fieldName) && f instanceof PrefixedDbField pf) {
+             if (f.getName().equals(fieldName) && f instanceof PrefixedDbField pf) {
                  pf.updatePrefix(newPrefix);
              }
         }

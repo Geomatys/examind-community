@@ -49,11 +49,11 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
         while (rs.nextOnField("step")) {
             values.newBlock();
             for (DbField field : fields) {
-                String fieldName = field.name;
+                String fieldName = field.getName();
                 int rsIndex = field.tableNumber;
 
                 // main field
-                if (field.type.equals(FieldType.MAIN)) {
+                if (field.getType().equals(FieldType.MAIN)) {
                     fieldName = "step";
 
                     // special case for nonTimeseries + datastream on another phenomenon that the main field.
@@ -62,14 +62,14 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                         continue;
                     }
                 // id field
-                } else if (field.dataType == FieldDataType.TEXT && field.type.equals(FieldType.METADATA)) {
+                } else if (field.getDataType() == FieldDataType.TEXT && field.getType().equals(FieldType.METADATA)) {
                     values.appendString(procedure.id + "-dec-" + cpt, false, field);
                     cpt++;
                     continue;
                 }
-                switch (field.dataType) {
+                switch (field.getDataType()) {
                     case TIME -> {
-                        boolean measureField = !(nonTimeseries && field.type.equals(FieldType.METADATA));
+                        boolean measureField = !(nonTimeseries && field.getType().equals(FieldType.METADATA));
                         Date t;
                         // time for nonTimeseries
                         if (!measureField) {

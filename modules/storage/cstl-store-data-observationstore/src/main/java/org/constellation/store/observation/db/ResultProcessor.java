@@ -101,7 +101,7 @@ public class ResultProcessor {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
         FieldParser parser = new FieldParser(fields, values, false, includeQuality, includeParameter, null);
-        while (rs.nextOnField(procedure.mainField.name)) {
+        while (rs.nextOnField(procedure.mainField.getName())) {
             parser.parseLine(rs);
         }
     }

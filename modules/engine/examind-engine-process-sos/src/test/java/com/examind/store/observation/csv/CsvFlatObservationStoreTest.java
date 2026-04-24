@@ -538,10 +538,10 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(2, cr.getFields().size());
 
         Field f = cr.getFields().get(1);
-        Assert.assertEquals(1, f.qualityFields.size());
+        Assert.assertEquals(1, f.getQualityFields().size());
 
-        Field qualityField = f.qualityFields.get(0);
-        Assert.assertEquals("qua_lity_fi", qualityField.name);
+        Field qualityField = f.getQualityFields().get(0);
+        Assert.assertEquals("qua_lity_fi", qualityField.getName());
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
@@ -740,10 +740,10 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(2, cr.getFields().size());
 
         Field f = cr.getFields().get(1);
-        Assert.assertEquals(1, f.qualityFields.size());
+        Assert.assertEquals(1, f.getQualityFields().size());
 
-        Field qualityField = f.qualityFields.get(0);
-        Assert.assertEquals("new_quality_name", qualityField.name);
+        Field qualityField = f.getQualityFields().get(0);
+        Assert.assertEquals("new_quality_name", qualityField.getName());
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
@@ -1142,10 +1142,10 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(3, cr.getFields().size());
         
         Field f = cr.getFields().get(1);
-        Assert.assertEquals("psu", f.uom);
+        Assert.assertEquals("psu", f.getUom());
 
         f = cr.getFields().get(2);
-        Assert.assertEquals("°C", f.uom);
+        Assert.assertEquals("°C", f.getUom());
         
 
         String expectedValues = "1980-03-01T21:52:00.0,122.6,13.4@@" +

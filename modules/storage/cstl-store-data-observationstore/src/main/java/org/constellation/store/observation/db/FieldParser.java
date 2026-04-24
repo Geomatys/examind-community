@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import org.constellation.store.observation.db.model.ProcedureInfo;
-import org.constellation.store.observation.db.model.SelectionField;
 import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
@@ -86,7 +85,7 @@ public class FieldParser {
     public FieldParser(List<? extends DbField> fields, ResultBuilder values, boolean profileWithTime, boolean includeQuality, boolean includeParameter, String obsName) {
         this.onlyMain = true;
         for (Field f : fields) {
-            if (f.type == FieldType.MEASURE)  {
+            if (f.getType() == FieldType.MEASURE)  {
                 this.onlyMain = false;
                 break;
             }
@@ -134,13 +133,13 @@ public class FieldParser {
 
             parseField(field, rs, null, null);
 
-            if (includeQuality && field.qualityFields != null) {
-                for (Field qField : field.qualityFields) {
+            if (includeQuality && field.getQualityFields() != null) {
+                for (Field qField : field.getQualityFields()) {
                     parseField((DbField) qField, rs, field, "quality");
                 }
             }
-            if (includeParameter && field.parameterFields != null) {
-                for (Field pField : field.parameterFields) {
+            if (includeParameter && field.getParameterFields() != null) {
+                for (Field pField : field.getParameterFields()) {
                     parseField((DbField) pField, rs, field, "parameter");
                 }
             }
@@ -152,24 +151,23 @@ public class FieldParser {
         boolean isMeasureField;
         String fieldName;
         if (parent != null) {
-           fieldName = parent.name + "_" + subFileType + "_" + field.name;
+           fieldName = parent.getName() + "_" + subFileType + "_" + field.getName();
            isMeasureField = true;
         } else {
-           fieldName = field.name;
-           isMeasureField = (field.type == FieldType.MEASURE) || (onlyMain && field.type == FieldType.MAIN );
+           fieldName = field.getName();
+           isMeasureField = (field.getType() == FieldType.MEASURE) || (onlyMain && field.getType() == FieldType.MAIN );
         }
-        
         // main field is present in every table request so we set the table number to -1 (meaning any table)
-        int tableNumber = (field.type == FieldType.MAIN) ? -1 : field.tableNumber;
-        switch (field.dataType) {
+        int tableNumber = (field.getType() == FieldType.MAIN) ? -1 : field.tableNumber;
+        switch (field.getDataType()) {
             case TIME:
                 // profile with time field whth value set externally
-                if (profileWithTime && field.type.equals(FieldType.METADATA)) {
+                if (profileWithTime && field.getType().equals(FieldType.METADATA)) {
                     values.appendTime(firstTime, isMeasureField, field);
                 } else {
                     Object time;
                     // main timeseries field or joined profile time field 
-                    if (field.type == FieldType.MAIN || field.type.equals(FieldType.METADATA)) {
+                    if (field.getType() == FieldType.MAIN || field.getType().equals(FieldType.METADATA)) {
                         time = field.getValueFromResult(rs, tableNumber);
                         
                         if (time instanceof Timestamp ts) {
@@ -234,7 +232,7 @@ public class FieldParser {
         Map<String, Object> properties = new HashMap<>();
         properties.put("type", pti.type.name());
                 
-        while (rs2.nextOnField(pti.mainField.name)) {
+        while (rs2.nextOnField(pti.mainField.getName())) {
             parseLine(rs2);
 
             /**
@@ -269,7 +267,7 @@ public class FieldParser {
         Map<String, Object> properties = new HashMap<>();
         properties.put("type", pti.type.name());
         
-        while (rs2.nextOnField(pti.mainField.name)) {
+        while (rs2.nextOnField(pti.mainField.getName())) {
             parseLine(rs2);
         }
         
@@ -300,7 +298,7 @@ public class FieldParser {
     }
     
     public void completeObservation(final SQLResult rs2, final ProcedureInfo pti, Observation observation) throws SQLException {
-        while (rs2.nextOnField(pti.mainField.name)) {
+        while (rs2.nextOnField(pti.mainField.getName())) {
             parseLine(rs2);
         }
 

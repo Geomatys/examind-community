@@ -40,7 +40,7 @@ public class SelectionField extends DbField {
         this.isSelected = isSelected;
          // overide quality Fields type
         this.qualityFields.clear();
-        for (Field qf : original.qualityFields) {
+        for (Field qf : original.getQualityFields()) {
             if (qf instanceof DbField dqf) {
                 SelectionField sqf = new SelectionField(dqf, isSelected);
                 this.qualityFields.add(sqf);
@@ -49,7 +49,7 @@ public class SelectionField extends DbField {
         }
         // overide parameter Fields type
         this.parameterFields.clear();
-        for (Field pf : original.parameterFields) {
+        for (Field pf : original.getParameterFields()) {
             if (pf instanceof DbField dpf) {
                 SelectionField spf = new SelectionField(dpf, isSelected);
                 this.parameterFields.add(spf);
@@ -65,7 +65,7 @@ public class SelectionField extends DbField {
         final String tableAlias = (type.equals(FieldType.MEASURE) || type.equals(FieldType.PARAMETER) || type.equals(FieldType.QUALITY)) ? (tableNumber == 1 ? "m." : "m" + tableNumber + ".") : "";
         final String columnName;
         if (parent != null) {
-            columnName = parent.name + "_"  + type.name().toLowerCase()  + "_" + name;
+            columnName = parent.getName() + "_"  + type.name().toLowerCase()  + "_" + name;
         } else {
             columnName = name;
         }

@@ -463,11 +463,11 @@ public class OM2BaseReader {
      protected Phenomenon getPhenomenonForFields(final List<Field> fields, final Connection c) throws DataStoreException {
          FilterSQLRequest request = new SingleFilterSQLRequest("SELECT \"phenomenon\", COUNT(\"component\") FROM \"" + schemaPrefix + "om\".\"components\" ");
          request.append(" WHERE \"component\" IN (");
-         request.appendValues(fields.stream().map(f -> f.name).toList());
+         request.appendValues(fields.stream().map(f -> f.getName()).toList());
          request.append(" ) AND \"phenomenon\" NOT IN (");
          request.append("SELECT DISTINCT(cc.\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" cc WHERE ");
          for (Field field : fields) {
-             request.append(" \"component\" <> ").appendValue(field.name).append(" AND ");
+             request.append(" \"component\" <> ").appendValue(field.getName()).append(" AND ");
          }
          request.deleteLastChar(4);
          request.append(" ) ");
@@ -613,9 +613,9 @@ public class OM2BaseReader {
         }
         final List<Phenomenon> components = new ArrayList<>();
         for (Field field : fields) {
-            final Phenomenon phen = getPhenomenon(field.name, c);
+            final Phenomenon phen = getPhenomenon(field.getName(), c);
             if (phen == null) {
-                throw new DataStoreException("Unable to link a field to a phenomenon: " + field.name);
+                throw new DataStoreException("Unable to link a field to a phenomenon: " + field.getName());
             }
             components.add(phen);
         }
@@ -731,7 +731,7 @@ public class OM2BaseReader {
                 // its just way more easy to remove it afterward instead of doing it with SQL. you are welcome to try.
                 if (removeMainField) {
                     for (DbField f : results) {
-                        if (f.type == FieldType.MAIN) {
+                        if (f.getType() == FieldType.MAIN) {
                             results.remove(f);
                             break;
                         }
@@ -756,17 +756,17 @@ public class OM2BaseReader {
         final String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL AND \"field_name\" = ?";
         try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, procedureID);
-            stmt.setString(2, inputField.name);
+            stmt.setString(2, inputField.getName());
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     DbField dbField = getFieldFromDb(rs, procedureID, c, true);
                     InsertDbField result = new InsertDbField(dbField);
-                    result.setInputUom(inputField.uom);
+                    result.setInputUom(inputField.getUom());
                     return result;
                 }
             }
         }
-        throw new SQLException("No field " + inputField.name + " found for procedure:" + procedureID);
+        throw new SQLException("No field " + inputField.getName() + " found for procedure:" + procedureID);
     }
 
     /**
@@ -1030,13 +1030,13 @@ public class OM2BaseReader {
     
     protected List<Element> buildResultQuality(Field parent, SQLResult rs) throws SQLException {
         List<Element> results = new ArrayList<>();
-        if (parent.qualityFields != null) {
-            for (Field field : parent.qualityFields) {
+        if (parent.getQualityFields() != null) {
+            for (Field field : parent.getQualityFields()) {
                 int rsIndex = ((DbField)field).tableNumber;
-                String fieldName = parent.name + "_quality_" + field.name;
+                String fieldName = parent.getName() + "_quality_" + field.getName();
                 Object value = null;
                 if (rs != null) {
-                    switch(field.dataType) {
+                    switch(field.getDataType()) {
                         case BOOLEAN: value = rs.getBoolean(fieldName, rsIndex);break;
                         case QUANTITY: value = rs.getDouble(fieldName, rsIndex);break;
                         case TIME: value = rs.getTimestamp(fieldName, rsIndex);break;
@@ -1053,13 +1053,13 @@ public class OM2BaseReader {
     
     protected Map<String, Object> buildParameters(Field parent, SQLResult rs) throws SQLException {
         Map<String, Object> results = new HashMap<>();
-        if (parent.parameterFields != null) {
-            for (Field field : parent.parameterFields) {
+        if (parent.getParameterFields() != null) {
+            for (Field field : parent.getParameterFields()) {
                 int rsIndex = ((DbField)field).tableNumber;
-                String fieldName = parent.name + "_parameter_" + field.name;
+                String fieldName = parent.getName() + "_parameter_" + field.getName();
                 Object value = null;
                 if (rs != null) {
-                    switch(field.dataType) {
+                    switch(field.getDataType()) {
                         case BOOLEAN: value = rs.getBoolean(fieldName, rsIndex);break;
                         case QUANTITY: value = rs.getDouble(fieldName, rsIndex);break;
                         case TIME: value = rs.getTimestamp(fieldName, rsIndex);break;
@@ -1069,7 +1069,7 @@ public class OM2BaseReader {
                     }
 
                 }
-                results.put(field.name, value);
+                results.put(field.getName(), value);
             }
         }
         return results;
@@ -1139,14 +1139,14 @@ public class OM2BaseReader {
             throw new DataStoreException("Measurement extraction need a measure id specified");
         }
 
-        final FieldDataType fType  = selectedField.dataType;
+        final FieldDataType fType  = selectedField.getDataType();
         String tableName = "mesure" + ti.pid;
         int tn = selectedField.tableNumber;
         if (tn > 1) {
             tableName = tableName + "_" + tn;
         }
 
-        String query = "SELECT \"" + selectedField.name + "\" FROM  \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m " +
+        String query = "SELECT \"" + selectedField.getName() + "\" FROM  \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m " +
                        "WHERE \"id_observation\" = ? " +
                        "AND m.\"id\" = ? ";
 
@@ -1157,11 +1157,11 @@ public class OM2BaseReader {
                 if (rs.next()) {
                     Object value;
                     switch (fType) {
-                        case QUANTITY: value = rs.getDouble(selectedField.name);break;
-                        case BOOLEAN: value = rs.getBoolean(selectedField.name);break;
-                        case TIME: value = new Date(rs.getTimestamp(selectedField.name).getTime());break;
+                        case QUANTITY: value = rs.getDouble(selectedField.getName());break;
+                        case BOOLEAN: value = rs.getBoolean(selectedField.getName());break;
+                        case TIME: value = new Date(rs.getTimestamp(selectedField.getName()).getTime());break;
                         case TEXT:
-                        default: value = rs.getString(selectedField.name);break;
+                        default: value = rs.getString(selectedField.getName());break;
                     }
                     return new MeasureResult(selectedField, value);
                 } else {
@@ -1179,9 +1179,9 @@ public class OM2BaseReader {
         // add a special where the only measure field requested is the main (some metadata fields can be present).
         SelectionField singleMain = null; 
         for (SelectionField f : queryFields) {
-            if (f.type.equals(FieldType.MAIN)) {
+            if (f.getType().equals(FieldType.MAIN)) {
                 singleMain = f;
-            } else if (f.type == FieldType.MEASURE) {
+            } else if (f.getType() == FieldType.MEASURE) {
                 singleMain = null;
                 break;
             }
@@ -1191,7 +1191,7 @@ public class OM2BaseReader {
         }
         
         for (SelectionField f : queryFields) {
-            if (!f.type.equals(FieldType.MAIN)) {
+            if (!f.getType().equals(FieldType.MAIN)) {
                 List<SelectionField> fields = results.computeIfAbsent(f.tableNumber, tn -> new ArrayList<>());
                 fields.add(f);
             }
@@ -1250,13 +1250,13 @@ public class OM2BaseReader {
                 // add always id and main field unless for aggregated
                 boolean first = true;
                 if (mode != AGGREGATE) {
-                    select = new StringBuilder("m.\"id\", m.\"" + pti.mainField.name + "\"");
+                    select = new StringBuilder("m.\"id\", m.\"" + pti.mainField.getName() + "\"");
                     first = false;
                 } else {
                     select = new StringBuilder();
                 }
                 for (SelectionField sf : tableFields) {
-                    if (sf.type.equals(FieldType.MAIN)) continue;
+                    if (sf.getType().equals(FieldType.MAIN)) continue;
                     if (!first) select.append(",");
                     if (sf.isSelected) select.append(sf.getSelection());
                     first = false;
@@ -1265,7 +1265,7 @@ public class OM2BaseReader {
             // metadata fields treatment for RESULTS / DECIMATE mode
             if (mode == RESULTS || mode == DECIMATE) {
                 for (SelectionField sf : queryFields) {
-                    if (sf.type == FieldType.METADATA && sf.isSelected) {
+                    if (sf.getType() == FieldType.METADATA && sf.isSelected) {
                         select.append(", ").append(sf.getSelection());
                     }
                 }
@@ -1331,7 +1331,7 @@ public class OM2BaseReader {
                 if ((mode == RESULTS || mode == DECIMATE) && nonTimeseries) {
                     measureRequest.append(" o.\"time_begin\", ");
                 }
-                measureRequest.append("m.\"" + pti.mainField.name + "\"");
+                measureRequest.append("m.\"" + pti.mainField.getName() + "\"");
             }
             
             if (mode == EXIST) {
@@ -1360,8 +1360,8 @@ public class OM2BaseReader {
         StringBuilder s = new StringBuilder("(");
         for (DbField df : tableFields) {
             // index 0 are non measure fields
-            if (df.type.equals(FieldType.MEASURE)) {
-                s.append(" \"").append(df.name).append("\" IS NOT NULL OR ");
+            if (df.getType().equals(FieldType.MEASURE)) {
+                s.append(" \"").append(df.getName()).append("\" IS NOT NULL OR ");
                 nullFilterApplied = true;
             }
         }

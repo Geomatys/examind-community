@@ -284,7 +284,7 @@ public abstract class AbstractLineStore extends FileParsingObservationStore {
             String mc = sortedMeasureColumns.get(j);
             FieldDataType dataType = FieldDataType.QUANTITY;
             FieldType type = FieldType.MEASURE;
-            measureFields.put(mc, new Field(k, dataType, mc, mc, null, null, type, qualityFields, parameterFields));
+            measureFields.put(mc, new Field(k, dataType, mc, mc, null, null, type, qualityFields, parameterFields, new HashMap<>()));
         }
         return measureFields;
     }

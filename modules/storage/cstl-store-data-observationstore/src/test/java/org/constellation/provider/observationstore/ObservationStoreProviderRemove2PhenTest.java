@@ -105,7 +105,7 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
                 ComplexResult cr = (ComplexResult) obs.getResult();
                 boolean hasMeasure = false;
                 for (Field f : cr.getFields()) {
-                    if (f.type == FieldType.MEASURE) {
+                    if (f.getType() == FieldType.MEASURE) {
                         hasMeasure = true;
                     }
                 }
@@ -154,7 +154,7 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         }
 
         for (ProcedureDataset pd : fullDataset.procedures) {
-            List<String> fieldNames = pd.fields.stream().map(f -> f.name).toList();
+            List<String> fieldNames = pd.fields.stream().map(f -> f.getName()).toList();
             Assert.assertFalse(fieldNames.contains("temperature"));
         }
         

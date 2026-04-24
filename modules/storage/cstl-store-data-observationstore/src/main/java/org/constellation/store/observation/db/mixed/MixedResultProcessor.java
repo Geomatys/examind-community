@@ -48,11 +48,11 @@ public class MixedResultProcessor extends ResultProcessor {
     public MixedResultProcessor(List<? extends DbField> fields, boolean includeQuality, boolean includeParameter, ProcedureInfo procedure) {
         super(fields, includeQuality, includeParameter, procedure);
         includedFields = new HashMap<>();
-        fields.forEach(f -> includedFields.put(f.name, f));
-        mainIncluded = fields.stream().anyMatch(f -> f.type.equals(FieldType.MAIN));
+        fields.forEach(f -> includedFields.put(f.getName(), f));
+        mainIncluded = fields.stream().anyMatch(f -> f.getType().equals(FieldType.MAIN));
         if (nonTimeseries) {
             if (mainIncluded) {
-                onlyMain = fields.stream().noneMatch(f -> f.type.equals(FieldType.MEASURE));
+                onlyMain = fields.stream().noneMatch(f -> f.getType().equals(FieldType.MEASURE));
             } else {
                 onlyMain = false;
             }
@@ -72,12 +72,12 @@ public class MixedResultProcessor extends ResultProcessor {
         boolean hasData                = false;
         DbField mainField;
         if (mainIncluded) {
-            mainField  = fields.stream().filter(f -> f.type.equals(FieldType.MAIN)).findFirst().orElse(null);
+            mainField  = fields.stream().filter(f -> f.getType().equals(FieldType.MAIN)).findFirst().orElse(null);
         } else {
             mainField = procedure.mainField;
         }
         
-        while (rs.nextOnField(mainField.name)) {
+        while (rs.nextOnField(mainField.getName())) {
             // in some case like aggregation, the column time, will not be available int the resultset
             // this is not important if we only have one observation to extract
             Object mainValue;
@@ -125,7 +125,7 @@ public class MixedResultProcessor extends ResultProcessor {
                 hasData = true;
                 // handle non measure fields
                 for (Field f : fields) {
-                    if (f.type.equals(FieldType.METADATA) && f instanceof DbField df) {
+                    if (f.getType().equals(FieldType.METADATA) && f instanceof DbField df) {
                         Object t = df.getValueFromResult(rs);
                         values.appendValue(t, false, f);
                     }
@@ -166,7 +166,7 @@ public class MixedResultProcessor extends ResultProcessor {
         Map<Field, Object> results = new LinkedHashMap<>();
         // exclude non measure fields
         for (Field f : fields) {
-            if (f.type.equals(FieldType.MEASURE)) {
+            if (f.getType().equals(FieldType.MEASURE)) {
                 results.put(f, null);
             }
         }

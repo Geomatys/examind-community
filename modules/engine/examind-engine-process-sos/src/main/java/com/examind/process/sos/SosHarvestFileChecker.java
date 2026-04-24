@@ -131,10 +131,10 @@ public class SosHarvestFileChecker {
                 * 4.1 - verify unit of measure parsing.
                 */
                 for (Field field : csvFields) {
-                    if (field.uom != null && !unParseableUoms.contains(field.uom) && !isParseableUnit(field.uom)) {
-                        unParseableUoms.add(field.uom);
+                    if (field.getUom() != null && !unParseableUoms.contains(field.getUom()) && !isParseableUnit(field.getUom())) {
+                        unParseableUoms.add(field.getUom());
                     }
-                    csvFieldMap.put(field.name, field);
+                    csvFieldMap.put(field.getName(), field);
                 }
 
                 /*
@@ -153,12 +153,12 @@ public class SosHarvestFileChecker {
                         List<Field> servFields = getResultFields(servTemplates.get(0).getResult()) ;
 
                         for (Field servField : servFields) {
-                            Field csvField = csvFieldMap.get(servField.name);
+                            Field csvField = csvFieldMap.get(servField.getName());
                             if (csvField != null) {
 
                                 // verify uom conversion
-                                if (csvField.uom != null && servField.uom != null && !csvField.uom.equals(servField.uom)) {
-                                    String key = csvField.uom + " => " + servField.uom + " for property: " + csvField.name;
+                                if (csvField.getUom() != null && servField.getUom() != null && !csvField.getUom().equals(servField.getUom())) {
+                                    String key = csvField.getUom() + " => " + servField.getUom() + " for property: " + csvField.getName();
                                     if (!sensorUnconvertibleUom.contains(key) && !isConvertibleUnit(csvField, servField)) {
                                         sensorUnconvertibleUom.add(key);
                                     }
@@ -274,13 +274,13 @@ public class SosHarvestFileChecker {
 
     protected boolean isConvertibleUnit(Field csvField, Field servField) {
          try {
-            Unit<?> csvUOM = Units.valueOf(csvField.uom);
-            Unit<?> servUOM = Units.valueOf(servField.uom);
+            Unit<?> csvUOM = Units.valueOf(csvField.getUom());
+            Unit<?> servUOM = Units.valueOf(servField.getUom());
 
             csvUOM.getConverterToAny(servUOM);
 
         } catch (IncommensurableException | UnconvertibleException | MeasurementParseException | IllegalStateException ex) {
-            LOGGER.log(Level.WARNING, "Error while looking for uom converter " + csvField + " => " + servField + " for field: " + csvField.name, ex);
+            LOGGER.log(Level.WARNING, "Error while looking for uom converter " + csvField + " => " + servField + " for field: " + csvField.getName(), ex);
             return false;
         }
         return true;

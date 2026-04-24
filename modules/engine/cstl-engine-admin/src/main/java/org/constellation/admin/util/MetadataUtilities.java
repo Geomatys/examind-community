@@ -160,8 +160,8 @@ public final class MetadataUtilities {
             List<IoComponentPropertyType> inputList  = new ArrayList<>();
             List<IoComponentPropertyType> outputList = new ArrayList<>();
             for (Field f : process.fields) {
-                inputList.add( new IoComponentPropertyType(f.name, new ObservableProperty(f.name)));
-                outputList.add(new IoComponentPropertyType(f.name, new QuantityType(f.name, f.uom)));
+                inputList.add( new IoComponentPropertyType(f.getName(), new ObservableProperty(f.getName())));
+                outputList.add(new IoComponentPropertyType(f.getName(), new QuantityType(f.getName(), f.getUom())));
             }
             compo.setInputs(new Inputs(inputList));
             compo.setOutputs(new Outputs(outputList));

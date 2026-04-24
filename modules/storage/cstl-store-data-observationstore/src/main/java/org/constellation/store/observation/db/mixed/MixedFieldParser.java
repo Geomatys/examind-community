@@ -63,7 +63,7 @@ public class MixedFieldParser extends FieldParser {
     
     public MixedFieldParser(List<? extends DbField> fields, ResultMode resultMode, boolean profileWithTime, boolean includeQuality, boolean includeParameter, String obsName) {
         super(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeQuality, includeParameter, obsName);
-        includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
+        includedFields = fields.stream().map(f -> f.getName()).collect(Collectors.toSet());
     }
     
     @Override
@@ -76,11 +76,11 @@ public class MixedFieldParser extends FieldParser {
         Long previousMeasureId = null;
         Map<String, Object> blocValues = createNewBlocValues();
         
-        while (rs2.nextOnField(pti.mainField.name)) {
+        while (rs2.nextOnField(pti.mainField.getName())) {
             
-            final Object mainValue = switch (pti.mainField.dataType) {
-                case TIME     -> rs2.getTimestamp(pti.mainField.name);
-                case QUANTITY -> rs2.getDouble(pti.mainField.name);
+            final Object mainValue = switch (pti.mainField.getDataType()) {
+                case TIME     -> rs2.getTimestamp(pti.mainField.getName());
+                case QUANTITY -> rs2.getDouble(pti.mainField.getName());
                 default       -> throw new SQLException("Unexpected main field type");
             };
             
@@ -110,7 +110,7 @@ public class MixedFieldParser extends FieldParser {
                 values.newBlock();
                 // handle non measure fields
                 for (DbField f : fields) {
-                    if (f.type.equals(FieldType.METADATA)) {
+                    if (f.getType().equals(FieldType.METADATA)) {
                         Object t = f.getValueFromResult(rs2);
                         values.appendValue(t, false, f);
                     }
@@ -179,8 +179,8 @@ public class MixedFieldParser extends FieldParser {
         // exclude non measure fields
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
-            if (f.type.equals(FieldType.MEASURE)) {
-                results.put(f.name, null);
+            if (f.getType().equals(FieldType.MEASURE)) {
+                results.put(f.getName(), null);
             }
         }
         return results;
@@ -198,11 +198,11 @@ public class MixedFieldParser extends FieldParser {
         Map<String, Observation> results = new HashMap<>();
         boolean separated                = (separatedProfileObs && profile);
         
-        while (rs2.nextOnField(pti.mainField.name)) {
+        while (rs2.nextOnField(pti.mainField.getName())) {
             
-            final Object mainValue = switch (pti.mainField.dataType) {
-                case TIME     -> rs2.getTimestamp(pti.mainField.name);
-                case QUANTITY -> rs2.getDouble(pti.mainField.name);
+            final Object mainValue = switch (pti.mainField.getDataType()) {
+                case TIME     -> rs2.getTimestamp(pti.mainField.getName());
+                case QUANTITY -> rs2.getDouble(pti.mainField.getName());
                 default       -> throw new SQLException("Unexpected main field type");
             };
             
@@ -246,7 +246,7 @@ public class MixedFieldParser extends FieldParser {
                 hasData = true;
                 // handle non measure fields
                 for (DbField f : fields) {
-                    if (f.type.equals(FieldType.METADATA)) {
+                    if (f.getType().equals(FieldType.METADATA)) {
                         Object t = f.getValueFromResult(rs2);
                         values.appendValue(t, false, f);
                     }
@@ -319,11 +319,11 @@ public class MixedFieldParser extends FieldParser {
         Object previousKey             = null;
         Map<String, Object> blocValues = createNewBlocValues();
         
-        while (rs2.nextOnField(pti.mainField.name)) {
+        while (rs2.nextOnField(pti.mainField.getName())) {
             
-            final Object mainValue = switch (pti.mainField.dataType) {
-                case TIME     -> rs2.getTimestamp(pti.mainField.name);
-                case QUANTITY -> rs2.getDouble(pti.mainField.name);
+            final Object mainValue = switch (pti.mainField.getDataType()) {
+                case TIME     -> rs2.getTimestamp(pti.mainField.getName());
+                case QUANTITY -> rs2.getDouble(pti.mainField.getName());
                 default       -> throw new SQLException("Unexpected main field type");
             };
             
@@ -357,7 +357,7 @@ public class MixedFieldParser extends FieldParser {
                 hasData = true;
                 // handle non measure fields
                 for (DbField f : fields) {
-                    if (f.type.equals(FieldType.METADATA)) {
+                    if (f.getType().equals(FieldType.METADATA)) {
                         Object t = f.getValueFromResult(rs2);
                         values.appendValue(t, false, f);
                     }

@@ -467,7 +467,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 }
                 DbField selectedField = getFieldByIndex(procedure, fieldIndex, true, c);
                 if (phen instanceof CompositePhenomenon) {
-                    resultPhen = getPhenomenon(selectedField.name, c);
+                    resultPhen = getPhenomenon(selectedField.getName(), c);
                 } else {
                     resultPhen = phen;
                 }
@@ -483,7 +483,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                         time = getMeasureTimeForTimeSeries(pi, identifier, oid, c, measureId, fieldIndex);
                     }
                 }
-                omType = getOmTypeFromFieldType(selectedField.dataType);
+                omType = getOmTypeFromFieldType(selectedField.getDataType());
 
             } else {
                 omType        = COMPLEX_OBSERVATION;
@@ -539,7 +539,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         try (final SQLResult rs  = query.execute(c)) {
             int tableNum = rs.getFirstTableNumber();
             if (rs.next()) {
-                final Timestamp t = rs.getTimestamp(pti.mainField.name, tableNum);
+                final Timestamp t = rs.getTimestamp(pti.mainField.getName(), tableNum);
                 return buildTime(obsId, t, null);
             }
         }

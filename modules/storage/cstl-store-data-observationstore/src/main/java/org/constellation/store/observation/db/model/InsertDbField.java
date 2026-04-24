@@ -48,15 +48,15 @@ public class InsertDbField extends DbField {
     }
 
     public void setInputUom(String inputUom) throws SQLException {
-        if (this.uom != null && inputUom != null &&
+        if (this.getUom() != null && inputUom != null &&
             !this.uom.equals(inputUom)) {
             try {
-                Unit<?> fieldUOM = Units.valueOf(this.uom);
+                Unit<?> fieldUOM = Units.valueOf(this.getUom());
                 Unit<?> inputUOM = Units.valueOf(inputUom);
 
                 valueConverter = inputUOM.getConverterToAny(fieldUOM);
             } catch (IncommensurableException | UnconvertibleException | MeasurementParseException | IllegalStateException ex) {
-                throw new SQLException("Error while looking for uom converter " + this.uom + " => " + inputUom + " for field: " + this.name, ex);
+                throw new SQLException("Error while looking for uom converter " + this.getUom() + " => " + inputUom + " for field: " + this.getName(), ex);
             }
         }
     }

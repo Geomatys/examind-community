@@ -392,8 +392,6 @@ public class CsvFlatObservationStore extends AbstractLineStore {
 
             String fixedObsId    = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
 
-            final Map<ObservationType, Map<String, Field>> measureColumnsMap = new HashMap<>();
-            
             final List<String> obsTypeCodes      = getObsTypeCodes();
             final List<Field> qualityFields      = buildExtraFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes, FieldType.QUALITY);
             final List<Field> parameterFields    = buildExtraFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);

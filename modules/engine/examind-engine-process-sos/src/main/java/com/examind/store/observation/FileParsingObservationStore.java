@@ -370,7 +370,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             for (MeasureField pField : mf.parameterFields) {
                 parameterFields.add(new Field(-1, pField.dataType, pField.name, pField.label, null, pField.uom, FieldType.PARAMETER));
             }
-            fields.add(new Field(i, mf.dataType, name, label, null, uom, FieldType.MEASURE, qualityFields, parameterFields));
+            fields.add(new Field(i, mf.dataType, name, label, null, uom, FieldType.MEASURE, qualityFields, parameterFields, mf.properties));
             i++;
         }
         return fields;

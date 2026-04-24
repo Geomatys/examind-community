@@ -724,7 +724,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private Map buildResultQuality(Field f, Object value) {
         Map quality = new LinkedHashMap<>();
-        quality.put("nameOfMeasure",  f.name);
+        quality.put("nameOfMeasure",  f.getName());
         quality.put("DQ_Result", Collections.singletonMap("code", value));
         return quality;
     }
@@ -780,21 +780,21 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 col++;
 
                 // add quality
-                for (Field sub : f.qualityFields) {
+                for (Field sub : f.getQualityFields()) {
                     quality.add(buildResultQuality(sub, arrayLine.get(col)));
                     col++;
                 }
 
                 // add parameters
-                for (Field sub : f.parameterFields) {
-                    parameters.put(sub.name, arrayLine.get(col));
+                for (Field sub : f.getParameterFields()) {
+                    parameters.put(sub.getName(), arrayLine.get(col));
                     col++;
                 }
 
                 // build a new single line
                 if (!forMds) {
                     if (!forDs) {
-                        String mid = id.toString().replace("<field-id>", f.index.toString());
+                        String mid = id.toString().replace("<field-id>", f.getIndex().toString());
                         newLine.add(mid);
                     } else {
                         newLine.add(id);
@@ -960,10 +960,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         UnitOfMeasure uom = new UnitOfMeasure();
         if (obs.getResult() instanceof MeasureResult mr) {
-            if (mr.getField().uom != null) {
-                uom = new UnitOfMeasure(mr.getField().uom, mr.getField().uom, mr.getField().uom);
+            if (mr.getField().getUom() != null) {
+                uom = new UnitOfMeasure(mr.getField().getUom(), mr.getField().getUom(), mr.getField().getUom());
             }
-            if (exp.isSelected("ObservationType")) datastream.setObservationType(getOmTypeFromFieldType(mr.getField().dataType));
+            if (exp.isSelected("ObservationType")) datastream.setObservationType(getOmTypeFromFieldType(mr.getField().getDataType()));
         } else {
             LOGGER.warning("measurement result type not handled yet");
         }
@@ -1138,17 +1138,17 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
             // skip first main field (not for profile)
             int offset = 0;
-            if (!cr.getFields().isEmpty() && cr.getFields().get(0).dataType == FieldDataType.TIME) {
+            if (!cr.getFields().isEmpty() && cr.getFields().get(0).getDataType() == FieldDataType.TIME) {
                 offset = 1;
             }
             for (int i = offset; i < cr.getFields().size(); i++) {
                 Field dcp = cr.getFields().get(i);
                 // default empty uom
                 UnitOfMeasure uom = new UnitOfMeasure();
-                if (dcp.uom != null) {
-                    uom = new UnitOfMeasure(dcp.uom, dcp.uom, dcp.uom);
+                if (dcp.getUom() != null) {
+                    uom = new UnitOfMeasure(dcp.getUom(), dcp.getUom(), dcp.getUom());
                 }
-                String omType = getOmTypeFromFieldType(dcp.dataType);
+                String omType = getOmTypeFromFieldType(dcp.getDataType());
                 if (exp.isSelected("multiObservationDataTypes")) datastream.addMultiObservationDataTypesItem(omType);
                 uoms.add(uom);
             }
