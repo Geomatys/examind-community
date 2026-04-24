@@ -31,8 +31,6 @@ import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.EXTR
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.storage.Bundle;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -44,8 +42,8 @@ import org.opengis.parameter.ParameterValueGroup;
 
 @StoreMetadata(
         formatName = InternalMetadataStoreFactory.NAME,
-        capabilities = {Capability.WRITE})
-@StoreMetadataExt(resourceTypes = ResourceType.METADATA)
+        capabilities = {Capability.WRITE},
+        resourceTypes = {MetadataStore.class})
 public class InternalMetadataStoreFactory extends DataStoreProvider {
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();

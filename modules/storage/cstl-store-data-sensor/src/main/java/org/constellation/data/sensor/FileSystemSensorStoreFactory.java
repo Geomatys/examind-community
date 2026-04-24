@@ -28,8 +28,7 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
+import org.geotoolkit.observation.ObservationStore;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -41,8 +40,7 @@ import org.opengis.parameter.ParameterValueGroup;
 @StoreMetadata(
         formatName = FileSystemSensorStoreFactory.NAME,
         capabilities = {Capability.READ, Capability.WRITE},
-        resourceTypes = {})
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
+        resourceTypes = {ObservationStore.class})
 public class FileSystemSensorStoreFactory extends DataStoreProvider {
 
      /** factory identification **/

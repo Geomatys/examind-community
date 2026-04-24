@@ -15,7 +15,8 @@
         "name" : "format",
         "description" : "Format used to save the coverage",
         "schema" : [ {
-            "type" : "string"
+            "type" : "string",
+            "subtype":"output-format"
         } ],
         "optional" : true
     }, {

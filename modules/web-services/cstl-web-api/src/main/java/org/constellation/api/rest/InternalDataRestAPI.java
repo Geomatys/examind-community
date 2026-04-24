@@ -23,8 +23,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.base.StoreMetadata;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -39,11 +44,8 @@ import org.constellation.dto.metadata.RootObj;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ISO19110Builder;
 import org.geotoolkit.client.AbstractClientProvider;
-import static org.apache.sis.util.ArraysExt.contains;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.ResourceType;
-import static org.geotoolkit.storage.ResourceType.*;
 import org.opengis.feature.catalog.FeatureCatalogue;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -142,14 +144,15 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                 continue;
             }
 
-            final ResourceType[] resourceTypes = DataStores.getResourceTypes(p);
+            final StoreMetadata storeMeta = p.getClass().getAnnotation(StoreMetadata.class);
+            final List<Class<? extends Resource>> resourceTypes = storeMeta == null ? Collections.EMPTY_LIST : List.of(storeMeta.resourceTypes());
             if (dataType != null) {
                 switch (dataType) {
                     case "raster" :
-                        if (!(contains(resourceTypes, COVERAGE) || contains(resourceTypes, GRID) || contains(resourceTypes, PYRAMID))) continue;
+                        if (!(resourceTypes.contains(GridCoverageResource.class))) continue;
                         break;
                     case "vector" :
-                        if (!contains(resourceTypes, VECTOR)) continue;
+                        if (!resourceTypes.contains(FeatureSet.class)) continue;
                         break;
                     case "jdbc"   :
                         // Workaround: avoid forcing dependency over sis-sql. Check it by name.
@@ -160,7 +163,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                         if (!(p instanceof AbstractClientProvider)) continue;
                         break;
                     case "data"   :
-                        if (!(contains(resourceTypes, COVERAGE) || contains(resourceTypes, GRID) || contains(resourceTypes, PYRAMID) || contains(resourceTypes, VECTOR))) continue;
+                        if (!(resourceTypes.contains(GridCoverageResource.class) || resourceTypes.contains(FeatureSet.class))) continue;
                         break;
                 }
                 // exclude raster SQL factory in filtered search for now
@@ -170,7 +173,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             }
 
             // add a tag vector/raster on the pojo for ui purpose
-            final String tag = contains(resourceTypes, VECTOR) ? "vector" : "raster";
+            final String tag = resourceTypes.contains(FeatureSet.class) ? "vector" : "raster";
             final DataCustomConfiguration.Type type = DataProviders.buildDatastoreConfiguration(p, "data-store", tag);
             if(all.getTypes().isEmpty()){
                 //select the first type found

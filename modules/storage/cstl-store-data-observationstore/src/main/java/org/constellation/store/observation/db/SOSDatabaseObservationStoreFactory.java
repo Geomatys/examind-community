@@ -27,8 +27,7 @@ import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
+import org.geotoolkit.observation.ObservationStore;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -40,8 +39,7 @@ import org.opengis.parameter.ParameterValueGroup;
 @StoreMetadata(
         formatName = SOSDatabaseObservationStoreFactory.NAME,
         capabilities = {Capability.READ, Capability.CREATE, Capability.WRITE},
-        resourceTypes = {})
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
+        resourceTypes = {ObservationStore.class})
 public class SOSDatabaseObservationStoreFactory extends AbstractObservationStoreFactory {
 
     /** factory identification **/
@@ -52,21 +50,21 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String DATASOURCE_ID_NAME = "datasource-id";
-    public static final ParameterDescriptor<Integer> DATASOURCE_ID =  
+    public static final ParameterDescriptor<Integer> DATASOURCE_ID =
             BUILDER.addName(DATASOURCE_ID_NAME).setDescription("Examind datasource identifier").create(Integer.class, null);
-    
+
     public static final String SCHEMA_PREFIX_NAME = "schema-prefix";
     public static final ParameterDescriptor<String> SCHEMA_PREFIX =
              BUILDER.addName(SCHEMA_PREFIX_NAME).setRemarks(SCHEMA_PREFIX_NAME).setRequired(false).create(String.class, null);
-    
+
     public static final String DECIMATION_ALGORITHM_NAME = "decimation-algorithm";
     public static final ParameterDescriptor<String> DECIMATION_ALGORITHM =
              BUILDER.addName(DECIMATION_ALGORITHM_NAME).setRemarks(DECIMATION_ALGORITHM_NAME).setRequired(false).create(String.class, "");
-    
+
     public static final String TIMESCALEDB_NAME = "timescaledb";
     public static final ParameterDescriptor<Boolean> TIMESCALEDB =
              BUILDER.addName(TIMESCALEDB_NAME).setRemarks("timescale db").setRequired(false).create(Boolean.class, false);
-    
+
     /**
      * Max field by table, Optional.
      * Maximum number of field by measure table.
@@ -78,7 +76,7 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
             .setRemarks(MAX_FIELD_BY_TABLE_NAME)
             .setRequired(false)
             .create(Integer.class, 1000);
-    
+
     public static final String MODE_NAME = "mode";
     public static final ParameterDescriptor<String> MODE =
              BUILDER.addName(MODE_NAME).setRemarks(MODE_NAME).setRequired(false).create(String.class, "default");

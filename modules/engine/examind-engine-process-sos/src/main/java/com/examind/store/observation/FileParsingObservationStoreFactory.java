@@ -21,6 +21,7 @@ package com.examind.store.observation;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ import org.apache.sis.storage.DataStoreException;
 import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.base.StoreMetadata;
 import org.geotoolkit.data.csv.Bundle;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import org.geotoolkit.util.NamesExt;
@@ -370,8 +372,13 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     @Override
     public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
         final Path path = connector.getStorageAs(Path.class);
-        //TODO this was always empty before we removed ProviderOnFileSystem
-        final Collection<String> suffix = Collections.EMPTY_LIST;
+
+        Collection<String> suffix = Collections.EMPTY_LIST;
+        final StoreMetadata meta = this.getClass().getAnnotation(StoreMetadata.class);
+        if (meta != null) {
+            suffix = Arrays.asList(meta.fileSuffixes());
+        }
+
         if (!suffix.isEmpty() && path != null) {
             final String extension = IOUtilities.extension(path).toLowerCase();
             final boolean extValid = suffix.contains(extension);

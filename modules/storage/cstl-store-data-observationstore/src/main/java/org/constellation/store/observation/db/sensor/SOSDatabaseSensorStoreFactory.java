@@ -38,8 +38,7 @@ import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVA
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
+import org.geotoolkit.observation.ObservationStore;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -51,8 +50,7 @@ import org.opengis.parameter.ParameterValueGroup;
 @StoreMetadata(
         formatName = SOSDatabaseSensorStoreFactory.NAME,
         capabilities = {Capability.READ, Capability.WRITE},
-        resourceTypes = {})
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
+        resourceTypes = {ObservationStore.class})
 public class SOSDatabaseSensorStoreFactory extends DataStoreProvider {
 
      /** factory identification **/

@@ -1,7 +1,6 @@
 package com.examind.community.storage.interop;
 
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -32,8 +31,6 @@ import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
 import org.apache.sis.util.DefaultInternationalString;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.storage.Bundle;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterDescriptor;
@@ -57,7 +54,6 @@ import static com.examind.community.storage.interop.FileCoverageProvider.NAME;
         formatName = NAME,
         capabilities = { Capability.READ },
         resourceTypes = GridCoverageResource.class)
-@StoreMetadataExt(resourceTypes = ResourceType.GRID)
 public class FileCoverageProvider extends DataStoreProvider {
 
     /** factory identification **/

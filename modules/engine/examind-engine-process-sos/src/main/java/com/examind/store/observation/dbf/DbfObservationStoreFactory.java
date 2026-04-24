@@ -18,15 +18,12 @@ package com.examind.store.observation.dbf;
 
 import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.logging.Level;
 import org.apache.sis.storage.base.Capability;
 import org.apache.sis.storage.base.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
+import org.geotoolkit.observation.ObservationStore;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -39,8 +36,8 @@ import org.opengis.parameter.ParameterValueGroup;
 @StoreMetadata(
         formatName = DbfObservationStoreFactory.NAME,
         capabilities = Capability.READ,
-        resourceTypes = {FeatureSet.class})
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
+        fileSuffixes = {"dbf"},
+        resourceTypes = {FeatureSet.class,ObservationStore.class})
 public class DbfObservationStoreFactory extends FileParsingObservationStoreFactory {
 
     /** factory identification **/
@@ -52,8 +49,8 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
             = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, PATH,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME, OBS_PROP_COLUMN_TYPE, OBS_PROP_DESC, FOI_COLUMN, OBSERVATION_TYPE,
                     PROCEDURE_ID, PROCEDURE_DESC, PROCEDURE_NAME, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, PROCEDURE_REGEX, PROCEDURE_PROPERTIES_MAP_COLUMN, PROCEDURE_PROPERTIES_COLUMN, Z_COLUMN, UOM_REGEX, UOM_ID, OBS_PROP_REGEX, FILE_MIME_TYPE, NO_HEADER,
-                    DIRECT_COLUMN_INDEX, 
-                    QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, 
+                    DIRECT_COLUMN_INDEX,
+                    QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE,
                     PARAMETER_COLUMN, PARAMETER_COLUMN_ID, PARAMETER_COLUMN_TYPE,
                     LAX_HEADER, COMPUTE_FOI);
 
@@ -77,8 +74,4 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
         }
     }
 
-    @Override
-    public Collection<String> getSuffix() {
-        return Arrays.asList("dbf");
-    }
 }

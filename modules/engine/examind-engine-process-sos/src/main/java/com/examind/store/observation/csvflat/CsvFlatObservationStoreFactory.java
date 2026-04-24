@@ -21,15 +21,13 @@ import org.apache.sis.storage.base.Capability;
 import org.apache.sis.storage.base.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 
 import java.io.IOException;
-import java.util.*;
 import java.util.logging.Level;
+import org.geotoolkit.observation.ObservationStore;
 
 /**
  *
@@ -37,8 +35,9 @@ import java.util.logging.Level;
  */
 @StoreMetadata(
         formatName = CsvFlatObservationStoreFactory.NAME,
-        capabilities = Capability.READ)
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
+        capabilities = Capability.READ,
+        fileSuffixes = {"csv","xlsx","xls","tsv"},
+        resourceTypes = {ObservationStore.class})
 public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreFactory {
 
     /** factory identification **/
@@ -50,9 +49,9 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFlatFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, OBSERVATION_TYPE,
                     PROCEDURE_ID, PROCEDURE_DESC, PROCEDURE_NAME, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, PROCEDURE_REGEX, PROCEDURE_PROPERTIES_MAP_COLUMN, PROCEDURE_PROPERTIES_COLUMN,
-                    Z_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID, RESULT_COLUMN, 
-                    OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME_COLUMN, OBS_PROP_FILTER_COLUMN, OBS_PROP_REGEX, OBS_PROP_NAME, OBS_PROP_PROPERTIES_MAP_COLUMN, OBS_PROP_PROPERTIES_COLUMN, OBS_PROP_DESC, OBS_PROP_DESC_COLUMN, 
-                    TYPE_COLUMN, CHARQUOTE, FILE_MIME_TYPE, NO_HEADER, DIRECT_COLUMN_INDEX, 
+                    Z_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID, RESULT_COLUMN,
+                    OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME_COLUMN, OBS_PROP_FILTER_COLUMN, OBS_PROP_REGEX, OBS_PROP_NAME, OBS_PROP_PROPERTIES_MAP_COLUMN, OBS_PROP_PROPERTIES_COLUMN, OBS_PROP_DESC, OBS_PROP_DESC_COLUMN,
+                    TYPE_COLUMN, CHARQUOTE, FILE_MIME_TYPE, NO_HEADER, DIRECT_COLUMN_INDEX,
                     QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE,
                     PARAMETER_COLUMN, PARAMETER_COLUMN_ID, PARAMETER_COLUMN_TYPE,
                     LAX_HEADER, COMPUTE_FOI);
@@ -76,10 +75,5 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);
         }
-    }
-
-    @Override
-    public Collection<String> getSuffix() {
-        return Arrays.asList("csv", "xlsx", "xls", "tsv");
     }
 }

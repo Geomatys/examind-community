@@ -40,6 +40,7 @@ import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.Resource.FileSet;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.base.StoreMetadata;
 import org.apache.sis.style.Style;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.constellation.admin.SpringHelper;
@@ -60,8 +61,6 @@ import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.io.wkt.PrjFiles;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.StoreMetadataExt;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -138,7 +137,7 @@ public final class DataProviders {
     public synchronized static DataProvider getProvider(final int providerId) throws ConfigurationException{
         return getProvider(providerId, false);
     }
-    
+
     /**
      * Get DataProvider from identifier.
      *
@@ -452,9 +451,13 @@ public final class DataProviders {
     }
 
     private static boolean isOnlyObservationStore(DataStoreProvider dsp) {
-        StoreMetadataExt st = dsp.getClass().getAnnotation(StoreMetadataExt.class);
-        if (st != null) {
-            return st.resourceTypes().length == 1 && ResourceType.SENSOR.equals(st.resourceTypes()[0]);
+        StoreMetadata st = dsp.getClass().getAnnotation(StoreMetadata.class);
+        if (st != null && st.resourceTypes() != null) {
+            for (Class c : st.resourceTypes()) {
+                if (c.getName().contains("ObservationStore")) {
+                    return true;
+                }
+            }
         }
         return false;
     }
