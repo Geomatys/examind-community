@@ -43,7 +43,6 @@ import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.data.csv.Bundle;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
-import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -61,7 +60,7 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class FileParsingObservationStoreFactory extends AbstractObservationStoreFactory implements ProviderOnFileSystem {
+public abstract class FileParsingObservationStoreFactory extends AbstractObservationStoreFactory {
 
     protected static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
@@ -133,12 +132,12 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .addName("procedure_desc_column")
             .setRequired(false)
             .create(String.class, null);
-    
+
     public static final ParameterDescriptor<String> PROCEDURE_PROPERTIES_COLUMN = PARAM_BUILDER
             .addName("procedure_props_columns")
             .setRequired(false)
             .create(String.class, null);
-    
+
     public static final ParameterDescriptor<String> PROCEDURE_PROPERTIES_MAP_COLUMN = PARAM_BUILDER
             .addName("procedure_props_map_column")
             .setRequired(false)
@@ -193,22 +192,22 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .addName("observed_properties_name_columns")
             .setRequired(false)
             .create(String.class, null);
-    
+
     public static final ParameterDescriptor<String> OBS_PROP_DESC = PARAM_BUILDER
             .addName("observed_properties_desc")
             .setRequired(false)
             .create(String.class, null);
-    
+
     public static final ParameterDescriptor<String> OBS_PROP_DESC_COLUMN = PARAM_BUILDER
             .addName("observed_properties_desc_columns")
             .setRequired(false)
             .create(String.class, null);
-    
+
     public static final ParameterDescriptor<String> OBS_PROP_PROPERTIES_COLUMN = PARAM_BUILDER
             .addName("observed_properties_prop_columns")
             .setRequired(false)
             .create(String.class, null);
-    
+
     public static final ParameterDescriptor<String> OBS_PROP_PROPERTIES_MAP_COLUMN = PARAM_BUILDER
             .addName("observed_properties_prop_map_column")
             .setRequired(false)
@@ -243,7 +242,7 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .addName("qualtity_column_type")
             .setRequired(false)
             .create(String.class, null);
-    
+
     public static final ParameterDescriptor<String> PARAMETER_COLUMN = PARAM_BUILDER
             .addName("parameter_column")
             .setRequired(false)
@@ -369,14 +368,10 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     }
 
     @Override
-    public Collection<byte[]> getSignature() {
-        return Collections.emptyList();
-    }
-
-    @Override
     public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
         final Path path = connector.getStorageAs(Path.class);
-        final Collection<String> suffix = getSuffix();
+        //TODO this was always empty before we removed ProviderOnFileSystem
+        final Collection<String> suffix = Collections.EMPTY_LIST;
         if (!suffix.isEmpty() && path != null) {
             final String extension = IOUtilities.extension(path).toLowerCase();
             final boolean extValid = suffix.contains(extension);
