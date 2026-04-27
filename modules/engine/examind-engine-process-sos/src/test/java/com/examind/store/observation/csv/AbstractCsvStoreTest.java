@@ -28,8 +28,12 @@ import java.util.Date;
 import java.util.UUID;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.opengis.temporal.Instant;
 
 /**
@@ -72,5 +76,11 @@ public class AbstractCsvStoreTest {
     
     protected static String format(SimpleDateFormat sdf,Instant t) {
         return sdf.format(Date.from(TemporalUtilities.toInstant(t)));
+    }
+    
+    protected void verifyTSFields(ProcedureDataset proc, int nbField) {
+        Assert.assertEquals(nbField, proc.fields.size());
+        Assert.assertEquals(FieldDataType.TIME, proc.fields.get(0).dataType);
+        Assert.assertEquals(FieldType.MAIN, proc.fields.get(0).type);
     }
 }

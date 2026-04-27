@@ -28,6 +28,8 @@ import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
@@ -150,7 +152,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         ProcedureDataset proc = results.procedures.get(0);
         Assert.assertEquals("urn:surval:25049001", proc.getId());
         Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
-
+        
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
         Assert.assertEquals(1, procedures.size());
@@ -164,6 +166,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1987-06-01T00:00:00" , format(tp.getBeginning()));
         Assert.assertEquals("2019-12-17T00:00:00" , format(tp.getEnding()));
+      
+        verifyTSFields(proc, 4);
     }
 
 
@@ -219,15 +223,17 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
 
-        ProcedureDataset pt = procedures.get(0);
-        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+        ProcedureDataset proc = procedures.get(0);
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
 
-        time = pt.spatialBound.getTimeObject();
+        time = proc.spatialBound.getTimeObject();
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 2);
     }
     
     @Test
@@ -282,15 +288,17 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
 
-        ProcedureDataset pt = procedures.get(0);
-        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+        ProcedureDataset proc = procedures.get(0);
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
 
-        time = pt.spatialBound.getTimeObject();
+        time = proc.spatialBound.getTimeObject();
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 2);
     }
 
     @Test
@@ -390,6 +398,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
 
         time = proc.spatialBound.getTimeObject();
         Assert.assertTrue(time instanceof Period);
+        
+        verifyTSFields(proc, 3);
     }
 
     @Test
@@ -453,15 +463,17 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
 
-        ProcedureDataset pt = procedures.get(0);
-        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+        ProcedureDataset proc = procedures.get(0);
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
 
-        time = pt.spatialBound.getTimeObject();
+        time = proc.spatialBound.getTimeObject();
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 3);
     }
 
     @Test
@@ -544,6 +556,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 2);
     }
     
     @Test
@@ -660,6 +674,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 2);
     }
 
     @Test
@@ -742,6 +758,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 2);
     }
 
     @Test
@@ -824,6 +842,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-03T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 3);
     }
 
     @Test
@@ -925,6 +945,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-03T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 3);
 
         proc = procedures.get(1);
         Assert.assertEquals("pdl2", proc.getId());
@@ -936,6 +958,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-04T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 3);
     }
 
 
@@ -1035,6 +1059,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 2);
 
         proc = procedures.get(1);
         Assert.assertEquals("P2", proc.getId());
@@ -1046,6 +1072,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-03T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 3);
     }
     
     @Test
@@ -1138,5 +1166,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
         Assert.assertEquals("1980-03-03T21:52:00" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 3);
     }
 }

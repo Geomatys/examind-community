@@ -130,5 +130,7 @@ public class CsvSplittedObservationStoreTest extends AbstractCsvStoreTest {
         tp = (Period) time;
         Assert.assertEquals("2021-09-01T00:00:36" , format(tp.getBeginning()));
         Assert.assertEquals("2022-03-22T00:06:26" , format(tp.getEnding()));
+        
+        verifyTSFields(proc, 3);
     }
 }

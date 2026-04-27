@@ -17,7 +17,7 @@
 
 package com.examind.store.observation.dbf;
 
-import com.examind.store.observation.AbstractCsvStore;
+import com.examind.store.observation.AbstractColumnStore;
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FieldInfos;
 import static com.examind.store.observation.FileParsingUtils.*;
@@ -69,7 +69,7 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Samuel Andrés (Geomatys)
  */
-public class DbfObservationStore extends AbstractCsvStore {
+public class DbfObservationStore extends AbstractColumnStore {
 
     public DbfObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
@@ -99,6 +99,8 @@ public class DbfObservationStore extends AbstractCsvStore {
             final List<Integer> dateIndexes      = getColumnIndexes(dateColumns,      headers, directColumnIndex, laxHeader, DATE_QUALIFIER);
             final List<Integer> qualityIndexes   = getColumnIndexes(qualityColumns,   headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
             final List<Integer> parameterIndexes = getColumnIndexes(parameterColumns, headers, directColumnIndex, laxHeader, PARAMETER_QUALIFIER);
+            
+            boolean profile                      = PROFILE.equals(observationType);
 
             int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
             int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
@@ -115,7 +117,7 @@ public class DbfObservationStore extends AbstractCsvStore {
             }
 
             final List<String> measureFields = new ArrayList<>();
-            if (PROFILE.equals(observationType))   {
+            if (profile)   {
                 if (mainColumns.size() > 1) {
                     throw new DataStoreException("Multiple main columns is not yet supported for Profile");
                 }
@@ -133,7 +135,7 @@ public class DbfObservationStore extends AbstractCsvStore {
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
             
             List<MeasureField> fields = new ArrayList<>(obsPropFields);
-            if (PROFILE.equals(observationType)) {
+            if (profile) {
                 if (mainColumns.size() > 1) {
                     throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
                 }

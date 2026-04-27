@@ -17,7 +17,7 @@
 
 package com.examind.store.observation.csv;
 
-import com.examind.store.observation.AbstractCsvStore;
+import com.examind.store.observation.AbstractColumnStore;
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FieldInfos;
 import java.io.IOException;
@@ -68,7 +68,7 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Guilhem Legal (Geomatys)
  *
  */
-public class CsvObservationStore extends AbstractCsvStore {
+public class CsvObservationStore extends AbstractColumnStore {
 
     public CsvObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
@@ -108,6 +108,8 @@ public class CsvObservationStore extends AbstractCsvStore {
             int procNameIndex    = getColumnIndex(procedureNameColumn,          headers, directColumnIndex, laxHeader, maxIndex);
             int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
             int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            
+            boolean profile      = PROFILE.equals(observationType);
 
             final List<Integer> mainIndexes      = getColumnIndexes(mainColumns,      headers, directColumnIndex, laxHeader, maxIndex, MAIN_QUALIFIER);
             final List<Integer> dateIndexes      = getColumnIndexes(dateColumns,      headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
@@ -121,7 +123,7 @@ public class CsvObservationStore extends AbstractCsvStore {
             }
             
             final List<String> measureFieldNames = new ArrayList<>();
-            if (PROFILE.equals(observationType))   {
+            if (profile)   {
                 if (mainColumns.size() > 1) {
                     throw new DataStoreException("Multiple main columns is not yet supported for Profile");
                 }
@@ -140,7 +142,7 @@ public class CsvObservationStore extends AbstractCsvStore {
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFieldNames);
             
             final List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
-            if (PROFILE.equals(observationType)) {
+            if (profile) {
                 mesureFields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
             } else {
                 mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));

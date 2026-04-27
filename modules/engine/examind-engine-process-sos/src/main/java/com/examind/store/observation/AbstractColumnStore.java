@@ -37,13 +37,13 @@ import org.opengis.parameter.ParameterValueGroup;
  * 
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class AbstractCsvStore extends FileParsingObservationStore {
+public abstract class AbstractColumnStore extends FileParsingObservationStore {
     
     protected final List<String> obsPropColumnsTypes;
 
     protected final List<String> uomIds;
 
-    public AbstractCsvStore(final ParameterValueGroup params) throws DataStoreException,IOException {
+    public AbstractColumnStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
         this.obsPropColumnsTypes = getMultipleValuesList(params, OBS_PROP_COLUMN_TYPE.getName().getCode());
         this.uomIds = getMultipleValuesList(params, UOM_ID.getName().getCode());
