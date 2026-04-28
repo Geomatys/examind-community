@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
@@ -74,6 +75,18 @@ public class MeasureBuilder {
         
         this.fieldInfos = fieldInfos; 
     }
+    
+    public void appendProfileTime(Number mainValue, long millis) {
+        if (!measureMemoryMap.containsKey(mainValue)) {
+            measureMemoryMap.put(mainValue, new LinkedHashMap<>());
+        }
+        // add measure code
+        if (fieldInfos.containsMeasureField("time")) {
+            LinkedHashMap<String, Measure> row = measureMemoryMap.get(mainValue);
+            row.put("time", new Measure(millis, new Object[0], new Object[0]));
+            measureMemoryMap.put(mainValue, row);
+        }
+    }
 
     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, Object[] qualityValues, Object[] parameterValues) {
         if (measureCode == null || measureCode.isEmpty()) return;
@@ -111,13 +124,15 @@ public class MeasureBuilder {
         Set<MeasureField> filteredMeasure = new LinkedHashSet<>();
         
         for (MeasureField field : fieldInfos.measureFields) {
-            if (field.type.equals(FieldType.MAIN) || measureColumnFound.contains(field.name)) {
+            if (field.type.equals(FieldType.MAIN)     ||
+                field.type.equals(FieldType.METADATA) || 
+                measureColumnFound.contains(field.name)) {
                 filteredMeasure.add(field);
             }
         }
         return filteredMeasure;
     }
-
+    
     public void updateObservedProperty(ObservedProperty observedProperty) {
         MeasureField field = fieldInfos.getFieldByName(observedProperty.id);
         if (field != null) {
@@ -160,8 +175,14 @@ public class MeasureBuilder {
                     }
                     
                  // write metadata fields
-                } else if (FieldType.METADATA.equals(field.type)) {
+                 // identifier TODO
+                } else if (FieldType.METADATA.equals(field.type) && FieldDataType.TEXT.equals(field.dataType)) {
                     result.appendString("todo", false, null);
+                    
+                // profile time    
+                } else if (FieldType.METADATA.equals(field.type) && FieldDataType.TIME.equals(field.dataType)) {
+                    final Measure measure = measures.get(field.name);
+                    result.appendTime((long)measure.value, false, null);
                  
                 // write measure field
                 } else if (measureColumnFound.contains(field.name)) {

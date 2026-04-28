@@ -43,7 +43,6 @@ import com.examind.store.observation.ObservedProperty;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ObservationType;
 import static org.geotoolkit.observation.model.ObservationType.PROFILE;
@@ -126,9 +125,11 @@ public class CsvSplittedObservationStore extends AbstractLineStore {
     @Override
     public ObservationDataset getDataset(final DatasetQuery query) throws DataStoreException {
 
-        // pre-load the obsProp colmuns has we don't want to open twice the file
+        // pre-load the obsProp columns has we don't want to open twice the file
         // some DataFileReader are not concurrent (like xlsx) ans this will cause issue
         final List<String> sortedMeasureColumns = getObsPropColumns().stream().sorted().collect(Collectors.toList());
+        
+        final boolean includeTimeForProfile = query.isIncludeTimeForProfile();
 
        /* -------------------------------------------------------------------- 
         *
@@ -346,7 +347,7 @@ public class CsvSplittedObservationStore extends AbstractLineStore {
                 
                 // initialize description
                 FieldInfos measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> 
-                        buildFields(currentObstType, currentMainColumns, sortedMeasureColumns, qualityFields, parameterFields));
+                        buildFields(currentObstType, includeTimeForProfile, currentMainColumns, sortedMeasureColumns, qualityFields, parameterFields));
 
                 // look for current procedure (for observation separation)
                 String procId = getProcedureId(procIndex, line);
@@ -427,6 +428,9 @@ public class CsvSplittedObservationStore extends AbstractLineStore {
                 Object[] qualityValues   = parseExtraFields(line, qualityIndexes,   observedProperty.id, measureColums, FieldType.QUALITY, sdf);
                 Object[] parameterValues = parseExtraFields(line, parameterIndexes, observedProperty.id, measureColums, FieldType.PARAMETER, sdf);
                 currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber, qualityValues, parameterValues);
+                if (includeTimeForProfile) {
+                    currentBlock.appendProfileTime(mainValue, millis);
+                }
             }
 
 

@@ -85,6 +85,8 @@ public class DbfObservationStore extends AbstractColumnStore {
         if (query.getAffectedSensorID() != null) {
             LOGGER.warning("DBFObservation store does not allow to override sensor ID");
         }
+        final boolean includeTimeForProfile = query.isIncludeTimeForProfile();
+        
         try (final DataFileReader reader = getDataFileReader()) {
 
             final String[] headers = reader.getHeaders();
@@ -129,21 +131,19 @@ public class DbfObservationStore extends AbstractColumnStore {
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
             }
 
-            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
-
-           // special case where there is no header, and a specified observation property identifier
+            // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
             
-            List<MeasureField> fields = new ArrayList<>(obsPropFields);
+            final List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             if (profile) {
-                if (mainColumns.size() > 1) {
-                    throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
+                mesureFields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+                if (includeTimeForProfile) {
+                    mesureFields.add(0, new MeasureField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
                 }
-                fields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
             } else {
-                fields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME,     FieldType.MAIN));
+                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME,     FieldType.MAIN));
             }
-            FieldInfos measureColumns = new FieldInfos(fields, observationType);
+            FieldInfos measureColumns = new FieldInfos(mesureFields, observationType);
 
              // final result
             final ObservationDataset result = new ObservationDataset();
@@ -248,7 +248,9 @@ public class DbfObservationStore extends AbstractColumnStore {
                 }
 
                 // loop over columns to build measure string
-                for (MeasureField field : obsPropFields) {
+                for (MeasureField field : mesureFields) {
+                    if (FieldType.MAIN.equals(field.type) || FieldType.METADATA.equals(field.type)) continue;
+                    
                     int index          = field.columnIndex;
                     Object value       = line[index];
 
@@ -282,6 +284,9 @@ public class DbfObservationStore extends AbstractColumnStore {
                         if (!(line[index] instanceof String str && str.isEmpty())) {
                             LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, line[index]));
                         }
+                    }
+                    if (includeTimeForProfile) {
+                        currentBlock.appendProfileTime(mainValue, millis);
                     }
                 }
             }

@@ -96,6 +96,10 @@ public class ObservationBlock {
     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, Object[] qualityValues, Object[] parameterValues) {
         cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues, parameterValues);
     }
+    
+    public void appendProfileTime(Number mainValue, long millis) {
+        cmb.appendProfileTime(mainValue, millis);
+    }
 
     public void updateObservedProperties(List<ObservedProperty> observedProperties) {
         for (ObservedProperty op : observedProperties) {

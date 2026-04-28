@@ -25,10 +25,12 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.temporal.Temporal;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -80,28 +82,38 @@ public class AbstractCsvStoreTest {
     }
     
     protected void verifyTSFields(ProcedureDataset proc, int nbField) {
-        Assert.assertEquals(nbField, proc.fields.size());
-        Assert.assertEquals(FieldDataType.TIME, proc.fields.get(0).getDataType());
-        Assert.assertEquals(FieldType.MAIN, proc.fields.get(0).getType());
+        verifyFields(proc.fields, FieldDataType.TIME, nbField, false);
     }
     
     protected void verifyTSFields(ComplexResult res, int nbField) {
-        Assert.assertEquals(nbField, res.getFields().size());
-        Assert.assertEquals(FieldDataType.TIME, res.getFields().get(0).dataType);
-        Assert.assertEquals(FieldType.MAIN, res.getFields().get(0).type);
+        verifyFields(res.getFields(), FieldDataType.TIME, nbField, false);
     }
     
-    // TODO time field
     protected void verifyPRFields(ComplexResult res, int nbField) {
-        Assert.assertEquals(nbField, res.getFields().size());
-        Assert.assertEquals(FieldDataType.QUANTITY, res.getFields().get(0).dataType);
-        Assert.assertEquals(FieldType.MAIN, res.getFields().get(0).type);
+        verifyFields(res.getFields(), FieldDataType.QUANTITY, nbField, false);
     }
     
-    // TODO time field
+    protected void verifyPRFields(ComplexResult res, int nbField, boolean includeTime) {
+        verifyFields(res.getFields(), FieldDataType.QUANTITY, nbField, includeTime);
+    }
+    
     protected void verifyPRFields(ProcedureDataset proc, int nbField) {
-        Assert.assertEquals(nbField, proc.fields.size());
-        Assert.assertEquals(FieldDataType.QUANTITY, proc.fields.get(0).dataType);
-        Assert.assertEquals(FieldType.MAIN, proc.fields.get(0).type);
+       verifyFields(proc.fields, FieldDataType.QUANTITY, nbField, false);
+    }
+    
+    protected void verifyPRFields(ProcedureDataset proc, int nbField, boolean includeTime) {
+       verifyFields(proc.fields, FieldDataType.QUANTITY, nbField, includeTime);
+    }
+    
+    private void verifyFields(List<Field> fields, FieldDataType mainType, int nbField, boolean includeTime) {
+        int i = 0;
+        if (includeTime) {
+            Assert.assertEquals(FieldDataType.TIME, fields.get(i).getDataType());
+            Assert.assertEquals(FieldType.METADATA, fields.get(i).getType());
+            i++;
+        }
+        Assert.assertEquals(nbField, fields.size());
+        Assert.assertEquals(mainType, fields.get(i).getDataType());
+        Assert.assertEquals(FieldType.MAIN, fields.get(i).getType());
     }
 }

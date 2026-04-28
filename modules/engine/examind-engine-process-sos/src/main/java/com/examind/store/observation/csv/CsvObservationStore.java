@@ -85,6 +85,7 @@ public class CsvObservationStore extends AbstractColumnStore {
         if (mainColumns.isEmpty()) {
             throw new DataStoreException("No main column(s) defined.");
         }
+        final boolean includeTimeForProfile = query.isIncludeTimeForProfile();
         
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
@@ -144,6 +145,9 @@ public class CsvObservationStore extends AbstractColumnStore {
             final List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             if (profile) {
                 mesureFields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+                if (includeTimeForProfile) {
+                    mesureFields.add(0, new MeasureField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
+                }
             } else {
                 mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
             }
@@ -256,7 +260,7 @@ public class CsvObservationStore extends AbstractColumnStore {
 
                 // loop over columns to build measure string
                 for (MeasureField field : mesureFields) {
-                    if (FieldType.MAIN.equals(field.type)) continue;
+                    if (FieldType.MAIN.equals(field.type) || FieldType.METADATA.equals(field.type)) continue;
                     
                     int index          = field.columnIndex;
                     Object value       = line[index];
@@ -281,6 +285,9 @@ public class CsvObservationStore extends AbstractColumnStore {
                             LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, value));
                         }
                     }
+                }
+                if (includeTimeForProfile) {
+                    currentBlock.appendProfileTime(mainValue, millis);
                 }
             }
 

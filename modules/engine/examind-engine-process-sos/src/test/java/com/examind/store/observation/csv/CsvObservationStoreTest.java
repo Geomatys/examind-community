@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Set;
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
@@ -32,6 +33,7 @@ import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
@@ -122,6 +124,46 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
         Assert.assertEquals(4, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+        
+        Assert.assertEquals(4, results.observations.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyPRFields(cRes, 3);
+        
+        String expectedValues = getResourceAsString("com/examind/process/sos/argo-datablock-values-full.txt").replace("\n", "") + "\n";;
+        Assert.assertEquals(expectedValues, cRes.getValues() + '\n');
+        
+        DatasetQuery query = new DatasetQuery();
+        query.setIncludeTimeForProfile(true);
+        results = store.getDataset(query);
+        Assert.assertEquals(1, results.procedures.size());
+        Assert.assertEquals(4, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+        
+        Assert.assertEquals(4, results.observations.size());
+        
+        obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyPRFields(cRes, 4, true);
+        
+        expectedValues = getResourceAsString("com/examind/process/sos/argo-datablock-values-full-time.txt").replace("\n", "") + "\n";;
+        Assert.assertEquals(expectedValues, cRes.getValues() + '\n');
+        
+        obsResult = results.observations.get(1);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyPRFields(cRes, 4, true);
+        
+        expectedValues = getResourceAsString("com/examind/process/sos/argo-datablock-values-full-time-2.txt").replace("\n", "") + "\n";;
+        Assert.assertEquals(expectedValues, cRes.getValues() + '\n');
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());

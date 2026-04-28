@@ -24,7 +24,9 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
@@ -100,6 +102,19 @@ public class DbfObservationStoreTest extends AbstractCsvStoreTest {
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
         Assert.assertEquals(0, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+        
+        Assert.assertEquals(4, results.observations.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyTSFields(cRes, 2);
+        
+        String expectedValues = "2022-08-20T01:55:11.0,-0.11@@\n";
+        Assert.assertEquals(expectedValues, cRes.getValues() + '\n');
+        
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());

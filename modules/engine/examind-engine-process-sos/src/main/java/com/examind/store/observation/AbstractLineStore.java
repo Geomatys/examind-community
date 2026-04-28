@@ -259,9 +259,12 @@ public abstract class AbstractLineStore extends FileParsingObservationStore {
         };
     }
     
-    protected FieldInfos buildFields(ObservationType currentObstType, final List<String> currentMainColumns, final List<String> sortedMeasureColumns, List<MeasureField> qualityFields, List<MeasureField> parameterFields) {
+    protected FieldInfos buildFields(ObservationType currentObstType, boolean includeTimeInProfile, final List<String> currentMainColumns, final List<String> sortedMeasureColumns, List<MeasureField> qualityFields, List<MeasureField> parameterFields) {
         List<MeasureField> measureFields = new ArrayList<>();
         if (PROFILE.equals(currentObstType)) {
+            if (includeTimeInProfile) {
+                 measureFields.add(new MeasureField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
+            }
             if (currentMainColumns.size() > 1) {
                 throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
             }
