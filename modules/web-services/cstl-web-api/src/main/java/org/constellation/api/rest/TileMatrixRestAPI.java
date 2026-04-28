@@ -80,7 +80,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
 
 
     /**
-     * Return {@code true} if the specified data is tiled
+     * Return {@code true} if the specified data is tiled.
      *
      * @param dataId data identifier.
      * @param req
@@ -101,7 +101,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * Return {@code true} if the specified data is tiled and writable
+     * Return {@code true} if the specified data is tiled and writable.
      *
      * @param dataId data identifier.
      * @param req
@@ -123,7 +123,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * Get all tile matrix sets in the data.
+     * List all tile matrix sets in the data.
      *
      * @param dataId tiled data identifier.
      * @return list of all tile matrix sets.
@@ -237,7 +237,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
 
     /**
      * Clear tile matrix area.
-     * Removes tiles in given range
+     * Removes tiles in given range.
      *
      * @param dataId tiled data identifier
      * @param tmsId tile matrix set identifier
@@ -273,7 +273,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
 
     /**
      * Clear tile matrix area.
-     * Removes tiles in given envelope
+     * Removes tiles in given envelope.
      *
      * @param dataId tiled data identifier
      * @param tmsId tile matrix set identifier
