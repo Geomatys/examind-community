@@ -24,12 +24,11 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldDataType;
-import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
@@ -43,6 +42,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalPrimitive;
 
@@ -153,6 +153,18 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals("urn:surval:25049001", proc.getId());
         Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
         
+        Assert.assertEquals(1, results.observations.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyTSFields(cRes, 4);
+        
+        String expectedValues = getResourceAsString("com/examind/process/sos/surval-datablock-values.txt");
+        Assert.assertEquals(expectedValues, cRes.getValues() + '\n');
+        
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
         Assert.assertEquals(1, procedures.size());
@@ -219,6 +231,18 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
         Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+        
+        Assert.assertEquals(1, results.observations.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyTSFields(cRes, 2);
+        
+        String expectedValues = getResourceAsString("com/examind/process/sos/tabulation.txt");
+        Assert.assertEquals(expectedValues, cRes.getValues() + '\n');
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
@@ -284,6 +308,18 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
         Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+        
+        Assert.assertEquals(1, results.observations.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyTSFields(cRes, 2);
+        
+        String expectedValues = getResourceAsString("com/examind/process/sos/tabulation.txt");
+        Assert.assertEquals(expectedValues, cRes.getValues() + '\n');
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
@@ -366,6 +402,16 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
 
         // full procedures
         Assert.assertEquals(3, proc.spatialBound.getHistoricalLocations().size());
+        
+        Assert.assertEquals(301, results.observations.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyTSFields(cRes, 3);
+        
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
         Assert.assertEquals(301, procedures.size());
@@ -400,6 +446,125 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
         
         verifyTSFields(proc, 3);
+    }
+    
+    @Test
+    public void harvesterCSVFlatPRTest() throws Exception {
+
+        CsvFlatObservationStoreFactory factory = new CsvFlatObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+
+        params.parameter(CsvFlatObservationStoreFactory.LOCATION).setValue(bigdataFile.toUri().toString());
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("station_date");
+        params.parameter(CsvFlatObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("z_value");
+
+        params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_COLUMN.getName().getCode()).setValue("platform_code");
+        params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:template:");
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        params.parameter(CsvFlatObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("latitude");
+        params.parameter(CsvFlatObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("longitude");
+
+        params.parameter(CsvFlatObservationStoreFactory.RESULT_COLUMN.getName().getCode()).setValue("parameter_value");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("parameter_code");
+        params.parameter(CsvFlatObservationStoreFactory.QUALITY_COLUMN.getName().getCode()).setValue("parameter_qc");
+        params.parameter(CsvFlatObservationStoreFactory.TYPE_COLUMN.getName().getCode()).setValue("file_type");
+
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_FILTER_COLUMN.getName().getCode()).setValue("30,35");
+
+        params.parameter(CsvFlatObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Profile");
+        params.parameter(CsvFlatObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+        params.parameter(CsvFlatObservationStoreFactory.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
+        CsvFlatObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(11, procedureNames.size());
+
+        // verify that the sensor has been created
+        Assert.assertTrue(procedureNames.contains("urn:template:1901880"));
+        Assert.assertTrue(procedureNames.contains("urn:template:1901710"));
+
+        // not matching the parameters
+        Assert.assertFalse(procedureNames.contains("urn:template:1501563"));
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertEquals(2, phenomenonNames.size());
+        Assert.assertTrue(phenomenonNames.contains("30"));
+        Assert.assertTrue(phenomenonNames.contains("35"));
+
+        String sensorId = "urn:template:1901880";
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        Assert.assertTrue(time instanceof Instant);
+
+        Instant tp = (Instant) time;
+        Assert.assertEquals("2020-03-24T02:57:05" , format(tp.getPosition()));
+
+        // full dataset
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(11, results.procedures.size());
+        ProcedureDataset proc = results.procedures.get(0);
+
+        Assert.assertEquals("urn:template:1901290", proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+        
+        Assert.assertEquals(11, results.observations.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyPRFields(cRes, 3);
+        
+        
+        // full procedures
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+
+        Assert.assertEquals(11, procedures.size());
+        proc = procedures.get(0);
+        Assert.assertEquals("urn:template:1901290", proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+
+        time = proc.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Instant);
+
+        tp = (Instant) time;
+        Assert.assertEquals("2020-03-24T05:07:54" , format(tp.getPosition()));
+        
+        verifyPRFields(proc, 3);
+
+        // filtered dataset
+        results = store.getDataset(new DatasetQuery(Arrays.asList("urn:template:1901290")));
+        Assert.assertEquals(1, results.procedures.size());
+        proc = results.procedures.get(0);
+
+        Assert.assertEquals("urn:template:1901290", proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+        
+        obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyPRFields(cRes, 3);
+
+
+        // filtered procedure
+        procedures = store.getProcedureDatasets(new DatasetQuery(Arrays.asList("urn:template:1901290")));
+
+        Assert.assertEquals(1, procedures.size());
+        proc = procedures.get(0);
+        Assert.assertEquals("urn:template:1901290", proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+
+        time = proc.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Instant);
+        
+        verifyPRFields(proc, 3);
     }
 
     @Test
@@ -462,6 +627,13 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
+        
+        Observation obsResult = results.observations.get(0);
+        Assert.assertTrue(obsResult.getResult() instanceof ComplexResult);
+        
+        ComplexResult cRes = (ComplexResult) obsResult.getResult();
+        
+        verifyTSFields(cRes, 3);
 
         ProcedureDataset proc = procedures.get(0);
         Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
@@ -535,7 +707,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
 
-        Assert.assertEquals(2, cr.getFields().size());
+        verifyTSFields(cr, 2);
 
         Field f = cr.getFields().get(1);
         Assert.assertEquals(1, f.getQualityFields().size());
@@ -632,8 +804,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
 
-        Assert.assertEquals(2, cr.getFields().size());
-        
+        verifyTSFields(cr, 2);
         
         Assert.assertEquals(1, results.phenomenons.size());
         Phenomenon phen = results.phenomenons.get(0);
@@ -737,7 +908,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
 
-        Assert.assertEquals(2, cr.getFields().size());
+        verifyTSFields(cr, 2);
 
         Field f = cr.getFields().get(1);
         Assert.assertEquals(1, f.getQualityFields().size());
@@ -821,7 +992,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
 
-        Assert.assertEquals(3, cr.getFields().size());
+        verifyTSFields(cr, 3);
 
         String expectedValues = "1980-03-01T21:52:00.0,122.6,13.4@@" +
                                "1980-03-02T21:52:00.0,,14.1@@" +
@@ -912,7 +1083,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
 
-        Assert.assertEquals(3, cr.getFields().size());
+        verifyTSFields(cr, 3);
 
         String expectedValues = "1980-03-01T21:52:00.0,122.6,13.4@@" +
                                "1980-03-02T21:52:00.0,,14.1@@" +
@@ -1029,7 +1200,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
 
-        Assert.assertEquals(2, cr.getFields().size());
+        verifyTSFields(cr, 2);
 
         String expectedValues = "1980-03-01T21:52:00.0,13.4@@" +
                                 "1980-03-02T21:52:00.0,14.1@@";
@@ -1139,7 +1310,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
 
-        Assert.assertEquals(3, cr.getFields().size());
+        verifyTSFields(cr, 3);
         
         Field f = cr.getFields().get(1);
         Assert.assertEquals("psu", f.getUom());

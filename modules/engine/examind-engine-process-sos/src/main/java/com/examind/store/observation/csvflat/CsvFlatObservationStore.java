@@ -41,7 +41,6 @@ import com.examind.store.observation.ObservedProperty;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ObservationType;
 import static org.geotoolkit.observation.model.ObservationType.PROFILE;

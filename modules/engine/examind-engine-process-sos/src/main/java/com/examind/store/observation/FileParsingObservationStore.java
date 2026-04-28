@@ -63,6 +63,7 @@ import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
@@ -346,7 +347,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected void addMainField(ObservationType observationType, List<Field> fields) {
         switch (observationType) {
             case TIMESERIES, TRAJECTORY  -> fields.add(0, OMUtils.TIME_MAIN_FIELD);
-            case PROFILE    -> {}
+            case PROFILE                 -> fields.add(0, new Field(0, FieldDataType.QUANTITY, "Zlevel", null, null,  null, FieldType.MAIN));
             default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         }
     }
@@ -370,7 +371,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             for (MeasureField pField : mf.parameterFields) {
                 parameterFields.add(new Field(-1, pField.dataType, pField.name, pField.label, null, pField.uom, FieldType.PARAMETER));
             }
-            fields.add(new Field(i, mf.dataType, name, label, null, uom, FieldType.MEASURE, qualityFields, parameterFields, mf.properties));
+            fields.add(new Field(i, mf.dataType, name, label, null, uom, mf.type, qualityFields, parameterFields, mf.properties));
             i++;
         }
         return fields;

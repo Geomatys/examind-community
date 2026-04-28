@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.UUID;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -82,5 +83,25 @@ public class AbstractCsvStoreTest {
         Assert.assertEquals(nbField, proc.fields.size());
         Assert.assertEquals(FieldDataType.TIME, proc.fields.get(0).getDataType());
         Assert.assertEquals(FieldType.MAIN, proc.fields.get(0).getType());
+    }
+    
+    protected void verifyTSFields(ComplexResult res, int nbField) {
+        Assert.assertEquals(nbField, res.getFields().size());
+        Assert.assertEquals(FieldDataType.TIME, res.getFields().get(0).dataType);
+        Assert.assertEquals(FieldType.MAIN, res.getFields().get(0).type);
+    }
+    
+    // TODO time field
+    protected void verifyPRFields(ComplexResult res, int nbField) {
+        Assert.assertEquals(nbField, res.getFields().size());
+        Assert.assertEquals(FieldDataType.QUANTITY, res.getFields().get(0).dataType);
+        Assert.assertEquals(FieldType.MAIN, res.getFields().get(0).type);
+    }
+    
+    // TODO time field
+    protected void verifyPRFields(ProcedureDataset proc, int nbField) {
+        Assert.assertEquals(nbField, proc.fields.size());
+        Assert.assertEquals(FieldDataType.QUANTITY, proc.fields.get(0).dataType);
+        Assert.assertEquals(FieldType.MAIN, proc.fields.get(0).type);
     }
 }
