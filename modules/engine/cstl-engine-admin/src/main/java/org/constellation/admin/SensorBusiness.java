@@ -50,12 +50,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.Marshaller;
+import java.net.URI;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.admin.util.MetadataUtilities;
 import static org.constellation.api.ProviderConstants.INTERNAL_SENSOR_PROVIDER;
@@ -75,9 +75,34 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
+import org.geotoolkit.gml.xml.v311.TimeInstantType;
+import org.geotoolkit.gml.xml.v311.TimePeriodType;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.model.ObservationType;
+import org.geotoolkit.sml.xml.v101.AbstractComponentType;
+import org.geotoolkit.sml.xml.v101.ComponentPropertyType;
+import org.geotoolkit.sml.xml.v101.ComponentType;
+import org.geotoolkit.sml.xml.v101.Components;
+import org.geotoolkit.sml.xml.v101.Identification;
+import org.geotoolkit.sml.xml.v101.Identifier;
+import org.geotoolkit.sml.xml.v101.Inputs;
+import org.geotoolkit.sml.xml.v101.IoComponentPropertyType;
+import org.geotoolkit.sml.xml.v101.Outputs;
+import org.geotoolkit.sml.xml.v101.Position;
+import org.geotoolkit.sml.xml.v101.SensorML;
+import org.geotoolkit.sml.xml.v101.SensorML.Member;
+import org.geotoolkit.sml.xml.v101.SystemType;
+import org.geotoolkit.sml.xml.v101.Term;
+import org.geotoolkit.sml.xml.v101.ValidTime;
 import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.swe.xml.v101.CoordinateType;
+import org.geotoolkit.swe.xml.v101.ObservableProperty;
+import org.geotoolkit.swe.xml.v101.PositionType;
+import org.geotoolkit.swe.xml.v101.QuantityType;
+import org.geotoolkit.swe.xml.v101.UomPropertyType;
+import org.geotoolkit.swe.xml.v101.VectorType;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
 
@@ -648,25 +673,6 @@ public class SensorBusiness implements ISensorBusiness {
         if (providerID == null) {
             providerID = getDefaultInternalProviderID();
         }
-        GeoSpatialBound bound = process.spatialBound;
-        
-        final Properties prop = new Properties();
-        prop.put("id",         process.getId());
-        if (bound != null) {
-            if (bound.dateStart != null) {
-                prop.put("beginTime",  bound.dateStart);
-            }
-            if (bound.dateEnd != null) {
-                prop.put("endTime",    bound.dateEnd);
-            }
-            if (bound.minx != null) {
-                prop.put("longitude",  bound.minx);
-            }
-            if (bound.miny != null) {
-                prop.put("latitude",   bound.miny);
-            }
-        }
-        prop.put("phenomenon", process.fields.stream().map(f  -> f.name).toList());
 
         Sensor sensor = getSensor(process.getId());
         Integer sid;
@@ -675,15 +681,12 @@ public class SensorBusiness implements ISensorBusiness {
         } else {
             sid = sensor.getId();
         }
-
-        final List<String> component = new ArrayList<>();
         for (ProcedureDataset child : process.children) {
-            component.add(child.getId());
             generateSensor(child, providerID, process.getId(), dataID);
         }
-        prop.put("component", component);
-        final String sml = MetadataUtilities.getTemplateSensorMLString(prop, process.type);
-
+        
+        SensorML sml = MetadataUtilities.getSensorMetadata(process);
+        
         // update sensor metadata
         updateSensorMetadata(sid, sml);
         

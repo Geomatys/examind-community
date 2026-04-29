@@ -19,7 +19,6 @@
         <module>cstl-engine-spring-security</module>
         <module>cstl-engine-process</module>
         <module>cstl-engine-admin</module>
-        <module>cstl-engine-templating</module>
         <module>examind-engine-process-sos</module>
         <module>examind-engine-oauth2</module>
         <module>examind-engine-heat-map</module>

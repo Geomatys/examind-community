@@ -35,11 +35,6 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>cstl-engine-templating</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
             <artifactId>cstl-json-common</artifactId>
             <version>${project.version}</version>
         </dependency>

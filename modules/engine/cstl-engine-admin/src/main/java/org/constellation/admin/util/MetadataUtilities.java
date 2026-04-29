@@ -19,19 +19,10 @@
 
 package org.constellation.admin.util;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.constellation.engine.template.TemplateEngine;
-import org.constellation.engine.template.TemplateEngineException;
-import org.constellation.engine.template.TemplateEngineFactory;
-import org.constellation.util.Util;
 import org.opengis.metadata.Metadata;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
@@ -68,7 +59,31 @@ import org.opengis.metadata.identification.Identification;
 import org.constellation.dto.CstlUser;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
-import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.gml.xml.v311.TimeInstantType;
+import org.geotoolkit.gml.xml.v311.TimePeriodType;
+import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.GeoSpatialBound;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.sml.xml.v101.AbstractComponentType;
+import org.geotoolkit.sml.xml.v101.ComponentPropertyType;
+import org.geotoolkit.sml.xml.v101.ComponentType;
+import org.geotoolkit.sml.xml.v101.Components;
+import org.geotoolkit.sml.xml.v101.Identifier;
+import org.geotoolkit.sml.xml.v101.Inputs;
+import org.geotoolkit.sml.xml.v101.IoComponentPropertyType;
+import org.geotoolkit.sml.xml.v101.Outputs;
+import org.geotoolkit.sml.xml.v101.Position;
+import org.geotoolkit.sml.xml.v101.SensorML;
+import org.geotoolkit.sml.xml.v101.SystemType;
+import org.geotoolkit.sml.xml.v101.Term;
+import org.geotoolkit.sml.xml.v101.ValidTime;
+import org.geotoolkit.swe.xml.v101.CoordinateType;
+import org.geotoolkit.swe.xml.v101.ObservableProperty;
+import org.geotoolkit.swe.xml.v101.PositionType;
+import org.geotoolkit.swe.xml.v101.QuantityType;
+import org.geotoolkit.swe.xml.v101.UomPropertyType;
+import org.geotoolkit.swe.xml.v101.VectorType;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.metadata.citation.CitationDate;
 import org.opengis.metadata.citation.DateType;
 import org.opengis.metadata.citation.OnlineResource;
@@ -81,8 +96,6 @@ import org.opengis.metadata.maintenance.ScopeCode;
 import org.opengis.metadata.quality.Element;
 import org.opengis.metadata.spatial.SpatialRepresentationType;
 import org.opengis.referencing.ReferenceSystem;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 
 /**
@@ -98,46 +111,65 @@ public final class MetadataUtilities {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.util");
 
-    public static String getTemplateSensorMLString(final Properties prop, final String type) {
-        try {
-            final TemplateEngine templateEngine = TemplateEngineFactory.getInstance(TemplateEngineFactory.GROOVY_TEMPLATE_ENGINE);
-            final InputStream stream;
-            if ("Component".equals(type)) {
-                stream = Util.getResourceAsStream("org/constellation/engine/template/smlComponentTemplate.xml");
-            } else if ("System".equals(type)) {
-                stream = Util.getResourceAsStream("org/constellation/engine/template/smlSystemTemplate.xml");
-            } else {
-                throw new IllegalArgumentException("unexpected sml type");
+    public static SensorML getSensorMetadata(final ProcedureDataset process) {
+        SensorML sml = new SensorML();
+        sml.setVersion("1.0.1");
+        AbstractComponentType compo;
+        if ("Component".equals(process.type)) {
+            compo = new ComponentType();
+        } else if ("System".equals(process.type)) {
+            SystemType system = new SystemType();
+            List<ComponentPropertyType> components = new ArrayList<>();
+            for (ProcedureDataset child : process.children) {
+                components.add(new ComponentPropertyType(child.getId(), null, child.getId()));
             }
-
-            //apply props
-            final String templateApplied = templateEngine.apply(stream, prop);
-
-            //write to file
-            Path templateFile = Files.createTempFile("smlTemplate", ".xml");
-            IOUtilities.writeString(templateApplied, templateFile);
-
-            return templateApplied;
-        } catch (TemplateEngineException | IOException ex) {
-           LOGGER.log(Level.WARNING, null, ex);
+            system.setComponents(new Components(components));
+            compo = system;
+        } else {
+            throw new IllegalArgumentException("unexpected sml type");
         }
-        return null;
-    }
-
-    public static @Nullable String getTemplateMetadata(@NonNull final Properties prop, @NonNull final String templatePath) {
-        try {
-            final TemplateEngine templateEngine = TemplateEngineFactory.getInstance(TemplateEngineFactory.GROOVY_TEMPLATE_ENGINE);
-            try (InputStream stream = Util.getResourceAsStream(templatePath)) {
-                return templateEngine.apply(stream, prop);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+        
+        org.geotoolkit.sml.xml.v101.Identification ident = new org.geotoolkit.sml.xml.v101.Identification(List.of(new Identifier("uniqueID", new Term(process.getId(), "urn:ogc:def:identifierType:OGC:uniqueID"))));
+        compo.setIdentification(ident);
+        
+        GeoSpatialBound bound = process.spatialBound;
+        if (bound != null) {
+            
+            ValidTime time = null;
+            if (bound.dateStart != null && bound.dateEnd != null) {
+                    time = new ValidTime(new TimePeriodType(null,
+                            TemporalUtilities.toTemporal(bound.dateStart),
+                            TemporalUtilities.toTemporal(bound.dateEnd)));
+            } else if (bound.dateStart != null) {
+                time = new ValidTime(new TimeInstantType(TemporalUtilities.toTemporal(bound.dateStart)));
+            } else if (bound.dateEnd != null) {
+                time = new ValidTime(new TimeInstantType(TemporalUtilities.toTemporal(bound.dateEnd)));
             }
-        } catch (TemplateEngineException ex) {
-           LOGGER.log(Level.WARNING, null, ex);
+            compo.setValidTime(time);
+            
+            if (bound.minx != null && bound.miny != null) {
+                List<CoordinateType> coordinates = List.of(
+                        new CoordinateType("longitude", new QuantityType("urn:ogc:def:phenomenon:longitude", UomPropertyType.DEGREE, bound.minx)),
+                        new CoordinateType("latitude",  new QuantityType("urn:ogc:def:phenomenon:latitude",  UomPropertyType.DEGREE, bound.miny)));
+                VectorType location = new  VectorType("urn:ogc:def:phenomenon:location", coordinates);
+                PositionType pos = new PositionType(URI.create("urn:ogc:def:crs,crs:EPSG::4326"), null, location);
+                Position position = new Position("platform-location", pos);
+                compo.setPosition(position);
+            }
+            
+            List<IoComponentPropertyType> inputList  = new ArrayList<>();
+            List<IoComponentPropertyType> outputList = new ArrayList<>();
+            for (Field f : process.fields) {
+                inputList.add( new IoComponentPropertyType(f.name, new ObservableProperty(f.name)));
+                outputList.add(new IoComponentPropertyType(f.name, new QuantityType(f.name, f.uom)));
+            }
+            compo.setInputs(new Inputs(inputList));
+            compo.setOutputs(new Outputs(outputList));
         }
-        return null;
+        
+        sml.getMember().add(new SensorML.Member(compo)); 
+        return sml;
     }
-
     public static Long extractDatestamp(final Object obj){
         if (obj instanceof DefaultMetadata) {
             final DefaultMetadata metadata = (DefaultMetadata) obj;
@@ -475,9 +507,6 @@ public final class MetadataUtilities {
             }
         }
     }
-
-
-
 
     public static void addServiceLink(final Object metadataObj, final String spec, final String serviceURL, String serviceInstance, String layerName) {
         String description = DESCRIPTION_MAP.get(spec);
