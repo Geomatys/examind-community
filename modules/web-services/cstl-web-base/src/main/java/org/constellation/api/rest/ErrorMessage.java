@@ -25,20 +25,22 @@ import org.springframework.http.ResponseEntity;
 
 /**
  * Error object returned by Rest API.
- * 
+ *
  * @author Johann Sorel (Geomatys)
  */
-public class ErrorMessage {
-    
-    public int status = HttpStatus.INTERNAL_SERVER_ERROR.value();
-    public String errorMessageI18nCode = I18nCodes.API_MSG_SERVER_ERROR;
-    public String errorMessage;
-    public String errorStackTrace;
+public class ErrorMessage extends org.constellation.dto.ErrorMessage{
+
+    private int status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+    private String errorMessageI18nCode = I18nCodes.API_MSG_SERVER_ERROR;
+    @Deprecated
+    private String errorMessage;
+    @Deprecated
+    private String errorStackTrace;
 
     /**
      * Create a defautl error message configured with status 500 and unknowned
      * exception i18 code.
-     * 
+     *
      */
     public ErrorMessage() {
     }
@@ -55,24 +57,25 @@ public class ErrorMessage {
         error(ex);
         this.errorMessage = errorMsg;
     }
-    
+
     public ErrorMessage(Throwable ex) {
         this(null, ex);
     }
 
     public ErrorMessage(HttpStatus status, String errorMessage) {
-        this.status = status.value();
-        this.errorMessage = errorMessage;
+        this(status.value(), null, errorMessage, null);
     }
-    
+
     public ErrorMessage(int status, String errorMessageI18nCode, String errorMessage, String errorStackTrace) {
         this.status = status;
         this.errorMessageI18nCode = errorMessageI18nCode;
         this.errorMessage = errorMessage;
         this.errorStackTrace = errorStackTrace;
+        setDeveloperMessage(errorMessage);
+        setUserMessage(errorMessage);
+        setErrorStacktrace(errorStackTrace);
     }
 
-    
     public int getStatus() {
         return status;
     }
@@ -84,48 +87,61 @@ public class ErrorMessage {
     public String getErrorMessageI18nCode() {
         return errorMessageI18nCode;
     }
-    
+
     public void setErrorMessageI18nCode(String errorMessageI18nCode) {
         this.errorMessageI18nCode = errorMessageI18nCode;
     }
 
+    /**
+     * @deprecated use setDeveloperMessage or setUserMessage
+     */
+    @Deprecated
     public String getErrorMessage() {
         return errorMessage;
     }
 
+    @Deprecated
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+        setDeveloperMessage(errorMessage);
+        setUserMessage(errorMessage);
     }
 
+    /**
+     * @deprecated use setErrorStacktrace
+     */
+    @Deprecated
     public String getErrorStackTrace() {
         return errorStackTrace;
     }
 
+    @Deprecated
     public void setErrorStackTrace(String errorStackTrace) {
+        setErrorStacktrace(errorStackTrace);
         this.errorStackTrace = errorStackTrace;
     }
-    
+
     /**
      * Configure error message and stach from given exception.
-     * 
+     *
      * @param ex extract informations from given exception
      * @return this ErrorMessage
      */
     public ErrorMessage error(Throwable ex){
         if (ex != null) {
-            this.errorMessage = ex.getLocalizedMessage();        
+            setErrorMessage(ex.getLocalizedMessage());
             final StringWriter swriter = new StringWriter();
             final PrintWriter writer = new PrintWriter(swriter, true);
             ex.printStackTrace(writer);
             writer.flush();
-            this.errorStackTrace = swriter.toString();
+            setErrorStackTrace(swriter.toString());
         }
         return this;
     }
-    
+
     /**
      * Set translation bundle key.
-     * 
+     *
      * @param code i18n code
      * @return this ErrorMessage
      */
@@ -133,10 +149,10 @@ public class ErrorMessage {
         this.errorMessageI18nCode = code;
         return this;
     }
-    
+
     /**
      * Set http status code.
-     * 
+     *
      * @param status
      * @return this ErrorMessage
      */
@@ -144,10 +160,10 @@ public class ErrorMessage {
         this.status = status.value();
         return this;
     }
-    
+
     /**
      * Set http status code.
-     * 
+     *
      * @param status
      * @return this ErrorMessage
      */
@@ -155,25 +171,27 @@ public class ErrorMessage {
         this.status = status;
         return this;
     }
-    
+
     /**
      * Set http error message.
-     * 
+     *
      * @param message
      * @return this ErrorMessage
+     * @deprecated use setDeveloperMessage or setUserMessage
      */
+    @Deprecated
     public ErrorMessage message(String message){
         this.errorMessage = message;
         return this;
     }
-    
+
     /**
      * Build spring ResponseEntity.
-     * 
+     *
      * @return ResponseEntity, never null
      */
     public ResponseEntity build(){
         return new ResponseEntity(this, HttpStatus.valueOf(status));
     }
-    
+
 }
