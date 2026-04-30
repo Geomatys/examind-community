@@ -114,6 +114,11 @@
         <scope>test</scope>
     </dependency>
     <dependency>
+        <groupId>org.geotoolkit</groupId>
+        <artifactId>geotk-feature-gml</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>javax.media</groupId>
       <artifactId>jai_codec</artifactId>
     </dependency>

@@ -131,6 +131,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String OM2_LAYER = "SamplingPoint";
     private static final String LAKES = "Lakes";
     private static final String COUNTRIES = "Countries";
+    private static final String GML_LAYER = "AggregateGeoFeature";
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -581,6 +582,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "crs=CRS:84&bbox=-180,-90,180,90&"
             + "layers=" + OM2_LAYER + "&styles=";
     
+     private static final String WMS_GETMAP_GML = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&bbox=-180,-90,180,90&"
+            + "layers=" + GML_LAYER + "&styles=";
+    
     private static final String WMS_GETMAP_130_NP_REQUEST_CQL_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&BBOX=0.001,-0.002,0.005,0.003&"
@@ -606,7 +612,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         controllerConfiguration = WMSControllerConfig.class;
     }
 
-    private static final int DEF_NB_LAYER = 31;
+    private static final int DEF_NB_LAYER = 32;
 
     /**
      * Initialize the list of layers from the defined providers in
@@ -658,6 +664,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 DataImport d15 = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness, null).datas.get(0);
                 
                 datas.addAll(testResource.createProviderWithDatasource(TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).datas);
+                
+                datas.addAll(testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness, null).datas);
                 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -2758,6 +2766,25 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(512, image.getHeight());
 
         Path p = CONFIG_DIR.resolve("OM2.png");
+        writeInFile(getMapUrl, p);
+
+    }
+    
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapGML() throws Exception {
+        initLayerList();
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_GML);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        Path p = CONFIG_DIR.resolve("GML.png");
         writeInFile(getMapUrl, p);
 
         System.out.println("");
