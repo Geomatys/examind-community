@@ -151,14 +151,6 @@ public interface Data<T extends Resource> {
      */
     String getSubType() throws ConstellationStoreException;
 
-    /**
-     * Return the rendered state of a coverage data
-     * return {@code null}, for other data type.
-     *
-     * (TODO move to CoverageData when the interface will be clean of geotk dependencies and moved to provider base module)
-     */
-    Boolean isRendered();
-
     boolean isGeophysic() throws ConstellationStoreException;
 
     /**

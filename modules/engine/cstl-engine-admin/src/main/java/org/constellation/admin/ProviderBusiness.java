@@ -713,13 +713,11 @@ public class ProviderBusiness implements IProviderBusiness {
                 DataType type    = DataType.OTHER;
                 String subType   = null;
                 boolean included = true;
-                Boolean rendered = null;
                 try {
                     Data providerData = provider.get(key);
                     if (providerData != null) {
                         type     = providerData.getDataType();
                         subType  = providerData.getSubType();
-                        rendered = providerData.isRendered();
                     }
                 } catch (Exception ex) {
                     LOGGER.log(Level.FINER, ex.getMessage(), ex);
@@ -727,7 +725,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
                 Integer dataId = dataBusiness.create(name,
                         providerId, type.name(), provider.isSensorAffectable(),
-                        included, rendered, subType, hideNewData, owner, datasetId);
+                        included, null, subType, hideNewData, owner, datasetId);
                 
                 // cache data informations in the database
                 if (cacheDataInfo) {

@@ -117,7 +117,7 @@ public class DataStatisticsListener extends ProcessListenerAdapter {
                 // forward original data statistic result and state to pyramid conform child.
                 final List<Data> dataChildren = dataRepository.getDataLinkedData(data.getId());
                 for (Data dataChild : dataChildren) {
-                    if (dataChild.getSubtype().equalsIgnoreCase("pyramid") && !dataChild.getRendered()) {
+                    if (dataChild.getSubtype().equalsIgnoreCase("pyramid") && (dataChild.getRendered() == null || !dataChild.getRendered())) {
                         dataRepository.updateStatistics(dataChild.getId(), data.getStatsResult(), data.getStatsState());
                     }
                 }

@@ -216,11 +216,6 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     }
 
     @Override
-    public Boolean isRendered() {
-        return null;
-    }
-
-    @Override
     public boolean isGeophysic() throws ConstellationStoreException {
         return false;
     }

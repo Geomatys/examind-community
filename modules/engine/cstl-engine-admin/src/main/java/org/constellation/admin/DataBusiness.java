@@ -542,7 +542,7 @@ public class DataBusiness implements IDataBusiness {
             for (final Data ld : linkedDataList) {
                 // do not return a complete brief for linked data.
                 DataBrief d = convertToDataBrief(ld, new ArrayList<>(), new ArrayList<>(), new HashSet<>(), crsMap, false, false);
-                if ("pyramid".equalsIgnoreCase(d.getSubtype()) && !d.getRendered()) {
+                if ("pyramid".equalsIgnoreCase(d.getSubtype()) && (d.getRendered() == null || !d.getRendered())) {
                     final String pyramidProvId = getProviderIdentifier(d.getProviderId());
                     db.setPyramidConformProviderId(pyramidProvId);
                 }
@@ -551,7 +551,7 @@ public class DataBusiness implements IDataBusiness {
             db.setLinkedDatas(linkedBriefs);
 
             //if the data is a pyramid itself. we need to fill the property to enable the picto of pyramided data.
-                 if ("pyramid".equalsIgnoreCase(data.getSubtype()) && !data.getRendered()){
+           if ("pyramid".equalsIgnoreCase(data.getSubtype()) && (data.getRendered() == null || !data.getRendered())) {
                 db.setPyramidConformProviderId(providerName);
             }
 

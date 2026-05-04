@@ -50,20 +50,6 @@ public class DefaultPyramidData extends DefaultCoverageData implements PyramidDa
     }
 
     @Override
-    public Boolean isRendered() {
-//        try {
-//            ViewType packMode = ((MultiResolutionResource) origin).getPackMode();
-//            if (ViewType.RENDERED.equals(packMode)) {
-                  return Boolean.TRUE;
-//            }
-//        } catch (DataStoreException e) {
-//            LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
-//        }
-    }
-
-
-
-    @Override
     public List<String> listPyramidCRSCode() throws ConstellationStoreException {
         List<String> results = new ArrayList<>();
         try {

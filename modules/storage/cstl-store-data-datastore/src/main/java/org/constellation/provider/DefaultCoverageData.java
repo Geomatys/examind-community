@@ -472,11 +472,6 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     }
 
     @Override
-    public Boolean isRendered() {
-        return Boolean.FALSE;
-    }
-
-    @Override
     public boolean isGeophysic() throws ConstellationStoreException {
         boolean isGeophysic = false;
         try {
