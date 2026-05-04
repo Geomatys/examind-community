@@ -30,9 +30,7 @@ import java.util.logging.Logger;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.WritableAggregate;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.TilingMode.*;
 import org.constellation.business.IConfigurationBusiness;
@@ -58,7 +56,6 @@ import org.constellation.provider.ProviderParameters;
 import org.constellation.repository.DataRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.Util;
-import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
 import org.geotoolkit.map.MapBuilder;
@@ -73,9 +70,7 @@ import static org.constellation.util.CRSUtilities.verifyCrs;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.Process;
-import org.geotoolkit.storage.coverage.DefiningGridCoverageResource;
 import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
-import org.apache.sis.storage.tiling.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSetBuilder;
 import org.apache.sis.storage.tiling.WritableTiledResource;
 import org.geotoolkit.util.NamesExt;
@@ -392,31 +387,26 @@ public class PyramidBusiness implements IPyramidBusiness {
     protected int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, TilingMode mode, String tileFormat, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
             Integer pid = buildSpecificPyramidProvider("xml-coverage", null, pyramidProviderId);
-
             final DataProvider outProvider = DataProviders.getProvider(pid);
-
+            if (!(outProvider.getMainStore() instanceof XMLCoverageStore pyramidStore)) {
+                throw new ConstellationException("Pyramid provider is not an XML pyramid data store as expected");
+            }
             //create the output pyramid coverage reference
-            DataStore pyramidStore = outProvider.getMainStore();
-            if (RENDERED.equals(mode)) {
-                TiledResource outRef = (TiledResource) ((WritableAggregate) pyramidStore).add(new DefiningGridCoverageResource(pyramidGname));
-                ((XMLCoverageResource) outRef).setPackMode(RENDERED.name());
-                ((XMLCoverageResource) outRef).setPreferredFormat(tileFormat);
-            } else if (CONFORM.equals(mode)) {
-                ((XMLCoverageStore) pyramidStore).create(pyramidGname, "GEOPHYSICS", tileFormat);
-            } else {
-                throw new IllegalArgumentException("Unexpected tiling mode:" + mode);
+            final String packMode = switch (mode) {
+                case CONFORM -> "GEOPHYSICS";
+                case RENDERED -> RENDERED.name();
+            };
+            if (!(pyramidStore.create(pyramidGname, packMode, tileFormat) instanceof WritableTiledResource outRef)) {
+                throw new ConstellationException("Created pyramid is not writable");
             }
-            //this produces an update event which will create the DataRecord
-            outProvider.reload();
 
-            WritableTiledResource outRef;
-            Data pyData = outProvider.get(pyramidGname);
-            if (pyData != null && pyData.getOrigin() instanceof TiledResource) {
-                outRef = (WritableTiledResource) pyData.getOrigin();
-            } else {
-                throw new ConstellationException("No pyramid data created (in provider).");
-            }
             createTemplate(outRef, globalEnv, tileSize, scales);
+
+            //this produces an update event which will create the DataRecord
+            // IMPORTANT: do this AFTER template creation, so the pyramid properly declares multiple levels.
+            // If not, the reloaded data might not be detected as a pyramid.
+            // THis is because the SIS resource API does not allow us to distinguish pyramids from tiled images without any doubt
+            outProvider.reload();
 
             return pid;
         } catch (DataStoreException ex) {

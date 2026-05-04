@@ -53,9 +53,10 @@ public class DefaultExaDataCreator implements ExaDataCreator {
         if (rs == null) throw new DataStoreException("Unable to find a resource named:" + dataName);
         GenericName targetName = rs.getIdentifier().orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
         targetName = targetName.toFullyQualifiedName();
-        if (rs instanceof TiledResource && rs instanceof GridCoverageResource) {
-            return new DefaultPyramidData(targetName, (GridCoverageResource) rs, store);
-        } else if (rs instanceof GridCoverageResource) {
+        if (rs instanceof GridCoverageResource gcr) {
+            if (gcr instanceof TiledResource tr && hasMultipleLevels(tr)) {
+                return new DefaultPyramidData(targetName, (GridCoverageResource) rs, store);
+            }
             return new DefaultCoverageData(targetName, (GridCoverageResource) rs, store);
         } else if (rs instanceof FeatureSet){
             return new DefaultFeatureData(targetName, store, (FeatureSet) rs, version);
@@ -70,4 +71,9 @@ public class DefaultExaDataCreator implements ExaDataCreator {
         return new DefaultMapContextData(mp);
     }
 
+    private static boolean hasMultipleLevels(TiledResource maybeAPyramid) throws DataStoreException {
+        return maybeAPyramid.getTileMatrixSets()
+                            .stream()
+                            .anyMatch(tms -> tms.getTileMatrices().size() > 1);
+    }
 }
