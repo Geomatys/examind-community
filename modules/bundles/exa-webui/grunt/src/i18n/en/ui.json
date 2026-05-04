@@ -1549,6 +1549,7 @@
   "sldeditor.button.create": "Create the style",
   "sldeditor.paletteMethod.solidcolor": "Solid color",
   "sldeditor.paletteMethod.interpolatecolor": "Interpolate palette",
+  "sldeditor.paletteMethod.pixelInterpolation": "No pixel interpolation",
   "sldeditor.edition.equidistant": "equidistant cutting",
   "sldeditor.edition.mediane": "median cut",
   "sldeditor.edition.symboltype": "Symbol type",

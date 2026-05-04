@@ -128,6 +128,22 @@
 										</label>
 									</div>
 								</div>
+                                <div class="form-group">
+                                    <div class="col-xs-8 col-sm-9 col-md-9 col-lg-8 pull-right" style="padding-right: 10px;">
+                                        <div class="checkbox">
+                                            <label style="font-size: 12px;margin-left: 0;">
+                                                <input id="pixelInterpolation"
+                                                       type="checkbox"
+                                                       name="pixelInterpolation"
+                                                       ng-model="optionsSLD.selectedRule.symbolizers[0].title"
+                                                       ng-true-value="'#extension:interpolation=NEIGHBOR'"
+                                                       ng-false-value="''"
+                                                       data-test-id="edition-panel-pixelInterpolation"/>
+                                                <span translate="sldeditor.paletteMethod.pixelInterpolation">No interpolation</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
 								<div class="form-group">
 									<label class="col-xs-5 col-sm-5 col-md-4 control-label">Divisions</label>
 									<div class="col-xs-7 col-sm-7 col-md-4">
