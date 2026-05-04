@@ -49,6 +49,8 @@ public final class RasterSymbolizer implements Symbolizer {
     private ChannelSelection channelSelection       = null;
     private ColorMap colorMap                       = null;
     private ShadedRelief shadedRelief               = null;
+    private String title                            = "";
+    private String description                      = "";
 
     public RasterSymbolizer() {
     }
@@ -73,6 +75,14 @@ public final class RasterSymbolizer implements Symbolizer {
         }
         if (symbolizer.getShadedRelief() != null) {
             this.shadedRelief = new ShadedRelief(symbolizer.getShadedRelief());
+        }
+        if (symbolizer.getDescription() != null) {
+            if (symbolizer.getDescription().getTitle() != null) {
+                this.title = symbolizer.getDescription().getTitle().toString();
+            }
+            if (symbolizer.getDescription().getAbstract() != null) {
+                this.description = symbolizer.getDescription().getAbstract().toString();
+            }
         }
     }
 
@@ -116,10 +126,29 @@ public final class RasterSymbolizer implements Symbolizer {
         this.shadedRelief = shadedRelief;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(final String description) {
+        this.description = description;
+    }
+
     @Override
     public org.opengis.style.Symbolizer toType() {
         return SF.rasterSymbolizer(
                 name,
+                (String) null,
+                SF.description(title != null ? title : "", description != null ? description : ""),
+                null,
                 literal(opacity),
                 type(channelSelection),
                 null,
