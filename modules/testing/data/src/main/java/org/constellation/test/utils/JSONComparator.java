@@ -19,20 +19,21 @@
 package org.constellation.test.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import java.util.Comparator;
 import java.util.List;
 import org.geotoolkit.test.xml.DocumentComparator;
 import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class JSONComparator implements Comparator<JsonNode>
-{
-
+public class JSONComparator implements Comparator<JsonNode> {
+    
     @Override
     public int compare(JsonNode o1, JsonNode o2) {
         if (o1.equals(o2)) {
@@ -59,6 +60,20 @@ public class JSONComparator implements Comparator<JsonNode>
             ContainerNode c2 = (ContainerNode) o2;
         }
         throw new AssertionError("expected:" + o1 +" but was " + o2);
+    }
+    
+    public static void compareJSON(String expected, String result) throws Exception {
+        JSONComparator comparator = new JSONComparator();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode expectedNode = mapper.readTree(expected);
+        JsonNode resultNode = mapper.readTree(result);
+
+        boolean eq = expectedNode.equals(comparator, resultNode);
+
+        StringBuilder sb = new StringBuilder("expected:\n");
+        sb.append(expected).append("\nbut was:\n");
+        sb.append(result);
+        assertTrue(sb.toString(), eq);
     }
     
     protected static void xmlCompare(final Object actual, final Object expected, List<String> extraIgnoredAttributes, List<String> extraIgnoredNodes) throws Exception {

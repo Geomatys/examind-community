@@ -26,13 +26,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.List;
 import org.constellation.dto.Sensor;
 import org.constellation.exception.ConstellationException;
 import org.constellation.sos.core.SOSworker;
-import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static com.examind.process.sos.SosHarvesterTestUtils.*;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
@@ -67,7 +64,6 @@ import org.opengis.util.NoSuchIdentifierException;
 public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
     @Test
-    @Order(order = 9)
     public void harvesterCSVFlatProfileSingleFromYamlNoFIlterTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
@@ -85,7 +81,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         // Create a temporary yaml file.
         Path tempFile = Files.createTempFile(null, null);
-        List<String> listYamlParameter = Arrays.asList(
+        List<String> listYamlParameter = List.of(
                 "process_name: sosHarvester",
                 "data_folder: "+bigdataDirectory.toUri().toString(),
                 "sensor_service:",
@@ -146,10 +142,10 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         Assert.assertNotNull(foi);
 
-        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66", "z_value", "68", "70" ,"99"));
+        verifyAllObservedProperties(stsWorker, sensorId, List.of("30", "35", "66", "z_value", "68", "70" ,"99"));
 
 
-        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",List.of(offp.getId()), null, List.of(sensorId), null, null, null,null));
         Assert.assertTrue(o instanceof ObservationCollection);
 
         ObservationCollection oc = (ObservationCollection)o;
@@ -176,7 +172,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         /*
          * Verify an inserted profile
          */
-        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, List.of(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-7.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
@@ -184,8 +180,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         hl.getExtraFilter().put("procedure", sensorId);
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         Assert.assertEquals(11, response.getValue().size());
 
@@ -200,7 +194,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
      * Same test as harvesterCSVFlatProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
      */
     @Test
-    @Order(order = 9)
     public void harvesterCSVSurvalProfileSingleFromYamlTest() throws Exception {
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
@@ -216,7 +209,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         // Create a temporary yaml file.
         Path tempFile = Files.createTempFile(null, null);
-        List<String> listYamlParameter = Arrays.asList(
+        List<String> listYamlParameter = List.of(
                 "process_name: sosHarvester",
                 "data_folder: "+survalDirectory.toUri().toString(),
                 "sensor_service:",
@@ -297,7 +290,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         Assert.assertNotNull(foi);
 
-        verifyAllObservedProperties(stsWorker, "urn:sensor:surval:60007755", Arrays.asList("2-NB_DECHETS"));
+        verifyAllObservedProperties(stsWorker, "urn:sensor:surval:60007755", List.of("2-NB_DECHETS"));
 
         List<ObservedProperty> obsProperties = getFullObservedProperties(stsWorker, "urn:sensor:surval:60007755");
         Assert.assertEquals(1, obsProperties.size());
@@ -309,7 +302,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
             }
         }
 
-        verifyAllObservedProperties(stsWorker, "urn:sensor:surval:25049001", Arrays.asList("11-SALI", "12-NO2"));
+        verifyAllObservedProperties(stsWorker, "urn:sensor:surval:25049001", List.of("11-SALI", "12-NO2"));
 
 
         obsProperties = getFullObservedProperties(stsWorker, "urn:sensor:surval:25049001");
@@ -325,7 +318,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         }
 
 
-        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList("urn:sensor:surval:60007755"), null, null, null,null));
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",List.of(offp.getId()), null, List.of("urn:sensor:surval:60007755"), null, null, null,null));
         Assert.assertTrue(o instanceof ObservationCollection);
 
         ObservationCollection oc = (ObservationCollection)o;
@@ -343,7 +336,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         /*
          * Verify an inserted profile
          */
-        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, List.of(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/surval-datablock-values-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
@@ -351,8 +344,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         hl.getExtraFilter().put("procedure", "urn:sensor:surval:60007755");
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         Assert.assertEquals(1, response.getValue().size());
 
@@ -367,7 +358,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
      * Same test as harvesterCSVFlatProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
      */
     @Test
-    @Order(order = 9)
     public void harvesterCSVFlatProfileSingleFromYamlTest() throws Exception {
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
@@ -385,7 +375,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         // Create a temporary yaml file.
         Path tempFile = Files.createTempFile(null, null);
-        List<String> listYamlParameter = Arrays.asList(
+        List<String> listYamlParameter = List.of(
                 "process_name: sosHarvester",
                 "data_folder: "+bigdataDirectory.toUri().toString(),
                 "sensor_service:",
@@ -450,18 +440,17 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         Assert.assertNotNull(foi);
 
-        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66", "z_value"));
+        verifyAllObservedProperties(stsWorker, sensorId, List.of("30", "35", "66", "z_value"));
 
 
-        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",List.of(offp.getId()), null, List.of(sensorId), null, null, null,null));
         Assert.assertTrue(o instanceof ObservationCollection);
 
         ObservationCollection oc = (ObservationCollection)o;
 
         String observedProperty = null;
         for (Observation obs : oc.getMember()) {
-            if (obs.getFeatureOfInterest() instanceof SamplingFeature) {
-                SamplingFeature sf = (SamplingFeature) obs.getFeatureOfInterest();
+            if (obs.getFeatureOfInterest() instanceof SamplingFeature sf) {
                 if (sf.getId().equals(foi)) {
                     observedProperty = ((Phenomenon)obs.getObservedProperty()).getName().getCode();
                 }
@@ -472,7 +461,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         /*
          * Verify an inserted profile
          */
-        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, List.of(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
@@ -480,8 +469,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         hl.getExtraFilter().put("procedure", sensorId);
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         Assert.assertEquals(11, response.getValue().size());
 
@@ -510,7 +497,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         // Create a temporary yaml file.
         Path tempFile = Files.createTempFile(null, null);
-        List<String> listYamlParameter = Arrays.asList(
+        List<String> listYamlParameter = List.of(
                 "process_name: sosHarvester",
                 "data_folder: " + tsvDirectory.toUri().toString(),
                 "sensor_service:",
@@ -560,10 +547,10 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
         Assert.assertEquals("1980-03-02T21:52:00.000", time.getEndPosition().getValue());
 
-        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMPERATURE"));
+        verifyAllObservedProperties(stsWorker, sensorId, List.of("TEMPERATURE"));
 
 
-        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",List.of(offp.getId()), null, List.of(sensorId), null, null, null,null));
         Assert.assertTrue(o instanceof ObservationCollection);
 
         String observedProperty = "TEMPERATURE";
@@ -607,7 +594,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
         // Create a temporary yaml file.
         Path tempFile = Files.createTempFile(null, null);
-        List<String> listYamlParameter = Arrays.asList(
+        List<String> listYamlParameter = List.of(
                 "process_name: sosHarvester",
                 "data_folder: " + tsvFlatDirectory.toUri().toString(),
                 "sensor_service:",
@@ -659,10 +646,10 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
         Assert.assertEquals("1980-03-02T21:52:00.000", time.getEndPosition().getValue());
 
-        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMPERATURE"));
+        verifyAllObservedProperties(stsWorker, sensorId, List.of("TEMPERATURE"));
 
 
-        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",List.of(offp.getId()), null, List.of(sensorId), null, null, null,null));
         Assert.assertTrue(o instanceof ObservationCollection);
 
         String observedProperty = "TEMPERATURE";
