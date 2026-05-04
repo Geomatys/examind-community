@@ -22,6 +22,8 @@ import java.awt.Dimension;
 import java.util.List;
 import java.util.Optional;
 
+import org.constellation.dto.CoverageDataDescription;
+import org.constellation.dto.StatInfo;
 import org.opengis.geometry.Envelope;
 
 import org.apache.sis.coverage.SampleDimension;
@@ -83,4 +85,7 @@ public interface CoverageData extends Data<GridCoverageResource> {
      * @return A map Item.
      */
     MapItem getMapLayer(Style style, boolean forceSampleDimensions) throws ConstellationStoreException;
+
+    @Override
+    CoverageDataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException;
 }
