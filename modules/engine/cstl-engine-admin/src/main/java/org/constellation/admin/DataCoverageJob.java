@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.opengis.metadata.Metadata;
 import org.opengis.metadata.content.CoverageDescription;
 
@@ -158,7 +159,6 @@ public class DataCoverageJob implements IDataCoverageJob {
         try {
             if (DataType.COVERAGE.name().equals(data.getType())    &&
                (data.getRendered() == null || !data.getRendered()) &&
-               (!"pyramid".equalsIgnoreCase(data.getSubtype()))    &&
                (data.getStatsState() == null)) {
 
                 LOGGER.log(Level.INFO, "Start computing data " + dataId + " "+data.getName()+" coverage statistics.");
@@ -167,10 +167,10 @@ public class DataCoverageJob implements IDataCoverageJob {
                 updateData(data);
 
                 if (providerRepository.existsById(data.getProviderId())) {
-                    final org.constellation.provider.Data dataP  = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+                    final org.constellation.provider.Data<?> dataP  = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
 
-                    if (dataP instanceof PyramidData) {
-                        //pyramid, too large to compute statistics
+                    if (isVeryLargePyramid(dataP)) {
+                        // HACK: pyramid, too large to compute statistics
                         data.setStatsState(STATE_PARTIAL);
                         updateData(data);
                         return;
@@ -239,5 +239,29 @@ public class DataCoverageJob implements IDataCoverageJob {
                 throw new BackingStoreException(String.format("Cannot update metadata for data %d (%s)", dataId, target.getName()), e);
             }
         });
+    }
+
+    /**
+     *
+     * @param data A data to verify. If null, false is returned.
+     * @return True if input data is tiled and its full resolution level contains a billion pixels or more.
+     *         False in any other cases (including if we cannot check data size)
+     */
+    private static boolean isVeryLargePyramid(org.constellation.provider.Data<?> data) {
+        if (!(data instanceof PyramidData pData)) return false;
+        final GridGeometry pGeom;
+        try {
+            pGeom = pData.getGeometry();
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Cannot get pyramid geometry", e);
+            return false;
+        }
+
+        if (!pGeom.isDefined(GridGeometry.EXTENT)) return false;
+
+        final var extent = pGeom.getExtent();
+        var xyDims = extent.getLargestDimensions(2);
+
+        return Math.multiplyExact(extent.getSize(xyDims[0]), extent.getSize(xyDims[1])) >= 1e9;
     }
 }

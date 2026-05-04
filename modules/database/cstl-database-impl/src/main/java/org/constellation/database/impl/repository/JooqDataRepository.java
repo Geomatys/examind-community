@@ -356,7 +356,6 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
                                    .from(DATA)
                                    .where(DATA.TYPE.eq("COVERAGE"))
                                    .and(DATA.RENDERED.isNull().or(DATA.RENDERED.isFalse()))
-                                   .and(DATA.SUBTYPE.isNull().orNot(DATA.SUBTYPE.equalIgnoreCase("pyramid")))
                                    .and(DATA.HIDDEN.isFalse())
                                    .fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class));
     }
