@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -161,15 +162,23 @@ public class Oauth2Client {
         HttpResponse response = client.execute(request);
 
         // Get the response
-        ObjectMapper mapper = new ObjectMapper();
-        Map values = mapper.readValue(response.getEntity().getContent(), Map.class);
-        if (!values.containsKey("preferred_username")) {
-            StringBuilder sb = new StringBuilder();
-            values.forEach((k, v) -> sb.append(k).append("=>").append(v).append('\n'));
-            LOGGER.log(Level.WARNING, "Error wile retrieving user info (missing login):{0}", sb.toString());
-            return null;
+        StatusLine status = response.getStatusLine();
+        if (status != null &&  status.getStatusCode() == 200) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map values = mapper.readValue(response.getEntity().getContent(), Map.class);
+            if (!values.containsKey("preferred_username")) {
+                StringBuilder sb = new StringBuilder();
+                values.forEach((k, v) -> sb.append(k).append("=>").append(v).append('\n'));
+                LOGGER.log(Level.WARNING, "Error while retrieving Oauth2 user info (missing login):{0}", sb.toString());
+                return null;
+            }
+            return values;
+        } else if (status != null) {
+            LOGGER.log(Level.WARNING, "Oauth2 user info request return a {0} code. Reason: {1}", new Object[]{status.getStatusCode(), status.getReasonPhrase()});
+        } else {
+            LOGGER.log(Level.WARNING, "Oauth2 user info request failed.");
         }
-        return values;
+        return null;
     }
 
     private String getLoginCallBackUrl() {
