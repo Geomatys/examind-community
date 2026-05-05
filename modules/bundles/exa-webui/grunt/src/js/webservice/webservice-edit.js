@@ -604,7 +604,12 @@ angular.module('cstl-webservice-edit', [
                         return;
                     }
                     if($scope.selected) {
-                        var wmtslayerName = $scope.selected.name;
+                        var wmtslayerName;
+                        if ($scope.selected.alias) {
+                            wmtslayerName = $scope.selected.alias;
+                        } else {
+                            wmtslayerName = $scope.selected.name;
+                        }
                         // Get wmts values: resolutions, extent, matrixSet and matrixIds
                         textService.capa($scope.service.type.toLowerCase(),
                                 $scope.service.identifier,
