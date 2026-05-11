@@ -5,3 +5,5 @@ org.constellation.util.converter.TemporalConverters$LocalDateToDate
 org.constellation.util.converter.TemporalConverters$DateToLocalDate
 org.constellation.util.converter.TemporalConverters$DateToDouble
 org.constellation.util.converter.TemporalConverters$DateToLong
+org.constellation.util.converter.TemporalConverters$StringToZoneId
+org.constellation.util.converter.TemporalConverters$ZoneIdToString

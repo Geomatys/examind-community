@@ -1,6 +1,7 @@
 package org.constellation.util.converter;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Set;
@@ -61,6 +62,68 @@ public final class TemporalConverters {
         public Long apply(Date object) throws UnconvertibleObjectException {
             return object == null ? null : object.getTime();
         }
+    }
+    
+    public static class StringToZoneId implements ObjectConverter<String, ZoneId> {
+
+        @Override
+        public Set<FunctionProperty> properties() {
+            return Set.of();
+        }
+
+        @Override
+        public Class<String> getSourceClass() {
+            return String.class;
+        }
+
+        @Override
+        public Class<ZoneId> getTargetClass() {
+            return ZoneId.class;
+        }
+
+        @Override
+        public ZoneId apply(String object) throws UnconvertibleObjectException {
+            try {
+                return ZoneId.of(object);
+            } catch (Exception e) {
+                throw new UnconvertibleObjectException(e);
+            }
+        }
+
+        @Override
+        public ObjectConverter<ZoneId, String> inverse() throws UnsupportedOperationException {
+            return new ZoneIdToString();
+        }
+        
+    }
+    
+    public static class ZoneIdToString implements ObjectConverter<ZoneId, String> {
+
+        @Override
+        public Set<FunctionProperty> properties() {
+            return Set.of();
+        }
+
+        @Override
+        public Class<ZoneId> getSourceClass() {
+            return ZoneId.class;
+        }
+
+        @Override
+        public Class<String> getTargetClass() {
+            return String.class;
+        }
+
+        @Override
+        public String apply(ZoneId object) throws UnconvertibleObjectException {
+            return object.getId();
+        }
+
+        @Override
+        public ObjectConverter<String, ZoneId> inverse() throws UnsupportedOperationException {
+            return new StringToZoneId();
+        }
+        
     }
 
 

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -318,7 +319,7 @@ public class TestEnvironment {
          * - water
          */
         public static final TestResource JSON_WATER = new TestResource("org/constellation/data/geojson/water.geojson", TestEnvironment::createGeoJsonProvider);
-        
+
         /**
          * CSV file provider.
          *
@@ -326,7 +327,7 @@ public class TestEnvironment {
          * - bac-chartres
          */
         public static final TestResource CSV_GEOM = new TestResource("org/constellation/data/csv/bac-chartres.csv", TestEnvironment::createCsvProvider);
-        
+
         /**
          * CSV file provider.
          *
@@ -355,7 +356,7 @@ public class TestEnvironment {
             this(path, createProvider, null, null, createStore, null);
         }
 
-        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, List<DataStore>> createStore, 
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, List<DataStore>> createStore,
                 BiFunction<IProviderBusiness, Path, List<Integer>> createProviders) {
             this(path, createProvider, null, createProviders, createStore, null);
         }
@@ -366,7 +367,7 @@ public class TestEnvironment {
 
         public TestResource(String path,
                 BiFunction<IProviderBusiness, Path, Integer> createProvider,  BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource,
-                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders, 
+                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders,
                 Function<Path, List<DataStore>> createStore, Function<IDatasourceBusiness, DataStore> createStoreWithDatasource) {
             this.path = path;
             this.createProvider = createProvider;
@@ -703,6 +704,7 @@ public class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
             final ParameterValueGroup config = choice.addGroup("esri_shapefile");
             config.parameter("location").setValue(p.toUri());
+            config.parameter("timezone").setValue(ZoneId.of("UTC"));
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
@@ -745,15 +747,15 @@ public class TestEnvironment {
             throw new ConstellationRuntimeException(ex);
         }
     }
-    
+
     private static Integer createCsvProviderLatLon(IProviderBusiness providerBusiness, Path p) {
         return createCsvProvider(providerBusiness, p, ',', "Latitude", "Longitude", "CRS:84");
     }
-    
+
     private static Integer createCsvProvider(IProviderBusiness providerBusiness, Path p) {
         return createCsvProvider(providerBusiness, p, ';', null, null, null);
     }
-    
+
     private static Integer createCsvProvider(IProviderBusiness providerBusiness, Path p,Character separator, String latColumn, String lonColumn, String crs) {
         try {
             final DataProviderFactory factory = DataProviders.getFactory("data-store");
@@ -767,7 +769,7 @@ public class TestEnvironment {
             if (latColumn != null) config.parameter("lat_column").setValue(latColumn);
             if (lonColumn != null) config.parameter("lon_column").setValue(lonColumn);
             if (crs       != null) config.parameter("crs").setValue(crs);
-            
+
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
@@ -1017,7 +1019,7 @@ public class TestEnvironment {
     private static Integer createOM2DatabaseDDBMixedProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
         return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, true, true, "mixed");
     }
-    
+
     private static Integer createOM2DatabaseMixedProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
         return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, true, false, "mixed");
     }
