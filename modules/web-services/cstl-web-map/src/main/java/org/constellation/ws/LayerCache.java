@@ -48,6 +48,7 @@ import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.util.Utilities;
 import org.constellation.admin.SpringHelper;
 import org.constellation.api.DataType;
@@ -403,8 +404,12 @@ public class LayerCache {
                             } else if (isTemporal) {
                                 var instantMin = dtcrs.toInstant(dimEnvMin);
                                 var instantMax = dtcrs.toInstant(dimEnvMax);
-                                dimMin = FF.literal(instantMin).toValueType(dimValueType);
-                                dimMax = FF.literal(instantMax).toValueType(dimValueType);
+                                dimMin = FF.literal(instantMin);
+                                dimMax = FF.literal(instantMax);
+                                try {
+                                    dimMin = dimMin.toValueType(dimValueType);
+                                    dimMax = dimMax.toValueType(dimValueType);
+                                } catch (UnconvertibleObjectException | ClassCastException e) {}
                             }
                         }
                     }
