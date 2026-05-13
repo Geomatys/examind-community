@@ -38,7 +38,8 @@ import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.storage.DataStores;
 
 import static com.examind.store.observation.FileParsingUtils.*;
-import com.examind.store.observation.MeasureField;
+import com.examind.store.observation.CsvField;
+import com.examind.store.observation.MeasureValue;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
 import java.util.Arrays;
@@ -142,14 +143,17 @@ public class CsvObservationStore extends AbstractColumnStore {
             // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFieldNames);
             
-            final List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
+            final List<CsvField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             if (profile) {
-                mesureFields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+                String colName = mainColumns.get(0);
+                String uom     = extractWithRegex(uomRegex, colName, null);
+                String name    = extractWithRegex(obsPropRegex, colName);
+                mesureFields.add(0, new CsvField(mainIndexes, name, FieldDataType.QUANTITY, uom, FieldType.MAIN, List.of(), List.of()));
                 if (includeTimeForProfile) {
-                    mesureFields.add(0, new MeasureField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
+                    mesureFields.add(0, new CsvField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
                 }
             } else {
-                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
+                mesureFields.add(0, new CsvField(mainIndexes, "TIME", FieldDataType.TIME, null, FieldType.MAIN, List.of(), List.of()));
             }
             FieldInfos measureColumns = new FieldInfos(mesureFields, observationType);
 
@@ -259,30 +263,18 @@ public class CsvObservationStore extends AbstractColumnStore {
                 }
 
                 // loop over columns to build measure string
-                for (MeasureField field : mesureFields) {
-                    if (FieldType.MAIN.equals(field.type) || FieldType.METADATA.equals(field.type)) continue;
+                for (CsvField field : mesureFields) {
+                    if (FieldType.MAIN.equals(field.getType()) || FieldType.METADATA.equals(field.getType())) continue;
                     
-                    int index          = field.columnIndex;
-                    Object value       = line[index];
-
                     try {
-                        final Object measureValue = parseFieldValue(value, field.dataType, sdf);
+                        final MeasureValue measureValue = parseFieldValue(line, field, sdf);
+                        if (measureValue == null) continue;
                         
-                        Object[] qValues = new Object[field.qualityFields.size()];
-                        for (int i = 0; i < qValues.length; i++) {
-                            MeasureField qField = field.qualityFields.get(i);
-                            qValues[i] = parseFieldValue(line[qField.columnIndex], qField.dataType, sdf);
-                        }
-                        Object[] pValues = new Object[field.parameterFields.size()];
-                        for (int i = 0; i < pValues.length; i++) {
-                            MeasureField pField = field.parameterFields.get(i);
-                            pValues[i] = parseFieldValue(line[pField.columnIndex], pField.dataType, sdf);
-                        }
-
-                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues, pValues);
+                        currentBlock.appendValue(mainValue, field.getName(), measureValue, lineNumber);
                     } catch (ParseException | NumberFormatException ex) {
+                        Object value = getCellValue(line, field.getColumnIndexes());
                         if (!(value instanceof String str && str.isEmpty())) {
-                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, value));
+                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %s (value='%s')", field.getDataType().toString(), lineNumber, field.getColumnIndexeRepresentation(), value));
                         }
                     }
                 }
@@ -335,7 +327,7 @@ public class CsvObservationStore extends AbstractColumnStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
                 
@@ -414,13 +406,12 @@ public class CsvObservationStore extends AbstractColumnStore {
             
             final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
             
-            List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
+            List<CsvField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             if (PROFILE.equals(observationType)) {
-                mesureFields.add(0, new MeasureField(-1, "MAIN", FieldDataType.QUANTITY, FieldType.MAIN)); // main field name lost?
+                mesureFields.add(0, new CsvField(-1, "MAIN", FieldDataType.QUANTITY, FieldType.MAIN)); // main field name lost?
             } else {
-                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
+                mesureFields.add(0, new CsvField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
             }
-            final List<Field>fields                = toFields(mesureFields, observationType);
 
             Map<String, ProcedureDataset> result = new LinkedHashMap<>();
             final Set<String> knownPositions  = new HashSet<>();
@@ -433,7 +424,7 @@ public class CsvObservationStore extends AbstractColumnStore {
 
                 // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
                 if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
-                    LOGGER.finer("skipping empty line " + lineNumber);
+                    LOGGER.log(Level.FINER, "skipping empty line {0}", lineNumber);
                     continue;
                 }
 
@@ -461,7 +452,7 @@ public class CsvObservationStore extends AbstractColumnStore {
                                                         currentProc.getDescription(), 
                                                         PROCEDURE_TREE_TYPE, 
                                                         observationType, 
-                                                        fields, 
+                                                        mesureFields.stream().map(f -> (Field)f).toList(), 
                                                         currentProc.getProperties()));
                 }
 

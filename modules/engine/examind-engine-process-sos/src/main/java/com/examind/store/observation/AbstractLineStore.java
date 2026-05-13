@@ -33,8 +33,6 @@ import static com.examind.store.observation.FileParsingUtils.*;
 import static com.examind.store.observation.csvflat.CsvFlatUtils.extractCodes;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -141,22 +139,6 @@ public abstract class AbstractLineStore extends FileParsingObservationStore {
         return getObsPropColumns();
     }
     
-    protected static Object[] parseExtraFields(Object[] line, List<Integer> indexes, String observedProperty, FieldInfos measureColums, FieldType type, DateFormat sdf ) {
-        Object[] values = new Object[indexes.size()];
-        for (int i = 0; i < indexes.size(); i++) {
-            Integer qIndex = indexes.get(i);
-            MeasureField mf = measureColums.getExtraField(observedProperty, i, type);
-            Object value = line[qIndex];
-            try {
-                values[i] = parseFieldValue(value, mf.dataType, sdf);
-            } catch (ParseException | NumberFormatException ex) {
-                LOGGER.fine(String.format("Problem parsing value for extra field  at column %d (value='%s').", qIndex, line[qIndex]));
-            }
-        }
-        return values;
-    }
-    
-    
     @Override
     protected Set<String> extractProcedureIds() throws DataStoreException {
         if (procedureColumn == null) return Collections.singleton(getProcedureID());
@@ -259,22 +241,22 @@ public abstract class AbstractLineStore extends FileParsingObservationStore {
         };
     }
     
-    protected FieldInfos buildFields(ObservationType currentObstType, boolean includeTimeInProfile, final List<String> currentMainColumns, final List<String> sortedMeasureColumns, List<MeasureField> qualityFields, List<MeasureField> parameterFields) {
-        List<MeasureField> measureFields = new ArrayList<>();
+    protected FieldInfos buildFields(ObservationType currentObstType, boolean includeTimeInProfile, int valueColumnIndex, final List<String> currentMainColumns, final List<String> sortedMeasureColumns, List<Field> qualityFields, List<Field> parameterFields) {
+        List<Field> measureFields = new ArrayList<>();
         if (PROFILE.equals(currentObstType)) {
             if (includeTimeInProfile) {
-                 measureFields.add(new MeasureField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
+                 measureFields.add(new CsvField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
             }
             if (currentMainColumns.size() > 1) {
                 throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
             }
-            measureFields.add(new MeasureField(-1, currentMainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+            measureFields.add(new CsvField(-1, currentMainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
         } else {
-            measureFields.add(new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
+            measureFields.add(new CsvField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
         }
         for (int j = 0; j < sortedMeasureColumns.size(); j++) {
             String mc = sortedMeasureColumns.get(j);
-            measureFields.add(new MeasureField(-1, mc, FieldDataType.QUANTITY, qualityFields, parameterFields, FieldType.MEASURE));
+            measureFields.add(new CsvField(valueColumnIndex, mc, FieldDataType.QUANTITY, null, FieldType.MEASURE, qualityFields, parameterFields));
         }
         return new FieldInfos(measureFields, currentObstType);
     }

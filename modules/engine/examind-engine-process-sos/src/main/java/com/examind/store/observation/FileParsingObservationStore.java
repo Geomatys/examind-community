@@ -317,14 +317,14 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
     }
 
-    protected Phenomenon buildPhenomenon(final Set<MeasureField> fields, final String phenomenonIdBase, final Set<Phenomenon> existingPhens, ObservationType type) {
+    protected Phenomenon buildPhenomenon(final Set<? extends Field> fields, final String phenomenonIdBase, final Set<Phenomenon> existingPhens, ObservationType type) {
         final List<Phenomenon> components = new ArrayList<>();
-        for (MeasureField field : fields) {
-            if (!(FieldType.MEASURE.equals(field.type) || (FieldType.MAIN.equals(field.type) && ObservationType.PROFILE.equals(type)))) continue;
+        for (Field field : fields) {
+            if (!(FieldType.MEASURE.equals(field.getType()) || (FieldType.MAIN.equals(field.getType()) && ObservationType.PROFILE.equals(type)))) continue;
             
-            String id = extractWithRegex(obsPropRegex, field.name);
-            String name = field.label != null ? field.label : id;
-            components.add(new Phenomenon(id, name, id, field.description, field.properties));
+            String id = extractWithRegex(obsPropRegex, field.getName());
+            String name = field.getLabel() != null ? field.getLabel() : id;
+            components.add(new Phenomenon(id, name, id, field.getDescription(), field.getProperties()));
         }
 
         if (components.size() == 1) {
@@ -352,36 +352,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
     }
     
-    protected List<Field> toFields(Collection<MeasureField> measureFields, ObservationType observationType) {
-        final List<Field> fields = new ArrayList<>();
-        int i = 1;
-        for (final MeasureField mf : measureFields) {
-            String name     = mf.name;
-            String uom      = mf.uom;
-
-            uom  = extractWithRegex(uomRegex, name, uom);
-            name = extractWithRegex(obsPropRegex, name);
-
-            String label = mf.label != null ? mf.label : name;
-            final List<Field> qualityFields = new ArrayList<>();
-            for (MeasureField qmField : mf.qualityFields) {
-                qualityFields.add(new Field(-1, qmField.dataType, qmField.name, qmField.label, null, qmField.uom, FieldType.QUALITY));
-            }
-            final List<Field> parameterFields = new ArrayList<>();
-            for (MeasureField pField : mf.parameterFields) {
-                parameterFields.add(new Field(-1, pField.dataType, pField.name, pField.label, null, pField.uom, FieldType.PARAMETER));
-            }
-            fields.add(new Field(i, mf.dataType, name, label, null, uom, mf.type, qualityFields, parameterFields, mf.properties));
-            i++;
-        }
-        return fields;
-    }
-
     protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
             Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures, String responseFormat) {
 
         // we extract the actual used fields
-        Set<MeasureField> measureFields = ob.getUsedFields();
+        Set<Field> measureFields = ob.getUsedFields();
 
         // only main file
         if (measureFields.size() <= 1) {
@@ -389,7 +364,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             return;
         }
 
-        final List<Field> fields = toFields(measureFields, ob.observationType);
+        final List<Field> fields = new ArrayList<>(measureFields);
 
         // Get existing or create a new Phenomenon
         Phenomenon phenomenon = buildPhenomenon(measureFields, "", phenomenons, ob.observationType);

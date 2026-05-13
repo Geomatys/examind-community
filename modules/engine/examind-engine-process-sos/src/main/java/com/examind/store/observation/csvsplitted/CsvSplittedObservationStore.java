@@ -20,6 +20,7 @@
 package com.examind.store.observation.csvsplitted;
 
 import com.examind.store.observation.AbstractLineStore;
+import com.examind.store.observation.CsvField;
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FieldInfos;
 import com.examind.store.observation.ObservationBlock;
@@ -38,7 +39,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.examind.store.observation.FileParsingUtils.*;
-import com.examind.store.observation.MeasureField;
+import com.examind.store.observation.MeasureValue;
 import com.examind.store.observation.ObservedProperty;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -298,8 +299,8 @@ public class CsvSplittedObservationStore extends AbstractLineStore {
             Long currentTime                      = null;
             String currentFoi                     = null;
             final List<String> obsTypeCodes       = getObsTypeCodes();
-            List<MeasureField> qualityFields      = buildExtraMeasureFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes, FieldType.QUALITY);
-            List<MeasureField> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);
+            final List<Field> qualityFields      = buildExtraMeasureFields(qualityColumns,   qualityIndexes,   qualityColumnsIds,   qualityColumnsTypes,   FieldType.QUALITY);
+            final List<Field> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterIndexes, parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);
 
             final Map<ObservationType, FieldInfos> measureColumnsMap = new HashMap<>();
 
@@ -347,7 +348,7 @@ public class CsvSplittedObservationStore extends AbstractLineStore {
                 
                 // initialize description
                 FieldInfos measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> 
-                        buildFields(currentObstType, includeTimeForProfile, currentMainColumns, sortedMeasureColumns, qualityFields, parameterFields));
+                        buildFields(currentObstType, includeTimeForProfile, valueColumnIndex, currentMainColumns, sortedMeasureColumns, qualityFields, parameterFields));
 
                 // look for current procedure (for observation separation)
                 String procId = getProcedureId(procIndex, line);
@@ -418,16 +419,15 @@ public class CsvSplittedObservationStore extends AbstractLineStore {
                 }
 
                 // parse Measure value
-                double measureValue;
+                CsvField mField = (CsvField) measureColums.getFieldByName(observedProperty.id);
+                MeasureValue measureValue;
                 try {
-                    measureValue = parseDouble(line[valueColumnIndex]);
+                    measureValue = parseFieldValue(line, mField, sdf);
                 } catch (ParseException | NumberFormatException ex) {
                     LOGGER.fine(String.format("Problem parsing double for measure field at line %d and column %d (value='%s'). skipping line...", lineNumber, valueColumnIndex, line[valueColumnIndex]));
                     continue;
                 }
-                Object[] qualityValues   = parseExtraFields(line, qualityIndexes,   observedProperty.id, measureColums, FieldType.QUALITY, sdf);
-                Object[] parameterValues = parseExtraFields(line, parameterIndexes, observedProperty.id, measureColums, FieldType.PARAMETER, sdf);
-                currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber, qualityValues, parameterValues);
+                currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber);
                 if (includeTimeForProfile) {
                     currentBlock.appendProfileTime(mainValue, millis);
                 }
@@ -584,9 +584,8 @@ public class CsvSplittedObservationStore extends AbstractLineStore {
             int procedureIndex   = getColumnIndex(procedureColumn,     headers,               directColumnIndex, laxHeader, maxIndex);
             int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
             
-            final List<Field> qualityFields      = buildExtraFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes, FieldType.QUALITY);
-            final List<Field> parameterFields    = buildExtraFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);
-            final Map<ObservationType, Map<String, Field>> measureColumnsMap = new HashMap<>();
+            final List<Field> qualityFields      = buildExtraMeasureFields(qualityColumns,   List.of(), qualityColumnsIds,   qualityColumnsTypes,   FieldType.QUALITY);
+            final List<Field> parameterFields    = buildExtraMeasureFields(parameterColumns, List.of(), parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);
             
             int lineNumber                       = 1;
             

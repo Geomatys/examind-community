@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
@@ -44,31 +45,9 @@ public class MeasureBuilder {
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
             
-    private final Map<Number, LinkedHashMap<String, Measure>> measureMemoryMap = new LinkedHashMap<>();
+    private final Map<Number, LinkedHashMap<String, MeasureValue>> measureMemoryMap = new LinkedHashMap<>();
      
     private final FieldInfos fieldInfos;
-
-    private static class Measure {
-        public final Object value;
-        public final Object[] qualityValues;
-        public final Object[] parameterValues;
-
-        public Measure(Object value, Object[] qualityValues, Object[] parameterValues) {
-            this.value = value;
-            this.qualityValues = qualityValues;
-            this.parameterValues = parameterValues;
-        }
-
-        public boolean isNaN() {
-            if (value instanceof Double d) {
-                return Double.isNaN(d);
-            } else if (value instanceof String s ) {
-                return s.isBlank();
-            } else {
-                return value == null;
-            }
-        }
-    }
 
     public MeasureBuilder(FieldInfos fieldInfos) {
         if (fieldInfos.measureFields == null || fieldInfos.measureFields.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
@@ -82,51 +61,51 @@ public class MeasureBuilder {
         }
         // add measure code
         if (fieldInfos.containsMeasureField("time")) {
-            LinkedHashMap<String, Measure> row = measureMemoryMap.get(mainValue);
-            row.put("time", new Measure(millis, new Object[0], new Object[0]));
+            LinkedHashMap<String, MeasureValue> row = measureMemoryMap.get(mainValue);
+            row.put("time", new MeasureValue(millis, new Object[0], new Object[0]));
             measureMemoryMap.put(mainValue, row);
         }
     }
 
-    public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, Object[] qualityValues, Object[] parameterValues) {
+    public void appendValue(Number mainValue, String measureCode, MeasureValue measureValue, int lineNumber) {
         if (measureCode == null || measureCode.isEmpty()) return;
         
         measureMemoryMap.computeIfAbsent(mainValue, k -> new LinkedHashMap<>());
         
         // add measure code
         if (fieldInfos.containsMeasureField(measureCode)) {
-            LinkedHashMap<String, Measure> row = measureMemoryMap.get(mainValue);
-            if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
+            LinkedHashMap<String, MeasureValue> row = measureMemoryMap.get(mainValue);
+            if (row.containsKey(measureCode) && !row.get(measureCode).isNaN) {
                 LOGGER.log(Level.FINE, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
             }
-            row.put(measureCode, new Measure(measureValue, qualityValues, parameterValues));
+            row.put(measureCode, measureValue);
             measureMemoryMap.put(mainValue, row);
         }
     }
      
      private Set<String> getMeasureFieldInMap() {
         Set<String> result = new HashSet<>();
-        for (Map.Entry<Number, LinkedHashMap<String, Measure>> entry1: measureMemoryMap.entrySet()) {
-            for (Map.Entry<String, Measure> entry2: entry1.getValue().entrySet()) {
+        for (Map.Entry<Number, LinkedHashMap<String, MeasureValue>> entry1: measureMemoryMap.entrySet()) {
+            for (Map.Entry<String, MeasureValue> entry2: entry1.getValue().entrySet()) {
                 final String measureName = entry2.getKey();
-                final Measure measureValue = entry2.getValue();
+                final MeasureValue measureValue = entry2.getValue();
 
-                if (!measureValue.isNaN()) result.add(measureName);
+                if (!measureValue.isNaN) result.add(measureName);
             }
         }
         return result;
     }
 
-    public Set<MeasureField> getUsedFields() {
+    public Set<Field> getUsedFields() {
         final Set<String> measureColumnFound = getMeasureFieldInMap();
 
         //we complete the measure field only with those found in the data
-        Set<MeasureField> filteredMeasure = new LinkedHashSet<>();
+        Set<Field> filteredMeasure = new LinkedHashSet<>();
         
-        for (MeasureField field : fieldInfos.measureFields) {
-            if (field.type.equals(FieldType.MAIN)     ||
-                field.type.equals(FieldType.METADATA) || 
-                measureColumnFound.contains(field.name)) {
+        for (Field field : fieldInfos.measureFields) {
+           if (FieldType.MAIN.equals(field.getType())     ||
+               FieldType.METADATA.equals(field.getType()) || 
+               measureColumnFound.contains(field.getName())) {
                 filteredMeasure.add(field);
             }
         }
@@ -134,12 +113,14 @@ public class MeasureBuilder {
     }
     
     public void updateObservedProperty(ObservedProperty observedProperty) {
-        MeasureField field = fieldInfos.getFieldByName(observedProperty.id);
-        if (field != null) {
-            field.label       = observedProperty.name;
-            field.uom         = observedProperty.uom;
-            field.description = observedProperty.description;
-            field.properties  = observedProperty.properties;
+        Field field = fieldInfos.getFieldByName(observedProperty.id);
+        if (field instanceof CsvField cField) {
+            cField.setLabel(observedProperty.name);
+            cField.setUom(observedProperty.uom);
+            cField.setDescription(observedProperty.description);
+            cField.setProperties(observedProperty.properties);
+        } else {
+            throw new IllegalStateException("we are expecting a CSV field here");
         }
     }
     
@@ -164,10 +145,10 @@ public class MeasureBuilder {
             // write the data line
             result.newBlock();
             
-            Map<String, Measure> measures = measureMemoryMap.get(mainValue);
-            for (MeasureField field : fieldInfos.measureFields) {
+            Map<String, MeasureValue> measures = measureMemoryMap.get(mainValue);
+            for (Field field : fieldInfos.measureFields) {
                  // write main field
-                if (FieldType.MAIN.equals(field.type)) {
+                if (FieldType.MAIN.equals(field.getType())) {
                     if (fieldInfos.isProfile) {
                         result.appendDouble((Double)mainValue, false, null);
                     } else {
@@ -176,17 +157,17 @@ public class MeasureBuilder {
                     
                  // write metadata fields
                  // identifier TODO
-                } else if (FieldType.METADATA.equals(field.type) && FieldDataType.TEXT.equals(field.dataType)) {
+                } else if (FieldType.METADATA.equals(field.getType()) && FieldDataType.TEXT.equals(field.getDataType())) {
                     result.appendString("todo", false, null);
                     
                 // profile time    
-                } else if (FieldType.METADATA.equals(field.type) && FieldDataType.TIME.equals(field.dataType)) {
-                    final Measure measure = measures.get(field.name);
+                } else if (FieldType.METADATA.equals(field.getType()) && FieldDataType.TIME.equals(field.getDataType())) {
+                    final MeasureValue measure = measures.get(field.getName());
                     result.appendTime((long)measure.value, false, null);
                  
                 // write measure field
-                } else if (measureColumnFound.contains(field.name)) {
-                    final Measure measure = measures.get(field.name);
+                } else if (measureColumnFound.contains(field.getName())) {
+                    final MeasureValue measure = measures.get(field.getName());
                     
                     if (measure != null) {
                         result.appendValue(measure.value, true, null);
@@ -199,10 +180,10 @@ public class MeasureBuilder {
                         noneValue = false;
                     } else {
                         result.appendDouble(Double.NaN, true, null);
-                        for (MeasureField qf : field.qualityFields) {
+                        for (Field qf : field.getQualityFields()) {
                             result.appendString(null, false, null);
                         }
-                        for (MeasureField pf : field.parameterFields) {
+                        for (Field pf : field.getParameterFields()) {
                             result.appendString(null, false, null);
                         }
                     }

@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.model.ObservationType;
 import org.geotoolkit.observation.model.Procedure;
@@ -81,7 +82,7 @@ public class ObservationBlock {
         return positions.historicalPositions.entrySet();
     }
 
-    public Set<MeasureField> getUsedFields() {
+    public Set<Field> getUsedFields() {
         return cmb.getUsedFields();
     }
 
@@ -93,8 +94,8 @@ public class ObservationBlock {
         return cmb.getMeasureCount();
     }
 
-    public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, Object[] qualityValues, Object[] parameterValues) {
-        cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues, parameterValues);
+    public void appendValue(Number mainValue, String measureCode, MeasureValue measureValue, int lineNumber) {
+        cmb.appendValue(mainValue, measureCode, measureValue, lineNumber);
     }
     
     public void appendProfileTime(Number mainValue, long millis) {

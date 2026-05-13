@@ -19,6 +19,7 @@
 package com.examind.store.observation;
 
 import java.util.List;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.observation.model.FieldType.PARAMETER;
 import static org.geotoolkit.observation.model.FieldType.QUALITY;
@@ -33,18 +34,18 @@ public class FieldInfos {
     
     public final ObservationType observationType;
     public final boolean isProfile;
-    public final List<MeasureField> measureFields;
+    public final List<? extends Field> measureFields;
 
-    public FieldInfos(List<MeasureField> measureFields, ObservationType observationType) {
+    public FieldInfos(List<? extends Field> measureFields, ObservationType observationType) {
         this.observationType = observationType;
         this.isProfile = PROFILE.equals(observationType);
         this.measureFields = measureFields;
     }
 
-    public MeasureField getExtraField(String fieldName, int index, FieldType type) {
-        MeasureField field = null;
-        for (MeasureField mf : measureFields) {
-            if (mf.name.equals(fieldName)) {
+    public Field getExtraField(String fieldName, int index, FieldType type) {
+        Field field = null;
+        for (Field mf : measureFields) {
+            if (mf.getName().equals(fieldName)) {
                 field = mf;
                 break;
             }
@@ -52,21 +53,21 @@ public class FieldInfos {
         if (field == null) throw new IllegalStateException("Unable to find a field named: " + fieldName);
         if (type  == null) throw new IllegalArgumentException("fieldtype must not be null");
         return switch (type) {
-            case PARAMETER -> field.parameterFields.get(index);
-            case QUALITY   -> field.qualityFields.get(index);
+            case PARAMETER -> field.getParameterFields().get(index);
+            case QUALITY   -> field.getQualityFields().get(index);
             default        -> throw new IllegalArgumentException("Only PARAMETER or QUALITY field type are expected; Following type is unsupported : " + type);
         };
     }
     
     public boolean containsMeasureField(String name) {
-        return measureFields.stream().anyMatch(f -> f.name.equals(name));
+        return measureFields.stream().anyMatch(f -> f.getName().equals(name));
     }
     
     public MeasureBuilder newBuilder() {
         return new MeasureBuilder(this);
     }
 
-    public MeasureField getFieldByName(String name) {
-        return measureFields.stream().filter(f -> f.name.equals(name)).findFirst().orElse(null);
+    public Field getFieldByName(String name) {
+        return measureFields.stream().filter(f -> f.getName().equals(name)).findFirst().orElse(null);
     }
 }

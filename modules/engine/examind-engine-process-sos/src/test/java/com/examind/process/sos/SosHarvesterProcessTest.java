@@ -324,7 +324,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
             assertTrue(uomObj instanceof UnitOfMeasure);
             UnitOfMeasure uom = (UnitOfMeasure) uomObj;
             String uomName = uom.getName();
-            Assert.assertNotNull(uomName);
+            Assert.assertNotNull("null uom? expecting one of " + expectedUoms, uomName);
             Assert.assertTrue("unexpected uom:" + uomName, expectedUoms.contains(uomName));
         }
     }

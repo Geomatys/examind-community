@@ -397,16 +397,16 @@ public class FileParsingUtils {
      *
      * @return {@code true} if the line is considered empty.
      */
-    public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<MeasureField> typedFields, DateFormat sdf) {
-        for (MeasureField field : typedFields) {
+    public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<CsvField> typedFields, DateFormat sdf) {
+        for (CsvField field : typedFields) {
             
             // apply only on measure fields
-            if (!FieldType.MEASURE.equals(field.type)) continue;
+            if (!FieldType.MEASURE.equals(field.getType())) continue;
             
-            int i = field.columnIndex;
-            FieldDataType ft = field.dataType;
+            FieldDataType ft = field.getDataType();
+            Object value = null;
             try {
-                Object value = line[i];
+                value = getCellValue(line, field.getColumnIndexes());
                 if (value == null) continue;
                 switch(ft) {
 
@@ -443,12 +443,48 @@ public class FileParsingUtils {
                 }
                
             } catch (NumberFormatException | ParseException | ClassCastException ex) {
-                if (!((String)line[i]).isEmpty()) {
-                    LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field, lineNumber, i, line[i]));
+                if (value instanceof String s && !s.isEmpty()) {
+                    LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %s (value='%s')", field.getName(), lineNumber, field.getColumnIndexeRepresentation(), value));
                 }
             }
         }
         return true;
+    }
+    
+    public static Object getCellValue(Object[] line, List<Integer> indexes) {
+        final Object cellValue;
+        if (indexes.isEmpty()) {
+            cellValue = null;
+        } else if (indexes.size() == 1) {
+            cellValue   = line[indexes.get(0)];
+        } else {
+            final StringBuilder value = new StringBuilder();
+            for (Integer index : indexes) {
+                value.append(asString(line[index]));
+            }
+            cellValue = value.toString();
+        }
+        return cellValue;
+    }
+    
+    public static MeasureValue parseFieldValue(Object[] line, CsvField field, DateFormat sdf) throws ParseException {
+        Object cellValue      = getCellValue(line, field.getColumnIndexes());
+        
+        if (cellValue == null) return null;
+        
+        Object value =  parseFieldValue(cellValue, field.getDataType(), sdf);
+        
+        Object[] qValues = new Object[field.getQualityFields().size()];
+        for (int i = 0; i < qValues.length; i++) {
+            CsvField qField = (CsvField) field.getQualityFields().get(i);
+            qValues[i] = parseFieldValue(getCellValue(line, qField.getColumnIndexes()), qField.getDataType(), sdf);
+        }
+        Object[] pValues = new Object[field.getParameterFields().size()];
+        for (int i = 0; i < pValues.length; i++) {
+            CsvField pField = (CsvField) field.getParameterFields().get(i);
+            pValues[i] = parseFieldValue(getCellValue(line, pField.getColumnIndexes()), pField.getDataType(), sdf);
+        }
+        return new MeasureValue(value, qValues, pValues);
     }
     
     public static Object parseFieldValue(Object value, FieldDataType dataType, DateFormat sdf) throws ParseException {
@@ -799,10 +835,14 @@ public class FileParsingUtils {
         return s.toLowerCase().replace(" ", "_");
     }
     
-    public static List<MeasureField> buildExtraMeasureFields(List<String> nameColumns, List<String> columnIds, List<String> columnTypes, FieldType type) {
-        List<MeasureField> results = new ArrayList<>();
+    public static List<Field> buildExtraMeasureFields(List<String> nameColumns, List<Integer> indexes, List<String> columnIds, List<String> columnTypes, FieldType type) {
+        List<Field> results = new ArrayList<>();
         for (int i = 0; i < nameColumns.size(); i++) {
             String qName = nameColumns.get(i);
+            int index   = -1;
+            if (i < indexes.size()) {
+                index = indexes.get(i);
+            }
             if (i < columnIds.size()) {
                 qName = columnIds.get(i);
             }
@@ -811,24 +851,7 @@ public class FileParsingUtils {
             if (i < columnTypes.size()) {
                 qtype = FieldDataType.valueOf(columnTypes.get(i));
             }
-            results.add(new MeasureField(- 1, qName, qtype, type));
-        }
-        return results;
-    }
-    
-    public static List<Field> buildExtraFields(List<String> nameColumns, List<String> idColumns, List<String> typeColumns, FieldType type) {
-        List<Field> results = new ArrayList<>();
-        for (int i = 0; i < nameColumns.size(); i++) {
-            String qName = nameColumns.get(i);
-            if (i < idColumns.size()) {
-                qName = idColumns.get(i);
-            }
-            qName = normalizeFieldName(qName);
-            FieldDataType qtype = FieldDataType.TEXT;
-            if (i < typeColumns.size()) {
-                qtype = FieldDataType.valueOf(typeColumns.get(i));
-            }
-            results.add(new Field(- 1, qtype, qName, qName, null, null, type));
+            results.add(new CsvField(index, qName, qtype, type));
         }
         return results;
     }

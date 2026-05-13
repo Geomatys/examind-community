@@ -21,7 +21,8 @@ import com.examind.store.observation.AbstractColumnStore;
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FieldInfos;
 import static com.examind.store.observation.FileParsingUtils.*;
-import com.examind.store.observation.MeasureField;
+import com.examind.store.observation.CsvField;
+import com.examind.store.observation.MeasureValue;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
 import com.examind.store.observation.csv.CsvObservationStoreFactory;
@@ -46,11 +47,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
-import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
-import static org.geotoolkit.observation.model.FieldDataType.JSON;
-import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
-import static org.geotoolkit.observation.model.FieldDataType.TEXT;
-import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ObservationDataset;
 import static org.geotoolkit.observation.model.ObservationType.PROFILE;
@@ -118,30 +114,33 @@ public class DbfObservationStore extends AbstractColumnStore {
                 throw new DataStoreException("Unexpected column main:" + mainColumns);
             }
 
-            final List<String> measureFields = new ArrayList<>();
+            final List<String> measureFieldNames = new ArrayList<>();
             if (profile)   {
                 if (mainColumns.size() > 1) {
                     throw new DataStoreException("Multiple main columns is not yet supported for Profile");
                 }
-                measureFields.add(mainColumns.get(0));
+                measureFieldNames.add(mainColumns.get(0));
             }
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, OBS_PROP_QUALIFIER);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFieldNames, directColumnIndex, laxHeader, OBS_PROP_QUALIFIER);
 
             if (noHeader && obsPropIds.size() != obsPropColumns.size()) {
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
             }
-
-            // special case where there is no header, and a specified observation property identifier
-            List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
             
-            final List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
+            // special case where there is no header, and a specified observation property identifier
+            List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFieldNames);
+
+             final List<CsvField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             if (profile) {
-                mesureFields.add(0, new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, FieldType.MAIN));
+                String colName = mainColumns.get(0);
+                String uom     = extractWithRegex(uomRegex, colName, null);
+                String name    = extractWithRegex(obsPropRegex, colName);
+                mesureFields.add(0, new CsvField(mainIndexes, name, FieldDataType.QUANTITY,uom, FieldType.MAIN, List.of(), List.of()));
                 if (includeTimeForProfile) {
-                    mesureFields.add(0, new MeasureField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
+                    mesureFields.add(0, new CsvField(-1, "time", FieldDataType.TIME, FieldType.METADATA));
                 }
             } else {
-                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME,     FieldType.MAIN));
+                mesureFields.add(0, new CsvField(mainIndexes, "TIME", FieldDataType.TIME, null, FieldType.MAIN, List.of(), List.of()));
             }
             FieldInfos measureColumns = new FieldInfos(mesureFields, observationType);
 
@@ -248,41 +247,18 @@ public class DbfObservationStore extends AbstractColumnStore {
                 }
 
                 // loop over columns to build measure string
-                for (MeasureField field : mesureFields) {
-                    if (FieldType.MAIN.equals(field.type) || FieldType.METADATA.equals(field.type)) continue;
+                for (CsvField field : mesureFields) {
+                    if (FieldType.MAIN.equals(field.getType()) || FieldType.METADATA.equals(field.getType())) continue;
                     
-                    int index          = field.columnIndex;
-                    Object value       = line[index];
-
                     try {
-                        final Object measureValue;
-                        if (value == null) {
-                            measureValue = null;
-                        } else {
-                            measureValue = switch (field.dataType) {
-                                case BOOLEAN  -> parseBoolean(value);
-                                case QUANTITY -> parseDouble(value);
-                                case TEXT     -> value instanceof String ? value : value.toString();
-                                case TIME     -> parseObjectDate(value, sdf);
-                                case JSON     -> parseMap(value);
-                            };
-                        }
-
-                        Object[] qValues = new Object[field.qualityFields.size()];
-                        for (int i = 0; i < qValues.length; i++) {
-                            MeasureField qField = field.qualityFields.get(i);
-                            qValues[i] = parseFieldValue(line[qField.columnIndex], qField.dataType, sdf);
-                        }
-                        Object[] pValues = new Object[field.parameterFields.size()];
-                        for (int i = 0; i < pValues.length; i++) {
-                            MeasureField pField = field.parameterFields.get(i);
-                            pValues[i] = parseFieldValue(line[pField.columnIndex], pField.dataType, sdf);
-                        }
+                        final MeasureValue measureValue = parseFieldValue(line, field, sdf);
+                        if (measureValue == null) continue;
                         
-                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues, pValues);
+                        currentBlock.appendValue(mainValue, field.getName(), measureValue, lineNumber);
                     } catch (ParseException | NumberFormatException ex) {
-                        if (!(line[index] instanceof String str && str.isEmpty())) {
-                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, line[index]));
+                        Object value = getCellValue(line, field.getColumnIndexes());
+                        if (!(value instanceof String str && str.isEmpty())) {
+                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.getDataType().toString(), lineNumber, field.getColumnIndexeRepresentation(), value));
                         }
                     }
                     if (includeTimeForProfile) {
@@ -363,7 +339,6 @@ public class DbfObservationStore extends AbstractColumnStore {
             int lineNumber = 1;
 
             // prepare spatial/time column indices
-            final List<String> measureFields = new ArrayList<>();
             int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
             int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
             int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
@@ -374,19 +349,20 @@ public class DbfObservationStore extends AbstractColumnStore {
             final List<Integer> qualityIndexes   = getColumnIndexes(qualityColumns,   headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
             final List<Integer> parameterIndexes = getColumnIndexes(parameterColumns, headers, directColumnIndex, laxHeader, PARAMETER_QUALIFIER);
             
-            List<MeasureField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
+            List<CsvField> mesureFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             if (PROFILE.equals(observationType)) {
-                mesureFields.add(0, new MeasureField(-1, "MAIN", FieldDataType.QUANTITY, FieldType.MAIN)); // main field name lost?
+                mesureFields.add(0, new CsvField(-1, "MAIN", FieldDataType.QUANTITY, FieldType.MAIN)); // main field name lost?
             } else {
-                mesureFields.add(0, new MeasureField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
+                mesureFields.add(0, new CsvField(-1, "TIME", FieldDataType.TIME, FieldType.MAIN));
             }
-            final List<Field> fields               = toFields(mesureFields, observationType);
-            
 
-            // special case where there is no header, and a specified observation peorperty identifier
+            /* special case where there is no header, and a specified observation peorperty identifier
+            
+            
+                    this case was no longer covered. test?
             if (directColumnIndex && noHeader && !obsPropIds.isEmpty()) {
                 measureFields.addAll(obsPropIds);
-            }
+            }*/
             
             DateFormat sdf = null;
             if (this.dateFormat != null) {
@@ -431,7 +407,8 @@ public class DbfObservationStore extends AbstractColumnStore {
                                                               null, 
                                                               PROCEDURE_TREE_TYPE, 
                                                               observationType,
-                                                              fields, null));
+                                                              mesureFields.stream().map(f -> (Field)f).toList(), 
+                                                              null));
                 }
 
                 // update temporal interval
