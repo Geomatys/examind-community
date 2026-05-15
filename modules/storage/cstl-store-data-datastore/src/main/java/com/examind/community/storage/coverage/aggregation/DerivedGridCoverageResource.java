@@ -2,7 +2,7 @@ package com.examind.community.storage.coverage.aggregation;
 
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.storage.base.MetadataBuilder;
+import org.apache.sis.storage.metadata.MetadataBuilder;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.opengis.metadata.Metadata;
@@ -11,7 +11,6 @@ import org.opengis.util.GenericName;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public abstract class DerivedGridCoverageResource implements GridCoverageResource {
 

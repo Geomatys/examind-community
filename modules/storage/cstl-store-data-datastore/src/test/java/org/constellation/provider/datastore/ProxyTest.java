@@ -14,7 +14,7 @@ import java.util.function.IntSupplier;
 import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.storage.base.MetadataBuilder;
+import org.apache.sis.storage.metadata.MetadataBuilder;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
