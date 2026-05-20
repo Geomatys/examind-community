@@ -2314,14 +2314,17 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final Extent extent = new Extent();
 
         try {
-            final DefaultGeographicBoundingBox gbox = new DefaultGeographicBoundingBox();
-            gbox.setBounds(data.getEnvelope());
-            BoundingBox box = new BoundingBox();
-            box.setMinx(gbox.getWestBoundLongitude());
-            box.setMiny(gbox.getSouthBoundLatitude());
-            box.setMaxx(gbox.getEastBoundLongitude());
-            box.setMaxy(gbox.getNorthBoundLatitude());
-            extent.getSpatial().addBox(box);
+            Envelope envelope = data.getEnvelope();
+            if (envelope != null) {
+                final DefaultGeographicBoundingBox gbox = new DefaultGeographicBoundingBox();
+                gbox.setBounds(envelope);
+                BoundingBox box = new BoundingBox();
+                box.setMinx(gbox.getWestBoundLongitude());
+                box.setMiny(gbox.getSouthBoundLatitude());
+                box.setMaxx(gbox.getEastBoundLongitude());
+                box.setMaxy(gbox.getNorthBoundLatitude());
+                extent.getSpatial().addBox(box);
+            }
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Cannot set spatial extent of data " + data.getName(), ex);
             extent.setSpatial(null);
