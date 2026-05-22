@@ -84,6 +84,7 @@ public class FsConfigTest {
                               namespace: "data2_nmsp"
                               title: null
                               alias: "alibi"
+                              aliasNamespace: null
                               style: null
                               dimensions: []
                           processFactories: []

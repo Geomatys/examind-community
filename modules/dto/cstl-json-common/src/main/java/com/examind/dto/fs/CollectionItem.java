@@ -31,6 +31,7 @@ public class CollectionItem {
     private String namespace;
     private String title;
     private String alias;
+    private String aliasNamespace;
     private String style;
     private List<DimensionItem> dimensions;
 
@@ -131,5 +132,13 @@ public class CollectionItem {
      */
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getAliasNamespace() {
+        return aliasNamespace;
+    }
+
+    public void setAliasNamespace(String aliasNamespace) {
+        this.aliasNamespace = aliasNamespace;
     }
 }

@@ -329,12 +329,26 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
                         CollectionItem custom = col.getItemByName(data.getName(), data.getNamespace());
                         String alias = null;
+                        String aliasNmsp = null;
+                        String name = null;
                         String title ;
                         if (custom != null) {
                             alias = custom.getAlias();
+                            aliasNmsp = custom.getAliasNamespace() ;
+                            // special case for custom namespace, we use the alias as name
+                            if (aliasNmsp != null) {
+                                name = alias;
+                                alias = null;
+                            } else {
+                                name = data.getName();
+                            }
                             title = custom.getTitle();
                             if (custom.getStyle() != null) {
-                                styleId = styleBusiness.getStyleId("sld", custom.getStyle());
+                                try {
+                                    styleId = styleBusiness.getStyleId("sld", custom.getStyle());
+                                } catch (Exception ex) {
+                                    LOGGER.log(Level.SEVERE, "Error while importing style : " + custom.getStyle() + " for data: " + data.getName(), ex);
+                                }
                             }
                             for (DimensionItem di : custom.getDimensions()) {
                                 newLayer.addDimension(new DimensionDefinition(di));
@@ -342,7 +356,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                         } else {
                             title = data.getName();
                         }
-                        int layerId = layerBusiness.add(data.getId(), alias, data.getNamespace(), data.getName(), title, sid, newLayer);
+                        int layerId = layerBusiness.add(data.getId(), alias, aliasNmsp, name, title, sid, newLayer);
                         if (styleId != null) {
                             styleBusiness.linkToLayer(styleId, layerId);
                         }
