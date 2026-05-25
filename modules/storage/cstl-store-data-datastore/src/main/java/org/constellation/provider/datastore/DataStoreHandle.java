@@ -162,7 +162,7 @@ final class DataStoreHandle implements AutoCloseable {
      * @return A proxy instance of the resource provided as input.
      */
     static Resource createProxy(IntSupplier dataId, final Resource target, final IMetadataBusiness mdBiz) {
-        final Stream<Class<?>> targetInterfaces = Arrays.stream(Classes.getLeafInterfaces(target.getClass(), null))
+        final Stream<Class<?>> targetInterfaces = Arrays.stream(Classes.getLeafInterfaces(target.getClass(), Object.class))
                 .filter(token -> !Cloneable.class.equals(token));
 
         return (Resource) Proxy.newProxyInstance(
