@@ -116,6 +116,10 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
             + "%3Cogc:Literal%3E10972X0137-PONT%3C/ogc:Literal%3E"
             + "%3C/ogc:PropertyIsEqualTo%3E"
             + "%3C/ogc:Filter%3E";
+    
+    private static final String WFS_GETFEATURE_CQL_URL = "request=getFeature&service=WFS&version=1.1.0&"
+            + "typename=sa:SamplingPoint&namespace=xmlns(sa=http://www.opengis.net/sampling/1.0)&"
+            + "cql_filter=name%20%3D%20%2710972X0137-PONT%27";
 
     private static final String WFS_GETFEATURE_URL_V2 = "request=getFeature&service=WFS&version=2.0.0&"
             + "typenames=sa:SamplingPoint&namespaces=xmlns(sa,http://www.opengis.net/sampling/1.0)&"
@@ -690,6 +694,31 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         final URL getfeatsUrl;
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        Object obj = unmarshallResponse(getfeatsUrl);
+
+        assertTrue(obj instanceof FeatureCollectionType);
+
+        FeatureCollectionType feat = (FeatureCollectionType) obj;
+        assertEquals(1, feat.getFeatureMember().size());
+
+        assertTrue("expected samplingPoint but was:" +  feat.getFeatureMember().get(0),
+                feat.getFeatureMember().get(0).getAbstractFeature() instanceof SamplingPointType);
+        SamplingPointType sp = (SamplingPointType) feat.getFeatureMember().get(0).getAbstractFeature();
+
+        assertEquals("10972X0137-PONT", sp.getName().getCode());
+    }
+    
+    @Test
+    @Order(order=4)
+    public void testWFSGetFeatureCQLGET() throws Exception {
+        final URL getfeatsUrl;
+        try {
+            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CQL_URL);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;

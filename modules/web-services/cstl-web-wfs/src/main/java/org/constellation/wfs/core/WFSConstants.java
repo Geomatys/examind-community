@@ -84,6 +84,7 @@ public final class WFSConstants {
     public static final String HANDLE    = "handle";
     public static final String NAMESPACE = "namespace";
     public static final String FILTER    = "filter";
+    public static final String CQL_FILTER    = "cql_filter";
 
     public static final String STR_DESCRIBEFEATURETYPE     = "DescribeFeatureType";
     public static final String STR_GETFEATURE              = "GetFeature";

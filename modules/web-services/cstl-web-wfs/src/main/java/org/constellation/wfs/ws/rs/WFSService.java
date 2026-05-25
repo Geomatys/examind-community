@@ -39,6 +39,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import org.apache.sis.cql.CQL;
+import org.apache.sis.cql.CQLException;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
 import static org.constellation.api.QueryConstants.ACCEPT_FORMATS_PARAMETER;
@@ -60,6 +62,7 @@ import static org.constellation.wfs.core.WFSConstants.STR_DESCRIBE_STORED_QUERIE
 import static org.constellation.wfs.core.WFSConstants.STR_DROP_STORED_QUERY;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.wfs.core.WFSConstants;
+import static org.constellation.wfs.core.WFSConstants.CQL_FILTER;
 import static org.constellation.wfs.core.WFSConstants.GEOM_PROPERTY_TO_REPLACE;
 import static org.constellation.wfs.core.WFSConstants.STR_GETFEATURE;
 import static org.constellation.wfs.core.WFSConstants.STR_GETGMLOBJECT;
@@ -79,6 +82,9 @@ import org.constellation.ws.rs.ResponseObject;
 import org.constellation.xml.PrefixMappingInvocationHandler;
 import org.geotoolkit.client.RequestsUtilities;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.ogc.xml.FilterMarshallerPool;
+import org.geotoolkit.ogc.xml.FilterToOGCConverter;
+import org.geotoolkit.ogc.xml.FilterVersion;
 import org.geotoolkit.ogc.xml.FilterXmlFactory;
 import org.geotoolkit.ogc.xml.SortBy;
 import org.geotoolkit.ogc.xml.XMLFilter;
@@ -133,6 +139,8 @@ import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildSections;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildSortBy;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildStoredQuery;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildTransaction;
+import org.opengis.feature.Feature;
+import org.opengis.filter.Filter;
 import org.opengis.filter.SortOrder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -489,10 +497,13 @@ public class WFSService extends GridWebService<WFSWorker> {
         final String handle  = getParameter(HANDLE,  false);
         final String outputFormat  = getParameter(OUTPUT_FORMAT, false);
 
+        final FilterVersion fVersion;
         final String max;
         if (version.equals("2.0.0")) {
+            fVersion = FilterVersion.V200;
             max = getParameter("count", false);
         } else {
+            fVersion = FilterVersion.V110;
             max = getParameter("maxfeatures", false);
         }
         if (max != null) {
@@ -559,12 +570,26 @@ public class WFSService extends GridWebService<WFSWorker> {
         }
 
         final Object xmlFilter  = getComplexParameter(FILTER, false);
+        final String cqlStr     = getParameter(CQL_FILTER, false);
 
+        if (cqlStr != null && xmlFilter != null) {
+            throw new CstlServiceException("You can't specify both CQL_FILTER and FILTER.",INVALID_PARAMETER_VALUE);
+        }
+        
         XMLFilter filter;
         final Map<String, String> prefixMapping;
         if (xmlFilter instanceof XMLFilter) {
             filter = (XMLFilter) xmlFilter;
             prefixMapping = filter.getPrefixMapping();
+        } else if (cqlStr != null){
+            try {
+                Filter<Feature> parseFilter = CQL.parseFilter(cqlStr);
+                filter = FilterMarshallerPool.transform(parseFilter, fVersion);
+                
+            } catch (CQLException ex) {
+                throw new CstlServiceException("Error while parsing CQL filter", ex, INVALID_PARAMETER_VALUE);
+            }
+            prefixMapping = new HashMap<>();
         } else {
             filter = null;
             prefixMapping = new HashMap<>();
