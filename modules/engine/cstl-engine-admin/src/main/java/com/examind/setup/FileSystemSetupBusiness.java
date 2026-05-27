@@ -101,6 +101,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.setup");
     
+    private static final String NO_FILES = "NO_FILES";
+    
     @Autowired
     private IServiceBusiness serviceBusiness;
     
@@ -524,6 +526,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         if (datasourceId == null) {
             throw new ConstellationException("Provider source missing for SQL provider.");
         }
+        if (files.size() == 1 && files.get(0) instanceof String s && NO_FILES.equals(s)) {
+            throw new ConstellationException("No file found for coverage sql provider");
+        }
         
         final String providerIdentifier = "csql-" + datasourceId;
         Integer prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
@@ -639,7 +644,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 }
             } 
             if (files.isEmpty()) {
-                files = List.of("NO_FILES");
+                files = List.of(NO_FILES);
             }
             
             Integer dsId = dataset != null ? datasetBusiness.getOrCreateDataset(dataset, null) : null;
