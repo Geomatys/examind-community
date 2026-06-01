@@ -1218,7 +1218,6 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
             try {
                 crs = toCRS(new DirectPosition2D(lon, lat), outputCrsTxt);
             } catch (FactoryException ex) {
-                ex.printStackTrace();
                 return new ResponseObject(406);
             }
             try {
@@ -1611,7 +1610,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
         try {
             crs = toCRS(zonePosition, crsStr);
         } catch (FactoryException ex) {
-            ex.printStackTrace();
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             return new ResponseObject(406);
         }
 
@@ -1732,7 +1731,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
 
                 return new ResponseObject(datas, MediaType.IMAGE_PNG);
             } catch (IOException | TransformException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_GEOJSON.equalsIgnoreCase(mediaType)) {
@@ -1744,7 +1743,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
                     return new ResponseObject(data, MediaType.APPLICATION_JSON);
                 }
             } catch (IOException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_GEOTIFF.equalsIgnoreCase(mediaType)) {
@@ -1756,7 +1755,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
 
                 return new ResponseObject(data, MediaTypes.DATA_GEOTIFF);
             } catch (IOException | TransformException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_COVERAGEJSON.equalsIgnoreCase(mediaType)) {
@@ -1772,7 +1771,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
 
                 return new ResponseObject(data, MediaTypes.DATA_GEOTIFF);
             } catch (IOException | TransformException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_JSON.equalsIgnoreCase(mediaType)) {
@@ -1853,7 +1852,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
                 }
 
             } catch (IOException | TransformException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else {
@@ -2032,7 +2031,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
         try {
             crs = toCRS(zonePosition, crsStr);
         } catch (FactoryException ex) {
-            ex.printStackTrace();
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             return new ResponseObject(406);
         }
 
@@ -2153,7 +2152,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
 
                 return new ResponseObject(datas, MediaType.IMAGE_PNG);
             } catch (IOException | TransformException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_GEOJSON.equalsIgnoreCase(mediaType)) {
@@ -2161,7 +2160,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
                 final byte[] data = toGeojson(geometry, profile, crs, dggrsCoverages);
                 return new ResponseObject(data, MediaType.APPLICATION_JSON);
             } catch (IOException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_GEOTIFF.equalsIgnoreCase(mediaType)) {
@@ -2173,7 +2172,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
 
                 return new ResponseObject(data, MediaTypes.DATA_GEOTIFF);
             } catch (IOException | TransformException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_COVERAGEJSON.equalsIgnoreCase(mediaType)) {
@@ -2189,7 +2188,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
 
                 return new ResponseObject(data, MediaTypes.DATA_GEOTIFF);
             } catch (IOException | TransformException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else if (MediaTypes.DATA_JSON.equalsIgnoreCase(mediaType)) {
@@ -2239,7 +2238,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
                 }
 
             } catch (IOException | TransformException | DataStoreException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 return new ResponseObject(406);
             }
         } else {

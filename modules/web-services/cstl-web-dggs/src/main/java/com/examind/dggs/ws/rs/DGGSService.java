@@ -155,7 +155,7 @@ public final class DGGSService extends OGCWebService<DGGSWorker> {
                 }
 
             } catch (IOException ex) {
-                ex.printStackTrace();
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);;
             }
         }
 
