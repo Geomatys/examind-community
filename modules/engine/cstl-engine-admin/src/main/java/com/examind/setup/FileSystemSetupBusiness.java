@@ -331,8 +331,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
                         CollectionItem custom = col.getItemByName(data.getName(), data.getNamespace());
                         String alias = null;
-                        String aliasNmsp = null;
-                        String name = null;
+                        String aliasNmsp;
+                        String name;
                         String title ;
                         if (custom != null) {
                             alias = custom.getAlias();
@@ -357,6 +357,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                             }
                         } else {
                             title = data.getName();
+                            name = data.getName();
+                            aliasNmsp = data.getNamespace();
                         }
                         int layerId = layerBusiness.add(data.getId(), alias, aliasNmsp, name, title, sid, newLayer);
                         if (styleId != null) {
