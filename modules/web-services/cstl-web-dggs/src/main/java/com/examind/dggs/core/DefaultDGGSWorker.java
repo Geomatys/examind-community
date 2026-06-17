@@ -103,6 +103,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
+import org.apache.sis.referencing.datum.DatumOrEnsemble;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStores;
@@ -736,7 +737,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
         final DiscreteGlobalGridSystem dggs = dggrs.getGridSystem();
         final List<GridConstraints> cellConstraints = dggs.getGridConstraints();
         final PolyhedronParameters params = dggs.getParameters();
-        final Ellipsoid ellipsoid = ((GeographicCRS)dggs.getCrs()).getDatum().getEllipsoid();
+        final Ellipsoid ellipsoid = DatumOrEnsemble.asDatum((GeographicCRS)dggs.getCrs()).getEllipsoid();
 
         final org.geotoolkit.referencing.dggs.SubZoneOrder subZoneOrder = dggrs.getSubZoneOrder();
         final SubZoneOrder szo = new SubZoneOrder();
