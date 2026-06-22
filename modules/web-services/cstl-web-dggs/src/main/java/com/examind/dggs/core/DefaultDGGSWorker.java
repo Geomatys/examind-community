@@ -445,7 +445,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
         final CodedResource dgr;
         try {
             final DiscreteGlobalGridReferenceSystem dggrs = new HealpixDggrs();
-            if (resource instanceof DiscreteGlobalGridResource d) {
+            if (resource instanceof CodedResource d) {
                 dgr = d;
             } else if (resource instanceof GridCoverageResource gcr) {
                 dgr = CodedCoverages.viewAsDggrs(gcr.getIdentifier().get(), gcr, dggrs);
