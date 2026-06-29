@@ -28,7 +28,7 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 import org.apache.sis.image.PixelIterator;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.dggs.MediaTypes;
+import org.geotoolkit.ogcapi.dto.dggs.MediaTypes;
 import org.junit.Assert;
 import org.junit.Test;
 

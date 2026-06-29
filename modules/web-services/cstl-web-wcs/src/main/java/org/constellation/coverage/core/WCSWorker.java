@@ -18,10 +18,10 @@
  */
 package org.constellation.coverage.core;
 
-import org.geotoolkit.ogcapi.model.common.CollectionDescription;
-import org.geotoolkit.ogcapi.model.coverage.DomainSet;
-import org.geotoolkit.ogcapi.model.coverage.DataRecord;
-import org.geotoolkit.ogcapi.model.common.Schema;
+import org.geotoolkit.ogcapi.dto.common.CollectionDescription;
+import org.geotoolkit.ogcapi.dto.coverage.DomainSet;
+import org.geotoolkit.ogcapi.dto.coverage.DataRecord;
+import org.geotoolkit.ogcapi.dto.common.Schema;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
 import org.geotoolkit.wcs.xml.DescribeCoverage;

@@ -25,11 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.common.CollectionDescription;
-import org.geotoolkit.ogcapi.model.common.Extent;
-import org.geotoolkit.ogcapi.model.common.SpatialExtent;
-import org.geotoolkit.ogcapi.model.common.TemporalExtent;
-import org.geotoolkit.ogcapi.model.dggs.DggrsData;
+import org.geotoolkit.ogcapi.dto.common.CollectionDescription;
+import org.geotoolkit.ogcapi.dto.common.Extent;
+import org.geotoolkit.ogcapi.dto.common.SpatialExtent;
+import org.geotoolkit.ogcapi.dto.common.TemporalExtent;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsData;
 import static org.junit.Assert.*;
 import org.junit.Test;
 

@@ -22,12 +22,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.LinkRelations;
-import org.geotoolkit.ogcapi.model.common.CollectionDescription;
-import org.geotoolkit.ogcapi.model.common.Collections;
-import org.geotoolkit.ogcapi.model.common.Link;
-import org.geotoolkit.ogcapi.model.dggs.DggrsItem;
-import org.geotoolkit.ogcapi.model.dggs.DggrsListResponse;
+import org.geotoolkit.ogcapi.dto.LinkRelations;
+import org.geotoolkit.ogcapi.dto.common.CollectionDescription;
+import org.geotoolkit.ogcapi.dto.common.Collections;
+import org.geotoolkit.ogcapi.dto.common.Link;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsItem;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsListResponse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 

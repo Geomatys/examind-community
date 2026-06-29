@@ -20,12 +20,12 @@ package com.examind.dggs;
 
 import java.net.URI;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.LinkRelations;
-import org.geotoolkit.ogcapi.model.common.Link;
-import org.geotoolkit.ogcapi.model.dggs.Dggrs;
-import org.geotoolkit.ogcapi.model.dggs.DggrsData;
-import org.geotoolkit.ogcapi.model.dggs.DggrsLinkTemplatesInner;
-import org.geotoolkit.ogcapi.model.dggs.ZoneInfo;
+import org.geotoolkit.ogcapi.dto.LinkRelations;
+import org.geotoolkit.ogcapi.dto.common.Link;
+import org.geotoolkit.ogcapi.dto.dggs.Dggrs;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsData;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsLinkTemplatesInner;
+import org.geotoolkit.ogcapi.dto.dggs.ZoneInfo;
 import static org.junit.Assert.*;
 import org.junit.Test;
 

@@ -21,7 +21,7 @@ package com.examind.dggs;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.dggs.DggrsData;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsData;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 

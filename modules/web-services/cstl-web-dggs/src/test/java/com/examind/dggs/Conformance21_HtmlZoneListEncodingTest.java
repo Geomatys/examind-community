@@ -19,10 +19,10 @@
 package com.examind.dggs;
 
 import java.net.URI;
-import org.geotoolkit.ogcapi.model.LinkRelations;
-import org.geotoolkit.ogcapi.model.common.Link;
-import org.geotoolkit.ogcapi.model.dggs.DggrsZonesResponse;
-import org.geotoolkit.ogcapi.model.dggs.MediaTypes;
+import org.geotoolkit.ogcapi.dto.LinkRelations;
+import org.geotoolkit.ogcapi.dto.common.Link;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsZonesResponse;
+import org.geotoolkit.ogcapi.dto.dggs.MediaTypes;
 import static org.junit.Assert.*;
 import org.junit.Test;
 

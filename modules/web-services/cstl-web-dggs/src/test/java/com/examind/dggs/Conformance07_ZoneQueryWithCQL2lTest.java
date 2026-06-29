@@ -23,7 +23,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.dggs.DggrsZonesResponse;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsZonesResponse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 

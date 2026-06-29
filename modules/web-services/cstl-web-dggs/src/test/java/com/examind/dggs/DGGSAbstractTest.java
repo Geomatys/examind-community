@@ -45,7 +45,7 @@ import org.constellation.ws.embedded.AbstractGrizzlyServer;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import static org.constellation.test.utils.TestEnvironment.*;
-import org.geotoolkit.ogcapi.model.dggs.MediaTypes;
+import org.geotoolkit.ogcapi.dto.dggs.MediaTypes;
 import org.geotoolkit.ubjson.UBJsonMapper;
 import org.junit.AfterClass;
 

@@ -20,8 +20,8 @@ package com.examind.dggs;
 
 import java.net.URI;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.dggs.DggrsData;
-import org.geotoolkit.ogcapi.model.dggs.MediaTypes;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsData;
+import org.geotoolkit.ogcapi.dto.dggs.MediaTypes;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 

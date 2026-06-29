@@ -20,9 +20,9 @@ package com.examind.dggs;
 
 import java.net.URI;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.LinkRelations;
-import org.geotoolkit.ogcapi.model.common.LandingPage;
-import org.geotoolkit.ogcapi.model.common.Link;
+import org.geotoolkit.ogcapi.dto.LinkRelations;
+import org.geotoolkit.ogcapi.dto.common.LandingPage;
+import org.geotoolkit.ogcapi.dto.common.Link;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 

@@ -28,7 +28,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import org.geotoolkit.ogcapi.model.dggs.DggrsZonesResponse;
+import org.geotoolkit.ogcapi.dto.dggs.DggrsZonesResponse;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.opengis.geometry.Envelope;

@@ -159,24 +159,24 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 import org.constellation.util.Util;
 import org.constellation.util.CRSUtilities;
 import org.geotoolkit.gml.xml.v311.RectifiedGridType;
-import org.geotoolkit.ogcapi.model.common.CollectionDescription;
-import org.geotoolkit.ogcapi.model.common.Extent;
-import org.geotoolkit.ogcapi.model.common.SpatialExtent;
-import org.geotoolkit.ogcapi.model.common.TemporalExtent;
-import org.geotoolkit.ogcapi.model.jsonschema.JSONSchemaProperty;
-import org.geotoolkit.ogcapi.model.jsonschema.JSONType;
-import org.geotoolkit.ogcapi.model.jsonschema.RangeStatistics;
-import org.geotoolkit.ogcapi.model.common.Schema;
-import org.geotoolkit.ogcapi.model.coverage.Axis;
-import org.geotoolkit.ogcapi.model.coverage.DataRecord;
-import org.geotoolkit.ogcapi.model.coverage.DataRecordField;
-import org.geotoolkit.ogcapi.model.coverage.DomainSet;
-import org.geotoolkit.ogcapi.model.coverage.EncodingInfo;
-import org.geotoolkit.ogcapi.model.coverage.GeneralGrid;
-import org.geotoolkit.ogcapi.model.coverage.GridLimits;
-import org.geotoolkit.ogcapi.model.coverage.IndexAxis;
-import org.geotoolkit.ogcapi.model.coverage.IrregularAxis;
-import org.geotoolkit.ogcapi.model.coverage.RegularAxis;
+import org.geotoolkit.ogcapi.dto.common.CollectionDescription;
+import org.geotoolkit.ogcapi.dto.common.Extent;
+import org.geotoolkit.ogcapi.dto.common.SpatialExtent;
+import org.geotoolkit.ogcapi.dto.common.TemporalExtent;
+import org.geotoolkit.ogcapi.dto.jsonschema.JSONSchemaProperty;
+import org.geotoolkit.ogcapi.dto.jsonschema.JSONType;
+import org.geotoolkit.ogcapi.dto.jsonschema.RangeStatistics;
+import org.geotoolkit.ogcapi.dto.common.Schema;
+import org.geotoolkit.ogcapi.dto.coverage.Axis;
+import org.geotoolkit.ogcapi.dto.coverage.DataRecord;
+import org.geotoolkit.ogcapi.dto.coverage.DataRecordField;
+import org.geotoolkit.ogcapi.dto.coverage.DomainSet;
+import org.geotoolkit.ogcapi.dto.coverage.EncodingInfo;
+import org.geotoolkit.ogcapi.dto.coverage.GeneralGrid;
+import org.geotoolkit.ogcapi.dto.coverage.GridLimits;
+import org.geotoolkit.ogcapi.dto.coverage.IndexAxis;
+import org.geotoolkit.ogcapi.dto.coverage.IrregularAxis;
+import org.geotoolkit.ogcapi.dto.coverage.RegularAxis;
 import org.geotoolkit.metadata.MetadataUtilities;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
@@ -1547,7 +1547,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
     private CollectionDescription dataToCollection(LayerCache layer, boolean forOpenEO, boolean fullMetadata) {
         final Data data = layer.getData();
-        final List<org.geotoolkit.ogcapi.model.common.Link> links = new ArrayList<>();
+        final List<org.geotoolkit.ogcapi.dto.common.Link> links = new ArrayList<>();
         final Extent extent = new Extent();
         final Extent readExtent = new Extent();
 

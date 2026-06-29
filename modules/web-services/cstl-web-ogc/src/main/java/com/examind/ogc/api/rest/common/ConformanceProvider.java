@@ -1,6 +1,6 @@
 package com.examind.ogc.api.rest.common;
 
-import org.geotoolkit.ogcapi.model.common.Link;
+import org.geotoolkit.ogcapi.dto.common.Link;
 import java.util.List;
 
 public interface ConformanceProvider {

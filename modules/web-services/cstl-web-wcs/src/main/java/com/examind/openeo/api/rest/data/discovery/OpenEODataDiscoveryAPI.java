@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.geotoolkit.ogcapi.model.common.Link;
+import org.geotoolkit.ogcapi.dto.common.Link;
 import org.geotoolkit.stac.dto.Collection;
 import org.geotoolkit.stac.dto.Collections;
 import org.apache.commons.lang3.tuple.Pair;

@@ -1,7 +1,7 @@
 package org.constellation.coverage.core;
 
 import org.constellation.ws.MimeType;
-import org.geotoolkit.ogcapi.model.common.Link;
+import org.geotoolkit.ogcapi.dto.common.Link;
 
 import java.util.List;
 
