@@ -19,6 +19,7 @@ package com.examind.dto.fs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -140,5 +141,67 @@ public class CollectionItem {
 
     public void setAliasNamespace(String aliasNamespace) {
         this.aliasNamespace = aliasNamespace;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("name: ");
+        if (namespace != null) sb.append("[").append(namespace).append("] ");
+        sb.append(name).append("\n");
+        
+        if (provider != null) {
+            sb.append("provider: ").append(provider).append("\n");
+        }
+        if (title != null) {
+            sb.append("title: ").append(title).append("\n");
+        }
+        sb.append("alias: ");
+        if (aliasNamespace != null) sb.append("[").append(aliasNamespace).append("] ");
+        sb.append(alias).append("\n");
+        
+        if (style != null) {
+            sb.append("style: ").append(style).append("\n");
+        }
+        
+        if (dimensions != null) {
+            sb.append("dimensions:\n");
+            for (DimensionItem col : dimensions) {
+                sb.append(" - ").append(col).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        
+        if (obj instanceof CollectionItem that) {
+            return Objects.equals(this.namespace, that.namespace) &&
+                   Objects.equals(this.name, that.name) &&
+                   Objects.equals(this.provider, that.provider) &&
+                   Objects.equals(this.title, that.title) &&
+                   Objects.equals(this.aliasNamespace, that.aliasNamespace) &&
+                   Objects.equals(this.alias, that.alias) &&
+                   Objects.equals(this.style, that.style) &&
+                   Objects.equals(this.dimensions, that.dimensions);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 71 * hash + Objects.hashCode(this.provider);
+        hash = 71 * hash + Objects.hashCode(this.name);
+        hash = 71 * hash + Objects.hashCode(this.namespace);
+        hash = 71 * hash + Objects.hashCode(this.title);
+        hash = 71 * hash + Objects.hashCode(this.alias);
+        hash = 71 * hash + Objects.hashCode(this.aliasNamespace);
+        hash = 71 * hash + Objects.hashCode(this.style);
+        hash = 71 * hash + Objects.hashCode(this.dimensions);
+        return hash;
     }
 }

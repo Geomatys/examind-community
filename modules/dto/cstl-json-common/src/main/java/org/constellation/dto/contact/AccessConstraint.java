@@ -19,6 +19,8 @@
 
 package org.constellation.dto.contact;
 
+import java.util.Objects;
+
 
 /**
  * Access constraint part on getCapabilities service section.
@@ -92,4 +94,31 @@ public class AccessConstraint {
         this.maxHeight = maxHeight;
     }
     
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AccessConstraint that = (AccessConstraint) o;
+        return layerLimit == that.layerLimit &&
+                maxWidth == that.maxWidth &&
+                maxHeight == that.maxHeight &&
+                Objects.equals(fees, that.fees) &&
+                Objects.equals(accessConstraint, that.accessConstraint);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fees, accessConstraint, layerLimit, maxWidth, maxHeight);
+    }
+
+    @Override
+    public String toString() {
+        return "AccessConstraint{" +
+                "fees='" + fees + '\'' +
+                ", accessConstraint='" + accessConstraint + '\'' +
+                ", layerLimit=" + layerLimit +
+                ", maxWidth=" + maxWidth +
+                ", maxHeight=" + maxHeight +
+                '}';
+    }
 }

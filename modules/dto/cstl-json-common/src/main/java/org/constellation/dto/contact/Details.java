@@ -23,6 +23,7 @@ package org.constellation.dto.contact;
 import java.util.ArrayList;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Service part on getCapabilities.
@@ -146,5 +147,69 @@ public class Details {
 
     public void setTransactional(final boolean transactional) {
         this.transactional = transactional;
+    }
+    
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("identifier").append(identifier).append("\n");
+        sb.append("name").append(name).append("\n");
+        sb.append("description").append(description).append("\n");
+        sb.append("lang").append(lang).append("\n");
+        sb.append("transactional").append(transactional).append("\n");
+        if (keywords != null) {
+            sb.append("keywords:\n");
+            for (String col : keywords) {
+                sb.append(" - ").append(col).append("\n");
+            }
+        }
+        if (versions != null) {
+            sb.append("versions:\n");
+            for (String f : versions) {
+                sb.append("- ").append(f).append("\n");
+            }
+        }
+        if (serviceContact != null) {
+            sb.append("serviceContact:").append(serviceContact).append("\n");
+        }
+        if (serviceConstraints != null) {
+            sb.append("serviceConstraints:").append(serviceConstraints).append("\n");
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        
+        if (obj instanceof Details that) {
+            return Objects.equals(this.description, that.description) &&
+                   Objects.equals(this.identifier, that.identifier) &&
+                   Objects.equals(this.keywords, that.keywords) &&
+                   Objects.equals(this.lang, that.lang) &&
+                   Objects.equals(this.name, that.name) &&
+                   Objects.equals(this.transactional, that.transactional) &&
+                   Objects.equals(this.versions, that.versions) &&
+                   Objects.equals(this.serviceContact, that.serviceContact) &&
+                   Objects.equals(this.serviceConstraints, that.serviceConstraints);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 59 * hash + Objects.hashCode(this.name);
+        hash = 59 * hash + Objects.hashCode(this.identifier);
+        hash = 59 * hash + Objects.hashCode(this.keywords);
+        hash = 59 * hash + Objects.hashCode(this.description);
+        hash = 59 * hash + Objects.hashCode(this.versions);
+        hash = 59 * hash + Objects.hashCode(this.lang);
+        hash = 59 * hash + Objects.hashCode(this.serviceContact);
+        hash = 59 * hash + Objects.hashCode(this.serviceConstraints);
+        hash = 59 * hash + (this.transactional ? 1 : 0);
+        return hash;
     }
 }

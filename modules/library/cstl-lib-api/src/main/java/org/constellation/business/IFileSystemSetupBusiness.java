@@ -24,5 +24,5 @@ package org.constellation.business;
  */
 public interface IFileSystemSetupBusiness {
     
-    void installDatas();
+    void installDatas(boolean async);
 }

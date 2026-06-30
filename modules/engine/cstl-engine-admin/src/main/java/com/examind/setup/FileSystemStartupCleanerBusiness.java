@@ -85,6 +85,7 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
                     -----------------------------------------------------------
                     -- STARTING FILESYSTEM DATA REMOVAL                      --
                     -----------------------------------------------------------
+                    
                     """);
         try {
             // clear previous configuration

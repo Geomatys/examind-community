@@ -18,11 +18,15 @@
  */
 package com.examind.process.setup;
 
+import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
 import org.geotoolkit.process.ProcessDescriptor;
+import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
@@ -37,8 +41,25 @@ public class ReloadFsConfigDescriptor extends AbstractCstlProcessDescriptor {
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Reload the filesystem config.");
 
     /**Input parameters */
+    
+    public static final String ASYNC_NAME = "async";
+    private static final String ASYNC_REMARKS = "if set to true the service will be created first, and the populated as the datas are installed.";
+    public static final ParameterDescriptor<Boolean> ASYNC;
+    
+    static {
+        final ParameterBuilder builder = new ParameterBuilder();
+        
+        // fill the default value from the configuration
+        boolean defValue = Application.getBooleanProperty(AppProperty.EXA_FS_ASYNC, Boolean.FALSE);
+        ASYNC = builder
+            .addName(ASYNC_NAME)
+            .setRemarks(ASYNC_REMARKS)
+            .setRequired(false)
+            .create(Boolean.class, defValue);
+    }
+
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup();
+            .createGroup(ASYNC);
 
      /**Output parameters */
      public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)

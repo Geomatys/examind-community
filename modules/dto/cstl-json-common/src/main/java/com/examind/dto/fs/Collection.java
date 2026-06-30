@@ -112,4 +112,53 @@ public class Collection {
     public void setIncludeAll(boolean includeAll) {
         this.includeAll = includeAll;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (dataSet != null) {
+            sb.append("dataSet:").append(dataSet).append("\n");
+        }
+        if (filter != null) {
+            sb.append("filter:").append(filter).append("\n");
+        }
+        if (datasetStyle != null) {
+            sb.append("datasetStyle:").append(datasetStyle).append("\n");
+        }
+        sb.append("includeAll:").append(includeAll).append("\n");
+        
+        if (data != null) {
+            sb.append("data:\n");
+            for (CollectionItem col : data) {
+                sb.append(" - ").append(col).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        
+        if (obj instanceof Collection that) {
+            return Objects.equals(this.dataSet, that.dataSet) &&
+                   Objects.equals(this.filter, that.filter) &&
+                   Objects.equals(this.datasetStyle, that.datasetStyle) &&
+                   Objects.equals(this.includeAll, that.includeAll) &&
+                   Objects.equals(this.data, that.data);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 97 * hash + Objects.hashCode(this.dataSet);
+        hash = 97 * hash + Objects.hashCode(this.filter);
+        hash = 97 * hash + Objects.hashCode(this.datasetStyle);
+        hash = 97 * hash + (this.includeAll ? 1 : 0);
+        hash = 97 * hash + Objects.hashCode(this.data);
+        return hash;
+    }
 }

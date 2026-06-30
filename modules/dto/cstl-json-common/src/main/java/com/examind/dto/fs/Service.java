@@ -20,6 +20,8 @@ package com.examind.dto.fs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import org.constellation.dto.contact.Details;
 
 /**
@@ -85,6 +87,14 @@ public class Service {
         this.collections = collections;
     }
     
+    public Collection getCollection(String targetDataset) {
+        if (collections == null) return null;
+        for (Collection c : collections) {
+            if (Objects.equals(c.getDataSet(), targetDataset)) return c;
+        }
+        return null;
+    }
+    
     /**
      * @return the processFactories
      */
@@ -143,5 +153,66 @@ public class Service {
      */
     public void setMetadata(Details serviceMetada) {
         this.metadata = serviceMetada;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[").append(type).append("] ").append(identifier).append("\n");
+        if (metadata != null) {
+            sb.append("metadata:").append(metadata).append("\n");
+        }
+        if (collections != null) {
+            sb.append("collections:\n");
+            for (Collection col : collections) {
+                sb.append(" - ").append(col).append("\n");
+            }
+        }
+        if (processFactories != null) {
+            sb.append("process factories:\n");
+            for (ProcessFactory f : processFactories) {
+                sb.append("- ").append(f).append("\n");
+            }
+        }
+        if (advancedParameters != null) {
+            sb.append("advanced parameters:\n");
+            for (Entry<String, String> e : advancedParameters.entrySet()) {
+                sb.append(" - ").append(e.getKey()).append(" = ").append(e.getValue()).append("\n");
+            }
+        }
+        if (source != null) {
+            sb.append("source:").append(source).append("\n");
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        
+        if (obj instanceof Service that) {
+            return Objects.equals(this.type, that.type) &&
+                   Objects.equals(this.identifier, that.identifier) &&
+                   Objects.equals(this.metadata, that.metadata) &&
+                   Objects.equals(this.collections, that.collections) &&
+                   Objects.equals(this.processFactories, that.processFactories) &&
+                   Objects.equals(this.advancedParameters, that.advancedParameters) &&
+                   Objects.equals(this.source, that.source);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.identifier);
+        hash = 97 * hash + Objects.hashCode(this.type);
+        hash = 97 * hash + Objects.hashCode(this.metadata);
+        hash = 97 * hash + Objects.hashCode(this.collections);
+        hash = 97 * hash + Objects.hashCode(this.processFactories);
+        hash = 97 * hash + Objects.hashCode(this.advancedParameters);
+        hash = 97 * hash + Objects.hashCode(this.source);
+        return hash;
     }
 }

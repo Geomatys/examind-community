@@ -319,7 +319,9 @@ public enum AppProperty {
     
     EXA_ALLOWED_ORIGIN("examind.allowed.origin", false, List.class),
     
-    EXA_FS_STARTUP("examind.filesystem.clear.at.startup", false, Boolean.class);
+    EXA_FS_STARTUP("examind.filesystem.clear.at.startup", false, Boolean.class),
+    
+    EXA_FS_ASYNC("examind.filesystem.async", false, Boolean.class);
 
     private final String key;
     private final boolean secure;

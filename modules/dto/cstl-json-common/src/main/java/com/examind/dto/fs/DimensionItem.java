@@ -17,6 +17,8 @@
  */
 package com.examind.dto.fs;
 
+import java.util.Objects;
+
 /**
  *
  * @author Guilhem Legal (Geomatys) 
@@ -84,4 +86,45 @@ public class DimensionItem {
         this.columnLower = columnLower;
     }
     
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("name: ").append(name).append("\n");
+        
+        if (column != null) {
+            sb.append("column: ").append(column).append("\n");
+        }
+        if (columnUpper != null) {
+            sb.append("columnUpper: ").append(columnUpper).append("\n");
+        }
+        if (columnLower != null) {
+            sb.append("columnLower: ").append(columnLower).append("\n");
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        
+        if (obj instanceof DimensionItem that) {
+            return Objects.equals(this.column, that.column) &&
+                   Objects.equals(this.name, that.name) &&
+                   Objects.equals(this.columnUpper, that.columnUpper) &&
+                   Objects.equals(this.columnLower, that.columnLower);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 43 * hash + Objects.hashCode(this.name);
+        hash = 43 * hash + Objects.hashCode(this.column);
+        hash = 43 * hash + Objects.hashCode(this.columnUpper);
+        hash = 43 * hash + Objects.hashCode(this.columnLower);
+        return hash;
+    }
 }

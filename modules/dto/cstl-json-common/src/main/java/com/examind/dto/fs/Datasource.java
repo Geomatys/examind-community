@@ -18,6 +18,7 @@
 package com.examind.dto.fs;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  *
@@ -88,4 +89,48 @@ public class Datasource {
         this.advancedParameters = advancedParameters;
     }
     
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (userName != null) {
+            sb.append("userName:").append(userName).append("\n");
+        }
+        if (password != null) {
+            sb.append("password:").append("******").append("\n");
+        }
+        if (location != null) {
+            sb.append("location:").append(location).append("\n");
+        }
+        if (advancedParameters != null) {
+            sb.append("advanced parameters:\n");
+            for (Map.Entry<String, String> e : advancedParameters.entrySet()) {
+                sb.append(" - ").append(e.getKey()).append(" = ").append(e.getValue()).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        
+        if (obj instanceof Datasource that) {
+            return Objects.equals(this.userName, that.userName) &&
+                   Objects.equals(this.password, that.password) &&
+                   Objects.equals(this.location, that.location) &&
+                   Objects.equals(this.advancedParameters, that.advancedParameters);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 19 * hash + Objects.hashCode(this.userName);
+        hash = 19 * hash + Objects.hashCode(this.password);
+        hash = 19 * hash + Objects.hashCode(this.location);
+        hash = 19 * hash + Objects.hashCode(this.advancedParameters);
+        return hash;
+    }
 }

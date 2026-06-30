@@ -21,7 +21,6 @@ package com.examind.setup;
 import com.examind.community.storage.sql.CoverageSQLProvider.CoverageSQLStore;
 import jakarta.annotation.PostConstruct;
 import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +55,13 @@ import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.DimensionItem;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
+import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
 import static com.examind.setup.FileSystemUtilities.*;
+import static com.examind.setup.ProviderUtilities.COMPUTED_PROVIDER;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.apache.sis.storage.DataStoreException;
@@ -70,8 +70,6 @@ import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.wps.ProcessContext;
-import org.constellation.dto.service.config.wps.ProcessFactory;
-import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConfigurationException;
@@ -89,7 +87,9 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterNotFoundException;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.task.TaskExecutor;
 
 /**
  *
@@ -141,70 +141,98 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url");
     
+    /**
+     * Executor to perform task asynchroneously.
+     */
+    @Autowired
+    @Qualifier("cstlExecutor")
+    private TaskExecutor taskExecutor;
+    
     @PostConstruct
     public void initFsConfiguration() {
         if (Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE)) {
-            installDatas();
+            if (Application.getBooleanProperty(AppProperty.EXA_FS_ASYNC, Boolean.FALSE)) {
+                taskExecutor.execute(() -> installDatas(true));
+            } else {
+                installDatas(false);
+            }
         }
     }
-
+    
+    /**
+     * Install all the styles, services and providers from the filesystem configuration.
+     * 
+     * @param async asynchroneous mode.
+     */
     @Override
-    public void installDatas() {
+    public void installDatas(boolean async) {
         LOGGER.info("""
                     
                     -----------------------------------------------------------
                     --        STARTING FILESYSTEM CONFIG INSTALLATION        --
                     -----------------------------------------------------------
+                    
                     """);
         try {
-            
-            // 1. install styles
             Path styleDir = configBusiness.getStylesDirectory();
-            try (Stream<Path> stream = Files.walk(styleDir)) {
-                 stream.filter(FileSystemUtilities::sldFileFilter).forEach(path -> {
-                    createStyleFromFile(path);
-                });
+            Path servDir  = configBusiness.getServicesDirectory();
+            Path dataDir  = configBusiness.getProvidersDirectory();
+            
+            FileSystemAnalysis analysis = new FileSystemAnalysis(styleDir, servDir, dataDir, this::parseStyle, async);
+                    
+            // 1. install styles
+            for (MutableStyle style : analysis.styles.values()) {
+                createStyleFromFile(style);
             }
             
-            // 2. install regular data
-            Path dataDir = configBusiness.getProvidersDirectory();
-            try (Stream<Path> stream = Files.walk(dataDir)) {
-                stream.filter(p -> providerFileFilter(p, false)).forEach(path -> {
-                    createProviderFromFile(path);
-                });
+            // 2. install services with data
+            for (Service service : analysis.servicesWithData.values()) {
+                createServiceFromFile(service);
             }
             
-            // 3. install services potentially creating data
-            Path servDir = configBusiness.getServicesDirectory();
-            try (Stream<Path> stream = Files.walk(servDir)) {
-                 stream.filter(p -> serviceFileFilter(p, true)).forEach(path -> {
-                    createServiceFromFile(path);
-                });
+            // 3. (Async) install services
+            if (async) {
+                for (Service service : analysis.services.values()) {
+                    createServiceFromFile(service);
+                }
             }
             
-            // 4. install computed data that use data created in the previous pass
-            try (Stream<Path> stream = Files.walk(dataDir)) {
-                stream.filter(p -> providerFileFilter(p, true)).forEach(path -> {
-                    createProviderFromFile(path);
-                });
+            // 4. install regular data
+            for (ProviderWithPath provider : analysis.providers.values()) {
+                createProviderFromFile(provider, analysis.asyncInfos, async);
             }
             
-            // 5. install regular services
-            try (Stream<Path> stream = Files.walk(servDir)) {
-                 stream.filter(p -> serviceFileFilter(p, false)).forEach(path -> {
-                    createServiceFromFile(path);
-                });
+            // 5. install computed data that use data created in the previous pass
+            for (ProviderWithPath provider : analysis.computedProviders.values()) {
+                createProviderFromFile(provider, analysis.asyncInfos, async);
             }
             
+            // 6. (Sync) install services
+            if (!async) {
+                for (Service service : analysis.services.values()) {
+                    createServiceFromFile(service);
+                }
+            }
             
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error a filesystem configuration startup", ex);
         }
+        LOGGER.info("""
+                    
+                    -----------------------------------------------------------
+                    --        FILESYSTEM CONFIG INSTALLATION COMPLETE        --
+                    -----------------------------------------------------------
+                    
+                    """);
     }
     
-    private void createServiceFromFile(Path path) {
+    /**
+     * Instanciate a service from its configuration.
+     * 
+     * @param instance Service configuration.
+     */
+    private void createServiceFromFile(Service instance) {
         try {
-            Service instance = FS_MAPPER.readValue(path.toFile(), Service.class);
             if (serviceBusiness.getServiceIdentifiers(instance.getType()).contains(instance.getIdentifier())) {
                 throw new ConfigurationException("Service identifier: " + instance.getIdentifier() + "(" +  instance.getType() + ") already used");
             }
@@ -285,20 +313,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             } else if ("WPS".equalsIgnoreCase(instance.getType())) {
                 if (!instance.getProcessFactories().isEmpty()) {
                     ProcessContext conf = (ProcessContext) serviceBusiness.getConfiguration(sid);
-                    List<ProcessFactory> factories = new ArrayList<>();
-                    for (com.examind.dto.fs.ProcessFactory factory : instance.getProcessFactories()) {
-                        ProcessFactory processFactory;
-                        if (factory.getProcess().isEmpty()) {
-                            processFactory = new ProcessFactory(factory.getAuthority(), Boolean.TRUE);
-                        } else {
-                            processFactory = new ProcessFactory(factory.getAuthority(), Boolean.FALSE);
-                            for (String pr : factory.getProcess()) {
-                                processFactory.getInclude().add(new org.constellation.dto.service.config.wps.Process(pr));
-                            }
-                        }
-                        factories.add(processFactory);
-                    }
-                    conf.setProcesses(new Processes(false, factories));
+                    conf.setProcesses(toWPSConfig(instance));
                     serviceBusiness.setConfiguration(sid, conf);
                 }
             
@@ -314,66 +329,95 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
             for (Collection col : instance.getCollections()) {
                 if (col.getDataSet() != null) {
-                    
-                    Integer styleId = (col.getDatasetStyle() != null) ? styleBusiness.getStyleId("sld", col.getDatasetStyle()) : null;
-                    List<Data> datas = getDataFromCollection(col);
-                    
-                    for (Data data : datas) {
-                        
-                        if (!isAllowedDataTypeForService(instance.getType(), data.getType(), data.getSubtype())) {
-                            LOGGER.log(Level.FINER, "Data type: {0} not allowed for service: {1}", new Object[]{data.getType(), instance.getType()});
-                            continue;
-                        }
-
-                        //create future new layer
-                        QName layerQName     = new QName(data.getName(), data.getNamespace());
-                        LayerConfig newLayer = new LayerConfig(layerQName);
-
-                        CollectionItem custom = col.getItemByName(data.getName(), data.getNamespace());
-                        String alias = null;
-                        String aliasNmsp;
-                        String name;
-                        String title ;
-                        if (custom != null) {
-                            alias = custom.getAlias();
-                            aliasNmsp = custom.getAliasNamespace() ;
-                            // special case for custom namespace, we use the alias as name
-                            if (aliasNmsp != null) {
-                                name = alias;
-                                alias = null;
-                            } else {
-                                name = data.getName();
-                            }
-                            title = custom.getTitle();
-                            if (custom.getStyle() != null) {
-                                try {
-                                    styleId = styleBusiness.getStyleId("sld", custom.getStyle());
-                                } catch (Exception ex) {
-                                    LOGGER.log(Level.SEVERE, "Error while importing style : " + custom.getStyle() + " for data: " + data.getName(), ex);
-                                }
-                            }
-                            for (DimensionItem di : custom.getDimensions()) {
-                                newLayer.addDimension(new DimensionDefinition(di));
-                            }
-                        } else {
-                            title = data.getName();
-                            name = data.getName();
-                            aliasNmsp = data.getNamespace();
-                        }
-                        int layerId = layerBusiness.add(data.getId(), alias, aliasNmsp, name, title, sid, newLayer);
-                        if (styleId != null) {
-                            styleBusiness.linkToLayer(styleId, layerId);
-                        }
-                    }
+                    publishLayersOnService(col, sid, instance.getType());
                 } else {
                     LOGGER.warning("No dataset specified in collection");
                 }
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error while importing service file: " + path.getFileName().toString(), ex);
+            LOGGER.log(Level.SEVERE, "Error while importing service: " + instance.getType() + " " + instance.getIdentifier(), ex);
         }
     }
     
+    /**
+     * Publish data on a service.
+     * 
+     * @param col Collection configuration.
+     * @param serviceId Service identifier.
+     * @param serviceType Service Type.
+     * @throws ConstellationException 
+     */
+    private void publishLayersOnService(Collection col, int serviceId, String serviceType) throws ConstellationException {
+        Integer styleId = (col.getDatasetStyle() != null) ? styleBusiness.getStyleId("sld", col.getDatasetStyle()) : null;
+        List<Data> datas = getDataFromCollection(col);
+
+        for (Data data : datas) {
+
+            if (!isAllowedDataTypeForService(serviceType, data.getType(), data.getSubtype())) {
+                LOGGER.log(Level.FINER, "Data type: {0} not allowed for service: {1}", new Object[]{data.getType(), serviceType});
+                continue;
+            }
+
+            //create future new layer
+            QName layerQName     = new QName(data.getName(), data.getNamespace());
+            LayerConfig newLayer = new LayerConfig(layerQName);
+
+            CollectionItem custom = col.getItemByName(data.getName(), data.getNamespace());
+            String alias = null;
+            String aliasNmsp;
+            String name;
+            String title ;
+            if (custom != null) {
+                alias = custom.getAlias();
+                aliasNmsp = custom.getAliasNamespace() ;
+                // special case for custom namespace, we use the alias as name
+                if (aliasNmsp != null) {
+                    name = alias;
+                    alias = null;
+                } else {
+                    name = data.getName();
+                }
+                title = custom.getTitle();
+                if (custom.getStyle() != null) {
+                    try {
+                        styleId = styleBusiness.getStyleId("sld", custom.getStyle());
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, "Error while importing style : " + custom.getStyle() + " for data: " + data.getName(), ex);
+                    }
+                }
+                for (DimensionItem di : custom.getDimensions()) {
+                    newLayer.addDimension(new DimensionDefinition(di));
+                }
+            } else {
+                title = data.getName();
+                name = data.getName();
+                aliasNmsp = data.getNamespace();
+            }
+            if (!alreadyPublishedLayer(serviceId, alias, name, aliasNmsp)) {
+                int layerId = layerBusiness.add(data.getId(), alias, aliasNmsp, name, title, serviceId, newLayer);
+                if (styleId != null) {
+                    styleBusiness.linkToLayer(styleId, layerId);
+                }
+            }
+        }
+    }
+    
+    private boolean alreadyPublishedLayer(int serviceId, String alias, String name, String namespace) {
+        try {
+            layerBusiness.getFullLayerName(serviceId, alias != null ? alias : name, namespace, null);
+            return true;
+        } catch (ConfigurationException ex) {
+            return false;
+        }
+    }
+    
+    /**
+     * Extract data from a configuration collection.
+     * 
+     * @param col
+     * @return
+     * @throws ConstellationException 
+     */
     private List<Data> getDataFromCollection(Collection col) throws ConstellationException {
         Integer dsId  = col.getDataSet() != null ? datasetBusiness.getDatasetId(col.getDataSet()) : null;
         
@@ -606,9 +650,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return datasourceBusiness.getOrcreate(ds);
     }
     
-    private void createProviderFromFile(final Path path) {
+    private void createProviderFromFile(final ProviderWithPath provider, Map<String, List<Service>> providerServiceLink, boolean async) {
         try {
-            Provider providerConf = FS_MAPPER.readValue(path.toFile(), Provider.class);
+            Provider providerConf = provider.provider;
 
             String dataType = providerConf.getDataType();
             String impl = providerConf.getProviderType();
@@ -621,7 +665,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             final Pattern dirPattern = (dirFilter != null) ? Pattern.compile(dirFilter) : null;
             
             if (impl == null) {
-                throw new ConstellationException("Provider type is missing for:" + path.getFileName().toString());
+                throw new ConstellationException("Provider type is missing for:" + providerConf.getIdentifier());
             }
             
             // special case
@@ -639,7 +683,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             List<Object> files = new ArrayList<>();
             if (dataStr != null) {
                 try {
-                    files.addAll(listFiles(path, dataStr, dirPattern));
+                    files.addAll(listFiles(provider.ymlFile, dataStr, dirPattern));
                 } catch (FileSystemNotFoundException ex) {
                     LOGGER.log(Level.FINER, ex.getMessage(), ex);
                     files = List.of(dataStr);
@@ -739,35 +783,54 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
                     List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
                     dataBusiness.acceptDatas(dataIds, null, false);
+                    
+                    // SYNC MODE Add layer and reload needed service
+                    if (async && dataset != null) {
+                        List<Service> services = providerServiceLink.getOrDefault(dataset, new ArrayList<>());
+                        for (Service service : services) {
+                            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(service.getType(), service.getIdentifier());
+                            Collection collection = service.getCollection(dataset);
+                            if (collection != null) {
+                                publishLayersOnService(collection, sid, service.getType());
+                                serviceBusiness.restart(sid);
+                            } else {
+                                LOGGER.log(Level.WARNING, "unable to find a collection with dataset {0} in service ({1}) {2}", new Object[]{dataset, service.getType(), service.getIdentifier()});
+                            }
+                        }
+                    }
                 } catch (Exception ex) {
-                    LOGGER.log(Level.SEVERE, "Error while importing provider file: " + path.getFileName().toString() + " data file: " + fileUri, ex);
+                    LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString() + " data file: " + fileUri, ex);
                 }
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error while importing provider file: " + path.getFileName().toString(), ex);
+            LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString(), ex);
         }
     }
     
-    private void createStyleFromFile(Path path) {
+    private MutableStyle parseStyle(Path path) {
+        String fileName = path.getFileName().toString();
+        String styleName = IOUtilities.filenameWithoutExtension(fileName);
+
+
+        MutableStyle style = (MutableStyle) styleBusiness.parseStyle(styleName, path, fileName);
+
+        if (style == null) {
+            LOGGER.log(Level.WARNING, "Failed to import style from file: {0}", fileName);
+        }
+        return style;
+    }
+
+    private void createStyleFromFile(MutableStyle style) {
         try {
-            String fileName = path.getFileName().toString();
-            String styleName = IOUtilities.filenameWithoutExtension(fileName);
             String type = "sld";
-
-            //try to parse a style from various form and version
-            MutableStyle style = (MutableStyle) styleBusiness.parseStyle(styleName, path, fileName);
-
-            if (style == null) {
-                throw new ConstellationException("Failed to import style from file, no UserStyle element defined, in file: " + fileName);
-            }
             final boolean exists = styleBusiness.existsStyle(type, style.getName());
             if (!exists) {
                 styleBusiness.createStyle(type, style);
             } else {
-                throw new ConstellationException("Duplicated style:" + fileName);
+                LOGGER.log(Level.WARNING, "Duplicated style:{0}", style.getName());
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error while importing style file: " + path.getFileName().toString(), ex);
+            LOGGER.log(Level.WARNING, "Error while importing style: " + style.getName(), ex);
         }
     }
 }

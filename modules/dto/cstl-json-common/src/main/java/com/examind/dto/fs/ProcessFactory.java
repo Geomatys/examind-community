@@ -19,6 +19,7 @@ package com.examind.dto.fs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -59,5 +60,40 @@ public class ProcessFactory {
      */
     public void setProcess(List<String> process) {
         this.process = process;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (authority != null) {
+            sb.append("authority:").append(authority).append("\n");
+        }
+        if (process != null) {
+            sb.append("process:\n");
+            for (String col : process) {
+                sb.append(" - ").append(col).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        
+        if (obj instanceof ProcessFactory that) {
+            return Objects.equals(this.authority, that.authority) &&
+                   Objects.equals(this.process, that.process);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 83 * hash + Objects.hashCode(this.authority);
+        hash = 83 * hash + Objects.hashCode(this.process);
+        return hash;
     }
 }

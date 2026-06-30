@@ -19,6 +19,8 @@
 
 package org.constellation.dto.contact;
 
+import java.util.Objects;
+
 
 /**
  * Contact part on getCapabilities service section.
@@ -217,5 +219,57 @@ public class Contact {
 
     public void setContactInstructions(String contactInstructions) {
         this.contactInstructions = contactInstructions;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Contact contact = (Contact) o;
+        return Objects.equals(firstname, contact.firstname) &&
+                Objects.equals(lastname, contact.lastname) &&
+                Objects.equals(fullname, contact.fullname) &&
+                Objects.equals(organisation, contact.organisation) &&
+                Objects.equals(position, contact.position) &&
+                Objects.equals(phone, contact.phone) &&
+                Objects.equals(fax, contact.fax) &&
+                Objects.equals(email, contact.email) &&
+                Objects.equals(address, contact.address) &&
+                Objects.equals(city, contact.city) &&
+                Objects.equals(state, contact.state) &&
+                Objects.equals(zipCode, contact.zipCode) &&
+                Objects.equals(country, contact.country) &&
+                Objects.equals(url, contact.url) &&
+                Objects.equals(hoursOfService, contact.hoursOfService) &&
+                Objects.equals(contactInstructions, contact.contactInstructions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(firstname, lastname, fullname, organisation, position,
+                phone, fax, email, address, city, state, zipCode, country, url,
+                hoursOfService, contactInstructions);
+    }
+
+    @Override
+    public String toString() {
+        return "Contact{" +
+                "firstname='" + firstname + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", fullname='" + fullname + '\'' +
+                ", organisation='" + organisation + '\'' +
+                ", position='" + position + '\'' +
+                ", phone='" + phone + '\'' +
+                ", fax='" + fax + '\'' +
+                ", email='" + email + '\'' +
+                ", address='" + address + '\'' +
+                ", city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                ", zipCode='" + zipCode + '\'' +
+                ", country='" + country + '\'' +
+                ", url='" + url + '\'' +
+                ", hoursOfService='" + hoursOfService + '\'' +
+                ", contactInstructions='" + contactInstructions + '\'' +
+                '}';
     }
 }

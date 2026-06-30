@@ -26,9 +26,6 @@
         <context:component-scan base-package="org.constellation.conf" />
         <context:component-scan base-package="org.constellation.ws.rs" />
     </beans> 
-    <beans profile="fsconfig">
-        <bean id="fsSetup" class="com.examind.setup.FileSystemSetupBusiness"/>
-    </beans>
     <beans>
         <!-- Executor and scheduler -->
         <task:executor id="cstlExecutor" pool-size="5" />
@@ -38,5 +35,8 @@
         <bean id="eventBus" class="com.google.common.eventbus.AsyncEventBus">
             <constructor-arg ref="cstlExecutor" />
         </bean>
+    </beans>
+    <beans profile="fsconfig">
+        <bean id="fsSetup" class="com.examind.setup.FileSystemSetupBusiness"/>
     </beans>
 </beans>
