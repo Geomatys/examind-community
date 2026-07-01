@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -673,9 +674,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(dsId, childPath);
                 FileBean fb;
                 if (dpc == null) {
-                    dpc = analysePath(dsId, subPath, child, false, false, null);
+                    dpc = analysePath(dsId, subPath, child, false, false, false, null);
                 }
-                fb = new FileBean(dpc.getName(), dpc.getFolder(), childPath, dpc.getParentPath(), dpc.getSize(), dpc.getTypes());
+                fb = new FileBean(dpc);
 
                 listBean.add(fb);
             }
@@ -693,7 +694,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     public Optional<FileBean> getAnalyzedPath(Integer dsId, String path) throws ConstellationException {
         DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(dsId, path);
         if (dpc != null) {
-            return Optional.of(new FileBean(dpc.getName(), dpc.getFolder(), path, dpc.getParentPath(), dpc.getSize(), dpc.getTypes()));
+            return Optional.of(new FileBean(dpc));
         }
         return Optional.empty();
     }
@@ -904,30 +905,20 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, boolean deep, boolean lookForS63) throws ConstellationException {
-        return computeDatasourceStores(id, async, null, deep, lookForS63);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63) throws ConstellationException {
+    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63, boolean computeHash) throws ConstellationException {
         final DataSource ds = getDatasource(id);
         if (ds == null) {
             throw new TargetNotFoundException("Unexisting datasource:" + id);
         }
-
         synchronized (datasourceLocks.computeIfAbsent(id, key -> key)) {
             String datasourceState = dsRepository.getAnalysisState(ds.getId());
             if ( AnalysisState.NOT_STARTED.name().equals(datasourceState)) {
                 updateDatasourceAnalysisState(ds.getId(), AnalysisState.PENDING.name());
                 if (!async) {
-                    return analyzeDataSource(ds, storeId, deep, lookForS63);
+                    return analyzeDataSource(ds, storeId, deep, lookForS63, computeHash);
                 } else {
                     // TODO: work with FutureTask instead, and use an executor service to avoid hard-coded thread creation
-                    final Thread t = new Thread(() -> analyzeDataSource(ds, storeId, deep, lookForS63));
+                    final Thread t = new Thread(() -> analyzeDataSource(ds, storeId, deep, lookForS63, computeHash));
                     currentRunningAnalysis.put(id, t);
                     t.start();
                     return Collections.EMPTY_MAP;
@@ -938,11 +929,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
-    private Map<String, Set<String>> analyzeDataSource(final DataSource source, String storeId, boolean deep, boolean lookForS63) {
+    private Map<String, Set<String>> analyzeDataSource(final DataSource source, String storeId, boolean deep, boolean lookForS63, boolean computeHash) {
         final Map<String, Set<String>> results = new HashMap<>();
         try {
             long start = System.nanoTime();
-            computeDatasourceStores(source, results, null, "/", true, deep, lookForS63, storeId);
+            computeDatasourceStores(source, results, null, "/", true, deep, lookForS63, computeHash, storeId);
             updateDatasourceAnalysisState(source.getId(), AnalysisState.COMPLETED.name());
             LOGGER.fine("Analysis complete in " + ((System.nanoTime() - start) / 1e6) + " ms");
         } catch (Exception ex) {
@@ -952,7 +943,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return results;
     }
 
-    private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root, boolean deep, boolean lookForS63, String storeId) throws ConstellationException {
+    private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root, 
+            boolean deep, boolean lookForS63, boolean computeHash, String storeId) throws ConstellationException {
         final Path path = getDataSourcePath(ds, subPath);
         if (!Files.exists(path)) {
             throw new ConstellationException("path does not exist:" + path.toString());
@@ -969,7 +961,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
         DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(ds.getId(), subPath);
         if (dpc == null) {
-            dpc = analysePath(ds.getId(), parentPath, path, true, lookForS63, storeId);
+            dpc = analysePath(ds.getId(), parentPath, path, true, lookForS63, computeHash, storeId);
         }
         Map<String, String> pathTypes = dpc.getTypes();
         for (Entry<String, String> pathType : pathTypes.entrySet()) {
@@ -1002,7 +994,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 if (Files.isDirectory(child)) {
                     childPath = childPath + '/';
                 }
-                computeDatasourceStores(ds, types, subPath, childPath, false, deep, lookForS63, storeId);
+                computeDatasourceStores(ds, types, subPath, childPath, false, deep, lookForS63, computeHash, storeId);
             }
         }
     }
@@ -1028,7 +1020,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         });
     }
 
-    private DataSourcePathComplete analysePath(Integer dsId, String parentPath, Path path, boolean record, boolean lookForS63, String storeId) {
+    private DataSourcePathComplete analysePath(Integer dsId, String parentPath, Path path, boolean record, boolean lookForS63, boolean computeHash, String storeId) {
         LOGGER.log(Level.FINER, "ANALYZING:{0}", path.toString());
         String fileName;
         boolean isDir = Files.isDirectory(path);
@@ -1049,10 +1041,13 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
         long size = 0;
         Map<String, String> types = new HashMap<>();
+        long lastModified = 0;
+        String hashContent = null;
+        String hashAlgo = null;
         if (!isDir) {
             try {
                 size = Files.size(path);
-
+                lastModified = Files.getLastModifiedTime(path).toMillis();
                 if (storeId != null) {
                     types.putAll(DataProviders.probeContentForSpecificStore(path, storeId));
                 } else {
@@ -1066,11 +1061,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                         types.put("S63", "application/x-iho-s63");
                     }
                 }
-            } catch (DataStoreException | IOException ex) {
+                
+                // hash content
+                if (computeHash) {
+                    hashContent = FileSystemUtilities.computeHash(path);
+                    hashAlgo = "SHA-256";
+                }
+                
+            } catch (DataStoreException | IOException | NoSuchAlgorithmException ex) {
                 LOGGER.log(Level.WARNING, "Error while trying to probe the content type of the file:" + fileName, ex);
             }
         }
-        final DataSourcePath dsPath = new DataSourcePath(dsId, localPath, fileName, isDir, parentPath, size);
+        final DataSourcePath dsPath = new DataSourcePath(dsId, localPath, fileName, isDir, parentPath, size, lastModified, hashContent, hashAlgo);
         LOGGER.log(Level.FINER, "ANALYZED:{0}", path.toString());
         DataSourcePathComplete result = new DataSourcePathComplete(dsPath, types);
         if (record) {

@@ -295,6 +295,9 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                 .set(DATASOURCE_PATH.NAME, dsPath.getName())
                 .set(DATASOURCE_PATH.PARENT_PATH, dsPath.getParentPath())
                 .set(DATASOURCE_PATH.SIZE, dsPath.getSize())
+                .set(DATASOURCE_PATH.MODIFIED, dsPath.getModifiedTime())
+                .set(DATASOURCE_PATH.CONTENT_HASH, dsPath.getContentHash())
+                .set(DATASOURCE_PATH.HASH_ALGO, dsPath.getHashAlgo())
                 .where(DATASOURCE_PATH.DATASOURCE_ID.eq(dsPath.getDatasourceId())
                 .and(DATASOURCE_PATH.PATH.eq(dsPath.getPath())));
 
@@ -495,6 +498,9 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
             dto.setName(dao.getName());
             dto.setSize(dao.getSize());
             dto.setParentPath(dao.getParentPath());
+            dto.setModifiedTime(dao.getModified());
+            dto.setContentHash(dao.getContentHash());
+            dto.setHashAlgo(dao.getHashAlgo());
             return dto;
         }
         return null;

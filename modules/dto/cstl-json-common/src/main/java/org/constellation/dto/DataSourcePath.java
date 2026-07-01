@@ -30,18 +30,37 @@ public class DataSourcePath {
     private Boolean folder;
     private String parentPath;
     private Long size;
+    private Long modifiedTime;
+    private String contentHash;
+    private String hashAlgo;
 
     public DataSourcePath() {
     }
+    
+    public DataSourcePath(DataSourcePath that) {
+        this.datasourceId = that.datasourceId;
+        this.path = that.path;
+        this.name = that.name;
+        this.folder = that.folder;
+        this.parentPath = that.parentPath;
+        this.size = that.size;
+        this.modifiedTime = that.modifiedTime;
+        this.contentHash = that.contentHash;
+        this.hashAlgo = that.hashAlgo;
+    }
 
     public DataSourcePath(Integer datasourceId, String path, String name,
-            Boolean folder, String parentPath, Long size) {
+            Boolean folder, String parentPath, Long size, Long modifiedTime,
+            String contentHash, String hashAlgo) {
         this.datasourceId = datasourceId;
         this.path = path;
         this.name = name;
         this.folder = folder;
         this.parentPath = parentPath;
         this.size = size;
+        this.modifiedTime = modifiedTime;
+        this.contentHash = contentHash;
+        this.hashAlgo = hashAlgo;
     }
 
     /**
@@ -126,5 +145,29 @@ public class DataSourcePath {
      */
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public Long getModifiedTime() {
+        return modifiedTime;
+    }
+
+    public void setModifiedTime(Long modifiedTime) {
+        this.modifiedTime = modifiedTime;
+    }
+
+    public String getContentHash() {
+        return contentHash;
+    }
+
+    public void setContentHash(String contentHash) {
+        this.contentHash = contentHash;
+    }
+
+    public String getHashAlgo() {
+        return hashAlgo;
+    }
+
+    public void setHashAlgo(String hashAlgo) {
+        this.hashAlgo = hashAlgo;
     }
 }

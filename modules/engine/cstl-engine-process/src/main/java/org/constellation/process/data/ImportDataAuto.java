@@ -107,7 +107,7 @@ public class ImportDataAuto extends AbstractCstlProcess {
              *
              * We made a partial hard coded method to choose the "best" provider.
              */
-            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(datasourceId, false, true, false);
+            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(datasourceId, false, null, true, false, false);
             if (storeFormats.isEmpty()) {
                 throw new ProcessException("No store found to read this data file", this);
             }

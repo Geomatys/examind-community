@@ -29,11 +29,10 @@ public class DataSourcePathComplete extends DataSourcePath {
     private Map<String, String> types;
 
     public DataSourcePathComplete() {
-        super(null, null, null, Boolean.FALSE, null, null);
     }
 
     public DataSourcePathComplete(DataSourcePath dsPath, Map<String, String> types) {
-        super(dsPath.getDatasourceId(), dsPath.getPath(), dsPath.getName(), dsPath.getFolder(), dsPath.getParentPath(), dsPath.getSize());
+        super(dsPath);
         this.types = types;
     }
 

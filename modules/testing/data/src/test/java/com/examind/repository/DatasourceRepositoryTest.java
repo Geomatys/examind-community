@@ -18,6 +18,7 @@
  */
 package com.examind.repository;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,20 +49,20 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
          * datasource insertion
          */
         int did = datasourceRepository.create(TestSamples.newDataSource());
-        DataSourcePath dsPath = new DataSourcePath(did, "/", "fold", true, null, 0l);
+        DataSourcePath dsPath = new DataSourcePath(did, "/", "fold", true, null, 0l, Instant.now().toEpochMilli(), "", "SHA-256");
         Map<String, String> types = new HashMap<>();
         datasourceRepository.addAnalyzedPath(dsPath, types);
 
-        dsPath = new DataSourcePath(did, "/file1", "file1", false, "/", 123l);
+        dsPath = new DataSourcePath(did, "/file1", "file1", false, "/", 123l, Instant.now().toEpochMilli(), "", "SHA-256");
         types.put("store1", "type1");
         datasourceRepository.addAnalyzedPath(dsPath, types);
 
-        dsPath = new DataSourcePath(did, "/file2", "file2", false, "/", 123l);
+        dsPath = new DataSourcePath(did, "/file2", "file2", false, "/", 123l, Instant.now().toEpochMilli(), "", "SHA-256");
         types.clear();
         types.put("store1", "type2");
         datasourceRepository.addAnalyzedPath(dsPath, types);
         
-        dsPath = new DataSourcePath(did, "/file3", "file3", false, "/", 123l);
+        dsPath = new DataSourcePath(did, "/file3", "file3", false, "/", 123l, Instant.now().toEpochMilli(), "", "SHA-256");
         types.clear();
         types.put("store2", "type1");
         datasourceRepository.addAnalyzedPath(dsPath, types);

@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.constellation.dto.DataSourcePathComplete;
 
 /**
  * Bean for file information : name and boolean to define folder
@@ -55,30 +56,20 @@ public class FileBean implements Serializable,Comparable<FileBean> {
 
     }
 
-    public FileBean(final String name, final Boolean folder, final String path,
-            final String parentPath, final long size, final Map<String, String> types) {
-        this.name = name;
-        this.folder = folder;
-        this.path = path;
-        this.parentPath = parentPath;
-        this.size = size;
+    public FileBean(final DataSourcePathComplete dpc) {
+        this.name = dpc.getName();
+        this.folder = dpc.getFolder();
+        this.path = dpc.getPath();
+        this.parentPath = dpc.getParentPath();
+        this.size = dpc.getSize();
+        this.lastModified = dpc.getModifiedTime();
         final List<StoreFormat> sf = new ArrayList<>();
-        for (Map.Entry<String, String> entry : types.entrySet()) {
+        for (Map.Entry<String, String> entry : dpc.getTypes().entrySet()) {
             sf.add(new StoreFormat(entry.getKey(), entry.getValue()));
         }
         this.types = sf;
     }
-
-    public FileBean(final String name, final Boolean folder, final String path,
-            final String parentPath, final long size, final List<StoreFormat> types) {
-        this.name = name;
-        this.folder = folder;
-        this.path = path;
-        this.parentPath = parentPath;
-        this.size = size;
-        this.types = types;
-    }
-
+    
     public FileBean(final String name, final Boolean folder, final String path,
             final String parentPath, final long size, final Long lastModified) {
         this.name = name;
@@ -87,20 +78,6 @@ public class FileBean implements Serializable,Comparable<FileBean> {
         this.parentPath = parentPath;
         this.size = size;
         this.lastModified = lastModified;
-    }
-
-    public FileBean(Path path, boolean isLocal) {
-        this.name = path.getFileName().toString();
-        this.folder = Files.isDirectory(path);
-        Path absPath = path.toAbsolutePath();
-        if (isLocal) {
-            //remove uri schema if local file "file:/...."
-            this.path = absPath.toString();
-            this.parentPath = absPath.getParent().toString();
-        } else {
-            this.path = absPath.toUri().toASCIIString();
-            this.parentPath = absPath.getParent().toUri().toASCIIString();
-        }
     }
 
     public String getName() {

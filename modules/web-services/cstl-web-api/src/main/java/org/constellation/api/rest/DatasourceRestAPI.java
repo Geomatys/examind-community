@@ -418,10 +418,11 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     public ResponseEntity getDatasourceStores(@PathVariable("id") int id,
                                             @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async,
                                             @RequestParam(name = "deep", required = false, defaultValue = "false") Boolean deep,
-                                            @RequestParam(name = "s63", required = false, defaultValue = "true") Boolean s63) {
+                                            @RequestParam(name = "s63", required = false, defaultValue = "true") Boolean s63,
+                                            @RequestParam(name = "computeHash", required = false, defaultValue = "false") Boolean computeHash) {
         if (readOnlyAPI) return readOnlyModeActivated();
         try {
-            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, deep, s63);
+            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, null, deep,  s63, computeHash);
             final List<StoreFormat> results = new ArrayList<>();
             for (Entry<String, Set<String>> entry : storeFormats.entrySet()) {
                 for (String format : entry.getValue()) {

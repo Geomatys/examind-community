@@ -20,6 +20,7 @@ package org.constellation.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
@@ -28,9 +29,13 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -314,5 +319,15 @@ public class FileSystemUtilities {
         } catch (Exception e) {
             throw new IOException("Invalid path :" + e.getMessage());
         }
+    }
+    
+    public static String computeHash(Path path) throws IOException, NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (InputStream is = Files.newInputStream(path); DigestInputStream dis = new DigestInputStream(is, digest)) {
+            byte[] buffer = new byte[8192];
+            while (dis.read(buffer) != -1) {
+                /* drain stream */ }
+        }
+        return HexFormat.of().formatHex(digest.digest());
     }
 }
