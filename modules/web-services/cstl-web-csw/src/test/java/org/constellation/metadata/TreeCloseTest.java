@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import static org.constellation.metadata.CSW2workerTest.LOGGER;
 
@@ -98,7 +99,7 @@ public class TreeCloseTest extends AbstractCSWworkerTest {
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();
-                configuration.setProfile("discovery");
+                configuration.putParameter(TRANSACTIONAL, "false");
                 configuration.putParameter(TRANSACTION_SECURIZED, "false");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);

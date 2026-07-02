@@ -79,14 +79,13 @@ public class GenericConfigurationXMLBindingTest {
 
         Automatic config = new Automatic("FILESYSTEM", "data_dir_value");
         config.putParameter("testParam", "paramValue");
-        config.setProfile("discovery");
-        config.setIndexType("lucene");
+        config.putParameter("transactional", "false");
+        config.putParameter("index-type", "lucene");
 
         ObjectMapper mapper = new ObjectMapper();
         String expresult = "{\"type\":\"Automatic\",\"configurationDirectory\":null,"
-                         + "\"format\":\"FILESYSTEM\",\"name\":null,\"profile\":\"discovery\",\"dataDirectory\":\"data_dir_value\",\"enableThread\":null,\"enableCache\":null,"
-                         + "\"indexOnlyPublishedMetadata\":null,\"noIndexation\":null,\"harvester\":null,\"identifierDirectory\":null,"
-                         + "\"customparameters\":{\"testParam\":\"paramValue\"},\"indexType\":\"lucene\"}";
+                         + "\"format\":\"FILESYSTEM\",\"name\":null,\"dataDirectory\":\"data_dir_value\","
+                         + "\"customparameters\":{\"testParam\":\"paramValue\",\"index-type\":\"lucene\",\"transactional\":\"false\"}}";
         String result = mapper.writeValueAsString(config);
         assertEquals(expresult, result);
 
@@ -110,7 +109,6 @@ public class GenericConfigurationXMLBindingTest {
         "<ns2:SOSConfiguration xmlns:ns2=\"http://www.constellation.org/config\">" + '\n' +
         "    <ns2:extensions format=\"FILESYSTEM\" name=\"coriolis\">"             + '\n' +
         "        <customparameters/>"                                              + '\n' +
-        "        <indexType>lucene-node</indexType>"                               + '\n' +
         "    </ns2:extensions>"                                                    + '\n' +
         "    <ns2:parameters/>"                                                    + '\n' +
         "</ns2:SOSConfiguration>" + '\n';

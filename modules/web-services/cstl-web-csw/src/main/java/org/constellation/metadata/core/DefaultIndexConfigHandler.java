@@ -43,9 +43,8 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.constellation.api.HarvesterType;
 import org.constellation.business.IConfigurationBusiness;
-
-import static org.constellation.dto.service.config.generic.Automatic.*;
 
 /**
  * Sub project can override this bean by adding a new Bean implementing IndexConfigHandler
@@ -64,11 +63,12 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
 
     @Override
     public CatalogueHarvester getCatalogueHarvester(final Automatic configuration, final MetadataStore store) throws ConstellationStoreException {
-        int type = -1;
+        HarvesterType type = null;
         String idDir = null;
         if (configuration != null) {
-            type = configuration.getHarvestType();
-            idDir = configuration.getIdentifierDirectory();
+            String ht = configuration.getParameter("harvester", "default");
+            type = ht != null ? HarvesterType.valueOf(ht.toUpperCase()) : null;
+            idDir = configuration.getParameter("identifierDirectory");
         }
         switch (type) {
             case DEFAULT:
@@ -91,7 +91,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     @Override
     public Indexer getIndexer(final Automatic configuration, final MetadataStore mdStore, final String serviceID) throws ConstellationException {
 
-        String indexType = configuration.getIndexType();
+        String indexType = configuration.getParameter("index-type", "lucene-node");
         IndexProvider indexProvider = providers.get(indexType);
         if (indexProvider != null) {
             return indexProvider.getIndexer(configuration, mdStore, serviceID);
@@ -103,7 +103,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     @Override
     public IndexSearcher getIndexSearcher(final Automatic configuration, final String serviceID) throws ConstellationException {
 
-        String indexType = configuration.getIndexType();
+        String indexType = configuration.getParameter("index-type", "lucene-node");
         IndexProvider indexProvider = providers.get(indexType);
         if (indexProvider != null) {
             return indexProvider.getIndexSearcher(configuration, serviceID);
@@ -115,7 +115,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     @Override
     public void refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws ConstellationException {
 
-        String indexType = configuration.getIndexType();
+        String indexType = configuration.getParameter("index-type", "lucene-node");
         IndexProvider indexProvider = providers.get(indexType);
         if (indexProvider != null) {
             indexProvider.refreshIndex(configuration, serviceID, indexer, asynchrone);
@@ -127,7 +127,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     @Override
     public FilterParser getFilterParser(final Automatic configuration) throws ConfigurationException {
 
-        String indexType = configuration.getIndexType();
+        String indexType = configuration.getParameter("index-type", "lucene-node");
         IndexProvider indexProvider = providers.get(indexType);
         if (indexProvider != null) {
             return indexProvider.getFilterParser(configuration);

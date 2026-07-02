@@ -334,15 +334,6 @@ public class CSWworker extends AbstractWorker<Automatic> implements Refreshable 
         loadCascadedService();
     }
 
-    @Override
-    protected boolean getTransactionalProperty() {
-        // look into deprecated configuration attribute.
-        if (configuration != null && TRANSACTIONAL.equals(configuration.getProfileValue())) {
-            return true;
-        }
-        return super.getTransactionalProperty();
-    }
-
     /**
      * Initialize the supported outputSchema in function of the reader capacity.
      */

@@ -140,7 +140,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     @Autowired
     private ISensorServiceBusiness sensorServiceBusiness;
     
-    private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url");
+    private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url", "transactional");
 
     // advancedParameters key: when set on an OPENEO service, skip local WCS creation (STAC catalog is external)
     private static final String OPENEO_EXTERNAL_STAC_PARAM = "externalStacUrl";
@@ -305,10 +305,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                             }
                         }
                     }
-                    String indexType = instance.getAdvancedParameters().get("indexType");
-                    if (indexType != null) conf.setIndexType(indexType);
-                    String profile = instance.getAdvancedParameters().get("profile");
-                    if (profile != null) conf.setProfile(profile);
 
                     // force partial for filesystem CSW
                     if (instance.getAdvancedParameters().containsKey("dataDirectory")) {
