@@ -53,6 +53,8 @@ import org.geotoolkit.storage.multires.DefiningTileMatrix;
 import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
 import org.opengis.metadata.Identifier;
 import org.apache.sis.coverage.grid.PixelInCell;
+import static org.apache.sis.metadata.iso.citation.Citations.EPSG;
+import org.apache.sis.referencing.IdentifiedObjects;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -389,6 +391,23 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
     }
 
     public static CoordinateReferenceSystem toDTO(org.opengis.referencing.crs.CoordinateReferenceSystem crs) {
+        try {
+            final Integer epsgIdentifier = IdentifiedObjects.lookupEPSG(crs);
+            if (epsgIdentifier != null) {
+                return new CoordinateReferenceSystem("EPSG:" + epsgIdentifier, null);
+            }
+        } catch (FactoryException ex) {
+            //do nothing
+        }
+        try {
+            String urn = IdentifiedObjects.lookupURN(crs, null);
+            if (urn != null) {
+                return new CoordinateReferenceSystem(urn, null);
+            }
+        } catch (FactoryException ex) {
+            //do nothing
+        }
+
         final Identifier name = crs.getName();
         if (name != null) {
             final String desc = name.getDescription() != null ? name.getDescription().toString() : "";
