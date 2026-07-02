@@ -53,7 +53,6 @@ import com.examind.dto.fs.Collection;
 import com.examind.dto.fs.CollectionItem;
 import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.DimensionItem;
-import com.examind.dto.fs.ProcessFactory;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
@@ -62,11 +61,17 @@ import static com.examind.setup.ProviderUtilities.COMPUTED_PROVIDER;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.api.CommonConstants.FILE_STORE;
+import org.constellation.api.PathStatus;
+import static org.constellation.api.PathStatus.MODIFIED;
+import static org.constellation.api.PathStatus.PENDING;
 import org.constellation.dto.Data;
+import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.constellation.dto.service.config.generic.Automatic;
@@ -154,11 +159,22 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     @PostConstruct
     public void initFsConfiguration() {
-        if (Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE)) {
-            if (Application.getBooleanProperty(AppProperty.EXA_FS_ASYNC, Boolean.FALSE)) {
-                taskExecutor.execute(() -> installDatas(true));
+        boolean execAtStartup = Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE);
+        if (execAtStartup) {
+            boolean async = Application.getBooleanProperty(AppProperty.EXA_FS_ASYNC, Boolean.FALSE);
+            boolean diffMode = Application.getBooleanProperty(AppProperty.EXA_FS_DIFF, Boolean.FALSE);
+            if (diffMode) {
+                if (async) {
+                    taskExecutor.execute(() -> performDiff(async));
+                } else {
+                    performDiff(async);
+                }
             } else {
-                installDatas(false);
+                if (async) {
+                    taskExecutor.execute(() -> installDatas(async));
+                } else {
+                    installDatas(async);
+                }
             }
         }
     }
@@ -168,6 +184,111 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      * 
      * @param async asynchroneous mode.
      */
+    @Override
+    public void performDiff(boolean async) {
+        LOGGER.info("""
+                    
+                    -----------------------------------------------------------
+                    --        STARTING FILESYSTEM CONFIG DIFF               --
+                    -----------------------------------------------------------
+                    
+                    """);
+        
+        try {
+            Path styleDir = configBusiness.getStylesDirectory();
+            Path servDir  = configBusiness.getServicesDirectory();
+            Path dataDir  = configBusiness.getProvidersDirectory();
+            
+            // 1. install styles
+            int dsId = createDatasourceForConfigFiles(styleDir, FileSystemUtilities::sldFileFilter);
+            List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
+            for (DataSourceSelectedPath path : paths) {
+                Path p = datasourceBusiness.getDatasourcePath(dsId, path.getPath());
+                switch (PathStatus.valueOf(path.getStatus())) {
+                    case PENDING -> {
+                        MutableStyle s = parseStyle(p);
+                        PathStatus newStatus;
+                        if (s != null) {
+                            Integer styleId = importStyle(s);
+                            datasourceBusiness.updatePathProvider(dsId, path.getPath(), styleId);
+                            newStatus = PathStatus.INTEGRATED;
+                        } else {
+                            newStatus = PathStatus.ERROR;
+                        }
+                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
+                    }
+                    case MODIFIED -> {
+                        MutableStyle s = parseStyle(p);
+                        PathStatus newStatus;
+                        if (s != null) {
+                            styleBusiness.updateStyle(path.getProviderId(), s.getName(), s);
+                            newStatus = PathStatus.INTEGRATED;
+                        } else {
+                            // what to do with the old style? remove it?
+                            newStatus = PathStatus.ERROR;
+                        }
+                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
+                    }
+                    
+                    case REMOVED -> {
+                        styleBusiness.deleteStyle(path.getProviderId());
+                        datasourceBusiness.removePath(dsId, path.getPath());
+                    }
+                }
+            }
+            
+            // 2. install services
+            dsId = createDatasourceForConfigFiles(servDir, FileSystemUtilities::serviceFileFilter);
+            paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
+            for (DataSourceSelectedPath path : paths) {
+                Path p = datasourceBusiness.getDatasourcePath(dsId, path.getPath());
+                switch (PathStatus.valueOf(path.getStatus())) {
+                    case PENDING -> {
+                        Service s = parseYaml(p, Service.class);
+                        PathStatus newStatus;
+                        if (s != null) {
+                            Integer sid = createService(s);
+                            datasourceBusiness.updatePathProvider(dsId, path.getPath(), sid);
+                            newStatus = PathStatus.INTEGRATED;
+                        } else {
+                            newStatus = PathStatus.ERROR;
+                        }
+                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
+                    }
+                    case MODIFIED -> {
+                        Service s = parseYaml(p, Service.class);
+                        PathStatus newStatus;
+                        if (s != null) {
+                            int sid = updateService(path.getProviderId(), s);
+                            datasourceBusiness.updatePathProvider(dsId, path.getPath(), sid);
+                            newStatus = PathStatus.INTEGRATED;
+                        } else {
+                            // what to do with the old service? remove it?
+                            newStatus = PathStatus.ERROR;
+                        }
+                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
+                    }
+                    
+                    case REMOVED -> {
+                        serviceBusiness.delete(path.getProviderId());
+                        datasourceBusiness.removePath(dsId, path.getPath());
+                    }
+                }
+            }
+            
+            
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error a filesystem configuration startup", ex);
+        }
+        LOGGER.info("""
+                    
+                    -----------------------------------------------------------
+                    --        FILESYSTEM CONFIG DIFF COMPLETE        --
+                    -----------------------------------------------------------
+                    
+                    """);
+    }
+    
     @Override
     public void installDatas(boolean async) {
         LOGGER.info("""
@@ -186,18 +307,18 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     
             // 1. install styles
             for (MutableStyle style : analysis.styles.values()) {
-                createStyleFromFile(style);
+                importStyle(style);
             }
             
             // 2. install services with data
             for (Service service : analysis.servicesWithData.values()) {
-                createServiceFromFile(service);
+                createService(service);
             }
             
             // 3. (Async) install services
             if (async) {
                 for (Service service : analysis.services.values()) {
-                    createServiceFromFile(service);
+                    createService(service);
                 }
             }
             
@@ -214,7 +335,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             // 6. (Sync) install services
             if (!async) {
                 for (Service service : analysis.services.values()) {
-                    createServiceFromFile(service);
+                    createService(service);
                 }
             }
             
@@ -230,19 +351,46 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     """);
     }
     
+    private int createDatasourceForConfigFiles(Path rootDir, Predicate<Path> fileFilter) throws ConstellationException {
+        int dsId;
+        List<DataSource> candidates = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
+        if (candidates.isEmpty()) {
+            URI styleDirUri = rootDir.toUri();
+            DataSource ds = new DataSource();
+            ds.setType("file");
+            ds.setUrl(styleDirUri.toString());
+            ds.setPermanent(Boolean.TRUE);
+            ds.setReadFromRemote(true);
+            ds.setStoreId(FILE_STORE);
+            dsId = datasourceBusiness.create(ds);
+
+            datasourceBusiness.computeDatasourceStores(dsId, false, FILE_STORE, true, false, true, fileFilter);
+            datasourceBusiness.recordSelectedPath(dsId, false);
+
+        } else {
+            if (candidates.size() > 1) {
+                LOGGER.warning("Multiple datasource found. using the first we found");
+            }
+            dsId = candidates.get(0).getId();
+            datasourceBusiness.scanForModification(dsId, fileFilter);
+            datasourceBusiness.recordSelectedPath(dsId, true);
+        }
+        return dsId;
+    }
+    
     /**
      * Instanciate a service from its configuration.
      * 
      * @param instance Service configuration.
      */
-    private void createServiceFromFile(Service instance) {
-        if ("OPENEO".equalsIgnoreCase(instance.getType())) {
-            createOpenEOServicesFromFile(instance);
-            return;
-        }
+    private Integer createService(Service instance) {
         try {
             if (serviceBusiness.getServiceIdentifiers(instance.getType()).contains(instance.getIdentifier())) {
                 throw new ConfigurationException("Service identifier: " + instance.getIdentifier() + "(" +  instance.getType() + ") already used");
+            }
+            
+            if ("OPENEO".equalsIgnoreCase(instance.getType())) {
+                return createOpenEOServicesFromFile(instance);
             }
             
             Details metadata = instance.getMetadata();
@@ -251,7 +399,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             
             // special case
             if ("STS".equalsIgnoreCase(instance.getType())) {
-                boolean directProvider = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("direct-provider", "false"));
+                boolean directProvider = instance.getAdvancedParameter("direct-provider", false);
                 if (directProvider) {
                     AbstractConfigurationObject conf = serviceBusiness.getConfiguration(sid);
                     conf.setProperty("directProvider", "true");
@@ -281,13 +429,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 }
                 serviceBusiness.linkServiceAndSensorProvider(sid, spid, fullLink);
                 
-                
-                boolean generateSensor = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("generate-from-existing", "false"));
+                boolean generateSensor = instance.getAdvancedParameter("generate-from-existing", false);
                 if (generateSensor && !directProvider) {
                     sensorServiceBusiness.generateSensorFromOMProvider(sid);
                 }
                 
-                boolean generateData = Boolean.parseBoolean(instance.getAdvancedParameters().getOrDefault("create-data", "false"));
+                boolean generateData = instance.getAdvancedParameter("create-data", false);
                 if (generateData) {
                     providerBusiness.createOrUpdateData(pid, null, true, false, null);
                 }
@@ -296,13 +443,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 boolean partial = false;
                 int spid = createMetadataDatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters());
                 if (!instance.getAdvancedParameters().isEmpty()) {
+                    partial = instance.getBooleanAdvancedParameters("partial", false);
+                    
                     Automatic conf = (Automatic) serviceBusiness.getConfiguration(sid);
                     for (Entry<String, String> entry : instance.getAdvancedParameters().entrySet()) {
                         if (CSW_SERVICE_CONFIGURATION_PARAMETERS.contains(entry.getKey())) {
                             conf.setProperty(entry.getKey(), entry.getValue());
-                            if (entry.getKey().equals("partial")) {
-                                partial = Boolean.parseBoolean(entry.getValue());
-                            }
                         }
                     }
 
@@ -338,9 +484,19 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     LOGGER.warning("No dataset specified in collection");
                 }
             }
+            return sid;
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error while importing service: " + instance.getType() + " " + instance.getIdentifier(), ex);
         }
+        return null;
+    }
+    
+     private Integer updateService(Integer serviceId, Service instance) throws ConstellationException {
+        // for now we do an simple remove/create 
+        // TODO update metadata
+        // TODO linked files?
+        serviceBusiness.delete(serviceId);
+        return createService(instance);
     }
     
     /**
@@ -350,14 +506,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      *
      * @param instance OpenEO service configuration.
      */
-    private void createOpenEOServicesFromFile(Service instance) {
-        Service wps = new Service();
-        wps.setIdentifier(instance.getIdentifier());
-        wps.setType("WPS");
-        wps.setMetadata(instance.getMetadata());
-
+    private Integer createOpenEOServicesFromFile(Service instance) {
+        Service wps = new Service(instance.getIdentifier(), "WPS", instance.getMetadata());
         wps.setProcessFactories(instance.getProcessFactories());
-        createServiceFromFile(wps);
+        
+        Integer wpsId = createService(wps);
 
         // external STAC catalog: the WCS below just proxies it, the actual data lives outside Examind.
         // Store the url on the WPS configuration: it takes priority over the app property
@@ -365,7 +518,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         Map<String, String> wcsParameters = instance.getAdvancedParameters();
         String externalStacUrl = wcsParameters.get(OPENEO_EXTERNAL_STAC_PARAM);
         if (externalStacUrl != null) {
-            Integer wpsId = serviceBusiness.getServiceIdByIdentifierAndType("wps", instance.getIdentifier());
             try {
                 AbstractConfigurationObject wpsConf = serviceBusiness.getConfiguration(wpsId);
                 wpsConf.setProperty(OPENEO_EXTERNAL_STAC_PARAM, externalStacUrl);
@@ -377,13 +529,14 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             wcsParameters.remove(OPENEO_EXTERNAL_STAC_PARAM);
         }
 
-        Service wcs = new Service();
-        wcs.setIdentifier(instance.getIdentifier());
-        wcs.setType("WCS");
-        wcs.setMetadata(instance.getMetadata());
+        Service wcs = new Service(instance.getIdentifier(), "WCS", instance.getMetadata());
         wcs.setAdvancedParameters(wcsParameters);
         wcs.setCollections(instance.getCollections());
-        createServiceFromFile(wcs);
+        
+        
+        // for now i return only the wcs id.
+        // i dont know if i should return the wps one, or both
+        return createService(wcs);
     }
 
     /**
@@ -634,8 +787,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         
         String productName = providerConf.getAdvancedParameters().get("productName");
         String subDataType = providerConf.getAdvancedParameters().get("subDataType");
-        boolean asChild    = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("asChild", "false"));
-        boolean worldGG    = Boolean.parseBoolean(providerConf.getAdvancedParameters().getOrDefault("worldGG", "false"));
+        boolean asChild    = providerConf.getAdvancedParameter("asChild", false);
+        boolean worldGG    = providerConf.getAdvancedParameter("worldGG", false);
         String wgrStr      = providerConf.getAdvancedParameters().get("worldGGResolution");
         Double worldGGRes  = wgrStr != null ? Double.valueOf(wgrStr) : null;
         
@@ -858,17 +1011,18 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return style;
     }
 
-    private void createStyleFromFile(MutableStyle style) {
+    private Integer importStyle(MutableStyle style) {
         try {
             String type = "sld";
             final boolean exists = styleBusiness.existsStyle(type, style.getName());
             if (!exists) {
-                styleBusiness.createStyle(type, style);
+                return styleBusiness.createStyle(type, style);
             } else {
                 LOGGER.log(Level.WARNING, "Duplicated style:{0}", style.getName());
             }
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while importing style: " + style.getName(), ex);
         }
+        return null;
     }
 }

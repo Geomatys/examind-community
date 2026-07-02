@@ -46,6 +46,10 @@ public class ReloadFsConfigDescriptor extends AbstractCstlProcessDescriptor {
     private static final String ASYNC_REMARKS = "if set to true the service will be created first, and the populated as the datas are installed.";
     public static final ParameterDescriptor<Boolean> ASYNC;
     
+    public static final String DIFF_NAME = "diff";
+    private static final String DIFF_REMARKS = "if set to true the files will be monitored to detect changes at reload.";
+    public static final ParameterDescriptor<Boolean> DIFF;
+    
     static {
         final ParameterBuilder builder = new ParameterBuilder();
         
@@ -56,10 +60,18 @@ public class ReloadFsConfigDescriptor extends AbstractCstlProcessDescriptor {
             .setRemarks(ASYNC_REMARKS)
             .setRequired(false)
             .create(Boolean.class, defValue);
+        
+        // fill the default value from the configuration
+        defValue = Application.getBooleanProperty(AppProperty.EXA_FS_DIFF, Boolean.FALSE);
+        DIFF = builder
+            .addName(DIFF_NAME)
+            .setRemarks(DIFF_REMARKS)
+            .setRequired(false)
+            .create(Boolean.class, defValue);
     }
 
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(ASYNC);
+            .createGroup(ASYNC, DIFF);
 
      /**Output parameters */
      public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)

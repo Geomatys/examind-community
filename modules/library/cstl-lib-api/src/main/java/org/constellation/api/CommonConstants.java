@@ -56,6 +56,8 @@ public class CommonConstants {
 
     public static final String SERVICE = "Service";
     
+    public static final String FILE_STORE = "FILE_STORE";
+
     /**
      * SOS related constants
      */

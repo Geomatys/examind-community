@@ -17,6 +17,7 @@
  */
 package com.examind.dto.fs;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,16 @@ public class Service {
     private Map<String, String> advancedParameters;
 
     private Datasource source;
+    
+    public Service() {
+        
+    }
+    
+    public Service(String identifier, String type, Details metadata) {
+        this.identifier = identifier;
+        this.type = type;
+        this.metadata = metadata;
+    }
     
     /**
      * @return the identifier
@@ -125,6 +136,22 @@ public class Service {
      */
     public void setAdvancedParameters(Map<String, String> advancedParameters) {
         this.advancedParameters = advancedParameters;
+    }
+    
+    @JsonIgnore
+    public boolean getAdvancedParameter(String propertyName, boolean _default) {
+        if (advancedParameters == null) return _default;
+        String value = advancedParameters.get(propertyName);
+        if (value != null) return Boolean.parseBoolean(value);
+        return _default;
+    }
+    
+    @JsonIgnore
+    public String getAdvancedParameter(String propertyName, String _default) {
+        if (advancedParameters == null) return _default;
+        String value = advancedParameters.get(propertyName);
+        if (value != null) return value;
+        return _default;
     }
 
     /**

@@ -188,6 +188,18 @@ public class FileSystemUtilities {
         }
     }
     
+    public static boolean serviceWithDataFileFilter(Path path) {
+        return serviceFileFilter(path, Boolean.TRUE);
+    }
+    
+    public static boolean serviceNoDataFileFilter(Path path) {
+        return serviceFileFilter(path, Boolean.FALSE);
+    }
+    
+    public static boolean serviceFileFilter(Path path) {
+        return serviceFileFilter(path, null);
+    }
+    
     /**
      *  file filter based on yaml extension and its content.
      * 

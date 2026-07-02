@@ -17,8 +17,10 @@
  */
 package com.examind.dto.fs;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  *
@@ -44,6 +46,17 @@ public class Provider {
      */
     public String getIdentifier() {
         return identifier;
+    }
+    
+    @JsonIgnore
+    public String getGeneratedIdentifier() {
+        String result;
+        if (identifier == null) {
+            result = providerType + '-' + UUID.randomUUID();
+        } else {
+            result = identifier;
+        }
+        return result;
     }
 
     /**
@@ -116,6 +129,30 @@ public class Provider {
         if (advancedParameters == null) advancedParameters = Map.of();
         return advancedParameters;
     }
+    
+    @JsonIgnore
+    public boolean getAdvancedParameter(String propertyName, boolean _default) {
+        if (advancedParameters == null) return _default;
+        String value = advancedParameters.get(propertyName);
+        if (value != null) return Boolean.parseBoolean(value);
+        return _default;
+    }
+    
+    @JsonIgnore
+    public Double getAdvancedParameter(String propertyName, Double _default) {
+        if (advancedParameters == null) return _default;
+        String value = advancedParameters.get(propertyName);
+        if (value != null) return Double.valueOf(value);
+        return _default;
+    }
+    
+    @JsonIgnore
+    public String getAdvancedParameter(String propertyName, String _default) {
+        if (advancedParameters == null) return _default;
+        String value = advancedParameters.get(propertyName);
+        if (value != null) return value;
+        return _default;
+    }
 
     /**
      * @param advancedParameters the advancedParameters to set
@@ -165,4 +202,39 @@ public class Provider {
     public void setComputedData(List<Collection> computedData) {
         this.computedData = computedData;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Provider{\n");
+        sb.append("  identifier='").append(identifier).append("'\n");
+        sb.append("  dataType='").append(dataType).append("'\n");
+        sb.append("  location='").append(location).append("'\n");
+        sb.append("  providerType='").append(providerType).append("'\n");
+        sb.append("  dataset='").append(dataset).append("'\n");
+        sb.append("  directoryFilter='").append(directoryFilter).append("'\n");
+        sb.append("  source=").append(source).append("\n");
+
+        sb.append("  advancedParameters={\n");
+        if (advancedParameters != null) {
+            for (Map.Entry<String, String> entry : advancedParameters.entrySet()) {
+                sb.append("    ").append(entry.getKey())
+                        .append(" = ").append(entry.getValue())
+                        .append("\n");
+            }
+        }
+        sb.append("  }\n");
+
+        sb.append("  computedData=[\n");
+        if (computedData != null) {
+            for (Collection c : computedData) {
+                sb.append("    ").append(c).append("\n");
+            }
+        }
+        sb.append("  ]\n");
+
+        sb.append("}");
+        return sb.toString();
+    }
+
 }

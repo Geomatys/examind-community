@@ -19,6 +19,7 @@
 package com.examind.process.setup;
 
 import static com.examind.process.setup.ReloadFsConfigDescriptor.ASYNC;
+import static com.examind.process.setup.ReloadFsConfigDescriptor.DIFF;
 import static com.examind.process.setup.ReloadFsConfigDescriptor.INSTANCE;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IFileSystemSetupBusiness;
@@ -57,7 +58,12 @@ public class ReloadFsConfigProcess extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
         final Boolean async   = inputParameters.getValue(ASYNC);
-        fsSetupCleanerBusiness.cleanupDatas();
-        fsSetupBusiness.installDatas(async);
+        final Boolean diff    = inputParameters.getValue(DIFF);
+        if (diff) {
+            fsSetupBusiness.performDiff(async);
+        } else {
+            fsSetupCleanerBusiness.cleanupDatas();
+            fsSetupBusiness.installDatas(async);
+        }
     }
 }

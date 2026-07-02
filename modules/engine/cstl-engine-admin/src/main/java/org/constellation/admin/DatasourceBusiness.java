@@ -65,6 +65,7 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.collection.Cache;
 import org.constellation.api.AnalysisState;
+import static org.constellation.api.CommonConstants.FILE_STORE;
 import org.constellation.api.PathStatus;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
@@ -1062,7 +1063,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 size = Files.size(path);
                 lastModified = Files.getLastModifiedTime(path).toMillis();
                 if (storeId != null) {
-                    types.putAll(DataProviders.probeContentForSpecificStore(path, storeId));
+                    // special case for file not managed by a store
+                    if (FILE_STORE.equals(storeId)) {
+                        types.put(storeId, "text/plain");
+                    } else {
+                        types.putAll(DataProviders.probeContentForSpecificStore(path, storeId));
+                    }
                 } else {
                     types.putAll(DataProviders.probeContentAndStoreIds(path));
                 }

@@ -321,7 +321,9 @@ public enum AppProperty {
     
     EXA_FS_STARTUP("examind.filesystem.clear.at.startup", false, Boolean.class),
     
-    EXA_FS_ASYNC("examind.filesystem.async", false, Boolean.class);
+    EXA_FS_ASYNC("examind.filesystem.async", false, Boolean.class),
+    
+    EXA_FS_DIFF("examind.filesystem.diff", false, Boolean.class);
 
     private final String key;
     private final boolean secure;

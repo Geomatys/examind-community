@@ -25,4 +25,6 @@ package org.constellation.business;
 public interface IFileSystemSetupBusiness {
     
     void installDatas(boolean async);
+    
+    void performDiff(boolean async);
 }
