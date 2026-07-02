@@ -23,9 +23,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.constellation.api.AnalysisState;
+import org.constellation.api.PathStatus;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
-import org.constellation.business.IDatasourceBusiness.PathStatus;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -94,11 +95,11 @@ public class ImportData extends AbstractCstlProcess {
             fireProgressing("Waiting for Datasource analysis to complete...", 0, false);
             // waiting for analysis to be complete
             String analysisState = datasourceBusiness.getDatasourceAnalysisState(datasourceId);
-            if (analysisState == null || IDatasourceBusiness.AnalysisState.NOT_STARTED.name().equals(analysisState)) {
+            if (analysisState == null || AnalysisState.NOT_STARTED.name().equals(analysisState)) {
                 throw new ProcessException("Datasource analysis has not been launched. We cannot import data", this);
             }
 
-            final String pendingState = IDatasourceBusiness.AnalysisState.PENDING.name();
+            final String pendingState = AnalysisState.PENDING.name();
             while (pendingState.equals(datasourceBusiness.getDatasourceAnalysisState(datasourceId))) {
                 synchronized (this) {
                     checkDismissed();
@@ -176,7 +177,7 @@ public class ImportData extends AbstractCstlProcess {
                  storeDatas.removeAll(failedDatas);
                  outputDatas.addAll(storeDatas);
                  outputParameters.getOrCreate(OUT_CONFIGURATION).setValue(outputDatas);
-                 datasourceBusiness.updatePathStatus(ds.getId(), p.getPath(), PathStatus.COMPLETED.name());
+                 datasourceBusiness.updatePathStatus(ds.getId(), p.getPath(), PathStatus.INTEGRATED);
                  i++;
              }
 

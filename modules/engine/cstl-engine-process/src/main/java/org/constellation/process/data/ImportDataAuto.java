@@ -24,10 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import org.constellation.api.AnalysisState;
+import org.constellation.api.PathStatus;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
-import org.constellation.business.IDatasourceBusiness.PathStatus;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
@@ -97,7 +98,7 @@ public class ImportDataAuto extends AbstractCstlProcess {
             final boolean permanent    = false; // we don't keep the datasource in this process.
             final String datasourceURL = dataPath.toUri().toString();
             final String scheme        = dataPath.toUri().getScheme();
-            final DataSource ds        = new DataSource(null, null, scheme, datasourceURL, null, null, null, remoteFile, System.currentTimeMillis(), IDatasourceBusiness.AnalysisState.NOT_STARTED.name(), null, permanent, Map.of());
+            final DataSource ds        = new DataSource(null, null, scheme, datasourceURL, null, null, null, remoteFile, System.currentTimeMillis(), AnalysisState.NOT_STARTED.name(), null, permanent, Map.of());
             datasourceId               = datasourceBusiness.create(ds);
 
             /**
@@ -106,7 +107,7 @@ public class ImportDataAuto extends AbstractCstlProcess {
              *
              * We made a partial hard coded method to choose the "best" provider.
              */
-            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(datasourceId, false, null, true, false, false);
+            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(datasourceId, false, null, true, false, false, null);
             if (storeFormats.isEmpty()) {
                 throw new ProcessException("No store found to read this data file", this);
             }
@@ -169,7 +170,7 @@ public class ImportDataAuto extends AbstractCstlProcess {
                 LOGGER.log(Level.INFO, "Data file: " + p.getPath() + " integrated (" + i + "/" + paths.size() + ")");
                 storeDatas.removeAll(failedDatas);
                 outputDatas.addAll(storeDatas);
-                datasourceBusiness.updatePathStatus(datasourceId, p.getPath(), PathStatus.COMPLETED.name());
+                datasourceBusiness.updatePathStatus(datasourceId, p.getPath(), PathStatus.INTEGRATED);
                 i++;
             }
 

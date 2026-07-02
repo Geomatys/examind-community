@@ -55,7 +55,7 @@ public class CommonConstants {
     public static final String SUCCESS = "Success";
 
     public static final String SERVICE = "Service";
-
+    
     /**
      * SOS related constants
      */

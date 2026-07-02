@@ -30,7 +30,7 @@ public class DataSourcePath {
     private Boolean folder;
     private String parentPath;
     private Long size;
-    private Long modifiedTime;
+    private Long modified;
     private String contentHash;
     private String hashAlgo;
 
@@ -44,7 +44,7 @@ public class DataSourcePath {
         this.folder = that.folder;
         this.parentPath = that.parentPath;
         this.size = that.size;
-        this.modifiedTime = that.modifiedTime;
+        this.modified = that.modified;
         this.contentHash = that.contentHash;
         this.hashAlgo = that.hashAlgo;
     }
@@ -58,7 +58,7 @@ public class DataSourcePath {
         this.folder = folder;
         this.parentPath = parentPath;
         this.size = size;
-        this.modifiedTime = modifiedTime;
+        this.modified = modifiedTime;
         this.contentHash = contentHash;
         this.hashAlgo = hashAlgo;
     }
@@ -147,12 +147,12 @@ public class DataSourcePath {
         this.size = size;
     }
 
-    public Long getModifiedTime() {
-        return modifiedTime;
+    public Long getModified() {
+        return modified;
     }
 
-    public void setModifiedTime(Long modifiedTime) {
-        this.modifiedTime = modifiedTime;
+    public void setModified(Long modifiedTime) {
+        this.modified = modifiedTime;
     }
 
     public String getContentHash() {

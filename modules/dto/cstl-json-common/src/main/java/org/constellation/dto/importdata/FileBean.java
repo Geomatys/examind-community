@@ -62,7 +62,7 @@ public class FileBean implements Serializable,Comparable<FileBean> {
         this.path = dpc.getPath();
         this.parentPath = dpc.getParentPath();
         this.size = dpc.getSize();
-        this.lastModified = dpc.getModifiedTime();
+        this.lastModified = dpc.getModified();
         final List<StoreFormat> sf = new ArrayList<>();
         for (Map.Entry<String, String> entry : dpc.getTypes().entrySet()) {
             sf.add(new StoreFormat(entry.getKey(), entry.getValue()));

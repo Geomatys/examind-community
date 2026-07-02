@@ -58,8 +58,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.logging.Level;
+import org.constellation.api.AnalysisState;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
-import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -321,8 +321,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
 
         try {
-            datasourceBusiness.updateDatasourceAnalysisState(dsId,  AnalysisState.NOT_STARTED.name());
-            datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true, false, false);
+            datasourceBusiness.updateDatasourceAnalysisState(dsId,  AnalysisState.NOT_STARTED);
+            datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true, false, false, null);
             datasourceBusiness.recordSelectedPath(dsId, true);
         } catch (ConstellationException e) {
             throw new ProcessException("Error occurs during directory browsing", this, e);

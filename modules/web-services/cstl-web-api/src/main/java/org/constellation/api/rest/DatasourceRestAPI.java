@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.zip.CRC32;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.constellation.api.AnalysisState;
 
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProcessBusiness;
@@ -224,7 +225,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             }
 
             // 3. reset the analyse state
-            datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
+            datasourceBusiness.updateDatasourceAnalysisState(id, AnalysisState.NOT_STARTED);
 
             return new ResponseEntity(url, OK);
         } catch (Exception ex) {
@@ -257,7 +258,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             }
 
             // 3. reset the analyse state
-            datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
+            datasourceBusiness.updateDatasourceAnalysisState(id, AnalysisState.NOT_STARTED);
 
             return new ResponseEntity(OK);
         } catch (Exception ex) {
@@ -373,7 +374,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                 }
             }
             // 3. reset the analyse state
-            datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
+            datasourceBusiness.updateDatasourceAnalysisState(id, AnalysisState.NOT_STARTED);
 
             return new ResponseEntity(OK);
         } catch (Exception ex) {
@@ -422,7 +423,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                                             @RequestParam(name = "computeHash", required = false, defaultValue = "false") Boolean computeHash) {
         if (readOnlyAPI) return readOnlyModeActivated();
         try {
-            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, null, deep,  s63, computeHash);
+            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, null, deep,  s63, computeHash, null);
             final List<StoreFormat> results = new ArrayList<>();
             for (Entry<String, Set<String>> entry : storeFormats.entrySet()) {
                 for (String format : entry.getValue()) {

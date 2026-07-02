@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import org.constellation.api.AnalysisState;
+import org.constellation.api.PathStatus;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.importdata.DatasourceAnalysisV3;
@@ -36,22 +39,6 @@ import org.constellation.exception.ConstellationException;
  * @author Guilhem Legal (Geomatys)
  */
 public interface IDatasourceBusiness {
-
-    public static enum AnalysisState {
-        PENDING,
-        COMPLETED,
-        NOT_STARTED,
-        ERROR
-    }
-
-    public static enum PathStatus {
-        PENDING,
-        NO_DATA,
-        ERROR,
-        INTEGRATED,
-        COMPLETED,
-        REMOVED
-    }
 
     /**
      * Store a new Datasource.
@@ -304,11 +291,12 @@ public interface IDatasourceBusiness {
      * @param deep if false, it will only analyse the first level of tha datasource.
      * @param lookForS63 If true, the analysis will seach for S63 dataset.
      * @param computeHash If true, a hash of each files will be computed and stored.
-     *
+     * @param fileFilter An optional file filter
+     * 
      * @return A map of store / formats detected in the datasource.
      * @throws ConstellationException
      */
-    Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63, boolean computeHash) throws ConstellationException;
+    Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63, boolean computeHash, Predicate<Path> fileFilter) throws ConstellationException;
 
     /**
      * Return the current state of the datasource analysis going on (or already finished).
@@ -326,7 +314,7 @@ public interface IDatasourceBusiness {
      * @param dsId The datasource identifier.
      * @param state the new state of the datasource analysis.
      */
-    void updateDatasourceAnalysisState(int dsId, String state);
+    void updateDatasourceAnalysisState(int dsId, AnalysisState state);
 
     /**
      * Analyse and treat the specified datasource select path.
@@ -369,8 +357,14 @@ public interface IDatasourceBusiness {
      * @param path the designed datasource path.
      * @param newStatus the new status of the path.
      */
-    void updatePathStatus(int id, String path, String newStatus);
+    void updatePathStatus(int id, String path, PathStatus newStatus);
 
+    void updatePathProvider(int id, String path, int providerId);
+    
+    void updatePathStatusAndProvider(int id, String path, PathStatus newStatus, Integer providerId);
+    
+    void scanForModification(int id, Predicate<Path> fileFilter) throws ConstellationException;;
+        
     /**
      * Some filesystem needs an initialization before being usable.
      * for S3 for example we need to create a filesystem with the credentials in order that the path created by

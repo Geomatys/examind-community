@@ -293,7 +293,7 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     public String getAnalysisState(int id) {
         return dsl.select(DATASOURCE.ANALYSIS_STATE).from(DATASOURCE).where(DATASOURCE.ID.eq(id)).fetchOneInto(String.class);
     }
-
+    
     @Override
     public void updateAnalyzedPath(DataSourcePath dsPath, Map<String, String> types) {
         dsl.update(DATASOURCE_PATH)
@@ -301,7 +301,7 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                 .set(DATASOURCE_PATH.NAME, dsPath.getName())
                 .set(DATASOURCE_PATH.PARENT_PATH, dsPath.getParentPath())
                 .set(DATASOURCE_PATH.SIZE, dsPath.getSize())
-                .set(DATASOURCE_PATH.MODIFIED, dsPath.getModifiedTime())
+                .set(DATASOURCE_PATH.MODIFIED, dsPath.getModified())
                 .set(DATASOURCE_PATH.CONTENT_HASH, dsPath.getContentHash())
                 .set(DATASOURCE_PATH.HASH_ALGO, dsPath.getHashAlgo())
                 .where(DATASOURCE_PATH.DATASOURCE_ID.eq(dsPath.getDatasourceId())
@@ -335,6 +335,17 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                    .execute();
             }
         }
+    }
+
+    @Override
+    public void updateAnalyzedPath(int dsId, String dsPath, Long size, Long modified, String contentHash, String hashAlgo) {
+        dsl.update(DATASOURCE_PATH)
+                .set(DATASOURCE_PATH.SIZE, size)
+                .set(DATASOURCE_PATH.MODIFIED, modified)
+                .set(DATASOURCE_PATH.CONTENT_HASH, contentHash)
+                .set(DATASOURCE_PATH.HASH_ALGO, hashAlgo)
+                .where(DATASOURCE_PATH.DATASOURCE_ID.eq(dsId)
+                .and(DATASOURCE_PATH.PATH.eq(dsPath)));
     }
 
     @Override
@@ -408,6 +419,17 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     @Transactional(propagation = Propagation.MANDATORY)
     public void updatePathProvider(int id, String path, int providerId) {
         dsl.update(DATASOURCE_SELECTED_PATH)
+           .set(DATASOURCE_SELECTED_PATH.PROVIDER_ID, providerId)
+           .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
+           .and(DATASOURCE_SELECTED_PATH.PATH.eq(path))
+           .execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updatePathStatusAndProvider(int id, String path, String newStatus, Integer providerId) {
+        dsl.update(DATASOURCE_SELECTED_PATH)
+           .set(DATASOURCE_SELECTED_PATH.STATUS, newStatus)
            .set(DATASOURCE_SELECTED_PATH.PROVIDER_ID, providerId)
            .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
            .and(DATASOURCE_SELECTED_PATH.PATH.eq(path))
@@ -504,7 +526,7 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
             dto.setName(dao.getName());
             dto.setSize(dao.getSize());
             dto.setParentPath(dao.getParentPath());
-            dto.setModifiedTime(dao.getModified());
+            dto.setModified(dao.getModified());
             dto.setContentHash(dao.getContentHash());
             dto.setHashAlgo(dao.getHashAlgo());
             return dto;

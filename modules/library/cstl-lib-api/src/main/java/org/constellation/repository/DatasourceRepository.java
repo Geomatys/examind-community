@@ -54,6 +54,8 @@ public interface DatasourceRepository extends AbstractRepository {
 
     boolean existSelectedPath(int dsId, String subPath);
 
+    void updateAnalyzedPath(int dsId, String dsPath, Long size, Long modified, String contentHash, String hashAlgo);
+    
     void updateAnalyzedPath(DataSourcePath dsPath, Map<String, String> types);
 
     void addAnalyzedPath(DataSourcePath dsPath, Map<String, String> types);
@@ -81,6 +83,8 @@ public interface DatasourceRepository extends AbstractRepository {
     void updatePathStatus(int id, String path, String newStatus);
 
     void updatePathProvider(int id, String path, int providerId);
+    
+    void updatePathStatusAndProvider(int id, String path, String newStatus, Integer providerId);
 
     List<DataSourceSelectedPath> getSelectedPathForProvider(int providerId);
 

@@ -46,11 +46,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -62,6 +64,8 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.collection.Cache;
+import org.constellation.api.AnalysisState;
+import org.constellation.api.PathStatus;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
@@ -653,46 +657,44 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Transactional
     public List<FileBean> exploreDatasource(final Integer dsId, String subPath) throws ConstellationException {
         final DataSource ds = getDatasource(dsId);
-        if (ds != null) {
-            final List<FileBean> listBean = new ArrayList<>();
-            if (!subPath.endsWith("/")) {
-                subPath = subPath + '/';
-            }
-            final Path path = getDataSourcePath(ds, subPath);
+        if (ds == null) throw new TargetNotFoundException("Unexisting datasource:" + dsId);
 
-            if (!Files.exists(path)) {
-                throw new ConstellationException("path does not exist:" + path.toString());
-            }
-
-            List<Path> children = new ArrayList<>();
-            // do not keep opened the stream for too long
-            // because it can induce problem withe pooled client FileSystem (like ftp for example).
-            if (Files.isDirectory(path)) {
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(path,(Path entry) -> !Files.isHidden(entry))) {
-                    for (Path child : stream) {
-                        children.add(child);
-                    }
-                } catch (IOException e) {
-                    throw new ConstellationException("Error occurs during directory browsing", e);
-                }
-            }
-            for (Path child : children) {
-                String fileName = child.getFileName().toString();
-                String childPath = subPath + fileName;
-                DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(dsId, childPath);
-                FileBean fb;
-                if (dpc == null) {
-                    dpc = analysePath(dsId, subPath, child, false, false, false, null);
-                }
-                fb = new FileBean(dpc);
-
-                listBean.add(fb);
-            }
-            Collections.sort(listBean);
-            return listBean;
-        } else {
-            throw new TargetNotFoundException("Unexisting datasource:" + dsId);
+        final List<FileBean> listBean = new ArrayList<>();
+        if (!subPath.endsWith("/")) {
+            subPath = subPath + '/';
         }
+        final Path path = getDataSourcePath(ds, subPath);
+
+        if (!Files.exists(path)) {
+            throw new ConstellationException("path does not exist:" + path.toString());
+        }
+
+        List<Path> children = new ArrayList<>();
+        // do not keep opened the stream for too long
+        // because it can induce problem withe pooled client FileSystem (like ftp for example).
+        if (Files.isDirectory(path)) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(path,(Path entry) -> !Files.isHidden(entry))) {
+                for (Path child : stream) {
+                    children.add(child);
+                }
+            } catch (IOException e) {
+                throw new ConstellationException("Error occurs during directory browsing", e);
+            }
+        }
+        for (Path child : children) {
+            String fileName = child.getFileName().toString();
+            String childPath = subPath + fileName;
+            DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(dsId, childPath);
+            FileBean fb;
+            if (dpc == null) {
+                dpc = analysePath(dsId, subPath, child, false, false, false, null);
+            }
+            fb = new FileBean(dpc);
+
+            listBean.add(fb);
+        }
+        Collections.sort(listBean);
+        return listBean;
     }
 
     /**
@@ -875,15 +877,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             }
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while listing store data " + storeId + " on path: " + store.file, ex);
-            dsRepository.updatePathStatus(ds.getId(), sp.getPath(), AnalysisState.ERROR.name());
+            dsRepository.updatePathStatus(ds.getId(), sp.getPath(), PathStatus.ERROR.name());
         }
 
         // 6. update selected path status
         if (datas.isEmpty()) {
-            dsRepository.updatePathStatus(ds.getId(), sp.getPath(), "NO_DATA");
+            dsRepository.updatePathStatus(ds.getId(), sp.getPath(), PathStatus.NO_DATA.name());
             providerBusiness.removeProvider(prId);
         } else {
-            dsRepository.updatePathStatus(ds.getId(), sp.getPath(), "INTEGRATED");
+            dsRepository.updatePathStatus(ds.getId(), sp.getPath(), PathStatus.INTEGRATED.name());
             dsRepository.updatePathProvider(ds.getId(), sp.getPath(), prId);
         }
 
@@ -913,7 +915,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63, boolean computeHash) throws ConstellationException {
+    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63, boolean computeHash, Predicate<Path> fileFilter) throws ConstellationException {
         final DataSource ds = getDatasource(id);
         if (ds == null) {
             throw new TargetNotFoundException("Unexisting datasource:" + id);
@@ -921,12 +923,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         synchronized (datasourceLocks.computeIfAbsent(id, key -> key)) {
             String datasourceState = dsRepository.getAnalysisState(ds.getId());
             if ( AnalysisState.NOT_STARTED.name().equals(datasourceState)) {
-                updateDatasourceAnalysisState(ds.getId(), AnalysisState.PENDING.name());
+                updateDatasourceAnalysisState(ds.getId(), AnalysisState.PENDING);
                 if (!async) {
-                    return analyzeDataSource(ds, storeId, deep, lookForS63, computeHash);
+                    return analyzeDataSource(ds, storeId, deep, lookForS63, computeHash, fileFilter);
                 } else {
                     // TODO: work with FutureTask instead, and use an executor service to avoid hard-coded thread creation
-                    final Thread t = new Thread(() -> analyzeDataSource(ds, storeId, deep, lookForS63, computeHash));
+                    final Thread t = new Thread(() -> analyzeDataSource(ds, storeId, deep, lookForS63, computeHash, fileFilter));
                     currentRunningAnalysis.put(id, t);
                     t.start();
                     return Collections.EMPTY_MAP;
@@ -937,22 +939,22 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
-    private Map<String, Set<String>> analyzeDataSource(final DataSource source, String storeId, boolean deep, boolean lookForS63, boolean computeHash) {
+    private Map<String, Set<String>> analyzeDataSource(final DataSource source, String storeId, boolean deep, boolean lookForS63, boolean computeHash, Predicate<Path> fileFilter) {
         final Map<String, Set<String>> results = new HashMap<>();
         try {
             long start = System.nanoTime();
-            computeDatasourceStores(source, results, null, "/", true, deep, lookForS63, computeHash, storeId);
-            updateDatasourceAnalysisState(source.getId(), AnalysisState.COMPLETED.name());
+            computeDatasourceStores(source, results, null, "/", true, deep, lookForS63, computeHash, storeId, fileFilter);
+            updateDatasourceAnalysisState(source.getId(), AnalysisState.COMPLETED);
             LOGGER.fine("Analysis complete in " + ((System.nanoTime() - start) / 1e6) + " ms");
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
-            updateDatasourceAnalysisState(source.getId(), AnalysisState.ERROR.name());
+            updateDatasourceAnalysisState(source.getId(), AnalysisState.ERROR);
         }
         return results;
     }
 
     private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root, 
-            boolean deep, boolean lookForS63, boolean computeHash, String storeId) throws ConstellationException {
+            boolean deep, boolean lookForS63, boolean computeHash, String storeId, Predicate<Path> fileFilter) throws ConstellationException {
         final Path path = getDataSourcePath(ds, subPath);
         if (!Files.exists(path)) {
             throw new ConstellationException("path does not exist:" + path.toString());
@@ -987,7 +989,10 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             // do not keep opened the stream while calling recursively the method
             // because it can induce problem withe pooled client FileSystem (like ftp for example).
             if (Files.isDirectory(path)) {
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, (Path entry) -> !Files.isHidden(entry))) {
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, (Path entry) -> {
+                    return !(Files.isHidden(entry) || (fileFilter != null && !fileFilter.test(entry)))  || ( deep && Files.isDirectory(entry));
+                }
+                )) {
                     for (Path child : stream) {
                         children.add(child);
                     }
@@ -996,13 +1001,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 }
             }
             for (Path child : children) {
-                String childFileName = child.getFileName().toString();
-                String childPath = subPath + childFileName;
+                String childPath = subPath + child.getFileName().toString();
 
                 if (Files.isDirectory(child)) {
                     childPath = childPath + '/';
                 }
-                computeDatasourceStores(ds, types, subPath, childPath, false, deep, lookForS63, computeHash, storeId);
+                computeDatasourceStores(ds, types, subPath, childPath, false, deep, lookForS63, computeHash, storeId, fileFilter);
             }
         }
     }
@@ -1019,11 +1023,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public void updateDatasourceAnalysisState(int dsId, String state) {
+    public void updateDatasourceAnalysisState(int dsId, AnalysisState state) {
         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus arg0) {
-                dsRepository.updateAnalysisState(dsId, state);
+                dsRepository.updateAnalysisState(dsId, state.name());
             }
         });
     }
@@ -1272,7 +1276,110 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     @Override
     @Transactional
-    public void updatePathStatus(int id, String path, String newStatus) {
-        dsRepository.updatePathStatus(id, path, newStatus);
+    public void updatePathStatus(int id, String path, PathStatus newStatus) {
+        dsRepository.updatePathStatus(id, path, newStatus.name());
     }
+    
+    @Override
+    @Transactional
+    public void updatePathProvider(int id, String path, int providerId) {
+        dsRepository.updatePathProvider(id, path, providerId);
+    }
+
+    @Override
+    @Transactional
+    public void updatePathStatusAndProvider(int id, String path, PathStatus newStatus, Integer providerId) {
+        dsRepository.updatePathStatusAndProvider(id, path, newStatus.name(), providerId);
+    }
+
+    @Override
+    @Transactional
+    public void scanForModification(int dsId, Predicate<Path> fileFilter) throws ConstellationException {
+        final DataSource ds = getDatasource(dsId);
+        if (ds == null) throw new TargetNotFoundException("Unexisting datasource:" + dsId);
+        List<String> fileList = new ArrayList<>();
+        if ("file".equals(ds.getType())) {
+            scanForModification(ds, "/", null, fileFilter, fileList);
+
+            // look for removed files
+            List<DataSourceSelectedPath> selectedPaths = dsRepository.getSelectedPath(dsId, Integer.MAX_VALUE);
+            for (DataSourceSelectedPath selectedPath : selectedPaths) {
+                if (!fileList.contains(selectedPath.getPath())) {
+                    dsRepository.updatePathStatus(dsId, selectedPath.getPath(), PathStatus.REMOVED.name());
+                }
+            }
+        } else {
+            LOGGER.warning("No scan for modification implemented for: " + ds.getType() + " datasource");
+        }
+    }
+    
+    private void scanForModification(DataSource ds, String subPath, String parentPath, Predicate<Path> fileFilter, List<String> fileList) throws ConstellationException {
+        final Path path = getDataSourcePath(ds, subPath);
+        if (!Files.exists(path)) {
+            throw new ConstellationException("path does not exist:" + path.toString());
+        }
+        fileList.add(subPath);
+        DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(ds.getId(), subPath);
+        
+        // new File
+        if (dpc == null) {
+            analysePath(ds.getId(), parentPath, path, true, false, true, ds.getStoreId());
+        
+        // look for modification
+        } else {
+            boolean isDir = Files.isDirectory(path);
+            if (!isDir) {
+                try {
+                    Long newSize = Files.size(path);
+                    Long lastModified = Files.getLastModifiedTime(path).toMillis();
+                    String newHash = null;
+                    boolean modified = false;
+                    if (!Objects.equals(newSize, dpc.getSize())) {
+                        modified = true;
+                        newHash = FileSystemUtilities.computeHash(path);
+                    } else {
+                        if (!Objects.equals(lastModified, dpc.getModified())) {
+                            newHash = FileSystemUtilities.computeHash(path);
+                            modified = !dpc.getContentHash().equals(newHash);
+                        }
+                    }
+                    if (modified) {
+                        dsRepository.updateAnalyzedPath(ds.getId(), dpc.getPath(), newSize, lastModified, newHash, "SHA-256");
+                        // it always should exist right? to verify
+                        dsRepository.updatePathStatus(ds.getId(), dpc.getPath(), PathStatus.MODIFIED.name());
+                    }
+                    
+                } catch (IOException | NoSuchAlgorithmException ex) {
+                    LOGGER.log(Level.WARNING, "Unable to analyse modification for file: " + path.toString(), ex);
+                }
+            }
+        }
+        
+
+        List<Path> children = new ArrayList<>();
+        // do not keep opened the stream while calling recursively the method
+        // because it can induce problem withe pooled client FileSystem (like ftp for example).
+        if (Files.isDirectory(path)) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, (Path entry) -> {
+                return !(Files.isHidden(entry) || (fileFilter != null && !fileFilter.test(entry))) || Files.isDirectory(entry);
+            }
+            )) {
+                for (Path child : stream) {
+                    children.add(child);
+                }
+            } catch (IOException e) {
+                throw new ConstellationException("Error occurs during directory browsing", e);
+            }
+        }
+        for (Path child : children) {
+            String childPath = subPath + child.getFileName().toString();
+
+            if (Files.isDirectory(child)) {
+                childPath = childPath + '/';
+            }
+            scanForModification(ds, childPath, subPath, fileFilter, fileList);
+        }
+    }
+    
+    
 }
