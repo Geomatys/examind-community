@@ -378,7 +378,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                     }
 
                     final ISOMetadata formatMeta = (ISOMetadata) tileFormat;
-                    String format    = "image/png"; 
+                    String format    = "image/png";
                     String extension = "png";
                     for (Identifier fid : formatMeta.getIdentifiers()) {
                         if (org.geotoolkit.storage.multires.TileMatrixSet.AUTHORITY_EXTENSION.equals(fid.getAuthority().getTitle().toString())) {
@@ -389,14 +389,14 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                     }
 
                     outputLayer.setFormat(List.of(format));
-                    
+
                     final List<URLTemplateType> resources = new ArrayList<>();
                     String url = getServiceUrl();
                     url = url.substring(0, url.length() - 1) + "/" + name + "/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}." + extension;
                     final URLTemplateType tileURL = new URLTemplateType(format, "tile", url);
                     resources.add(tileURL);
-                    
-                    
+
+
                     outputLayer.setResourceURL(resources);
 
                     for (org.apache.sis.storage.tiling.TileMatrixSet pr : pyramids) {
@@ -420,7 +420,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                             matrix.setIdentifier(new CodeType(mosaic.getIdentifier().toString()));
                             matrix.setScaleDenominator(scale);
                             matrix.setMatrixDimension(TileMatrices.getGridSize(mosaic));
-                            int[] tileSize = TileMatrices.getTileSize(mosaic);
+                            int[] tileSize = TileMatrices.getOrEstimateTileGridSize(mosaic);
                             matrix.setTileWidth(tileSize[0]);
                             matrix.setTileHeight(tileSize[1]);
                             matrix.getTopLeftCorner().add(upperLeft.getCoordinate(xAxis));

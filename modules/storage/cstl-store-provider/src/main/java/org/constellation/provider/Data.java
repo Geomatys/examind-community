@@ -338,8 +338,8 @@ public interface Data<T extends Resource> {
                             moss.add(mf);
                             mf.put("identifier", m.getIdentifier());
                             mf.put("tilingScheme", m.getTilingScheme().toString());
-                            mf.put("tile size width", TileMatrices.getTileSize(m)[0]);
-                            mf.put("tile size height", TileMatrices.getTileSize(m)[1]);
+                            mf.put("tile size width", TileMatrices.getOrEstimateTileGridSize(m)[0]);
+                            mf.put("tile size height", TileMatrices.getOrEstimateTileGridSize(m)[1]);
                         }
                         pf.put("mosaics", moss);
                     }
