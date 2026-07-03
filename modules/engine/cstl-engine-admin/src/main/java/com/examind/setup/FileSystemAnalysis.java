@@ -98,7 +98,7 @@ public class FileSystemAnalysis {
      */
     public final boolean async;
     
-    
+
     /**
      * Build and compute the filesystem analysis on the supplied directories.
      * if async is set to true, async informations will be computed.

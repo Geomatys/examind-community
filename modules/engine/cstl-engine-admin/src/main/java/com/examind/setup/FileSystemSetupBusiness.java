@@ -197,83 +197,29 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         try {
             Path styleDir = configBusiness.getStylesDirectory();
             Path servDir  = configBusiness.getServicesDirectory();
-            Path dataDir  = configBusiness.getProvidersDirectory();
+            Path provDir  = configBusiness.getProvidersDirectory();
+            
+            FileSystemAnalysis analysis = new FileSystemAnalysis(styleDir, servDir, provDir, this::parseStyle, async);
             
             // 1. install styles
             int dsId = createDatasourceForConfigFiles(styleDir, FileSystemUtilities::sldFileFilter);
             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                Path p = datasourceBusiness.getDatasourcePath(dsId, path.getPath());
-                switch (PathStatus.valueOf(path.getStatus())) {
-                    case PENDING -> {
-                        MutableStyle s = parseStyle(p);
-                        PathStatus newStatus;
-                        if (s != null) {
-                            Integer styleId = importStyle(s);
-                            datasourceBusiness.updatePathProvider(dsId, path.getPath(), styleId);
-                            newStatus = PathStatus.INTEGRATED;
-                        } else {
-                            newStatus = PathStatus.ERROR;
-                        }
-                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
-                    }
-                    case MODIFIED -> {
-                        MutableStyle s = parseStyle(p);
-                        PathStatus newStatus;
-                        if (s != null) {
-                            styleBusiness.updateStyle(path.getProviderId(), s.getName(), s);
-                            newStatus = PathStatus.INTEGRATED;
-                        } else {
-                            // what to do with the old style? remove it?
-                            newStatus = PathStatus.ERROR;
-                        }
-                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
-                    }
-                    
-                    case REMOVED -> {
-                        styleBusiness.deleteStyle(path.getProviderId());
-                        datasourceBusiness.removePath(dsId, path.getPath());
-                    }
-                }
+                handleStylePath(path);
             }
             
             // 2. install services
             dsId = createDatasourceForConfigFiles(servDir, FileSystemUtilities::serviceFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                Path p = datasourceBusiness.getDatasourcePath(dsId, path.getPath());
-                switch (PathStatus.valueOf(path.getStatus())) {
-                    case PENDING -> {
-                        Service s = parseYaml(p, Service.class);
-                        PathStatus newStatus;
-                        if (s != null) {
-                            Integer sid = createService(s);
-                            datasourceBusiness.updatePathProvider(dsId, path.getPath(), sid);
-                            newStatus = PathStatus.INTEGRATED;
-                        } else {
-                            newStatus = PathStatus.ERROR;
-                        }
-                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
-                    }
-                    case MODIFIED -> {
-                        Service s = parseYaml(p, Service.class);
-                        PathStatus newStatus;
-                        if (s != null) {
-                            int sid = updateService(path.getProviderId(), s);
-                            datasourceBusiness.updatePathProvider(dsId, path.getPath(), sid);
-                            newStatus = PathStatus.INTEGRATED;
-                        } else {
-                            // what to do with the old service? remove it?
-                            newStatus = PathStatus.ERROR;
-                        }
-                        datasourceBusiness.updatePathStatus(dsId, path.getPath(), newStatus);
-                    }
-                    
-                    case REMOVED -> {
-                        serviceBusiness.delete(path.getProviderId());
-                        datasourceBusiness.removePath(dsId, path.getPath());
-                    }
-                }
+                handleServicePath(path);
+            }
+            
+            // 2. install providers
+            dsId = createDatasourceForConfigFiles(provDir, FileSystemUtilities::regularProviderFileFilter);
+            paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
+            for (DataSourceSelectedPath path : paths) {
+                handleProviderPath(path, analysis.asyncInfos);
             }
             
             
@@ -287,6 +233,117 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     -----------------------------------------------------------
                     
                     """);
+    }
+    
+    
+    private void handleStylePath(DataSourceSelectedPath path) throws ConstellationException {
+        Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+        switch (PathStatus.valueOf(path.getStatus())) {
+            case PENDING -> {
+                MutableStyle s = parseStyle(p);
+                PathStatus newStatus;
+                if (s != null) {
+                    Integer styleId = importStyle(s);
+                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), styleId);
+                    newStatus = PathStatus.INTEGRATED;
+                } else {
+                    newStatus = PathStatus.ERROR;
+                }
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+            }
+            case MODIFIED -> {
+                MutableStyle s = parseStyle(p);
+                PathStatus newStatus;
+                if (s != null) {
+                    styleBusiness.updateStyle(path.getProviderId(), s.getName(), s);
+                    newStatus = PathStatus.INTEGRATED;
+                } else {
+                    // what to do with the old style? remove it?
+                    newStatus = PathStatus.ERROR;
+                }
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+            }
+
+            case REMOVED -> {
+                styleBusiness.deleteStyle(path.getProviderId());
+                datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
+            }
+        }
+    }
+    
+    private void handleServicePath(DataSourceSelectedPath path) throws ConstellationException {
+        Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+        switch (PathStatus.valueOf(path.getStatus())) {
+            case PENDING -> {
+                Service s = parseYaml(p, Service.class);
+                PathStatus newStatus;
+                if (s != null) {
+                    Integer sid = createService(s);
+                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
+                    newStatus = PathStatus.INTEGRATED;
+                } else {
+                    newStatus = PathStatus.ERROR;
+                }
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+            }
+            case MODIFIED -> {
+                Service s = parseYaml(p, Service.class);
+                PathStatus newStatus;
+                if (s != null) {
+                    int sid = updateService(path.getProviderId(), s);
+                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
+                    newStatus = PathStatus.INTEGRATED;
+                } else {
+                    // what to do with the old service? remove it?
+                    newStatus = PathStatus.ERROR;
+                }
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+            }
+
+            case REMOVED -> {
+                serviceBusiness.delete(path.getProviderId());
+                datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
+            }
+        }
+    }
+    
+    private void handleProviderPath(DataSourceSelectedPath path, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
+        Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+        switch (PathStatus.valueOf(path.getStatus())) {
+            case PENDING -> {
+                Provider pr = parseYaml(p, Provider.class);
+                PathStatus newStatus;
+                if (pr != null) {
+                    ProviderWithPath pwp = new ProviderWithPath(pr, p);
+                    Integer pid = createProvider(pwp, providerServiceLink, true);
+                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), pid);
+                    newStatus = PathStatus.INTEGRATED;
+                } else {
+                    newStatus = PathStatus.ERROR;
+                }
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+            }
+            case MODIFIED -> {
+                /*
+                TODO
+                Service s = parseYaml(p, Service.class);
+                PathStatus newStatus;
+                if (s != null) {
+                    int sid = updateService(path.getProviderId(), s);
+                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
+                    newStatus = PathStatus.INTEGRATED;
+                } else {
+                    // what to do with the old service? remove it?
+                    newStatus = PathStatus.ERROR;
+                }
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);*/
+            }
+
+            case REMOVED -> {
+                providerBusiness.removeProvider(path.getProviderId());
+                datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
+            }
+        }
     }
     
     @Override
@@ -324,12 +381,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             
             // 4. install regular data
             for (ProviderWithPath provider : analysis.providers.values()) {
-                createProviderFromFile(provider, analysis.asyncInfos, async);
+                createProvider(provider, analysis.asyncInfos, async);
             }
             
             // 5. install computed data that use data created in the previous pass
             for (ProviderWithPath provider : analysis.computedProviders.values()) {
-                createProviderFromFile(provider, analysis.asyncInfos, async);
+                createProvider(provider, analysis.asyncInfos, async);
             }
             
             // 6. (Sync) install services
@@ -443,7 +500,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 boolean partial = false;
                 int spid = createMetadataDatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters());
                 if (!instance.getAdvancedParameters().isEmpty()) {
-                    partial = instance.getBooleanAdvancedParameters("partial", false);
+                    partial = instance.getAdvancedParameter("partial", false);
                     
                     Automatic conf = (Automatic) serviceBusiness.getConfiguration(sid);
                     for (Entry<String, String> entry : instance.getAdvancedParameters().entrySet()) {
@@ -841,7 +898,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return datasourceBusiness.getOrcreate(ds);
     }
     
-    private void createProviderFromFile(final ProviderWithPath provider, Map<String, List<Service>> providerServiceLink, boolean async) {
+    private Integer createProvider(final ProviderWithPath provider, Map<String, List<Service>> providerServiceLink, boolean async) {
         try {
             Provider providerConf = provider.provider;
 
@@ -887,8 +944,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             Integer dsId = dataset != null ? datasetBusiness.getOrCreateDataset(dataset, null) : null;
             
             if ("coverage-sql".equals(impl)) {
-                createCoverageSQLProvider(providerConf, dsId, datasourceId, files);
-                return;
+                return createCoverageSQLProvider(providerConf, dsId, datasourceId, files);
             }
             
             // Acquire provider service instance.
@@ -975,7 +1031,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
                     dataBusiness.acceptDatas(dataIds, null, false);
                     
-                    // SYNC MODE Add layer and reload needed service
+                    // ASYNC MODE Add layer and reload needed service
                     if (async && dataset != null) {
                         List<Service> services = providerServiceLink.getOrDefault(dataset, new ArrayList<>());
                         for (Service service : services) {
@@ -989,6 +1045,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                             }
                         }
                     }
+                    return pid;
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString() + " data file: " + fileUri, ex);
                 }
@@ -996,6 +1053,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString(), ex);
         }
+        return null;
     }
     
     private MutableStyle parseStyle(Path path) {

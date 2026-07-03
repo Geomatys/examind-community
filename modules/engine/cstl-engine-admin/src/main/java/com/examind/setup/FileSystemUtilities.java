@@ -172,6 +172,14 @@ public class FileSystemUtilities {
         return uri;
     }
     
+    public static boolean regularProviderFileFilter(Path path) {
+        return providerFileFilter(path, Boolean.FALSE);
+    }
+    
+    public static boolean computedProviderFileFilter(Path path) {
+        return providerFileFilter(path, Boolean.TRUE);
+    }
+    
      /**
      * file filter based on yaml extension and its content.
      * 
