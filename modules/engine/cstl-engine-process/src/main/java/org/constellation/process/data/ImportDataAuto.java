@@ -28,7 +28,6 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IDatasourceBusiness.PathStatus;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
@@ -98,7 +97,7 @@ public class ImportDataAuto extends AbstractCstlProcess {
             final boolean permanent    = false; // we don't keep the datasource in this process.
             final String datasourceURL = dataPath.toUri().toString();
             final String scheme        = dataPath.toUri().getScheme();
-            final DataSource ds        = new DataSource(null, scheme, datasourceURL, null, null, null, remoteFile, System.currentTimeMillis(), IDatasourceBusiness.AnalysisState.NOT_STARTED.name(), null, permanent, Map.of());
+            final DataSource ds        = new DataSource(null, null, scheme, datasourceURL, null, null, null, remoteFile, System.currentTimeMillis(), IDatasourceBusiness.AnalysisState.NOT_STARTED.name(), null, permanent, Map.of());
             datasourceId               = datasourceBusiness.create(ds);
 
             /**

@@ -67,6 +67,11 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     public DataSource findById(int id) {
         return convertToDto(dsl.select().from(DATASOURCE).where(DATASOURCE.ID.eq(id)).fetchOneInto(Datasource.class));
     }
+    
+    @Override
+    public DataSource findByIdentifier(String identifier) {
+        return convertToDto(dsl.select().from(DATASOURCE).where(DATASOURCE.IDENTIFIER.eq(identifier)).fetchOneInto(Datasource.class));
+    }
 
     @Override
     public boolean existsById(Integer id) {
@@ -278,6 +283,7 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                 .set(DATASOURCE.USERNAME, ds.getUsername())
                 .set(DATASOURCE.FORMAT, ds.getFormat())
                 .set(DATASOURCE.PERMANENT, ds.getPermanent())
+                .set(DATASOURCE.IDENTIFIER, ds.getIdentifier())
                 .where(DATASOURCE.ID.eq(ds.getId()))
                 .execute();
 
@@ -451,20 +457,20 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     
     private DataSource convertToDto(Datasource ds) {
         if (ds != null) {
-            DataSource dto = new DataSource();
-            dto.setAnalysisState(ds.getAnalysisState());
-            dto.setDateCreation(ds.getDateCreation());
-            dto.setFormat(ds.getFormat());
-            dto.setId(ds.getId());
-            dto.setPwd(ds.getPwd());
-            dto.setReadFromRemote(ds.getReadFromRemote());
-            dto.setStoreId(ds.getStoreId());
-            dto.setType(ds.getType());
-            dto.setUrl(ds.getUrl());
-            dto.setUsername(ds.getUsername());
-            dto.setPermanent(ds.getPermanent());
-            dto.setProperties(getDatasourceProperties(ds.getId()));
-            return dto;
+            return new DataSource(
+            ds.getId(),
+            ds.getIdentifier(),
+            ds.getType(),
+            ds.getUrl(),
+            ds.getUsername(),
+            ds.getPwd(),
+            ds.getStoreId(),
+            ds.getReadFromRemote(),
+            ds.getDateCreation(),
+            ds.getAnalysisState(),
+            ds.getFormat(),
+            ds.getPermanent(),
+            getDatasourceProperties(ds.getId()));
         }
         return null;
     }

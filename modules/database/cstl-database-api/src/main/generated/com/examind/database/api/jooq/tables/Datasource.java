@@ -127,6 +127,11 @@ public class Datasource extends TableImpl<DatasourceRecord> {
      */
     public final TableField<DatasourceRecord, Boolean> PERMANENT = createField(DSL.name("permanent"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
+    /**
+     * The column <code>admin.datasource.identifier</code>.
+     */
+    public final TableField<DatasourceRecord, String> IDENTIFIER = createField(DSL.name("identifier"), SQLDataType.CLOB, this, "");
+
     private Datasource(Name alias, Table<DatasourceRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

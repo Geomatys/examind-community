@@ -250,7 +250,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     serviceBusiness.setConfiguration(sid, conf);
                 }
                 
-                Integer datasourceId = createDatasource(instance.getSource());
+                Integer datasourceId = createDatasource(instance.getType() + "-" + instance.getIdentifier(), instance.getSource());
                 
                 int pid = createOM2DatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                 serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
@@ -641,12 +641,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
-    private Integer createDatasource(Datasource source) throws ConstellationException {
+    private Integer createDatasource(String identifier, Datasource source) throws ConstellationException {
         if (source == null) return null;
         String location = source.getLocation();
         String userName = source.getUserName();
         String pwd = source.getPassword();
-        DataSource ds = new DataSource(null, "database", location, userName, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
+        DataSource ds = new DataSource(null, identifier, "database", location, userName, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
         return datasourceBusiness.getOrcreate(ds);
     }
     
@@ -671,7 +671,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             // special case
             String pathParamName = null;
             if (providerConf.getSource() != null) {
-                datasourceId  = createDatasource(providerConf.getSource());
+                datasourceId  = createDatasource(providerIdentifier, providerConf.getSource());
                 if (datasourceId == null) throw new ConstellationException("Provider source missing for SQL provider.");
             } else if ("coverage-xml-pyramid".equals(impl)) {
                 pathParamName = "path";

@@ -33,6 +33,8 @@ import org.constellation.dto.DataSourcePathComplete;
 public interface DatasourceRepository extends AbstractRepository {
 
     DataSource findById(int id);
+    
+    DataSource findByIdentifier(String identifier);
 
     List<DataSource> search(String url, String storeId, String format, String userName);
 

@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."datasource" ADD COLUMN IF NOT EXISTS "identifier" TEXT;

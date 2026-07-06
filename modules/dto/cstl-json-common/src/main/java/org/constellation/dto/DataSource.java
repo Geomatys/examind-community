@@ -30,6 +30,7 @@ import java.util.Map;
 @XmlRootElement
 public class DataSource extends Identifiable implements Serializable {
 
+    private String  identifier;
     private String  type;
     private String  url;
     private String  username;
@@ -45,10 +46,11 @@ public class DataSource extends Identifiable implements Serializable {
     public DataSource() {
     }
 
-    public DataSource(Integer id, String type, String url, String username,
+    public DataSource(Integer id, String identifier, String type, String url, String username,
             String pwd, String storeId, Boolean readFromRemote, Long dateCreation,
             String analysisState, String format, Boolean permanent, Map<String, String> properties) {
         this.id = id;
+        this.identifier = identifier;
         this.type = type;
         this.url = url;
         this.username = username;
@@ -220,5 +222,13 @@ public class DataSource extends Identifiable implements Serializable {
         if (pwd != null) {
             pwd = "******";
         }
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 }

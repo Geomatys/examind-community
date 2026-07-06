@@ -209,6 +209,21 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
         return (Boolean) get(10);
     }
 
+    /**
+     * Setter for <code>admin.datasource.identifier</code>.
+     */
+    public DatasourceRecord setIdentifier(String value) {
+        set(11, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.datasource.identifier</code>.
+     */
+    public String getIdentifier() {
+        return (String) get(11);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -232,7 +247,7 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
     /**
      * Create a detached, initialised DatasourceRecord
      */
-    public DatasourceRecord(Integer id, String type, String url, String username, String pwd, String storeId, Boolean readFromRemote, Long dateCreation, String analysisState, String format, Boolean permanent) {
+    public DatasourceRecord(Integer id, String type, String url, String username, String pwd, String storeId, Boolean readFromRemote, Long dateCreation, String analysisState, String format, Boolean permanent, String identifier) {
         super(Datasource.DATASOURCE);
 
         setId(id);
@@ -246,6 +261,7 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
         setAnalysisState(analysisState);
         setFormat(format);
         setPermanent(permanent);
+        setIdentifier(identifier);
         resetChangedOnNotNull();
     }
 
@@ -267,6 +283,7 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
             setAnalysisState(value.getAnalysisState());
             setFormat(value.getFormat());
             setPermanent(value.getPermanent());
+            setIdentifier(value.getIdentifier());
             resetChangedOnNotNull();
         }
     }

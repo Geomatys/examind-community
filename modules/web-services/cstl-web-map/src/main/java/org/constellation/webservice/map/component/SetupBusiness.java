@@ -272,7 +272,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
                         if (minId   != null) properties.put("minIdle",                minId);
                         if (idtM    != null) properties.put("idleTimeoutMs",          idtM);
                         if (coTM    != null) properties.put("connectTimeoutMs",       coTM);
-                        DataSource ds = new DataSource(null, "database", url, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, properties);
+                        DataSource ds = new DataSource(null, null, "database", url, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, properties);
                         dsId = datasourceBusiness.create(ds);
                     } else {
                         dsId = existing.get(0).getId();
@@ -303,7 +303,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
                     if (existing.isEmpty()) {
                         Map<String, String> properties = new HashMap<>();
                         if (readOnly != null) properties.put("readOnly",     readOnly);
-                        DataSource ds = new DataSource(null, "database", url, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, properties);
+                        DataSource ds = new DataSource(null, null, "database", url, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, properties);
                         dsId = datasourceBusiness.create(ds);
                     } else {
                         dsId = existing.get(0).getId();
@@ -358,7 +358,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
         String pwd   = infos[2];
         List<DataSource> datasources = datasourceBusiness.search(dbUrl, "NULL", "NULL", user);
         if (datasources.isEmpty()) {
-            DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, Map.of());
+            DataSource ds = new DataSource(null, "examind-db", "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, Map.of());
             datasourceBusiness.create(ds);
         }
     }
