@@ -50,28 +50,40 @@ public class ReloadFsConfigDescriptor extends AbstractCstlProcessDescriptor {
     private static final String DIFF_REMARKS = "if set to true the files will be monitored to detect changes at reload.";
     public static final ParameterDescriptor<Boolean> DIFF;
     
+    public static final String CLEANUP_NAME = "cleanup";
+    private static final String CLEANUP_REMARKS = "if set to true all the entities will be removed before installing new one.";
+    public static final ParameterDescriptor<Boolean> CLEANUP;
+    
     static {
         final ParameterBuilder builder = new ParameterBuilder();
         
         // fill the default value from the configuration
-        boolean defValue = Application.getBooleanProperty(AppProperty.EXA_FS_ASYNC, Boolean.FALSE);
+        boolean asyncDefValue = Application.getBooleanProperty(AppProperty.EXA_FS_ASYNC, Boolean.FALSE);
         ASYNC = builder
             .addName(ASYNC_NAME)
             .setRemarks(ASYNC_REMARKS)
             .setRequired(false)
-            .create(Boolean.class, defValue);
+            .create(Boolean.class, asyncDefValue);
         
         // fill the default value from the configuration
-        defValue = Application.getBooleanProperty(AppProperty.EXA_FS_DIFF, Boolean.FALSE);
+        boolean diffDefValue = Application.getBooleanProperty(AppProperty.EXA_FS_DIFF, Boolean.FALSE);
         DIFF = builder
             .addName(DIFF_NAME)
             .setRemarks(DIFF_REMARKS)
             .setRequired(false)
-            .create(Boolean.class, defValue);
+            .create(Boolean.class, diffDefValue);
+        
+        // if diff mode is set to true, the cleanup is so to false by default
+        // however we allow the user to force the deletion
+        CLEANUP = builder
+            .addName(CLEANUP_NAME)
+            .setRemarks(CLEANUP_REMARKS)
+            .setRequired(false)
+            .create(Boolean.class, !diffDefValue);
     }
 
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(ASYNC, DIFF);
+            .createGroup(ASYNC, DIFF, CLEANUP);
 
      /**Output parameters */
      public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)

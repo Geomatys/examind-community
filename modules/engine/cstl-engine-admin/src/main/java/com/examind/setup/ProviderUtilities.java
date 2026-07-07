@@ -20,7 +20,28 @@
 package com.examind.setup;
 
 import com.examind.dto.fs.Provider;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sis.util.ObjectConverters;
+import org.constellation.api.ProviderType;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.dto.Data;
+import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationRuntimeException;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.DataProviders;
+import org.constellation.provider.ProviderParameters;
+import org.opengis.parameter.GeneralParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterNotFoundException;
+import org.opengis.parameter.ParameterValue;
+import org.opengis.parameter.ParameterValueGroup;
 
 /**
  * Utility methods for provider configuration.
@@ -31,6 +52,18 @@ public class ProviderUtilities {
     
     public static final String COVERAGE_SQL = "coverage-sql";
     public static final String COMPUTED_PROVIDER = "computed-resource";
+    
+    private static final Logger LOGGER = Logger.getLogger("com.examind.setup");
+    
+    private static class Config {
+        public final ParameterValueGroup source;
+        public final ParameterValueGroup config;
+        
+        public Config(ParameterValueGroup source, ParameterValueGroup config) {
+            this.config = config;
+            this.source = source;
+        }
+    }
     
     /**
      * Category of providers.
@@ -90,4 +123,139 @@ public class ProviderUtilities {
         }
     }
 
+    private static Config createProviderConfig(String factoryName, String providerIdentifier, String impl, Integer datasourceId, String datasourceParamName) throws ConstellationException {
+        return createProviderConfig(factoryName, providerIdentifier, impl, datasourceId, datasourceParamName, null, Set.of());
+    }
+    
+    private static Config createProviderConfig(String factoryName, String providerIdentifier, String impl, 
+            Integer datasourceId, String datasourceParamName, 
+            Map<String, String> parameters, Set<String> ignoredParameters) throws ConstellationException {
+        
+        final DataProviderFactory factory = DataProviders.getFactory(factoryName);
+        if (factory == null) {
+            throw new ConstellationException("Provider service not found: " + factoryName);
+        }
+        final ParameterValueGroup source  = factory.getProviderDescriptor().createValue();
+        source.parameter("id").setValue(providerIdentifier);
+        source.parameter("providerType").setValue(factoryName);
+        
+        final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
+        final ParameterValueGroup config = choice.addGroup(impl);
+        
+        if (datasourceId != null) {
+            config.parameter(datasourceParamName).setValue(datasourceId);
+        }
+        
+        if (parameters != null) {
+            for (Map.Entry<String, String> param : parameters.entrySet()) {
+                // skip some reserved or know parameter
+                String key = param.getKey();
+                if (ignoredParameters.contains(key)) continue;
+                try {
+                    ParameterValue<?> paramValue = config.parameter(param.getKey());
+                    paramValue.setValue(ObjectConverters.convert(param.getValue(), paramValue.getDescriptor().getValueClass()));
+                } catch (ParameterNotFoundException ex) {
+                    LOGGER.log(Level.WARNING, "Erreur while setting advanced parameter " + param.getKey() + " on provider: " + providerIdentifier, ex);
+                }
+            }
+        }
+        return new Config(source, config);
+    }
+    
+    public static Integer createFileProvider(String factoryName, IProviderBusiness pBusiness, String providerIdentifier, String impl, Integer datasourceId, Object pathUri, String pathParamName, Map<String, String> parameters) throws ConstellationException {
+        Config config = createProviderConfig(factoryName, providerIdentifier, impl, datasourceId, "datasourceId", parameters, Set.of());
+                    
+        if (pathParamName != null) {
+            config.config.parameter(pathParamName).setValue(pathUri);
+        }
+        return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, factoryName, config.source);
+    }
+    
+    public static Integer createComputedProvider(String factoryName, IProviderBusiness pBusiness, String providerIdentifier, String impl, List<Data> datas, Map<String, String> parameters) throws ConstellationException {
+        Config config = createProviderConfig(factoryName, providerIdentifier, impl, null, null, parameters, Set.of());
+                    
+        GeneralParameterDescriptor genParamDesc = config.config.getDescriptor().descriptor("data_ids");
+        if (genParamDesc instanceof ParameterDescriptor paramDesc) {
+            for (Data brief : datas) {
+                ParameterValue value = paramDesc.createValue();
+                value.setValue(brief.getId());
+                config.config.values().add(value);
+            }
+        }
+        return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, factoryName, config.source);
+    }
+    
+    public static Integer createCSQLProvider(IProviderBusiness pBusiness, String providerIdentifier, Integer datasourceId) throws ConstellationException {
+        Config config = createProviderConfig("data-store", providerIdentifier, "exa-coverage-sql", datasourceId, "datasourceId");
+
+        config.config.parameter("rootDirectory").setValue(Path.of("/"));
+        return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", config.source);
+    }
+    
+    
+    public static Integer createMetadataFSProvider(IProviderBusiness pBusiness, String serviceId, String dataDirectory) throws ConstellationException {
+        final String providerIdentifier   = "csw-" + serviceId;
+        final Config config = createProviderConfig("metadata-store", providerIdentifier, "FilesystemMetadata", null, null);
+        
+        config.config.parameter("folder").setValue(dataDirectory);
+        config.config.parameter("store-id").setValue(providerIdentifier);
+
+        int pid = pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", config.source);
+        pBusiness.createOrUpdateData(pid, null, false, false, null);
+        return pid;
+    }
+    
+    public static Integer createSensorFSProvider(IProviderBusiness pBusiness, String serviceId, String path) throws ConstellationException {
+        final String providerIdentifier   = "sensor-" + serviceId;
+        final Config config = createProviderConfig("sensor-store", providerIdentifier, "filesensor", null, null);
+
+        config.config.parameter("data_directory").setValue(path);
+
+        return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "sensor-store", config.source);
+    }
+    
+    private final static Set<String> SKIPPED_OM = Set.of("om-implementation", "sn-implementation", "direct-provider", "create-data", "generate-from-existing", "sensor-metadata-path");
+    
+    public static Integer createOM2DatabaseProvider(IProviderBusiness pBusiness, String serviceId, Map<String, String> parameters, Integer datasourceId) {
+        try {
+            final String providerIdentifier   = "om-" + serviceId;
+            String impl = parameters.getOrDefault("om-implementation", "observationSOSDatabase");
+            
+            final Config config = createProviderConfig("observation-store", providerIdentifier, impl, datasourceId, "datasource-id", parameters, SKIPPED_OM);
+            
+            // fixed for now TODO remove ? 
+            if (impl.equals("observationSOSDatabase")) {
+                addOMSpecificProperties(config);
+            }
+            
+            return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", config.source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+    
+    public static Integer createSensorDatabaseProvider(IProviderBusiness pBusiness, String serviceId, Map<String, String> parameters, Integer datasourceId) {
+        try {
+            final String providerIdentifier   = "sensor-" + serviceId;
+            String impl = parameters.getOrDefault("sn-implementation", "om2sensor");
+            
+            final Config config = createProviderConfig("sensor-store", providerIdentifier, impl, datasourceId, "datasource-id", parameters, SKIPPED_OM);
+            
+            // fixed for now TODO remove ? 
+            if (impl.equals("om2sensor")) {
+                addOMSpecificProperties(config);
+            }
+            
+            return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "sensor-store", config.source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+    
+    private static void addOMSpecificProperties(Config config) {
+        config.config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
+        config.config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
+        config.config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
+        config.config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+    }
 }

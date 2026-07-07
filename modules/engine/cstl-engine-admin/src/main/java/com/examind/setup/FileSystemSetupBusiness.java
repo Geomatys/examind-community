@@ -31,9 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.io.stream.IOUtilities;
-import org.apache.sis.parameter.Parameters;
-import org.apache.sis.util.ObjectConverters;
-import org.constellation.api.ProviderType;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -48,16 +45,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.DataSource;
 import com.examind.dto.fs.Collection;
 import com.examind.dto.fs.CollectionItem;
-import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.DimensionItem;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
-import static com.examind.setup.FileSystemUtilities.*;
-import static com.examind.setup.ProviderUtilities.COMPUTED_PROVIDER;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -66,7 +59,6 @@ import java.util.regex.Pattern;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.apache.sis.storage.DataStoreException;
-import static org.constellation.api.CommonConstants.FILE_STORE;
 import org.constellation.api.PathStatus;
 import static org.constellation.api.PathStatus.MODIFIED;
 import static org.constellation.api.PathStatus.PENDING;
@@ -80,22 +72,17 @@ import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.ProviderParameters;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.style.MutableStyle;
-import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptorGroup;
-import org.opengis.parameter.ParameterNotFoundException;
-import org.opengis.parameter.ParameterValue;
-import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.task.TaskExecutor;
+
+import static com.examind.setup.FileSystemUtilities.*;
+import static com.examind.setup.DatasourceUtilities.*;
+import static com.examind.setup.ProviderUtilities.*;
 
 /**
  *
@@ -202,26 +189,39 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             FileSystemAnalysis analysis = new FileSystemAnalysis(styleDir, servDir, provDir, this::parseStyle, async);
             
             // 1. install styles
-            int dsId = createDatasourceForConfigFiles(styleDir, FileSystemUtilities::sldFileFilter);
+            int dsId = createDatasourceForConfigFiles(datasourceBusiness, "stylesFS", styleDir, FileSystemUtilities::sldFileFilter);
             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
                 handleStylePath(path);
             }
             
-            // 2. install services
-            dsId = createDatasourceForConfigFiles(servDir, FileSystemUtilities::serviceFileFilter);
+            // 2. install services with data
+            dsId = createDatasourceForConfigFiles(datasourceBusiness, "serviceWithDataFS", servDir, FileSystemUtilities::serviceWithDataFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
                 handleServicePath(path);
             }
             
-            // 2. install providers
-            dsId = createDatasourceForConfigFiles(provDir, FileSystemUtilities::regularProviderFileFilter);
+            // 3. install services with data
+            dsId = createDatasourceForConfigFiles(datasourceBusiness, "serviceFS", servDir, FileSystemUtilities::serviceNoDataFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
                 handleProviderPath(path, analysis.asyncInfos);
             }
             
+            // 4. install providers
+            dsId = createDatasourceForConfigFiles(datasourceBusiness, "providerFS", provDir, FileSystemUtilities::regularProviderFileFilter);
+            paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
+            for (DataSourceSelectedPath path : paths) {
+                handleProviderPath(path, analysis.asyncInfos);
+            }
+            
+            // 5. install computed providers
+            dsId = createDatasourceForConfigFiles(datasourceBusiness, "providerConputedFS", provDir, FileSystemUtilities::computedProviderFileFilter);
+            paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
+            for (DataSourceSelectedPath path : paths) {
+                handleProviderPath(path, analysis.asyncInfos);
+            }
             
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error a filesystem configuration startup", ex);
@@ -244,8 +244,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 PathStatus newStatus;
                 if (s != null) {
                     Integer styleId = importStyle(s);
-                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), styleId);
-                    newStatus = PathStatus.INTEGRATED;
+                    if (styleId != null) {
+                        datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), styleId);
+                        newStatus = PathStatus.INTEGRATED;
+                    } else {
+                        newStatus = PathStatus.ERROR; // NO DATA?
+                    }
                 } else {
                     newStatus = PathStatus.ERROR;
                 }
@@ -279,8 +283,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 PathStatus newStatus;
                 if (s != null) {
                     Integer sid = createService(s);
-                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
-                    newStatus = PathStatus.INTEGRATED;
+                    if (sid != null) {
+                        datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
+                        newStatus = PathStatus.INTEGRATED;
+                    } else {
+                        newStatus = PathStatus.ERROR; // NO DATA?
+                    }
                 } else {
                     newStatus = PathStatus.ERROR;
                 }
@@ -315,32 +323,51 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 PathStatus newStatus;
                 if (pr != null) {
                     ProviderWithPath pwp = new ProviderWithPath(pr, p);
-                    Integer pid = createProvider(pwp, providerServiceLink, true);
-                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), pid);
-                    newStatus = PathStatus.INTEGRATED;
+                    List<Integer> pids = createProvider(pwp, providerServiceLink, true);
+                    
+                    // TODO handle link between yaml file and multiple providers
+                    if (!pids.isEmpty()) {
+                        if (pids.size() == 1) {
+                            datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), pids.get(0));
+                        }
+                        newStatus = PathStatus.INTEGRATED;
+                    } else {
+                        newStatus = PathStatus.ERROR; // NO DATA?
+                    }
                 } else {
                     newStatus = PathStatus.ERROR;
                 }
                 datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
             }
             case MODIFIED -> {
-                /*
-                TODO
-                Service s = parseYaml(p, Service.class);
+                Provider pr = parseYaml(p, Provider.class);
                 PathStatus newStatus;
-                if (s != null) {
-                    int sid = updateService(path.getProviderId(), s);
-                    datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
-                    newStatus = PathStatus.INTEGRATED;
+                if (pr != null) {
+                    ProviderWithPath pwp = new ProviderWithPath(pr, p);
+                    List<Integer> pids = updateProvider(path.getProviderId(), pwp, providerServiceLink);
+                    
+                    // TODO handle link between yaml file and multiple providers
+                    if (!pids.isEmpty()) {
+                        if (pids.size() == 1) {
+                            datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), pids.get(0));
+                        }
+                        newStatus = PathStatus.INTEGRATED;
+                    } else {
+                        // what to do with the old provider(s)? remove it?
+                        newStatus = PathStatus.ERROR;
+                    }
                 } else {
-                    // what to do with the old service? remove it?
+                    // what to do with the old provider(s)? remove it?
                     newStatus = PathStatus.ERROR;
                 }
-                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);*/
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
             }
 
             case REMOVED -> {
-                providerBusiness.removeProvider(path.getProviderId());
+                // TODO handle link between yaml file and multiple providers
+                if (path.getProviderId() != null && path.getProviderId() != -1) {
+                    providerBusiness.removeProvider(path.getProviderId());
+                }
                 datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
             }
         }
@@ -381,12 +408,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             
             // 4. install regular data
             for (ProviderWithPath provider : analysis.providers.values()) {
-                createProvider(provider, analysis.asyncInfos, async);
+                createProvider(provider, analysis.asyncInfos, false);
             }
             
             // 5. install computed data that use data created in the previous pass
             for (ProviderWithPath provider : analysis.computedProviders.values()) {
-                createProvider(provider, analysis.asyncInfos, async);
+                createProvider(provider, analysis.asyncInfos, false);
             }
             
             // 6. (Sync) install services
@@ -406,33 +433,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     -----------------------------------------------------------
                     
                     """);
-    }
-    
-    private int createDatasourceForConfigFiles(Path rootDir, Predicate<Path> fileFilter) throws ConstellationException {
-        int dsId;
-        List<DataSource> candidates = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
-        if (candidates.isEmpty()) {
-            URI styleDirUri = rootDir.toUri();
-            DataSource ds = new DataSource();
-            ds.setType("file");
-            ds.setUrl(styleDirUri.toString());
-            ds.setPermanent(Boolean.TRUE);
-            ds.setReadFromRemote(true);
-            ds.setStoreId(FILE_STORE);
-            dsId = datasourceBusiness.create(ds);
-
-            datasourceBusiness.computeDatasourceStores(dsId, false, FILE_STORE, true, false, true, fileFilter);
-            datasourceBusiness.recordSelectedPath(dsId, false);
-
-        } else {
-            if (candidates.size() > 1) {
-                LOGGER.warning("Multiple datasource found. using the first we found");
-            }
-            dsId = candidates.get(0).getId();
-            datasourceBusiness.scanForModification(dsId, fileFilter);
-            datasourceBusiness.recordSelectedPath(dsId, true);
-        }
-        return dsId;
     }
     
     /**
@@ -463,23 +463,23 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     serviceBusiness.setConfiguration(sid, conf);
                 }
                 
-                Integer datasourceId = createDatasource(instance.getType() + "-" + instance.getIdentifier(), instance.getSource());
+                Integer datasourceId = createSQLDatasource(datasourceBusiness, instance.getType() + "-" + instance.getIdentifier(), instance.getSource());
                 
-                int pid = createOM2DatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
+                int pid = createOM2DatabaseProvider(providerBusiness, instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                 serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
                 
                 boolean fullLink;
                 int spid;
                 if (directProvider) {
-                    spid = createSensorDatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
+                    spid = createSensorDatabaseProvider(providerBusiness, instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                     fullLink = true;
                 } else {
-                    String sensorFolder = instance.getAdvancedParameters().getOrDefault("sensor-metadata-path", null);
+                    String sensorFolder = instance.getAdvancedParameter("sensor-metadata-path", null);
                     if (sensorFolder == null) {
                         spid = sensorBusiness.getDefaultInternalProviderID();
                         fullLink = false;
                     } else {
-                        spid = createSensorFSProvider(instance.getIdentifier(), sensorFolder);
+                        spid = createSensorFSProvider(providerBusiness, instance.getIdentifier(), sensorFolder);
                         providerBusiness.createOrUpdateData(spid, null, false, false, null);
                         fullLink = true;
                     }
@@ -498,7 +498,15 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
             } else if ("CSW".equalsIgnoreCase(instance.getType())) {
                 boolean partial = false;
-                int spid = createMetadataDatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters());
+                
+                String dataDirectory = instance.getAdvancedParameter("dataDirectory", null);
+                int spid;
+                if (dataDirectory == null) {
+                    spid = metadataBusiness.getDefaultInternalProviderID();
+                } else {
+                    spid = createMetadataFSProvider(providerBusiness, instance.getIdentifier(), dataDirectory);
+                }
+                
                 if (!instance.getAdvancedParameters().isEmpty()) {
                     partial = instance.getAdvancedParameter("partial", false);
                     
@@ -556,6 +564,14 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return createService(instance);
     }
     
+    private List<Integer> updateProvider(Integer providerId, ProviderWithPath provider, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
+        // for now we do an simple remove/create 
+        // TODO update metadata
+        // TODO linked files?
+        providerBusiness.removeProvider(providerId);
+        return createProvider(provider, providerServiceLink, true);
+    }
+
     /**
      * OpenEO runs on a WPS (process part) and a WCS (STAC/data part) sharing the same identifier.
      * Expand a single "OPENEO" filesystem entry into that WPS + WCS pair instead of requiring
@@ -711,111 +727,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return datas;
     }
     
-    private Integer createMetadataDatabaseProvider(String serviceId, Map<String, String> parameters) throws ConstellationException {
-        if (parameters.isEmpty()) return metadataBusiness.getDefaultInternalProviderID();
-        String dataDirectory = parameters.get("dataDirectory");
-        if (dataDirectory != null) {
-            final String providerIdentifier = "csw-" + serviceId + "-" + UUID.randomUUID().toString();
-            final DataProviderFactory factory = DataProviders.getFactory("metadata-store");
-            final ParameterValueGroup sourcef = factory.getProviderDescriptor().createValue();
-            sourcef.parameter("id").setValue(providerIdentifier);
-
-            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), sourcef);
-            final ParameterValueGroup config = choice.addGroup("FilesystemMetadata");
-            config.parameter("folder").setValue(dataDirectory);
-            config.parameter("store-id").setValue(providerIdentifier);
-
-            int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", sourcef);
-            providerBusiness.createOrUpdateData(pid, null, false, false, null);
-            return pid;
-        }
-        return metadataBusiness.getDefaultInternalProviderID();
-    }
-    
-    private final List<String> skippedForOMProvider = List.of("om-implementation", "sn-implementation", "direct-provider", "create-data");
-    
-    private Integer createOM2DatabaseProvider(String serviceId, Map<String, String> parameters, Integer datasourceId) {
-        try {
-            final String providerIdentifier = "om-src-" + serviceId;
-            final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
-            final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
-            source.parameter("id").setValue(providerIdentifier);
-            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
-            
-            String impl = parameters.getOrDefault("om-implementation", "observationSOSDatabase");
-            final ParameterValueGroup config = choice.addGroup(impl);
-            
-            if (datasourceId != null) {
-                config.parameter("datasource-id").setValue(datasourceId);
-            }
-            for (Entry<String, String> param : parameters.entrySet()) {
-                // skip some reserved or know parameter
-                String key = param.getKey();
-                if (skippedForOMProvider.contains(key)) continue;
-                try {
-                    ParameterValue<?> paramValue = config.parameter(param.getKey());
-                    paramValue.setValue(ObjectConverters.convert(param.getValue(), paramValue.getDescriptor().getValueClass()));
-                } catch (ParameterNotFoundException ex) {
-                    LOGGER.warning(ex.getMessage());
-                }
-            }
-            
-            // fixed for now TODO remove ? 
-            if (impl.equals("observationSOSDatabase")) {
-                config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-            }
-            
-            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
-        } catch (Exception ex) {
-            throw new ConstellationRuntimeException(ex);
-        }
-    }
-    
-    
-    private Integer createSensorDatabaseProvider(String serviceId, Map<String, String> parameters, Integer datasourceId) {
-        try {
-            final String providerIdentifier = "sensorSrc-" + serviceId;
-            final DataProviderFactory omFactory = DataProviders.getFactory("sensor-store");
-            final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
-            source.parameter("id").setValue(providerIdentifier);
-            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
-            
-            String impl = parameters.getOrDefault("sn-implementation", "om2sensor");
-            final ParameterValueGroup config = choice.addGroup(impl);
-            
-            if (datasourceId != null) {
-                config.parameter("datasource-id").setValue(datasourceId);
-            }
-            
-            for (Entry<String, String> param : parameters.entrySet()) {
-                // skip some reserved or know parameter
-                String key = param.getKey();
-                if (skippedForOMProvider.contains(key)) continue;
-                try {
-                    ParameterValue<?> paramValue = config.parameter(param.getKey());
-                    paramValue.setValue(ObjectConverters.convert(param.getValue(), paramValue.getDescriptor().getValueClass()));
-                } catch (ParameterNotFoundException ex) {
-                    LOGGER.warning(ex.getMessage());
-                }
-            }
-            
-            // fixed for now TODO remove ? 
-            if (impl.equals("om2sensor")) {
-                config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-            }
-            
-            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "sensor-store", source);
-        } catch (Exception ex) {
-            throw new ConstellationRuntimeException(ex);
-        }
-    }
-    
     private Integer createCoverageSQLProvider(Provider providerConf, Integer datasetId, Integer datasourceId, List<Object> files) throws Exception {
         if (datasourceId == null) {
             throw new ConstellationException("Provider source missing for SQL provider.");
@@ -829,25 +740,17 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         
         // we keep only one provider by datasource
         if (prId == null) {
-            final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
-            final ParameterValueGroup source    = dsFactory.getProviderDescriptor().createValue();
-            source.parameter("id").setValue(providerIdentifier);
-            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dsFactory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("exa-coverage-sql");
-            config.parameter("datasourceId").setValue(datasourceId);
-            config.parameter("rootDirectory").setValue(Path.of("/"));
-            prId = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
+            prId = createCSQLProvider(providerBusiness, providerIdentifier, datasourceId);
         }
         
         DataProvider provider = DataProviders.getProvider(prId);
         CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
         
-        String productName = providerConf.getAdvancedParameters().get("productName");
-        String subDataType = providerConf.getAdvancedParameters().get("subDataType");
+        String productName = providerConf.getAdvancedParameter("productName", (String) null);
+        String subDataType = providerConf.getAdvancedParameter("subDataType", (String) null);
         boolean asChild    = providerConf.getAdvancedParameter("asChild", false);
         boolean worldGG    = providerConf.getAdvancedParameter("worldGG", false);
-        String wgrStr      = providerConf.getAdvancedParameters().get("worldGGResolution");
-        Double worldGGRes  = wgrStr != null ? Double.valueOf(wgrStr) : null;
+        Double worldGGRes  = providerConf.getAdvancedParameter("worldGGResolution", (Double) null);
         
         List<Path> dataPaths = files.stream().map(uri -> Paths.get((URI)uri)).toList();
         try {
@@ -872,33 +775,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return prId;
     }
     
-    private Integer createSensorFSProvider(String serviceId, String path) {
-        try {
-            final String providerIdentifier = "sensorSrc-" + serviceId;
-            final DataProviderFactory omFactory = DataProviders.getFactory("sensor-store");
-            final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
-            source.parameter("id").setValue(providerIdentifier);
-            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("filesensor");
-            
-            config.parameter("data_directory").setValue(path);
-            
-            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "sensor-store", source);
-        } catch (Exception ex) {
-            throw new ConstellationRuntimeException(ex);
-        }
-    }
-    
-    private Integer createDatasource(String identifier, Datasource source) throws ConstellationException {
-        if (source == null) return null;
-        String location = source.getLocation();
-        String userName = source.getUserName();
-        String pwd = source.getPassword();
-        DataSource ds = new DataSource(null, identifier, "database", location, userName, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
-        return datasourceBusiness.getOrcreate(ds);
-    }
-    
-    private Integer createProvider(final ProviderWithPath provider, Map<String, List<Service>> providerServiceLink, boolean async) {
+    private List<Integer> createProvider(final ProviderWithPath provider, Map<String, List<Service>> providerServiceLink, boolean diffMode) {
+        List<Integer> results = new ArrayList<>();
         try {
             Provider providerConf = provider.provider;
 
@@ -919,7 +797,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             // special case
             String pathParamName = null;
             if (providerConf.getSource() != null) {
-                datasourceId  = createDatasource(providerIdentifier, providerConf.getSource());
+                datasourceId  = createSQLDatasource(datasourceBusiness, providerIdentifier, providerConf.getSource());
                 if (datasourceId == null) throw new ConstellationException("Provider source missing for SQL provider.");
             } else if ("coverage-xml-pyramid".equals(impl)) {
                 pathParamName = "path";
@@ -931,129 +809,104 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             List<Object> files = new ArrayList<>();
             if (dataStr != null) {
                 try {
-                    files.addAll(listFiles(provider.ymlFile, dataStr, dirPattern));
+                    if (diffMode) {
+                        Predicate<Path> filter = dirPattern != null ? p -> regexFileFilter(p, dirPattern) : null;
+                        Path dataPath = getDataPathPath(provider.ymlFile.getParent(), dataStr);
+                        int dsId = createDatasourceForProviderFiles(datasourceBusiness, providerIdentifier, dataPath, filter, impl);
+                        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
+                        for (DataSourceSelectedPath path : paths) {
+                            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+                            files.add(p.toUri());
+                            // TODO
+                        }
+                    } else {
+                        files.addAll(listFiles(provider.ymlFile, dataStr, dirPattern));
+                    }
                 } catch (FileSystemNotFoundException ex) {
                     LOGGER.log(Level.FINER, ex.getMessage(), ex);
+                    // not sure if i have to keep this case
                     files = List.of(dataStr);
                 }
-            } 
-            if (files.isEmpty()) {
-                files = List.of(NO_FILES);
             }
             
             Integer dsId = dataset != null ? datasetBusiness.getOrCreateDataset(dataset, null) : null;
             
             if ("coverage-sql".equals(impl)) {
-                return createCoverageSQLProvider(providerConf, dsId, datasourceId, files);
-            }
+                final Integer pid = createCoverageSQLProvider(providerConf, dsId, datasourceId, files);
+                
+                // data are already generated
+                
+                results.add(pid);
+            } else if (COMPUTED_PROVIDER.equals(dataType)) {
+                List<Data> datas = new ArrayList<>();
+                for (Collection col : providerConf.getComputedData()) {
+                    datas.addAll(getDataFromCollection(col));
+                }
+                // Create provider
+                final Integer pid = createComputedProvider(dataType, providerBusiness, providerIdentifier, impl, datas, providerConf.getAdvancedParameters());
+                
+                // Generate data.
+                generateDatas(pid, dsId, dataset, providerServiceLink);
+                
+                results.add(pid);
+            } else {
             
-            // Acquire provider service instance.
-            DataProviderFactory storeService = DataProviders.getFactory(dataType);
-            if (storeService == null) {
-                throw new ConstellationException("Provider service not found: " + dataType);
-            }
-            
-            for (Object fileUri : files) {
-                try {
-                    String currentProviderId;
-                    if (providerIdentifier == null) {
-                        currentProviderId = impl + '-' + UUID.randomUUID();
-                    } else {
-                        currentProviderId = providerIdentifier;
-                    }
-
-                    if (providerBusiness.existIdentifier(currentProviderId)) {
-                        throw new ConstellationException("Duplicated provider:" + currentProviderId);
-                    }
-
-                    final Parameters source = Parameters.castOrWrap(storeService.getProviderDescriptor().createValue());
-                    source.parameter("id").setValue(currentProviderId);
-                    source.parameter("providerType").setValue(dataType);
-
-                    final List<ParameterValueGroup> choices = source.groups("choice");
-                    final ParameterValueGroup choice;
-                    if (choices.isEmpty()) {
-                        choice = source.addGroup("choice");
-                    } else {
-                        choice = choices.get(0);
-                    }
-                    
-                    final ParameterValueGroup config;
+                for (Object fileUri : files) {
                     try {
-                        config = choice.addGroup(impl);
-                    } catch(ParameterNotFoundException ex) {
-                        throw new ConstellationException("Unknow provider type: " + impl);
-                    }
-                    
-                    if (pathParamName != null) {
-                        config.parameter(pathParamName).setValue(fileUri);
-                    }
-                    
-                    if (datasourceId != null) {
-                        config.parameter("datasourceId").setValue(datasourceId);
-                    }
+                        String currentProviderId;
+                        if (providerIdentifier == null) {
+                            currentProviderId = impl + '-' + UUID.randomUUID();
+                        } else {
+                            currentProviderId = providerIdentifier;
+                        }
 
-                    ParameterDescriptorGroup configDescriptor = config.getDescriptor();
-                    for (Entry<String, String> entry : providerConf.getAdvancedParameters().entrySet()) {
-                        try {
-                            GeneralParameterDescriptor genParamDesc = configDescriptor.descriptor(entry.getKey());
-                            if (genParamDesc instanceof ParameterDescriptor paramDesc) {
-                                Object converted = ObjectConverters.convert(entry.getValue(), paramDesc.getValueClass());
-                                config.parameter(entry.getKey()).setValue(converted);
-                            }
-                        } catch (Exception ex) {
-                            LOGGER.log(Level.WARNING, "Erreur while setting advanced parameter " + entry.getKey() + " on provider: " + providerConf.getIdentifier(), ex);
+                        if (providerBusiness.existIdentifier(currentProviderId)) {
+                            throw new ConstellationException("Duplicated provider:" + currentProviderId);
                         }
-                    }
-                    
-                    /*
-                     * special case for computed resource
-                     */
-                    if (COMPUTED_PROVIDER.equals(dataType)) {
-                        List<Data> datas = new ArrayList<>();
-                        for (Collection col : providerConf.getComputedData()) {
-                            datas.addAll(getDataFromCollection(col));
-                        }
-                        GeneralParameterDescriptor genParamDesc = configDescriptor.descriptor("data_ids");
-                        if (genParamDesc instanceof ParameterDescriptor paramDesc) {
-                            for (Data brief : datas) {
-                                ParameterValue value = paramDesc.createValue();
-                                value.setValue(brief.getId());
-                                config.values().add(value);
-                            }
-                        }
-                    }
 
-                    // Create provider and generate data.
-                    final Integer pid = providerBusiness.storeProvider(currentProviderId, ProviderType.LAYER, dataType, source);
-                    providerBusiness.createOrUpdateData(pid, dsId, true, false, null);
+                        // Create provider
+                        final Integer pid = createFileProvider(dataType, providerBusiness, currentProviderId, impl, datasourceId, fileUri, pathParamName, providerConf.getAdvancedParameters());
 
-                    List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
-                    dataBusiness.acceptDatas(dataIds, null, false);
-                    
-                    // ASYNC MODE Add layer and reload needed service
-                    if (async && dataset != null) {
-                        List<Service> services = providerServiceLink.getOrDefault(dataset, new ArrayList<>());
-                        for (Service service : services) {
-                            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(service.getType(), service.getIdentifier());
-                            Collection collection = service.getCollection(dataset);
-                            if (collection != null) {
-                                publishLayersOnService(collection, sid, service.getType());
-                                serviceBusiness.restart(sid);
-                            } else {
-                                LOGGER.log(Level.WARNING, "unable to find a collection with dataset {0} in service ({1}) {2}", new Object[]{dataset, service.getType(), service.getIdentifier()});
-                            }
-                        }
+                        // Generate data.
+                        generateDatas(pid, dsId, dataset, providerServiceLink);
+                        
+                        results.add(pid);
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString() + " data file: " + fileUri, ex);
                     }
-                    return pid;
-                } catch (Exception ex) {
-                    LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString() + " data file: " + fileUri, ex);
                 }
             }
+            
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString(), ex);
         }
-        return null;
+        return results;
+    }
+    
+    private void generateDatas(int pid, int dsId, String dataset, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
+        providerBusiness.createOrUpdateData(pid, dsId, true, false, null);
+
+        List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
+        dataBusiness.acceptDatas(dataIds, null, false);
+        
+        // ASYNC MODE Add layer and reload needed service
+        if (providerServiceLink != null && dataset != null) {
+            asyncServiceReload(dataset, providerServiceLink);
+        }
+    }
+    
+    private void asyncServiceReload(String dataset, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
+        List<Service> services = providerServiceLink.getOrDefault(dataset, new ArrayList<>());
+        for (Service service : services) {
+            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(service.getType(), service.getIdentifier());
+            Collection collection = service.getCollection(dataset);
+            if (collection != null) {
+                publishLayersOnService(collection, sid, service.getType());
+                serviceBusiness.restart(sid);
+            } else {
+                LOGGER.log(Level.WARNING, "unable to find a collection with dataset {0} in service ({1}) {2}", new Object[]{dataset, service.getType(), service.getIdentifier()});
+            }
+        }
     }
     
     private MutableStyle parseStyle(Path path) {

@@ -125,7 +125,7 @@ public class FileSystemUtilities {
      */
     public static List<URI> listFiles(Path ymlFile, String location, final Pattern dirPattern) throws IOException {
         List<URI> files = new ArrayList<>();
-        URI dataUri = getDataPath(ymlFile.getParent(), location);
+        URI dataUri = getDataPathUri(ymlFile.getParent(), location);
         Path dataDir = Paths.get(dataUri);
         if (dirPattern != null && Files.isDirectory(dataDir)) {
             try (Stream<Path> stream = Files.walk(dataDir)) {
@@ -157,19 +157,19 @@ public class FileSystemUtilities {
      * @param dataStr path to the file in the root directory.
      * @return 
      */
-    public static URI getDataPath(Path parentDir, String dataStr) {
-        URI uri;
+    public static Path getDataPathPath(Path parentDir, String dataStr) {
+        Path result;
         try {
             URI parsed = new URI(dataStr);
             if (parsed.getScheme() != null) {
-                uri = parsed;
+                result = Paths.get(parsed);
             } else {
-                uri = parentDir.resolve(dataStr).normalize().toUri();
+                result = parentDir.resolve(dataStr).normalize();
             }
         } catch (URISyntaxException e) {
-            uri = parentDir.resolve(dataStr).toUri();
+            result = parentDir.resolve(dataStr);
         }
-        return uri;
+        return result;
     }
     
     public static boolean regularProviderFileFilter(Path path) {
