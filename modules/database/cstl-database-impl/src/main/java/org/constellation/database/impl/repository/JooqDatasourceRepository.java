@@ -381,12 +381,12 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     public List<String> getPathByStoreAndFormat(int id, String storeId, String format, Integer limit) {
         SelectConditionStep query = dsl.select(DATASOURCE_PATH_STORE.PATH)
                   .from(DATASOURCE_PATH_STORE)
-                  .where(DATASOURCE_PATH_STORE.STORE.eq(storeId));
+                  .where(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id));
         if (format != null) {
             query = query.and(DATASOURCE_PATH_STORE.TYPE.eq(format));
         }
         if (storeId != null) {
-            query = query.and(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id));
+            query = query.and(DATASOURCE_PATH_STORE.STORE.eq(storeId));
         }
         if (limit != null) {
             return query.limit(limit).fetchInto(String.class);
