@@ -466,10 +466,24 @@ public class LayerBusiness implements ILayerBusiness {
                 throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
             }
         // jooq send runtime exception when it find multiple layer
+        } catch (TargetNotFoundException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new ConfigurationException(ex.getMessage(), ex);
         }
     }
+
+    @Override
+    public boolean exists(int serviceId, String alias, String name, String namespace) throws ConfigurationException {
+        try {
+            getFullLayerName(serviceId, alias != null ? alias : name, namespace, null);
+            return true;
+        } catch (TargetNotFoundException ex) {
+            return false;
+        }
+    }
+    
+    
 
     /**
      * {@inheritDoc}

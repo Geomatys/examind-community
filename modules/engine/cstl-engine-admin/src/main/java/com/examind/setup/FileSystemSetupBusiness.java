@@ -444,21 +444,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 name = data.getName();
                 aliasNmsp = data.getNamespace();
             }
-            if (!alreadyPublishedLayer(serviceId, alias, name, aliasNmsp)) {
+            if (!layerBusiness.exists(serviceId, alias, name, aliasNmsp)) {
                 int layerId = layerBusiness.add(data.getId(), alias, aliasNmsp, name, title, serviceId, newLayer);
                 if (styleId != null) {
                     styleBusiness.linkToLayer(styleId, layerId);
                 }
             }
-        }
-    }
-    
-    private boolean alreadyPublishedLayer(int serviceId, String alias, String name, String namespace) {
-        try {
-            layerBusiness.getFullLayerName(serviceId, alias != null ? alias : name, namespace, null);
-            return true;
-        } catch (ConfigurationException ex) {
-            return false;
         }
     }
     

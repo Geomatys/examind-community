@@ -152,6 +152,8 @@ public interface ILayerBusiness {
      *                                If the user is not allowed to see the layer.
      */
     NameInProvider getFullLayerName(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException;
+    
+    boolean exists(int serviceId, String alias, String name, String namespace) throws ConfigurationException;
 
     /**
      * Return the full name of a layer.
