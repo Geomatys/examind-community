@@ -19,6 +19,9 @@
 package com.examind.setup;
 
 import com.examind.dto.fs.Datasource;
+import com.examind.dto.fs.Provider;
+import static com.examind.setup.FileSystemUtilities.getDataPathPath;
+import static com.examind.setup.ProviderUtilities.getProviderFileFilter;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.function.Predicate;
@@ -33,15 +36,20 @@ import org.constellation.exception.ConstellationException;
  */
 public class DatasourceUtilities {
     
-    public static int createDatasourceForProviderFiles(IDatasourceBusiness dBusiness, String dsIdentifier, Path rootDir, Predicate<Path> fileFilter, String storeId) throws ConstellationException {
-        return createDatasource(dBusiness, dsIdentifier, rootDir, fileFilter, storeId);
+    public static int getOrCreateDatasourceForProviderFiles(IDatasourceBusiness dBusiness, FileSystemAnalysis.ProviderWithPath pwp, boolean computeHash) throws ConstellationException {
+        Predicate<Path> fileFilter = getProviderFileFilter(pwp.provider);
+        String storeId = pwp.provider.getProviderType();
+        Path rootDir = getDataPathPath(pwp.ymlFile.getParent(), pwp.provider.getLocation());
+        String dsIdentifier = pwp.provider.getIdentifier();
+                
+        return getOrCreateDatasource(dBusiness, dsIdentifier, rootDir, fileFilter, storeId, computeHash);
     }
     
-    public static int createDatasourceForConfigFiles(IDatasourceBusiness dBusiness, String dsIdentifier, Path rootDir, Predicate<Path> fileFilter) throws ConstellationException {
-        return createDatasource(dBusiness, dsIdentifier, rootDir, fileFilter, FILE_STORE);
+    public static int getOrCreateDatasourceForConfigFiles(IDatasourceBusiness dBusiness, String dsIdentifier, Path rootDir, Predicate<Path> fileFilter) throws ConstellationException {
+        return getOrCreateDatasource(dBusiness, dsIdentifier, rootDir, fileFilter, FILE_STORE, true);
     }
     
-    private static int createDatasource(IDatasourceBusiness dBusiness, String dsIdentifier, Path rootDir, Predicate<Path> fileFilter, String storeId) throws ConstellationException {
+    private static int getOrCreateDatasource(IDatasourceBusiness dBusiness, String dsIdentifier, Path rootDir, Predicate<Path> fileFilter, String storeId, boolean computeHash) throws ConstellationException {
         int dsId;
         DataSource candidate = dBusiness.getDatasource(dsIdentifier);
         if (candidate == null) {
@@ -61,7 +69,7 @@ public class DatasourceUtilities {
             ds.setStoreId(storeId);
             dsId = dBusiness.create(ds);
 
-            dBusiness.computeDatasourceStores(dsId, false, storeId, true, false, true, fileFilter);
+            dBusiness.computeDatasourceStores(dsId, false, storeId, true, false, computeHash, fileFilter);
             dBusiness.recordSelectedPath(dsId, false);
 
         } else {
@@ -72,7 +80,11 @@ public class DatasourceUtilities {
         return dsId;
     }
     
-    public static Integer createSQLDatasource(IDatasourceBusiness dBusiness, String identifier, Datasource source) throws ConstellationException {
+    public static Integer getOrCreateSQLDatasource(IDatasourceBusiness dBusiness, Provider conf) throws ConstellationException {
+        return getOrCreateSQLDatasource(dBusiness, conf.getGeneratedIdentifier(), conf.getSource());
+    }
+    
+    public static Integer getOrCreateSQLDatasource(IDatasourceBusiness dBusiness, String identifier, Datasource source) throws ConstellationException {
         if (source == null) return null;
         String location = source.getLocation();
         String userName = source.getUserName();

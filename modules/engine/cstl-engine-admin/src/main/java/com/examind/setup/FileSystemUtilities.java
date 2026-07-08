@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
@@ -111,34 +110,6 @@ public class FileSystemUtilities {
      */
     public static boolean fileFilter(Path path, List<String> allowedExt) {
         return !Files.isDirectory(path) && allowedExt.contains(FileNameUtils.getExtension(path));
-    }
-    
-    /**
-     * List the files combining the location, yaml file and dir pattern.
-     * 
-     * @param ymlFile The yml file pointing the files in its configuration.
-     * @param location Location attribute of the configuration entity.
-     * @param dirPattern A regex to filter files (can be {@code null).
-     * 
-     * @return A list of matching files URI.
-     * @throws IOException 
-     */
-    public static List<URI> listFiles(Path ymlFile, String location, final Pattern dirPattern) throws IOException {
-        List<URI> files = new ArrayList<>();
-        URI dataUri = getDataPathUri(ymlFile.getParent(), location);
-        Path dataDir = Paths.get(dataUri);
-        if (dirPattern != null && Files.isDirectory(dataDir)) {
-            try (Stream<Path> stream = Files.walk(dataDir)) {
-                files.addAll(
-                    stream.filter(p -> regexFileFilter(p, dirPattern))
-                          .map(p -> p.toUri())
-                          .toList()
-                );
-            }
-        } else {
-            files.add(dataUri);
-        }
-        return files;
     }
     
      /**

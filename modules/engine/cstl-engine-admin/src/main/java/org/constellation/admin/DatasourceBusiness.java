@@ -1296,6 +1296,10 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Override
     @Transactional
     public void updatePathStatusAndProvider(int id, String path, PathStatus newStatus, Integer providerId) {
+        // provider id as a not null constraint
+        if (providerId == null) {
+            providerId = -1;
+        }
         dsRepository.updatePathStatusAndProvider(id, path, newStatus.name(), providerId);
     }
 

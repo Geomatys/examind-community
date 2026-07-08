@@ -18,15 +18,13 @@
  */
 package com.examind.setup;
 
-import com.examind.community.storage.sql.CoverageSQLProvider.CoverageSQLStore;
+import com.examind.setup.data.ComputedProviderHandler;
 import jakarta.annotation.PostConstruct;
-import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
@@ -48,20 +46,13 @@ import org.constellation.business.IStyleBusiness;
 import com.examind.dto.fs.Collection;
 import com.examind.dto.fs.CollectionItem;
 import com.examind.dto.fs.DimensionItem;
-import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
-import java.net.URI;
-import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.api.PathStatus;
-import static org.constellation.api.PathStatus.MODIFIED;
-import static org.constellation.api.PathStatus.PENDING;
+import static org.constellation.api.PathStatus.*;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.contact.Details;
@@ -72,8 +63,6 @@ import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.style.MutableStyle;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -83,6 +72,10 @@ import org.springframework.core.task.TaskExecutor;
 import static com.examind.setup.FileSystemUtilities.*;
 import static com.examind.setup.DatasourceUtilities.*;
 import static com.examind.setup.ProviderUtilities.*;
+import static com.examind.setup.ProviderUtilities.ProviderSourceType.*;
+import com.examind.setup.data.*;
+import java.util.Objects;
+import org.constellation.exception.TargetNotFoundException;
 
 /**
  *
@@ -94,8 +87,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.setup");
     
-    private static final String NO_FILES = "NO_FILES";
-    
     @Autowired
     private IServiceBusiness serviceBusiness;
     
@@ -103,19 +94,19 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     private IConfigurationBusiness configBusiness;
     
     @Autowired
-    private IProviderBusiness providerBusiness;
+    public IProviderBusiness providerBusiness;
     
     @Autowired
-    private IDatasetBusiness datasetBusiness;
+    public IDatasetBusiness datasetBusiness;
     
     @Autowired
-    private IDataBusiness dataBusiness;
+    public IDataBusiness dataBusiness;
     
     @Autowired
-    private DataRepository dataRepository;
+    public DataRepository dataRepository;
     
     @Autowired
-    private IDatasourceBusiness datasourceBusiness;
+    public IDatasourceBusiness datasourceBusiness;
     
     @Autowired
     private ILayerBusiness layerBusiness;
@@ -144,23 +135,40 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     @Qualifier("cstlExecutor")
     private TaskExecutor taskExecutor;
     
+    
+    private FileSystemAnalysis analyze(boolean async) {
+        Path styleDir = configBusiness.getStylesDirectory();
+        Path servDir  = configBusiness.getServicesDirectory();
+        Path provDir  = configBusiness.getProvidersDirectory();
+        return new FileSystemAnalysis(styleDir, servDir, provDir, this::parseStyle, async);
+    }
+    
     @PostConstruct
     public void initFsConfiguration() {
         boolean execAtStartup = Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE);
         if (execAtStartup) {
+            LOGGER.info("""
+                    
+                    -----------------------------------------------------------
+                    --        STARTING FILESYSTEM CONFIG INSTALLATION        --
+                    -----------------------------------------------------------
+                    
+                    """);
             boolean async = Application.getBooleanProperty(AppProperty.EXA_FS_ASYNC, Boolean.FALSE);
             boolean diffMode = Application.getBooleanProperty(AppProperty.EXA_FS_DIFF, Boolean.FALSE);
+            FileSystemAnalysis analysis = analyze(async);
+            
             if (diffMode) {
                 if (async) {
-                    taskExecutor.execute(() -> performDiff(async));
+                    taskExecutor.execute(() -> performDiff(analysis));
                 } else {
-                    performDiff(async);
+                    performDiff(analysis);
                 }
             } else {
                 if (async) {
-                    taskExecutor.execute(() -> installDatas(async));
+                    taskExecutor.execute(() -> installDatas(analysis));
                 } else {
-                    installDatas(async);
+                    installDatas(analysis);
                 }
             }
         }
@@ -173,54 +181,52 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      */
     @Override
     public void performDiff(boolean async) {
-        LOGGER.info("""
-                    
-                    -----------------------------------------------------------
-                    --        STARTING FILESYSTEM CONFIG DIFF               --
-                    -----------------------------------------------------------
-                    
-                    """);
-        
+        FileSystemAnalysis analysis = analyze(async);
+        performDiff(analysis);
+    }
+    
+    @Override
+    public void installDatas(boolean async) {
+        FileSystemAnalysis analysis = analyze(async);
+        installDatas(analysis);
+    }
+    
+    private void performDiff(FileSystemAnalysis analysis) {
         try {
-            Path styleDir = configBusiness.getStylesDirectory();
-            Path servDir  = configBusiness.getServicesDirectory();
-            Path provDir  = configBusiness.getProvidersDirectory();
-            
-            FileSystemAnalysis analysis = new FileSystemAnalysis(styleDir, servDir, provDir, this::parseStyle, async);
             
             // 1. install styles
-            int dsId = createDatasourceForConfigFiles(datasourceBusiness, "stylesFS", styleDir, FileSystemUtilities::sldFileFilter);
+            int dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "stylesFS", analysis.styleDir, FileSystemUtilities::sldFileFilter);
             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                handleStylePath(path);
+                handleStyleYamlFile(path, analysis);
             }
             
             // 2. install services with data
-            dsId = createDatasourceForConfigFiles(datasourceBusiness, "serviceWithDataFS", servDir, FileSystemUtilities::serviceWithDataFileFilter);
+            dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "serviceWithDataFS", analysis.serviceDir, FileSystemUtilities::serviceWithDataFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                handleServicePath(path);
+                handleServiceYamlFile(path, analysis, true);
             }
             
             // 3. install services with data
-            dsId = createDatasourceForConfigFiles(datasourceBusiness, "serviceFS", servDir, FileSystemUtilities::serviceNoDataFileFilter);
+            dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "serviceFS", analysis.serviceDir, FileSystemUtilities::serviceNoDataFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                handleProviderPath(path, analysis.asyncInfos);
+                handleServiceYamlFile(path, analysis, false);
             }
             
             // 4. install providers
-            dsId = createDatasourceForConfigFiles(datasourceBusiness, "providerFS", provDir, FileSystemUtilities::regularProviderFileFilter);
+            dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "providerFS", analysis.providerDir, FileSystemUtilities::regularProviderFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                handleProviderPath(path, analysis.asyncInfos);
+                handleProviderYamlFile(path, analysis, false);
             }
             
             // 5. install computed providers
-            dsId = createDatasourceForConfigFiles(datasourceBusiness, "providerConputedFS", provDir, FileSystemUtilities::computedProviderFileFilter);
+            dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "providerComputedFS", analysis.providerDir, FileSystemUtilities::computedProviderFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                handleProviderPath(path, analysis.asyncInfos);
+                handleProviderYamlFile(path, analysis, true);
             }
             
         } catch (Exception ex) {
@@ -229,37 +235,33 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         LOGGER.info("""
                     
                     -----------------------------------------------------------
-                    --        FILESYSTEM CONFIG DIFF COMPLETE        --
+                    --        FILESYSTEM CONFIG INSTALLATION COMPLETE        --
                     -----------------------------------------------------------
                     
                     """);
     }
     
     
-    private void handleStylePath(DataSourceSelectedPath path) throws ConstellationException {
+    private void handleStyleYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis) throws ConstellationException {
         Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+        MutableStyle style = analysis.styles.get(p.toString());
+        
         switch (PathStatus.valueOf(path.getStatus())) {
             case PENDING -> {
-                MutableStyle s = parseStyle(p);
                 PathStatus newStatus;
-                if (s != null) {
-                    Integer styleId = importStyle(s);
-                    if (styleId != null) {
-                        datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), styleId);
-                        newStatus = PathStatus.INTEGRATED;
-                    } else {
-                        newStatus = PathStatus.ERROR; // NO DATA?
-                    }
+                int styleId = -1;
+                if (style != null) {
+                    styleId = importStyle(style);
+                    newStatus = styleId != -1 ?  PathStatus.INTEGRATED : PathStatus.ERROR; // NO DATA?
                 } else {
                     newStatus = PathStatus.ERROR;
                 }
-                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+                datasourceBusiness.updatePathStatusAndProvider(path.getDatasourceId(), path.getPath(), newStatus, styleId);
             }
             case MODIFIED -> {
-                MutableStyle s = parseStyle(p);
                 PathStatus newStatus;
-                if (s != null) {
-                    styleBusiness.updateStyle(path.getProviderId(), s.getName(), s);
+                if (style != null) {
+                    styleBusiness.updateStyle(path.getProviderId(), style.getName(), style);
                     newStatus = PathStatus.INTEGRATED;
                 } else {
                     // what to do with the old style? remove it?
@@ -267,38 +269,35 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 }
                 datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
             }
-
             case REMOVED -> {
                 styleBusiness.deleteStyle(path.getProviderId());
                 datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
             }
+            case INTEGRATED -> {} // do nothing
+            case ERROR, NO_DATA -> {} // ???
         }
     }
     
-    private void handleServicePath(DataSourceSelectedPath path) throws ConstellationException {
+    private void handleServiceYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis, boolean withData) throws ConstellationException {
         Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+        Service serv = withData ? analysis.servicesWithData.get(p.toString()) : analysis.services.get(p.toString());
+        
         switch (PathStatus.valueOf(path.getStatus())) {
             case PENDING -> {
-                Service s = parseYaml(p, Service.class);
                 PathStatus newStatus;
-                if (s != null) {
-                    Integer sid = createService(s);
-                    if (sid != null) {
-                        datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
-                        newStatus = PathStatus.INTEGRATED;
-                    } else {
-                        newStatus = PathStatus.ERROR; // NO DATA?
-                    }
+                int sid = -1;
+                if (serv != null) {
+                    sid = createService(serv, analysis.async);
+                    newStatus = sid != -1 ?  PathStatus.INTEGRATED : PathStatus.ERROR; // NO DATA?
                 } else {
                     newStatus = PathStatus.ERROR;
                 }
-                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+                datasourceBusiness.updatePathStatusAndProvider(path.getDatasourceId(), path.getPath(), newStatus, sid);
             }
             case MODIFIED -> {
-                Service s = parseYaml(p, Service.class);
                 PathStatus newStatus;
-                if (s != null) {
-                    int sid = updateService(path.getProviderId(), s);
+                if (serv != null) {
+                    int sid = updateService(path.getProviderId(), serv, analysis.async);
                     datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), sid);
                     newStatus = PathStatus.INTEGRATED;
                 } else {
@@ -307,7 +306,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 }
                 datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
             }
-
             case REMOVED -> {
                 serviceBusiness.delete(path.getProviderId());
                 datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
@@ -315,79 +313,63 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
-    private void handleProviderPath(DataSourceSelectedPath path, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
-        Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
-        switch (PathStatus.valueOf(path.getStatus())) {
-            case PENDING -> {
-                Provider pr = parseYaml(p, Provider.class);
-                PathStatus newStatus;
-                if (pr != null) {
-                    ProviderWithPath pwp = new ProviderWithPath(pr, p);
-                    List<Integer> pids = createProvider(pwp, providerServiceLink, true);
-                    
-                    // TODO handle link between yaml file and multiple providers
-                    if (!pids.isEmpty()) {
-                        if (pids.size() == 1) {
-                            datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), pids.get(0));
-                        }
-                        newStatus = PathStatus.INTEGRATED;
-                    } else {
-                        newStatus = PathStatus.ERROR; // NO DATA?
-                    }
-                } else {
-                    newStatus = PathStatus.ERROR;
-                }
-                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
+    private void handleProviderYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis, boolean computed) {
+        try {
+            PathStatus status = PathStatus.valueOf(path.getStatus());
+            if (status == REMOVED) {
+                removeProviders(path.getProviderId());
+                datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
+                return;
             }
-            case MODIFIED -> {
-                Provider pr = parseYaml(p, Provider.class);
-                PathStatus newStatus;
-                if (pr != null) {
-                    ProviderWithPath pwp = new ProviderWithPath(pr, p);
-                    List<Integer> pids = updateProvider(path.getProviderId(), pwp, providerServiceLink);
-                    
-                    // TODO handle link between yaml file and multiple providers
-                    if (!pids.isEmpty()) {
-                        if (pids.size() == 1) {
-                            datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), pids.get(0));
-                        }
+
+            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+            ProviderWithPath pwp = computed ? analysis.computedProviders.get(p.toString()) : analysis.providers.get(p.toString());
+
+            // file is here but is not valid
+            // what to do with the old provider ?
+            if (pwp == null) {
+                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), ERROR);
+                return;
+            }
+
+            FSProviderHandler handler = getHandler(pwp, analysis);
+            switch (status) {
+                case PENDING -> {
+                    Integer dsFileId = handler.createProviders(true);
+                    PathStatus newStatus = dsFileId != null ? PathStatus.INTEGRATED : PathStatus.ERROR; // NO DATA?
+                    datasourceBusiness.updatePathStatusAndProvider(path.getDatasourceId(), path.getPath(), newStatus, dsFileId);
+                }
+                case MODIFIED -> {
+                    PathStatus newStatus;
+                    Integer dsFileId = handler.updateProviders(path.getProviderId(), true);
+
+                    if (dsFileId != null) {
+                        datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), dsFileId);
                         newStatus = PathStatus.INTEGRATED;
                     } else {
                         // what to do with the old provider(s)? remove it?
                         newStatus = PathStatus.ERROR;
                     }
-                } else {
-                    // what to do with the old provider(s)? remove it?
-                    newStatus = PathStatus.ERROR;
+                    datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
                 }
-                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
-            }
+                case INTEGRATED -> {
+                    Integer datasourceFileId = path.getProviderId();
+                    if (datasourceFileId != null && datasourceFileId != -1) {
+                        handler.handleProviderFileChanges(path.getProviderId());
+                    }
+                }
 
-            case REMOVED -> {
-                // TODO handle link between yaml file and multiple providers
-                if (path.getProviderId() != null && path.getProviderId() != -1) {
-                    providerBusiness.removeProvider(path.getProviderId());
-                }
-                datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
+                case ERROR, NO_DATA -> {} // ???
             }
+        }  catch (ConfigurationException ex) {
+            LOGGER.log(Level.WARNING, "Error while importing provider: {0}\n{1}\n", new Object[]{path.getPath(), ex.getMessage()});
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Error while importing provider: " + path.getPath(), ex);
         }
     }
     
-    @Override
-    public void installDatas(boolean async) {
-        LOGGER.info("""
-                    
-                    -----------------------------------------------------------
-                    --        STARTING FILESYSTEM CONFIG INSTALLATION        --
-                    -----------------------------------------------------------
-                    
-                    """);
+    private void installDatas(FileSystemAnalysis analysis) {
         try {
-            Path styleDir = configBusiness.getStylesDirectory();
-            Path servDir  = configBusiness.getServicesDirectory();
-            Path dataDir  = configBusiness.getProvidersDirectory();
-            
-            FileSystemAnalysis analysis = new FileSystemAnalysis(styleDir, servDir, dataDir, this::parseStyle, async);
                     
             // 1. install styles
             for (MutableStyle style : analysis.styles.values()) {
@@ -396,30 +378,32 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             
             // 2. install services with data
             for (Service service : analysis.servicesWithData.values()) {
-                createService(service);
+                createService(service, analysis.async);
             }
             
             // 3. (Async) install services
-            if (async) {
+            if (analysis.async) {
                 for (Service service : analysis.services.values()) {
-                    createService(service);
+                    createService(service, analysis.async);
                 }
             }
             
             // 4. install regular data
             for (ProviderWithPath provider : analysis.providers.values()) {
-                createProvider(provider, analysis.asyncInfos, false);
+                FSProviderHandler handler = getHandler(provider, analysis);
+                handler.createProviders(false);
             }
             
             // 5. install computed data that use data created in the previous pass
             for (ProviderWithPath provider : analysis.computedProviders.values()) {
-                createProvider(provider, analysis.asyncInfos, false);
+                FSProviderHandler handler = getHandler(provider, analysis);
+                handler.createProviders(false);
             }
             
             // 6. (Sync) install services
-            if (!async) {
+            if (!analysis.async) {
                 for (Service service : analysis.services.values()) {
-                    createService(service);
+                    createService(service, analysis.async);
                 }
             }
             
@@ -440,14 +424,14 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      * 
      * @param instance Service configuration.
      */
-    private Integer createService(Service instance) {
+    private int createService(Service instance, boolean async) {
         try {
             if (serviceBusiness.getServiceIdentifiers(instance.getType()).contains(instance.getIdentifier())) {
                 throw new ConfigurationException("Service identifier: " + instance.getIdentifier() + "(" +  instance.getType() + ") already used");
             }
             
             if ("OPENEO".equalsIgnoreCase(instance.getType())) {
-                return createOpenEOServicesFromFile(instance);
+                return createOpenEOServicesFromFile(instance, async);
             }
             
             Details metadata = instance.getMetadata();
@@ -463,7 +447,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     serviceBusiness.setConfiguration(sid, conf);
                 }
                 
-                Integer datasourceId = createSQLDatasource(datasourceBusiness, instance.getType() + "-" + instance.getIdentifier(), instance.getSource());
+                Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, instance.getType() + "-" + instance.getIdentifier(), instance.getSource());
                 
                 int pid = createOM2DatabaseProvider(providerBusiness, instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                 serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
@@ -544,32 +528,38 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
             for (Collection col : instance.getCollections()) {
                 if (col.getDataSet() != null) {
-                    publishLayersOnService(col, sid, instance.getType());
+                    publishLayersOnService(col, sid, instance.getType(), async);
                 } else {
                     LOGGER.warning("No dataset specified in collection");
                 }
             }
             return sid;
+        } catch (ConfigurationException ex) {
+            LOGGER.log(Level.WARNING, "Error while importing service: {0} {1}\n{2}\n", new Object[]{instance.getType(), instance.getIdentifier(), ex.getMessage()});
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error while importing service: " + instance.getType() + " " + instance.getIdentifier(), ex);
+            LOGGER.log(Level.WARNING, "Error while importing service: " + instance.getType() + " " + instance.getIdentifier(), ex);
         }
-        return null;
+        return -1;
     }
     
-     private Integer updateService(Integer serviceId, Service instance) throws ConstellationException {
+    private Integer updateService(Integer serviceId, Service instance, boolean async) throws ConstellationException {
         // for now we do an simple remove/create 
         // TODO update metadata
         // TODO linked files?
         serviceBusiness.delete(serviceId);
-        return createService(instance);
+        return createService(instance, async);
     }
     
-    private List<Integer> updateProvider(Integer providerId, ProviderWithPath provider, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
-        // for now we do an simple remove/create 
-        // TODO update metadata
-        // TODO linked files?
-        providerBusiness.removeProvider(providerId);
-        return createProvider(provider, providerServiceLink, true);
+    private void removeProviders(Integer dsFileId) throws ConstellationException {
+        if (dsFileId == null || dsFileId == -1) return;
+        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
+        for (DataSourceSelectedPath path : paths) {
+            Integer pid = path.getProviderId();
+            if (pid != null && pid != -1) {
+                providerBusiness.removeProvider(pid);
+            }
+        }
+        datasourceBusiness.delete(dsFileId);
     }
 
     /**
@@ -579,11 +569,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      *
      * @param instance OpenEO service configuration.
      */
-    private Integer createOpenEOServicesFromFile(Service instance) {
+    private Integer createOpenEOServicesFromFile(Service instance, boolean async) {
         Service wps = new Service(instance.getIdentifier(), "WPS", instance.getMetadata());
         wps.setProcessFactories(instance.getProcessFactories());
         
-        Integer wpsId = createService(wps);
+        int wpsId = createService(wps, async);
 
         // external STAC catalog: the WCS below just proxies it, the actual data lives outside Examind.
         // Store the url on the WPS configuration: it takes priority over the app property
@@ -609,7 +599,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         
         // for now i return only the wcs id.
         // i dont know if i should return the wps one, or both
-        return createService(wcs);
+        return createService(wcs, async);
     }
 
     /**
@@ -620,9 +610,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      * @param serviceType Service Type.
      * @throws ConstellationException 
      */
-    private void publishLayersOnService(Collection col, int serviceId, String serviceType) throws ConstellationException {
+    private void publishLayersOnService(Collection col, int serviceId, String serviceType, boolean async) throws ConstellationException {
         Integer styleId = (col.getDatasetStyle() != null) ? styleBusiness.getStyleId("sld", col.getDatasetStyle()) : null;
-        List<Data> datas = getDataFromCollection(col);
+        List<Data> datas = getDataFromCollection(col, async);
 
         for (Data data : datas) {
 
@@ -654,8 +644,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 if (custom.getStyle() != null) {
                     try {
                         styleId = styleBusiness.getStyleId("sld", custom.getStyle());
-                    } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Error while importing style : " + custom.getStyle() + " for data: " + data.getName(), ex);
+                    } catch (TargetNotFoundException ex) {
+                        LOGGER.log(Level.WARNING, "Error while linking style : " + custom.getStyle() + " for data: " + data.getName(), ex);
                     }
                 }
                 for (DimensionItem di : custom.getDimensions()) {
@@ -682,11 +672,13 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      * @return
      * @throws ConstellationException 
      */
-    private List<Data> getDataFromCollection(Collection col) throws ConstellationException {
+    public List<Data> getDataFromCollection(Collection col, boolean async) throws ConstellationException {
         Integer dsId  = col.getDataSet() != null ? datasetBusiness.getDatasetId(col.getDataSet()) : null;
         
         if (col.getDataSet() != null && dsId == null) {
-            LOGGER.log(Level.WARNING, "Unable to find a dataset: {0}", new Object[]{col.getDataSet()});
+            if (!async) {
+                LOGGER.log(Level.WARNING, "Unable to find a dataset: {0}", new Object[]{col.getDataSet()});
+            }
             return List.of();
         }
                     
@@ -707,7 +699,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
                 Entry<Integer, List<Data>> candidates = dataRepository.filterAndGet(filter, null, 1, 2);
                 if (candidates.getKey() == 0) {
-                    LOGGER.log(Level.WARNING, "No data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
+                    if (!async) {
+                        LOGGER.log(Level.WARNING, "No data found for:\ndataset: {0}\nname: {1}\nnamespace:{2}", new Object[]{col.getDataSet(), it.getName(), it.getNamespace()});
+                    }
                 } else if (candidates.getKey() > 1) {
                     StringBuilder errorMsg = new StringBuilder("Multiple data found for input:\ndataset: ").append(col.getDataSet())
                                                        .append("\nname: ").append(it.getName())
@@ -727,186 +721,31 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return datas;
     }
     
-    private Integer createCoverageSQLProvider(Provider providerConf, Integer datasetId, Integer datasourceId, List<Object> files) throws Exception {
-        if (datasourceId == null) {
-            throw new ConstellationException("Provider source missing for SQL provider.");
-        }
-        if (files.size() == 1 && files.get(0) instanceof String s && NO_FILES.equals(s)) {
-            throw new ConstellationException("No file found for coverage sql provider");
-        }
-        
-        final String providerIdentifier = "csql-" + datasourceId;
-        Integer prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
-        
-        // we keep only one provider by datasource
-        if (prId == null) {
-            prId = createCSQLProvider(providerBusiness, providerIdentifier, datasourceId);
-        }
-        
-        DataProvider provider = DataProviders.getProvider(prId);
-        CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
-        
-        String productName = providerConf.getAdvancedParameter("productName", (String) null);
-        String subDataType = providerConf.getAdvancedParameter("subDataType", (String) null);
-        boolean asChild    = providerConf.getAdvancedParameter("asChild", false);
-        boolean worldGG    = providerConf.getAdvancedParameter("worldGG", false);
-        Double worldGGRes  = providerConf.getAdvancedParameter("worldGGResolution", (Double) null);
-        
-        List<Path> dataPaths = files.stream().map(uri -> Paths.get((URI)uri)).toList();
-        try {
-            store.createProduct(productName, worldGG, worldGGRes, asChild, subDataType, dataPaths);
-        } catch (DataStoreException ex) {
-            throw new ConstellationException("Error while adding raster into coverage sql", ex);
-        }
-        
-        provider.reload();
-        providerBusiness.createOrUpdateData(prId, null, false, false, null);
-
-        List<Integer> productIds = new ArrayList<>();
-        List<Data> datas = dataRepository.findByProviderId(prId);
-        for (Data data : datas) {
-            if (data.getName().equals(productName)     ||  // single product
-                data.getNamespace().equals(productName)) { // aggregated product
-                productIds.add(data.getId());
-                dataBusiness.updateDataDataSetId(data.getId(), datasetId);
-            }
-        }
-        dataBusiness.acceptDatas(productIds, null, false);
-        return prId;
-    }
-    
-    private List<Integer> createProvider(final ProviderWithPath provider, Map<String, List<Service>> providerServiceLink, boolean diffMode) {
-        List<Integer> results = new ArrayList<>();
-        try {
-            Provider providerConf = provider.provider;
-
-            String dataType = providerConf.getDataType();
-            String impl = providerConf.getProviderType();
-            String dataStr = providerConf.getLocation();
-            String dataset = providerConf.getDataset();
-            String providerIdentifier = providerConf.getIdentifier();
-            String dirFilter = providerConf.getDirectoryFilter();
-            Integer datasourceId = null;
-            
-            final Pattern dirPattern = (dirFilter != null) ? Pattern.compile(dirFilter) : null;
-            
-            if (impl == null) {
-                throw new ConstellationException("Provider type is missing for:" + providerConf.getIdentifier());
-            }
-            
-            // special case
-            String pathParamName = null;
-            if (providerConf.getSource() != null) {
-                datasourceId  = createSQLDatasource(datasourceBusiness, providerIdentifier, providerConf.getSource());
-                if (datasourceId == null) throw new ConstellationException("Provider source missing for SQL provider.");
-            } else if ("coverage-xml-pyramid".equals(impl)) {
-                pathParamName = "path";
-            // default case for file provider    
-            } else if (dataStr != null) {
-                pathParamName = "location";
-            }
-            
-            List<Object> files = new ArrayList<>();
-            if (dataStr != null) {
-                try {
-                    if (diffMode) {
-                        Predicate<Path> filter = dirPattern != null ? p -> regexFileFilter(p, dirPattern) : null;
-                        Path dataPath = getDataPathPath(provider.ymlFile.getParent(), dataStr);
-                        int dsId = createDatasourceForProviderFiles(datasourceBusiness, providerIdentifier, dataPath, filter, impl);
-                        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
-                        for (DataSourceSelectedPath path : paths) {
-                            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
-                            files.add(p.toUri());
-                            // TODO
-                        }
-                    } else {
-                        files.addAll(listFiles(provider.ymlFile, dataStr, dirPattern));
-                    }
-                } catch (FileSystemNotFoundException ex) {
-                    LOGGER.log(Level.FINER, ex.getMessage(), ex);
-                    // not sure if i have to keep this case
-                    files = List.of(dataStr);
-                }
-            }
-            
-            Integer dsId = dataset != null ? datasetBusiness.getOrCreateDataset(dataset, null) : null;
-            
-            if ("coverage-sql".equals(impl)) {
-                final Integer pid = createCoverageSQLProvider(providerConf, dsId, datasourceId, files);
-                
-                // data are already generated
-                
-                results.add(pid);
-            } else if (COMPUTED_PROVIDER.equals(dataType)) {
-                List<Data> datas = new ArrayList<>();
-                for (Collection col : providerConf.getComputedData()) {
-                    datas.addAll(getDataFromCollection(col));
-                }
-                // Create provider
-                final Integer pid = createComputedProvider(dataType, providerBusiness, providerIdentifier, impl, datas, providerConf.getAdvancedParameters());
-                
-                // Generate data.
-                generateDatas(pid, dsId, dataset, providerServiceLink);
-                
-                results.add(pid);
-            } else {
-            
-                for (Object fileUri : files) {
-                    try {
-                        String currentProviderId;
-                        if (providerIdentifier == null) {
-                            currentProviderId = impl + '-' + UUID.randomUUID();
-                        } else {
-                            currentProviderId = providerIdentifier;
-                        }
-
-                        if (providerBusiness.existIdentifier(currentProviderId)) {
-                            throw new ConstellationException("Duplicated provider:" + currentProviderId);
-                        }
-
-                        // Create provider
-                        final Integer pid = createFileProvider(dataType, providerBusiness, currentProviderId, impl, datasourceId, fileUri, pathParamName, providerConf.getAdvancedParameters());
-
-                        // Generate data.
-                        generateDatas(pid, dsId, dataset, providerServiceLink);
-                        
-                        results.add(pid);
-                    } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString() + " data file: " + fileUri, ex);
-                    }
-                }
-            }
-            
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Error while importing provider file: " + provider.ymlFile.getFileName().toString(), ex);
-        }
-        return results;
-    }
-    
-    private void generateDatas(int pid, int dsId, String dataset, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
-        providerBusiness.createOrUpdateData(pid, dsId, true, false, null);
-
-        List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
-        dataBusiness.acceptDatas(dataIds, null, false);
-        
-        // ASYNC MODE Add layer and reload needed service
-        if (providerServiceLink != null && dataset != null) {
-            asyncServiceReload(dataset, providerServiceLink);
-        }
-    }
-    
-    private void asyncServiceReload(String dataset, Map<String, List<Service>> providerServiceLink) throws ConstellationException {
-        List<Service> services = providerServiceLink.getOrDefault(dataset, new ArrayList<>());
+    public void asyncServiceReload(String dataset, Map<String, List<Service>> asyncInfos) throws ConstellationException {
+        List<Service> services = asyncInfos.getOrDefault(dataset, new ArrayList<>());
         for (Service service : services) {
             Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(service.getType(), service.getIdentifier());
-            Collection collection = service.getCollection(dataset);
-            if (collection != null) {
-                publishLayersOnService(collection, sid, service.getType());
-                serviceBusiness.restart(sid);
+            if (sid != null) {
+                Collection collection = service.getCollection(dataset);
+                if (collection != null) {
+                    publishLayersOnService(collection, sid, service.getType(), true);
+                    serviceBusiness.restart(sid);
+                } else {
+                    LOGGER.log(Level.WARNING, "unable to find a collection with dataset {0} in service ({1}) {2}", new Object[]{dataset, service.getType(), service.getIdentifier()});
+                }
             } else {
-                LOGGER.log(Level.WARNING, "unable to find a collection with dataset {0} in service ({1}) {2}", new Object[]{dataset, service.getType(), service.getIdentifier()});
+                LOGGER.log(Level.WARNING, "unable to find a service ({0}) {1}", new Object[]{service.getType(), service.getIdentifier()});
             }
         }
+    }
+    
+    private FSProviderHandler getHandler(ProviderWithPath pwp, FileSystemAnalysis analysis) {
+        return switch (pwp.sourceType) {
+            case CSQL      -> new CSQLProviderhandler(pwp,     analysis.asyncInfos, this);
+            case COMPUTED  -> new ComputedProviderHandler(pwp, analysis.asyncInfos, this);
+            case FILE      -> new FileProviderHandler(pwp,     analysis.asyncInfos, this);
+            case OTHER     -> new OtherProviderHandler(pwp,    analysis.asyncInfos, this);
+        }; 
     }
     
     private MutableStyle parseStyle(Path path) {
@@ -931,7 +770,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             } else {
                 LOGGER.log(Level.WARNING, "Duplicated style:{0}", style.getName());
             }
-        } catch (Exception ex) {
+        } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while importing style: " + style.getName(), ex);
         }
         return null;

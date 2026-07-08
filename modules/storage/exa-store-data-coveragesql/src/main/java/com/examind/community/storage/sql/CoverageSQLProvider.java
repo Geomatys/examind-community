@@ -146,7 +146,7 @@ public class CoverageSQLProvider extends DataStoreProvider {
             geotkStore = geotkProvider.open(geotkParams);
         }
         
-        public void createProduct(String productName, boolean worldGG, Double worldGGRes, boolean asChild, String subDataType, List<Path> dataPaths) throws DataStoreException {
+        public void createOrAddToProduct(String productName, boolean worldGG, Double worldGGRes, boolean asChild, String subDataType, List<Path> dataPaths) throws DataStoreException {
             GridGeometry gg = null;
             if (worldGG) {
                 if (worldGGRes == null) worldGGRes = defaultWorldGGRes;
@@ -156,11 +156,27 @@ public class CoverageSQLProvider extends DataStoreProvider {
             if (asChild) {
                 opt = AddOption.CREATE_AS_CHILD_PRODUCT;
             }
-            DataStoreProvider provider = null;
+            DataStoreProvider fileProvider = null;
             if (subDataType != null) {
-                provider = DataStores.getProviderById(subDataType);
+                fileProvider = DataStores.getProviderById(subDataType);
             }
-            geotkStore.addRaster(productName, gg, opt, null, provider, dataPaths.toArray(Path[]::new));
+            geotkStore.addRaster(productName, gg, opt, null, fileProvider, dataPaths.toArray(Path[]::new));
+        }
+        
+        public void createOrAddToProduct(String productName, boolean worldGG, Double worldGGRes, boolean asChild, String subDataType, Path dataPath) throws DataStoreException {
+            createOrAddToProduct(productName, worldGG, worldGGRes, asChild, subDataType, List.of(dataPath));
+        }
+        
+        public void removeFromProduct(String productName, Path dataPath) throws DataStoreException {
+            geotkStore.removeRaster(dataPath);
+        }
+        
+        public void removeProduct(String productName) throws DataStoreException {
+            Resource res = geotkStore.findResource(productName);
+            if (res != null) {
+                // remove from store
+                geotkStore.remove(res);
+            }
         }
         
         public void removeAllProducts() throws DataStoreException {

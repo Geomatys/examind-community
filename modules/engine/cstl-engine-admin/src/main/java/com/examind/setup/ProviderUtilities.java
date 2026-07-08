@@ -20,17 +20,21 @@
 package com.examind.setup;
 
 import com.examind.dto.fs.Provider;
+import static com.examind.setup.FileSystemUtilities.regexFileFilter;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.Data;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.provider.DataProviderFactory;
@@ -162,17 +166,35 @@ public class ProviderUtilities {
         return new Config(source, config);
     }
     
-    public static Integer createFileProvider(String factoryName, IProviderBusiness pBusiness, String providerIdentifier, String impl, Integer datasourceId, Object pathUri, String pathParamName, Map<String, String> parameters) throws ConstellationException {
-        Config config = createProviderConfig(factoryName, providerIdentifier, impl, datasourceId, "datasourceId", parameters, Set.of());
-                    
+    public static Integer createSourceProvider(Provider conf, IProviderBusiness pBusiness, Integer datasourceId) throws ConstellationException {
+        return createProvider(conf, pBusiness, datasourceId, null);
+    }
+    
+    public static Integer createFileProvider(Provider conf, IProviderBusiness pBusiness, URI pathUri) throws ConstellationException {
+        return createProvider(conf, pBusiness, null, pathUri);
+    }
+    
+    private static Integer createProvider(Provider conf, IProviderBusiness pBusiness, Integer datasourceId, URI pathUri) throws ConstellationException {
+        String providerIdentifier = conf.getGeneratedIdentifier();
+        
+        if (pBusiness.existIdentifier(providerIdentifier)) {
+            throw new ConstellationException("Duplicated provider:" + providerIdentifier);
+        }
+        String factoryName = conf.getDataType();
+        String impl = conf.getProviderType();
+        Config config = createProviderConfig(factoryName, providerIdentifier, impl, datasourceId, "datasourceId", conf.getAdvancedParameters(), Set.of());
+        String pathParamName = getPathParamName(conf);
+        
         if (pathParamName != null) {
             config.config.parameter(pathParamName).setValue(pathUri);
         }
         return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, factoryName, config.source);
     }
     
-    public static Integer createComputedProvider(String factoryName, IProviderBusiness pBusiness, String providerIdentifier, String impl, List<Data> datas, Map<String, String> parameters) throws ConstellationException {
-        Config config = createProviderConfig(factoryName, providerIdentifier, impl, null, null, parameters, Set.of());
+    public static Integer createComputedProvider(Provider conf, IProviderBusiness pBusiness, List<Data> datas) throws ConstellationException {
+        String providerIdentifier = conf.getGeneratedIdentifier();
+        String impl = conf.getProviderType();
+        Config config = createProviderConfig(COMPUTED_PROVIDER, providerIdentifier, impl, null, null, conf.getAdvancedParameters(), Set.of());
                     
         GeneralParameterDescriptor genParamDesc = config.config.getDescriptor().descriptor("data_ids");
         if (genParamDesc instanceof ParameterDescriptor paramDesc) {
@@ -182,7 +204,7 @@ public class ProviderUtilities {
                 config.config.values().add(value);
             }
         }
-        return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, factoryName, config.source);
+        return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, COMPUTED_PROVIDER, config.source);
     }
     
     public static Integer createCSQLProvider(IProviderBusiness pBusiness, String providerIdentifier, Integer datasourceId) throws ConstellationException {
@@ -257,5 +279,22 @@ public class ProviderUtilities {
         config.config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
         config.config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
         config.config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+    }
+    
+    public static String getPathParamName(Provider providerConf) {
+        if (providerConf.getSource() != null) return null;
+        if ("coverage-xml-pyramid".equals(providerConf.getProviderType())) {
+            return "path";
+        // default case for file provider    
+        } else if (providerConf.getLocation() != null) {
+            return "location";
+        }
+        return null;
+    }
+    
+    public static Predicate<Path> getProviderFileFilter(Provider providerConf) {
+        String dirFilter = providerConf.getDirectoryFilter();
+        final Pattern dirPattern = (dirFilter != null) ? Pattern.compile(dirFilter) : null;
+        return dirPattern != null ? p -> regexFileFilter(p, dirPattern) : null;
     }
 }
