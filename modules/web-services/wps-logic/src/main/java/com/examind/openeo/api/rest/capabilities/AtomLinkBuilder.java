@@ -1,7 +1,7 @@
 package com.examind.openeo.api.rest.capabilities;
 
 import org.constellation.ws.MimeType;
-import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.ogcapi.dto.common.Link;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ public class AtomLinkBuilder {
             xmlMime  = MimeType.APP_XML;
             jsonMime = MimeType.APP_JSON;
         }
-        Link linkSelf = new Link(url,                        "self", jsonMime, "this document");
-        Link linkAlt  = new Link(url + "?f=application/xml", "self", xmlMime,  "this document");
+        Link linkSelf = new Link(url,                        "self", jsonMime, null, "this document", null);
+        Link linkAlt  = new Link(url + "?f=application/xml", "self", xmlMime,  null, "this document", null);
         String titleSuffix;
         if (asJson) {
             titleSuffix = " as XML";

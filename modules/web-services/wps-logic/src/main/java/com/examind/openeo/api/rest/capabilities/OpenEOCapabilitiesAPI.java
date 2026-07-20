@@ -7,15 +7,15 @@ import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.OGCWebService;
 import org.constellation.ws.rs.ResponseObject;
-import org.geotoolkit.atom.xml.Link;
-import org.geotoolkit.openeo.capabilities.dto.Argument;
-import org.geotoolkit.openeo.capabilities.dto.Billing;
-import org.geotoolkit.openeo.capabilities.dto.Capabilities;
-import org.geotoolkit.openeo.capabilities.dto.Conformance;
-import org.geotoolkit.openeo.capabilities.dto.Endpoint;
-import org.geotoolkit.openeo.capabilities.dto.FileFormat;
-import org.geotoolkit.openeo.capabilities.dto.FileFormats;
-import org.geotoolkit.openeo.capabilities.dto.ServiceType;
+import org.geotoolkit.openeo.dto.capabilities.Argument;
+import org.geotoolkit.openeo.dto.capabilities.Billing;
+import org.geotoolkit.openeo.dto.capabilities.Capabilities;
+import org.geotoolkit.openeo.dto.capabilities.Endpoint;
+import org.geotoolkit.openeo.dto.capabilities.FileFormat;
+import org.geotoolkit.openeo.dto.capabilities.FileFormats;
+import org.geotoolkit.openeo.dto.capabilities.ServiceType;
+import org.geotoolkit.ogcapi.dto.common.ConfClasses;
+import org.geotoolkit.ogcapi.dto.common.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -129,10 +129,10 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
 
         List<Link> links = new ArrayList<>();
         // TODO restore buildDocumentLinks(url, asJson, links, false);
-        links.add(new Link(url + "/conformance",   "conformance",  MimeType.APP_JSON, "OGC Conformance Classes"));
-        links.add(new Link(url + "/collections",   "data",         MimeType.APP_JSON, "List of Datasets"));
-        links.add(new Link(url + "/file_formats",  "service-desc", MimeType.APP_JSON, "List of supported File Formats"));
-        links.add(new Link(url + "/service_types", "service-desc", MimeType.APP_JSON, "List of other services supported by this server"));
+        links.add(new Link(url + "/conformance",   "conformance",  MimeType.APP_JSON, null, "OGC Conformance Classes", null));
+        links.add(new Link(url + "/collections",   "data",         MimeType.APP_JSON, null, "List of Datasets", null));
+        links.add(new Link(url + "/file_formats",  "service-desc", MimeType.APP_JSON, null, "List of supported File Formats", null));
+        links.add(new Link(url + "/service_types", "service-desc", MimeType.APP_JSON, null, "List of other services supported by this server", null));
         capabilities.setLinks(links);
 
         List<Endpoint> endpoints = new ArrayList<>();
@@ -177,7 +177,7 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
     public ResponseEntity getConformance() {
         try {
             MediaType media = MediaType.APPLICATION_JSON;
-            Conformance conformance = new Conformance(CONFORMS);
+            ConfClasses conformance = new ConfClasses().conformsTo(CONFORMS);
             return new ResponseObject(conformance, media, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -229,7 +229,7 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
             gtiffFormat.setTitle("GeoTiff");
             gtiffFormat.setDescription("Export to GeoTiff. Support of Cloud-Optimized GeoTiffs (COGs)");
             gtiffFormat.setGisDataTypes(List.of(FileFormat.GisDataTypesEnum.RASTER));
-            gtiffFormat.setLinks(List.of(new Link("https://gdal.org/drivers/raster/gtiff.html", "about", MimeType.APP_JSON, "GDAL on the GeoTiff file format and storage options")));
+            gtiffFormat.setLinks(List.of(new Link("https://gdal.org/drivers/raster/gtiff.html", "about", MimeType.APP_JSON, null, "GDAL on the GeoTiff file format and storage options", null)));
             outputs.put("GTiff", gtiffFormat);
             inputs.put("GTiff", gtiffFormat);
 
@@ -237,7 +237,7 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
             netcdfFormat.setTitle("NetCDF");
             netcdfFormat.setDescription("Export to NetCDF.");
             netcdfFormat.setGisDataTypes(List.of(FileFormat.GisDataTypesEnum.RASTER, FileFormat.GisDataTypesEnum.VECTOR));
-            netcdfFormat.setLinks(List.of(new Link("https://www.unidata.ucar.edu/software/netcdf/", "about", MimeType.APP_JSON, "Information about the NetCDF file format")));
+            netcdfFormat.setLinks(List.of(new Link("https://www.unidata.ucar.edu/software/netcdf/", "about", MimeType.APP_JSON, null, "Information about the NetCDF file format", null)));
             outputs.put("NetCDF", netcdfFormat);
             inputs.put("NetCDF", netcdfFormat);
 
@@ -245,7 +245,7 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
             zarrFormat.setTitle("Zarr");
             zarrFormat.setDescription("Export to Zarr. Support of GeoZarr conventions.");
             zarrFormat.setGisDataTypes(List.of(FileFormat.GisDataTypesEnum.RASTER));
-            zarrFormat.setLinks(List.of(new Link("https://zarr-specs.readthedocs.io/en/latest/specs.html", "about", MimeType.APP_JSON, "Information about the Zarr file format")));
+            zarrFormat.setLinks(List.of(new Link("https://zarr-specs.readthedocs.io/en/latest/specs.html", "about", MimeType.APP_JSON, null, "Information about the Zarr file format", null)));
             outputs.put("Zarr", zarrFormat);
             inputs.put("Zarr", zarrFormat);
 

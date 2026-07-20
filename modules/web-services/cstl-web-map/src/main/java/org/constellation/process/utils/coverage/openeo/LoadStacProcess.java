@@ -14,8 +14,9 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.processing.AbstractProcess;
-import org.geotoolkit.processing.stac.StacClientItemsGetURIsDescriptor;
-import org.geotoolkit.stac.client.StacClient;
+import org.geotoolkit.client.openapi.OpenApiConfiguration;
+import org.geotoolkit.stac.process.StacClientItemsGetURIsDescriptor;
+import org.geotoolkit.stac.client.StacApi;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.NoSuchIdentifierException;
@@ -118,7 +119,7 @@ public class LoadStacProcess extends AbstractCstlProcess  {
                 Path tempDir = Files.createTempDirectory("tempDownload");
                 tempDir.toFile().deleteOnExit();
 
-                StacClient client = new StacClient();
+                StacApi client = new StacApi(new OpenApiConfiguration.Builder().updateBaseUri(stacURL).build());
                 Path downloadFile = client.downloadFile(toOpen, tempDir);
 
                 //TODO : the resource store is still open but since the data is in memory it should be okay.

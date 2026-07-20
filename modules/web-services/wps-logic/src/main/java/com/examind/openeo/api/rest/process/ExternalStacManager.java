@@ -9,8 +9,8 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConfigurationException;
 import org.geotoolkit.openeo.dto.ResponseMessage;
-import org.geotoolkit.openeo.process.dto.Process;
-import org.geotoolkit.openeo.process.dto.ProcessDescriptionArgument;
+import org.geotoolkit.openeo.dto.process.Process;
+import org.geotoolkit.openeo.dto.process.ProcessDescriptionArgument;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 

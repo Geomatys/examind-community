@@ -59,6 +59,10 @@
             <artifactId>geotk-client-wmts</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-stac</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.sis.storage</groupId>
             <artifactId>sis-netcdf</artifactId>
         </dependency>
