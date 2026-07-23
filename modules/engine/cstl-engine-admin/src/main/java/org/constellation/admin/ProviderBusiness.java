@@ -723,7 +723,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 
                 // cache data informations in the database
                 if (cacheDataInfo) {
-                    dataBusiness.cacheDataInformation(dataId, false);
+                    dataBusiness.cacheDataInformation(dataId, true);
                 }
             }
         }
