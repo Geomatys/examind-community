@@ -114,7 +114,7 @@ public class TaskRestAPI extends AbstractRestAPI {
      */
     @Autowired
     private IServiceBusiness serviceBusiness;
-    
+
     /**
      * MapContextBusiness used for provider GUI editors data
      */
@@ -495,7 +495,7 @@ public class TaskRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-    
+
     /**
      * List all Services as ServiceProcessReference to GUI editors.
      *

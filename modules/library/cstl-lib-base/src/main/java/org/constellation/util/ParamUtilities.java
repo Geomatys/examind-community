@@ -42,6 +42,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.constellation.util.json.ParameterDescriptorJSONDeserializer;
 
 public final class ParamUtilities {
 
@@ -50,7 +51,7 @@ public final class ParamUtilities {
         XML_INPUT_FACTORY.setProperty("http://java.sun.com/xml/stream/properties/report-cdata-event", Boolean.TRUE);
         XML_INPUT_FACTORY.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
     }
-    
+
     /**
      * Reads an {@link java.io.InputStream} to build a {@link org.opengis.parameter.GeneralParameterValue}
      * instance according the specified {@link org.opengis.parameter.ParameterDescriptorGroup}.
@@ -93,7 +94,7 @@ public final class ParamUtilities {
             throw new IOException(ex);
         }
     }
-    
+
     private static GeneralParameterValue readParameterInternal(final Object input,
                                                       final GeneralParameterDescriptor descriptor) throws IOException {
         ensureNonNull("input", input);
@@ -212,5 +213,21 @@ public final class ParamUtilities {
         module.addSerializer(GeneralParameterDescriptor.class, new ParameterDescriptorJSONSerializer()); //custom serializer
         mapper.registerModule(module);
         return mapper.writeValueAsString(descriptor);
+    }
+
+    /**
+     * Deserialize a GeneralParameterDescriptor from a JSON String.
+     * @param inputJson String json
+     * @return GeneralParameterDescriptor
+     * @throws IOException
+     * @throws org.apache.sis.util.NullArgumentException if {@code inputJson} is {@code null}
+     */
+    public static GeneralParameterDescriptor readParameterDescriptorJSON(String inputJson) throws IOException {
+        ArgumentChecks.ensureNonNull("inputJson", inputJson);
+        final ObjectMapper mapper = new ObjectMapper();
+        final SimpleModule module = new SimpleModule();
+        module.addDeserializer(GeneralParameterDescriptor.class, new ParameterDescriptorJSONDeserializer()); //custom serializer
+        mapper.registerModule(module);
+        return mapper.readValue(inputJson, GeneralParameterDescriptor.class);
     }
 }
