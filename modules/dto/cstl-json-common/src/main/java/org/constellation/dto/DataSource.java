@@ -38,6 +38,7 @@ public class DataSource extends Identifiable implements Serializable {
     private String  storeId;
     private Boolean readFromRemote;
     private Long    dateCreation;
+    private Long    lastUpdate;
     private String  analysisState;
     private String  format;
     private Boolean permanent;
@@ -47,7 +48,7 @@ public class DataSource extends Identifiable implements Serializable {
     }
 
     public DataSource(Integer id, String identifier, String type, String url, String username,
-            String pwd, String storeId, Boolean readFromRemote, Long dateCreation,
+            String pwd, String storeId, Boolean readFromRemote, Long dateCreation, Long lastUpdate,
             String analysisState, String format, Boolean permanent, Map<String, String> properties) {
         this.id = id;
         this.identifier = identifier;
@@ -58,6 +59,7 @@ public class DataSource extends Identifiable implements Serializable {
         this.storeId = storeId;
         this.readFromRemote = readFromRemote;
         this.dateCreation = dateCreation;
+        this.lastUpdate = lastUpdate;
         this.analysisState = analysisState;
         this.format = format;
         this.permanent = permanent;
@@ -230,5 +232,13 @@ public class DataSource extends Identifiable implements Serializable {
 
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
+    }
+
+    public Long getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(Long lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 }

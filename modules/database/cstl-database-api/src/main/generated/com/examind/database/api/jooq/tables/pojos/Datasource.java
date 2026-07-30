@@ -45,6 +45,7 @@ public class Datasource implements Serializable {
     private String format;
     private Boolean permanent;
     private String identifier;
+    private Long lastUpdate;
 
     public Datasource() {}
 
@@ -61,6 +62,7 @@ public class Datasource implements Serializable {
         this.format = value.format;
         this.permanent = value.permanent;
         this.identifier = value.identifier;
+        this.lastUpdate = value.lastUpdate;
     }
 
     public Datasource(
@@ -75,7 +77,8 @@ public class Datasource implements Serializable {
         String analysisState,
         String format,
         Boolean permanent,
-        String identifier
+        String identifier,
+        Long lastUpdate
     ) {
         this.id = id;
         this.type = type;
@@ -89,6 +92,7 @@ public class Datasource implements Serializable {
         this.format = format;
         this.permanent = permanent;
         this.identifier = identifier;
+        this.lastUpdate = lastUpdate;
     }
 
     /**
@@ -279,6 +283,21 @@ public class Datasource implements Serializable {
         return this;
     }
 
+    /**
+     * Getter for <code>admin.datasource.last_update</code>.
+     */
+    public Long getLastUpdate() {
+        return this.lastUpdate;
+    }
+
+    /**
+     * Setter for <code>admin.datasource.last_update</code>.
+     */
+    public Datasource setLastUpdate(Long lastUpdate) {
+        this.lastUpdate = lastUpdate;
+        return this;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -360,6 +379,12 @@ public class Datasource implements Serializable {
         }
         else if (!this.identifier.equals(other.identifier))
             return false;
+        if (this.lastUpdate == null) {
+            if (other.lastUpdate != null)
+                return false;
+        }
+        else if (!this.lastUpdate.equals(other.lastUpdate))
+            return false;
         return true;
     }
 
@@ -379,6 +404,7 @@ public class Datasource implements Serializable {
         result = prime * result + ((this.format == null) ? 0 : this.format.hashCode());
         result = prime * result + ((this.permanent == null) ? 0 : this.permanent.hashCode());
         result = prime * result + ((this.identifier == null) ? 0 : this.identifier.hashCode());
+        result = prime * result + ((this.lastUpdate == null) ? 0 : this.lastUpdate.hashCode());
         return result;
     }
 
@@ -398,6 +424,7 @@ public class Datasource implements Serializable {
         sb.append(", ").append(format);
         sb.append(", ").append(permanent);
         sb.append(", ").append(identifier);
+        sb.append(", ").append(lastUpdate);
 
         sb.append(")");
         return sb.toString();

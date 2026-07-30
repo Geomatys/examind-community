@@ -132,6 +132,11 @@ public class Datasource extends TableImpl<DatasourceRecord> {
      */
     public final TableField<DatasourceRecord, String> IDENTIFIER = createField(DSL.name("identifier"), SQLDataType.CLOB, this, "");
 
+    /**
+     * The column <code>admin.datasource.last_update</code>.
+     */
+    public final TableField<DatasourceRecord, Long> LAST_UPDATE = createField(DSL.name("last_update"), SQLDataType.BIGINT, this, "");
+
     private Datasource(Name alias, Table<DatasourceRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

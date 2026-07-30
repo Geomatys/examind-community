@@ -224,6 +224,21 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
         return (String) get(11);
     }
 
+    /**
+     * Setter for <code>admin.datasource.last_update</code>.
+     */
+    public DatasourceRecord setLastUpdate(Long value) {
+        set(12, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.datasource.last_update</code>.
+     */
+    public Long getLastUpdate() {
+        return (Long) get(12);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -247,7 +262,7 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
     /**
      * Create a detached, initialised DatasourceRecord
      */
-    public DatasourceRecord(Integer id, String type, String url, String username, String pwd, String storeId, Boolean readFromRemote, Long dateCreation, String analysisState, String format, Boolean permanent, String identifier) {
+    public DatasourceRecord(Integer id, String type, String url, String username, String pwd, String storeId, Boolean readFromRemote, Long dateCreation, String analysisState, String format, Boolean permanent, String identifier, Long lastUpdate) {
         super(Datasource.DATASOURCE);
 
         setId(id);
@@ -262,6 +277,7 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
         setFormat(format);
         setPermanent(permanent);
         setIdentifier(identifier);
+        setLastUpdate(lastUpdate);
         resetChangedOnNotNull();
     }
 
@@ -284,6 +300,7 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> {
             setFormat(value.getFormat());
             setPermanent(value.getPermanent());
             setIdentifier(value.getIdentifier());
+            setLastUpdate(value.getLastUpdate());
             resetChangedOnNotNull();
         }
     }

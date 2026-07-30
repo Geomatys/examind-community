@@ -89,7 +89,7 @@ public class DatasourceUtilities {
         String location = source.getLocation();
         String userName = source.getUserName();
         String pwd = source.getPassword();
-        DataSource ds = new DataSource(null, identifier, "database", location, userName, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
+        DataSource ds = new DataSource(null, identifier, "database", location, userName, pwd, null, false, System.currentTimeMillis(), System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
         return dBusiness.getOrcreate(ds);
     }
 }

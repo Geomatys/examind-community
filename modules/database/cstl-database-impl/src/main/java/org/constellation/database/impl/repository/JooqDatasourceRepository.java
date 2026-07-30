@@ -284,9 +284,9 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                 .set(DATASOURCE.FORMAT, ds.getFormat())
                 .set(DATASOURCE.PERMANENT, ds.getPermanent())
                 .set(DATASOURCE.IDENTIFIER, ds.getIdentifier())
+                .set(DATASOURCE.LAST_UPDATE, ds.getLastUpdate())
                 .where(DATASOURCE.ID.eq(ds.getId()))
                 .execute();
-
     }
 
     @Override
@@ -489,6 +489,7 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
             ds.getStoreId(),
             ds.getReadFromRemote(),
             ds.getDateCreation(),
+            ds.getLastUpdate(),
             ds.getAnalysisState(),
             ds.getFormat(),
             ds.getPermanent(),
