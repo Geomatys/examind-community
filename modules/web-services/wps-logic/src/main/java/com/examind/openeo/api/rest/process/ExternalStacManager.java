@@ -4,7 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.Application;
+import org.constellation.exception.ConfigurationException;
 import org.geotoolkit.openeo.dto.ResponseMessage;
 import org.geotoolkit.openeo.process.dto.Process;
 import org.geotoolkit.openeo.process.dto.ProcessDescriptionArgument;
@@ -48,6 +51,12 @@ public class ExternalStacManager {
      * Cache of external STAC custom process per serviceId.
      */
     private final Map<String, Pair<Boolean, String>> externalStacCustomProcessByServiceId = new HashMap<>();
+
+    /**
+     * WPS service configuration property holding a per-service external STAC url.
+     * Takes priority over the {@code EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE} app property.
+     */
+    public static final String EXTERNAL_STAC_URL_PROPERTY = "externalStacUrl";
 
     /**
      * Check if for the given serviceId an external STAC endpoint is configured.
@@ -99,6 +108,13 @@ public class ExternalStacManager {
     private String remoteStacUrl(String serviceId) {
         Pair<Boolean, String> external = externalStacByServiceId.get(serviceId);
         if (external == null || external.getLeft() == null) {
+            String configUrl = serviceConfigStacUrl(serviceId);
+            if (configUrl != null) {
+                external = Pair.of(true, configUrl);
+                externalStacByServiceId.put(serviceId, external);
+                return external.getRight();
+            }
+
             List<String> map = Application.getListProperty(EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE);
             if (map.isEmpty()) {
                 externalStacByServiceId.put(serviceId, Pair.of(false, null));
@@ -122,6 +138,21 @@ public class ExternalStacManager {
             }
         }
         return (external != null ? external.getRight() : null);
+    }
+
+    /**
+     * Look up the {@link #EXTERNAL_STAC_URL_PROPERTY} property on the WPS service configuration (file system config).
+     * @param serviceId the WPS serviceId
+     * @return the configured url, or null if none (unconfigured service, or no such WPS service)
+     */
+    private String serviceConfigStacUrl(String serviceId) {
+        return SpringHelper.getBean(IServiceBusiness.class).map(sb -> {
+            try {
+                return sb.getConfiguration("wps", serviceId).getProperty(EXTERNAL_STAC_URL_PROPERTY);
+            } catch (ConfigurationException ex) {
+                return null;
+            }
+        }).orElse(null);
     }
 
     /**

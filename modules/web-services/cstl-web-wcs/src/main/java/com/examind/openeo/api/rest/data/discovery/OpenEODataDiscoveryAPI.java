@@ -1,13 +1,20 @@
 package com.examind.openeo.api.rest.data.discovery;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.geotoolkit.ogcapi.model.common.Link;
 import org.geotoolkit.stac.dto.Collection;
 import org.geotoolkit.stac.dto.Collections;
 import org.apache.commons.lang3.tuple.Pair;
+import org.constellation.admin.SpringHelper;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
+import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.Application;
 import org.constellation.coverage.core.WCSWorker;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
@@ -71,6 +78,13 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
     private String remoteStacUrl(String serviceId) {
         Pair<Boolean, String> external = externalStacByServiceId.get(serviceId);
         if (external == null || external.getLeft() == null) {
+            String configUrl = serviceConfigStacUrl(serviceId);
+            if (configUrl != null) {
+                external = Pair.of(true, configUrl);
+                externalStacByServiceId.put(serviceId, external);
+                return external.getRight();
+            }
+
             List<String> map = Application.getListProperty(EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE);
             if (map.isEmpty()) {
                 externalStacByServiceId.put(serviceId, Pair.of(false, null));
@@ -94,6 +108,58 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
             }
         }
         return (external != null ? external.getRight() : null);
+    }
+
+    /**
+     * File system config (per-service "externalStacUrl" property on the WPS service sharing this serviceId)
+     * takes priority over the {@code EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE} app property.
+     *
+     * @param serviceId the WPS serviceId
+     * @return the configured url, or null if none
+     */
+    private String serviceConfigStacUrl(String serviceId) {
+        return SpringHelper.getBean(IServiceBusiness.class).map(sb -> {
+            try {
+                return sb.getConfiguration("wps", serviceId).getProperty("externalStacUrl");
+            } catch (ConfigurationException ex) {
+                return null;
+            }
+        }).orElse(null);
+    }
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * Fetches a STAC document from the external server and rewrites every {@code href} field
+     * (in {@code links[]}, {@code assets{}}, or anywhere else nested in the document, e.g.
+     * {@code Item.assets} inside an item collection's {@code features[]}) that points at
+     * {@code remoteStacUrl} so it points at {@code proxyBaseUrl} instead. Parses/rewrites the
+     * JSON tree structurally rather than doing a whole-body string replace, so unrelated
+     * occurrences of the remote URL substring (in an id, title, description, etc.) are left
+     * untouched.
+     *
+     * @param remoteStacUrl base URL of the external STAC server, e.g. {@code https://stac.example.org}
+     * @param targetUrl     full external STAC URL to fetch (under {@code remoteStacUrl})
+     * @param proxyBaseUrl  base URL under which Examind proxies this external STAC server
+     * @return the rewritten document, serialized back to JSON
+     */
+    private String fetchAndRewriteHrefs(String remoteStacUrl, String targetUrl, String proxyBaseUrl) throws java.io.IOException {
+        String rawJson = restTemplate.getForObject(targetUrl, String.class);
+        JsonNode root = MAPPER.readTree(rawJson);
+        rewriteHrefs(root, remoteStacUrl, proxyBaseUrl);
+        return MAPPER.writeValueAsString(root);
+    }
+
+    static void rewriteHrefs(JsonNode node, String remoteStacUrl, String proxyBaseUrl) {
+        if (node instanceof ObjectNode obj) {
+            JsonNode href = obj.get("href");
+            if (href != null && href.isTextual() && href.asText().startsWith(remoteStacUrl)) {
+                obj.put("href", proxyBaseUrl + href.asText().substring(remoteStacUrl.length()));
+            }
+            obj.fields().forEachRemaining(entry -> rewriteHrefs(entry.getValue(), remoteStacUrl, proxyBaseUrl));
+        } else if (node instanceof ArrayNode arr) {
+            arr.forEach(child -> rewriteHrefs(child, remoteStacUrl, proxyBaseUrl));
+        }
     }
 
     /**

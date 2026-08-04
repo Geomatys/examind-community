@@ -53,6 +53,7 @@ import com.examind.dto.fs.Collection;
 import com.examind.dto.fs.CollectionItem;
 import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.DimensionItem;
+import com.examind.dto.fs.ProcessFactory;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
@@ -140,6 +141,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     private ISensorServiceBusiness sensorServiceBusiness;
     
     private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url");
+
+    // advancedParameters key: when set on an OPENEO service, skip local WCS creation (STAC catalog is external)
+    private static final String OPENEO_EXTERNAL_STAC_PARAM = "externalStacUrl";
     
     /**
      * Executor to perform task asynchroneously.
@@ -232,6 +236,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      * @param instance Service configuration.
      */
     private void createServiceFromFile(Service instance) {
+        if ("OPENEO".equalsIgnoreCase(instance.getType())) {
+            createOpenEOServicesFromFile(instance);
+            return;
+        }
         try {
             if (serviceBusiness.getServiceIdentifiers(instance.getType()).contains(instance.getIdentifier())) {
                 throw new ConfigurationException("Service identifier: " + instance.getIdentifier() + "(" +  instance.getType() + ") already used");
@@ -339,6 +347,49 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    /**
+     * OpenEO runs on a WPS (process part) and a WCS (STAC/data part) sharing the same identifier.
+     * Expand a single "OPENEO" filesystem entry into that WPS + WCS pair instead of requiring
+     * both services to be declared and wired manually in the UI.
+     *
+     * @param instance OpenEO service configuration.
+     */
+    private void createOpenEOServicesFromFile(Service instance) {
+        Service wps = new Service();
+        wps.setIdentifier(instance.getIdentifier());
+        wps.setType("WPS");
+        wps.setMetadata(instance.getMetadata());
+
+        wps.setProcessFactories(instance.getProcessFactories());
+        createServiceFromFile(wps);
+
+        // external STAC catalog: the WCS below just proxies it, the actual data lives outside Examind.
+        // Store the url on the WPS configuration: it takes priority over the app property
+        // EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE, which stays as the base/fallback value.
+        Map<String, String> wcsParameters = instance.getAdvancedParameters();
+        String externalStacUrl = wcsParameters.get(OPENEO_EXTERNAL_STAC_PARAM);
+        if (externalStacUrl != null) {
+            Integer wpsId = serviceBusiness.getServiceIdByIdentifierAndType("wps", instance.getIdentifier());
+            try {
+                AbstractConfigurationObject wpsConf = serviceBusiness.getConfiguration(wpsId);
+                wpsConf.setProperty(OPENEO_EXTERNAL_STAC_PARAM, externalStacUrl);
+                serviceBusiness.setConfiguration(wpsId, wpsConf);
+            } catch (ConfigurationException ex) {
+                LOGGER.log(Level.WARNING, "Error while storing external STAC url on WPS service: " + instance.getIdentifier(), ex);
+            }
+            wcsParameters = new HashMap<>(wcsParameters);
+            wcsParameters.remove(OPENEO_EXTERNAL_STAC_PARAM);
+        }
+
+        Service wcs = new Service();
+        wcs.setIdentifier(instance.getIdentifier());
+        wcs.setType("WCS");
+        wcs.setMetadata(instance.getMetadata());
+        wcs.setAdvancedParameters(wcsParameters);
+        wcs.setCollections(instance.getCollections());
+        createServiceFromFile(wcs);
+    }
+
     /**
      * Publish data on a service.
      * 

@@ -218,6 +218,9 @@ public class FileSystemAnalysis {
         if (serv.getType()       == null) throw new ConfigurationException("Service type is missing.");
         if (serv.getIdentifier() == null) throw new ConfigurationException("Service identifier is missing.");
 
+        // OPENEO is not a real ServiceDef.Specification: it is expanded into a WPS + WCS pair at creation time.
+        if ("OPENEO".equalsIgnoreCase(serv.getType())) return;
+
         // verify service type
         try {
             ServiceDef.Specification.valueOf(serv.getType().toUpperCase());
