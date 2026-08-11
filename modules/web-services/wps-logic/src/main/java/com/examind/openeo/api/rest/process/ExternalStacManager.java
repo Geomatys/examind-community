@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 
 import static org.constellation.configuration.AppProperty.EXA_OPENEO_EXTERNAL_STAC_CUSTOM_PROCESS_PER_WPS_SERVICE;
 import static org.constellation.configuration.AppProperty.EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE;
-import static org.geotoolkit.openeo.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
+import static org.geotoolkit.openeo.process.OpenEOUtils.processDescriptorIdToOpenEOProcessId;
 
 /**
  * Management class for external STAC use cases.
@@ -260,7 +260,7 @@ public class ExternalStacManager {
             process.getProcessGraph().forEach(
                     (key, value) -> {
                         try {
-                            String processId = examindProcessIdToOpenEOProcessId(value.getProcessId());
+                            String processId = processDescriptorIdToOpenEOProcessId(value.getProcessId());
                             if (processId.equalsIgnoreCase("load_collection")) {
                                 ProcessDescriptionArgument arg = value.getArguments().get("id");
                                 if (arg == null || arg.getValue() == null) {

@@ -1,9 +1,5 @@
 package com.examind.openeo.api.rest.process;
 
-import org.constellation.api.rest.ErrorMessage;
-import org.geotoolkit.openeo.dto.capabilities.Argument;
-import org.geotoolkit.openeo.dto.service.Service;
-import org.geotoolkit.openeo.dto.capabilities.ServiceType;
 import org.geotoolkit.openeo.dto.CheckMessage;
 import org.geotoolkit.openeo.dto.ResponseMessage;
 import org.geotoolkit.openeo.dto.process.BoundingBox;
@@ -65,7 +61,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -88,8 +83,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.geotoolkit.openeo.process.OpenEOUtils.buildDataTypeSchema;
-import static org.geotoolkit.openeo.process.OpenEOUtils.examindProcessIdToOpenEOProcessId;
-import static org.geotoolkit.openeo.process.OpenEOUtils.openEOProcessIdToExamindProcessId;
+import static org.geotoolkit.openeo.process.OpenEOUtils.processDescriptorIdToOpenEOProcessId;
+import static org.geotoolkit.openeo.process.OpenEOUtils.openEOProcessIdToProcessDescriptorId;
 import static org.geotoolkit.processing.chain.model.Element.BEGIN;
 import org.opengis.util.InternationalString;
 
@@ -348,7 +343,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         final Process process = new Process();
 
         String exaId = registry.getName() + "." + descriptor.getIdentifier().getCode();
-        String openEOId = examindProcessIdToOpenEOProcessId(exaId);
+        String openEOId = processDescriptorIdToOpenEOProcessId(exaId);
         process.setId(openEOId);
         process.setCategories(List.of(registry.getName()));
         process.setDeprecated(false);
@@ -1116,7 +1111,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             String nodeName = entry.getKey();
             ProcessDescription processDescription = entry.getValue();
 
-            String processIdParsed = openEOProcessIdToExamindProcessId(processDescription.getProcessId(), true);
+            String processIdParsed = openEOProcessIdToProcessDescriptorId(processDescription.getProcessId(), true);
             String[] splitPoint = processIdParsed.split("\\.", 2);
 
             final ElementProcess elementProcess = chain.addProcessElement(id++, splitPoint[0], splitPoint[1]);
