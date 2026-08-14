@@ -1481,7 +1481,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                 final AtomicInteger acc = new AtomicInteger();
                                 final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<>() {
                                     @Override
-                                    public void eventOccured(FeatureStoreContentEvent event) {
+                                    public void eventOccurred(FeatureStoreContentEvent event) {
                                         if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
                                             Set<ResourceId> identifiers = new HashSet<>();
                                             separate(event.getIds(), identifiers);
@@ -1785,7 +1785,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         final AtomicInteger acc = new AtomicInteger();
                         final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<>() {
                             @Override
-                            public void eventOccured(FeatureStoreContentEvent event) {
+                            public void eventOccurred(FeatureStoreContentEvent event) {
                                 if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
                                     Set<ResourceId> identifiers = new HashSet<>();
                                     separate(event.getIds(), identifiers);
