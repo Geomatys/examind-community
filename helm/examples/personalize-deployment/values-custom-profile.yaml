@@ -1,0 +1,3 @@
+allInOne:
+  env:
+    SPRING_PROFILES_ACTIVE: oauth2

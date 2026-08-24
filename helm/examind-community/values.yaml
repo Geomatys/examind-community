@@ -87,8 +87,7 @@ allInOne:
     enabled: false
   containerSecurityContext:
     enabled: false
-  env:
-    SPRING_PROFILES_ACTIVE: standard
+  env: {}
   ## @param heapSize Object to initialize JVM -Xms and -Xms options.
   ## request attribute set -Xms
   ## limit attribute set -Xmx

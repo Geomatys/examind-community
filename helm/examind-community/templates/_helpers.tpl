@@ -130,3 +130,12 @@ Get deployed postgresql full name. Useful to find PostgreSQL internal host name.
 {{- define "examind.postgresql.fullname" -}}
 {{- include "common.names.dependency.fullname" (dict "chartName" "postgresql" "chartValues" .Values.postgresql "context" $) -}}
 {{- end -}}
+
+{{- define "examind.backend.spring.profiles" -}}
+    {{- $items := list -}}
+    {{- $items = append $items "standard" -}}
+    {{- if not (empty (.Values.immutable).providers) -}}
+        {{- $items = append $items "fsconfig" -}}
+    {{- end -}}
+    {{ join "," $items }}
+{{- end -}}

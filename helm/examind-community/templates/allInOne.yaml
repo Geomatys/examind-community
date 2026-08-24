@@ -177,6 +177,10 @@ spec:
                 -Xmx{{- .Values.allInOne.heapSize.limit }}
                 -Dfile.encoding=UTF-8
                 -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+            {{- if not (and (hasKey .Values.allInOne.env "SPRING_PROFILES_ACTIVE") .Values.allInOne.env.SPRING_PROFILES_ACTIVE) }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ include "examind.backend.spring.profiles" . | quote }}
+            {{- end }}
             {{- if not (empty .Values.allInOne.extraEnvVars) }}
               {{- range $extraEnv := .Values.allInOne.extraEnvVars }}
                 {{- if has $extraEnv.name (list "CSTL_HOME" "DATABASE_URL" "DATABASE_USERNAME" "DATABASE_PASSWORD" "CATALINA_OPTS") }}
