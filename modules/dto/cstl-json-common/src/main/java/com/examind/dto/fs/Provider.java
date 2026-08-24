@@ -40,6 +40,8 @@ public class Provider {
     private Map<String, String> advancedParameters;
     
     private List<Collection> computedData;
+    
+    private String pollingInterval;
 
     /**
      * @return the identifier
@@ -235,6 +237,14 @@ public class Provider {
 
         sb.append("}");
         return sb.toString();
+    }
+
+    public String getPollingInterval() {
+        return pollingInterval;
+    }
+
+    public void setPollingInterval(String pollingInterval) {
+        this.pollingInterval = pollingInterval;
     }
 
 }

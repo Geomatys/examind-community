@@ -21,12 +21,19 @@ package com.examind.setup.data;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
-import com.examind.setup.FileSystemSetupBusiness;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IDataBusiness;
+import org.constellation.business.IDatasetBusiness;
+import org.constellation.business.IDatasourceBusiness;
+import org.constellation.business.IFileSystemSetupBusiness;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.exception.ConstellationException;
+import org.constellation.repository.DataRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -39,14 +46,29 @@ public abstract class FSProviderHandler {
     protected Map<String, List<Service>> asyncInfos;
     protected final String dataset;
     
-    // for access to other business
-    protected final FileSystemSetupBusiness parent;
+    @Autowired
+    protected IDatasourceBusiness datasourceBusiness;
     
-    public FSProviderHandler(ProviderWithPath pwp, Map<String, List<Service>> asyncInfos, FileSystemSetupBusiness parent) {
+    @Autowired
+    protected IDataBusiness dataBusiness;
+    
+    @Autowired
+    protected IProviderBusiness providerBusiness;
+    
+    @Autowired
+    protected IDatasetBusiness datasetBusiness;
+    
+    @Autowired
+    protected DataRepository dataRepository;
+    
+    @Autowired
+    protected IFileSystemSetupBusiness fsSetupBusiness;
+    
+    public FSProviderHandler(ProviderWithPath pwp, Map<String, List<Service>> asyncInfos) {
+        SpringHelper.injectDependencies(this);
         this.pwp = pwp;
         this.asyncInfos = asyncInfos;
         this.dataset = pwp.provider.getDataset();
-        this.parent = parent;
     }
     
     /**
@@ -76,32 +98,32 @@ public abstract class FSProviderHandler {
     }
     
     private void removeProviders(Integer dsFileId) throws ConstellationException {
-        List<DataSourceSelectedPath> paths = parent.datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
+        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
         for (DataSourceSelectedPath path : paths) {
             Integer pid = path.getProviderId();
             if (pid != null && pid != -1) {
-                parent.providerBusiness.removeProvider(pid);
+                providerBusiness.removeProvider(pid);
             }
         }
-        parent.datasourceBusiness.delete(dsFileId);
+        datasourceBusiness.delete(dsFileId);
     }
     
     protected void generateDatas(int pid, Provider conf, Map<String, List<Service>> asyncInfos, boolean create) throws ConstellationException {
-        int datasetId = parent.datasetBusiness.getOrCreateDataset(dataset, null);
+        int datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
         generateDatas(pid, datasetId, asyncInfos, create);
     }
     
     protected void generateDatas(int pid, int dsId, Map<String, List<Service>> asyncInfos, boolean create) throws ConstellationException {
-        parent.providerBusiness.createOrUpdateData(pid, dsId, true, false, null);
+        providerBusiness.createOrUpdateData(pid, dsId, true, false, null);
 
         if (create) {
-            List<Integer> dataIds = parent.providerBusiness.getDataIdsFromProviderId(pid);
-            parent.dataBusiness.acceptDatas(dataIds, null, false);
+            List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
+            dataBusiness.acceptDatas(dataIds, null, false);
         }
         
         // ASYNC MODE Add layer and reload needed service
         if (asyncInfos != null && dataset != null) {
-            parent.asyncServiceReload(dataset, asyncInfos);
+            fsSetupBusiness.asyncServiceReload(dataset, asyncInfos);
         }
     }
     

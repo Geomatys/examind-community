@@ -21,7 +21,6 @@ package com.examind.setup.data;
 import com.examind.dto.fs.Service;
 import static com.examind.setup.DatasourceUtilities.getOrCreateDatasourceForProviderFiles;
 import com.examind.setup.FileSystemAnalysis;
-import com.examind.setup.FileSystemSetupBusiness;
 import static com.examind.setup.ProviderUtilities.createFileProvider;
 import static com.examind.setup.ProviderUtilities.getProviderFileFilter;
 import java.nio.file.Path;
@@ -45,25 +44,25 @@ import org.constellation.exception.ConstellationException;
  */
 public class FileProviderHandler extends FSProviderHandler {
     
-    public FileProviderHandler(FileSystemAnalysis.ProviderWithPath pwp, Map<String, List<Service>> asyncInfos, FileSystemSetupBusiness parent) {
-         super(pwp, asyncInfos, parent);
+    public FileProviderHandler(FileSystemAnalysis.ProviderWithPath pwp, Map<String, List<Service>> asyncInfos) {
+         super(pwp, asyncInfos);
     }
 
     @Override
     public Integer createProviders(boolean diffMode) {
         try {
-            int dsrcId = getOrCreateDatasourceForProviderFiles(parent.datasourceBusiness, pwp, diffMode);
-            List<DataSourceSelectedPath> files = parent.datasourceBusiness.getSelectedPath(dsrcId, Integer.MAX_VALUE);
+            int dsrcId = getOrCreateDatasourceForProviderFiles(datasourceBusiness, pwp, diffMode);
+            List<DataSourceSelectedPath> files = datasourceBusiness.getSelectedPath(dsrcId, Integer.MAX_VALUE);
             
-            Integer dsId = parent.datasetBusiness.getOrCreateDataset(dataset, null);
+            Integer dsId = datasetBusiness.getOrCreateDataset(dataset, null);
             for (DataSourceSelectedPath dsp : files) {
                 PathStatus newStatus;
                 Integer pid = null;
                 try {
-                    Path p = parent.datasourceBusiness.getDatasourcePath(dsp.getDatasourceId(), dsp.getPath());
+                    Path p = datasourceBusiness.getDatasourcePath(dsp.getDatasourceId(), dsp.getPath());
 
                     // Create provider
-                    pid = createFileProvider(pwp.provider, parent.providerBusiness, p.toUri());
+                    pid = createFileProvider(pwp.provider, providerBusiness, p.toUri());
 
                     // Generate data.
                     generateDatas(pid, dsId, asyncInfos, true);
@@ -73,7 +72,7 @@ public class FileProviderHandler extends FSProviderHandler {
                     LOGGER.log(Level.WARNING, "Error while creating provider for file: " + pwp.ymlFile.getFileName().toString() + " data file: " + dsp.getPath(), ex);
                     newStatus = ERROR;
                 }
-                parent.datasourceBusiness.updatePathStatusAndProvider(dsp.getDatasourceId(), dsp.getPath(), newStatus, pid);
+                datasourceBusiness.updatePathStatusAndProvider(dsp.getDatasourceId(), dsp.getPath(), newStatus, pid);
             }
             return dsrcId;
         } catch (Exception ex) {
@@ -87,15 +86,15 @@ public class FileProviderHandler extends FSProviderHandler {
     public void handleProviderFileChanges(Integer datasourceFileID) throws ConstellationException {
         
         Predicate<Path> fileFilter = getProviderFileFilter(pwp.provider);
-        parent.datasourceBusiness.scanForModification(datasourceFileID, fileFilter);
-        parent.datasourceBusiness.recordSelectedPath(datasourceFileID, true);
+        datasourceBusiness.scanForModification(datasourceFileID, fileFilter);
+        datasourceBusiness.recordSelectedPath(datasourceFileID, true);
         
-        int datasetId = parent.datasetBusiness.getOrCreateDataset(dataset, null);
+        int datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
         
-        List<DataSourceSelectedPath> paths = parent.datasourceBusiness.getSelectedPath(datasourceFileID, Integer.MAX_VALUE);
+        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceFileID, Integer.MAX_VALUE);
         for (DataSourceSelectedPath path : paths) {
             
-            Path p = parent.datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
             switch (PathStatus.valueOf(path.getStatus())) {
                 case PENDING -> {
                     PathStatus newStatus;
@@ -103,7 +102,7 @@ public class FileProviderHandler extends FSProviderHandler {
                     try {
 
                         // Create provider
-                        pid = createFileProvider(pwp.provider, parent.providerBusiness, p.toUri());
+                        pid = createFileProvider(pwp.provider, providerBusiness, p.toUri());
 
                         // Generate data.
                         generateDatas(pid, datasetId, asyncInfos, true);
@@ -113,15 +112,15 @@ public class FileProviderHandler extends FSProviderHandler {
                         LOGGER.log(Level.WARNING, "Error while create new provider for file : " + p.toString(), ex);
                         newStatus = ERROR;
                     }
-                    parent.datasourceBusiness.updatePathStatusAndProvider(path.getDatasourceId(), path.getPath(), newStatus, pid);
+                    datasourceBusiness.updatePathStatusAndProvider(path.getDatasourceId(), path.getPath(), newStatus, pid);
                 }
                 case MODIFIED -> {
                     System.out.println("TODO modify in provider");
                 }
 
                 case REMOVED -> {
-                    parent.providerBusiness.removeProvider(path.getProviderId());
-                    parent.datasourceBusiness.removePath(datasourceFileID, path.getPath());
+                    providerBusiness.removeProvider(path.getProviderId());
+                    datasourceBusiness.removePath(datasourceFileID, path.getPath());
                 }
                 case ERROR -> {
                     // idk

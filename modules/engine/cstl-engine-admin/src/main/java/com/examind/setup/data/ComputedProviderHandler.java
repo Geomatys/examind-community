@@ -21,9 +21,7 @@ package com.examind.setup.data;
 import com.examind.dto.fs.Collection;
 import com.examind.dto.fs.Service;
 import com.examind.setup.FileSystemAnalysis;
-import com.examind.setup.FileSystemSetupBusiness;
 import static com.examind.setup.ProviderUtilities.createComputedProvider;
-import static com.examind.setup.data.FSProviderHandler.LOGGER;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +30,8 @@ import org.constellation.dto.Data;
 
 public class ComputedProviderHandler extends FSProviderHandler {
     
-    public ComputedProviderHandler(FileSystemAnalysis.ProviderWithPath pwp, Map<String, List<Service>> asyncInfos, FileSystemSetupBusiness parent) {
-         super(pwp, asyncInfos, parent);
+    public ComputedProviderHandler(FileSystemAnalysis.ProviderWithPath pwp, Map<String, List<Service>> asyncInfos) {
+         super(pwp, asyncInfos);
     }
 
     @Override
@@ -41,10 +39,10 @@ public class ComputedProviderHandler extends FSProviderHandler {
        try {
             List<Data> datas = new ArrayList<>();
             for (Collection col : pwp.provider.getComputedData()) {
-                datas.addAll(parent.getDataFromCollection(col, asyncInfos != null));
+                datas.addAll(fsSetupBusiness.getDataFromCollection(col, asyncInfos != null));
             }
             // Create provider
-            final Integer pid = createComputedProvider(pwp.provider, parent.providerBusiness, datas);
+            final Integer pid = createComputedProvider(pwp.provider, providerBusiness, datas);
 
             // Generate data.
             generateDatas(pid, pwp.provider, asyncInfos, true);

@@ -18,7 +18,6 @@
  */
 package com.examind.setup;
 
-import com.examind.setup.data.ComputedProviderHandler;
 import jakarta.annotation.PostConstruct;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -30,7 +29,6 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.io.stream.IOUtilities;
 import org.constellation.business.IConfigurationBusiness;
-import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IFileSystemSetupBusiness;
@@ -72,10 +70,16 @@ import org.springframework.core.task.TaskExecutor;
 import static com.examind.setup.FileSystemUtilities.*;
 import static com.examind.setup.DatasourceUtilities.*;
 import static com.examind.setup.ProviderUtilities.*;
-import static com.examind.setup.ProviderUtilities.ProviderSourceType.*;
 import com.examind.setup.data.*;
-import java.util.Objects;
+import java.time.OffsetDateTime;
+import org.constellation.business.IProcessBusiness;
+import org.constellation.dto.process.TaskParameter;
 import org.constellation.exception.TargetNotFoundException;
+import org.constellation.util.DurationToCronConverter;
+import org.constellation.util.ParamUtilities;
+import org.geotoolkit.process.ProcessDescriptor;
+import org.geotoolkit.process.ProcessFinder;
+import org.opengis.parameter.ParameterValueGroup;
 
 /**
  *
@@ -94,19 +98,16 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     private IConfigurationBusiness configBusiness;
     
     @Autowired
-    public IProviderBusiness providerBusiness;
+    private IProviderBusiness providerBusiness;
     
     @Autowired
-    public IDatasetBusiness datasetBusiness;
+    private IDatasetBusiness datasetBusiness;
     
     @Autowired
-    public IDataBusiness dataBusiness;
+    private DataRepository dataRepository;
     
     @Autowired
-    public DataRepository dataRepository;
-    
-    @Autowired
-    public IDatasourceBusiness datasourceBusiness;
+    private IDatasourceBusiness datasourceBusiness;
     
     @Autowired
     private ILayerBusiness layerBusiness;
@@ -122,6 +123,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     @Autowired
     private ISensorServiceBusiness sensorServiceBusiness;
+    
+    @Autowired
+    private IProcessBusiness processBusiness;
     
     private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url", "transactional");
 
@@ -316,13 +320,14 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     private void handleProviderYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis, boolean computed) {
         try {
             PathStatus status = PathStatus.valueOf(path.getStatus());
+            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
             if (status == REMOVED) {
+                removePollingTask(p);
                 removeProviders(path.getProviderId());
                 datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
                 return;
             }
 
-            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
             ProviderWithPath pwp = computed ? analysis.computedProviders.get(p.toString()) : analysis.providers.get(p.toString());
 
             // file is here but is not valid
@@ -338,14 +343,18 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     Integer dsFileId = handler.createProviders(true);
                     PathStatus newStatus = dsFileId != null ? PathStatus.INTEGRATED : PathStatus.ERROR; // NO DATA?
                     datasourceBusiness.updatePathStatusAndProvider(path.getDatasourceId(), path.getPath(), newStatus, dsFileId);
+                    addPollingTask(pwp, dsFileId);
                 }
                 case MODIFIED -> {
+                    removePollingTask(p);
+                    
                     PathStatus newStatus;
                     Integer dsFileId = handler.updateProviders(path.getProviderId(), true);
 
                     if (dsFileId != null) {
                         datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), dsFileId);
                         newStatus = PathStatus.INTEGRATED;
+                        addPollingTask(pwp, dsFileId);
                     } else {
                         // what to do with the old provider(s)? remove it?
                         newStatus = PathStatus.ERROR;
@@ -358,14 +367,61 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                         handler.handleProviderFileChanges(path.getProviderId());
                     }
                 }
-
+                
                 case ERROR, NO_DATA -> {} // ???
             }
+            
         }  catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while importing provider: {0}\n{1}\n", new Object[]{path.getPath(), ex.getMessage()});
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while importing provider: " + path.getPath(), ex);
         }
+    }
+    
+    private void removePollingTask(Path ymlFile) throws ConstellationException {
+        final String taskName = "Provider polling: " + ymlFile.toString();
+        // remove previous polling task if exist
+        List<TaskParameter> previousTasks = processBusiness.findTaskParameterByNameAndProcess(taskName, "examind", "provider.file.handle");
+        for (TaskParameter tp : previousTasks) {
+            processBusiness.deleteTaskParameter(tp.getId());
+        }
+    }
+    
+    private void addPollingTask(ProviderWithPath pwp, Integer datasourceFileId) throws Exception {
+        if (pwp.provider.getPollingInterval() != null) {
+            final String cronTime = DurationToCronConverter.getCronExpression(pwp.provider.getPollingInterval());
+
+            long endDate = OffsetDateTime.now().plusYears(100).toInstant().toEpochMilli(); 
+            String trigger = "{\"cron\":\"" + cronTime + "\",\"endDate\":" +  endDate + "}";
+
+            final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor("examind", "provider.file.handle");
+            final ParameterValueGroup input = desc.getInputDescriptor().createValue();
+            input.parameter("provider.path").setValue(pwp.ymlFile);
+            input.parameter("files.datasource").setValue(datasourceFileId);
+            
+            final String taskName = "Provider polling: " + pwp.ymlFile.toString();
+
+            int ownerId = 1; // we must do something about this
+            TaskParameter task = new TaskParameter(null, 
+                                                   ownerId,
+                                                   taskName, 
+                                                   System.currentTimeMillis(), 
+                                                   "examind", "provider.file.handle",
+                                                   ParamUtilities.writeParameterJSON(input),
+                                                   trigger, "CRON",
+                                                    "INTERNAL");
+            Integer taskId = processBusiness.addTaskParameter(task);
+            task = processBusiness.getTaskParameterById(taskId);
+            processBusiness.scheduleTaskParameter(task, "periodic provider files check: " + pwp.ymlFile.toString(), null, false);
+        }
+    }
+    
+    @Override
+    public void handleProvidersChanges(Path providerFilePath, Integer datasourceFileId) throws ConstellationException {
+        FileSystemAnalysis analysis = analyze(true);
+        ProviderWithPath pwp = analysis.providers.get(providerFilePath.toString());
+        FSProviderHandler handler = getHandler(pwp, analysis);
+        handler.handleProviderFileChanges(datasourceFileId);
     }
     
     private void installDatas(FileSystemAnalysis analysis) {
@@ -672,6 +728,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      * @return
      * @throws ConstellationException 
      */
+    @Override
     public List<Data> getDataFromCollection(Collection col, boolean async) throws ConstellationException {
         Integer dsId  = col.getDataSet() != null ? datasetBusiness.getDatasetId(col.getDataSet()) : null;
         
@@ -721,6 +778,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return datas;
     }
     
+    @Override
     public void asyncServiceReload(String dataset, Map<String, List<Service>> asyncInfos) throws ConstellationException {
         List<Service> services = asyncInfos.getOrDefault(dataset, new ArrayList<>());
         for (Service service : services) {
@@ -737,15 +795,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 LOGGER.log(Level.WARNING, "unable to find a service ({0}) {1}", new Object[]{service.getType(), service.getIdentifier()});
             }
         }
-    }
-    
-    private FSProviderHandler getHandler(ProviderWithPath pwp, FileSystemAnalysis analysis) {
-        return switch (pwp.sourceType) {
-            case CSQL      -> new CSQLProviderhandler(pwp,     analysis.asyncInfos, this);
-            case COMPUTED  -> new ComputedProviderHandler(pwp, analysis.asyncInfos, this);
-            case FILE      -> new FileProviderHandler(pwp,     analysis.asyncInfos, this);
-            case OTHER     -> new OtherProviderHandler(pwp,    analysis.asyncInfos, this);
-        }; 
     }
     
     private MutableStyle parseStyle(Path path) {

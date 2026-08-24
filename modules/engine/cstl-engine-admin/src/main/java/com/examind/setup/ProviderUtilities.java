@@ -21,6 +21,11 @@ package com.examind.setup;
 
 import com.examind.dto.fs.Provider;
 import static com.examind.setup.FileSystemUtilities.regexFileFilter;
+import com.examind.setup.data.CSQLProviderhandler;
+import com.examind.setup.data.ComputedProviderHandler;
+import com.examind.setup.data.FSProviderHandler;
+import com.examind.setup.data.FileProviderHandler;
+import com.examind.setup.data.OtherProviderHandler;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
@@ -96,6 +101,15 @@ public class ProviderUtilities {
         if (conf.getSource() != null && conf.getLocation() == null) return  ProviderSourceType.OTHER;
         
         return ProviderSourceType.FILE; 
+    }
+    
+    public static FSProviderHandler getHandler(FileSystemAnalysis.ProviderWithPath pwp, FileSystemAnalysis analysis) {
+        return switch (pwp.sourceType) {
+            case CSQL      -> new CSQLProviderhandler(pwp,     analysis.asyncInfos);
+            case COMPUTED  -> new ComputedProviderHandler(pwp, analysis.asyncInfos);
+            case FILE      -> new FileProviderHandler(pwp,     analysis.asyncInfos);
+            case OTHER     -> new OtherProviderHandler(pwp,    analysis.asyncInfos);
+        }; 
     }
 
     

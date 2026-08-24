@@ -21,13 +21,10 @@ package com.examind.setup.data;
 import com.examind.dto.fs.Service;
 import static com.examind.setup.DatasourceUtilities.getOrCreateSQLDatasource;
 import com.examind.setup.FileSystemAnalysis;
-import com.examind.setup.FileSystemSetupBusiness;
-import com.examind.setup.ProviderUtilities;
 import static com.examind.setup.ProviderUtilities.createSourceProvider;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 
 /**
@@ -36,17 +33,17 @@ import org.constellation.exception.ConstellationException;
  */
 public class OtherProviderHandler extends FSProviderHandler {
     
-    public OtherProviderHandler(FileSystemAnalysis.ProviderWithPath pwp, Map<String, List<Service>> asyncInfos, FileSystemSetupBusiness parent) {
-         super(pwp, asyncInfos, parent);
+    public OtherProviderHandler(FileSystemAnalysis.ProviderWithPath pwp, Map<String, List<Service>> asyncInfos) {
+         super(pwp, asyncInfos);
     }
 
     @Override
     public Integer createProviders(boolean diffMode) {
          try {
-            Integer datasourceId = getOrCreateSQLDatasource(parent.datasourceBusiness, pwp.provider);
+            Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
 
             // Create provider
-            final Integer pid = createSourceProvider(pwp.provider, parent.providerBusiness, datasourceId);
+            final Integer pid = createSourceProvider(pwp.provider, providerBusiness, datasourceId);
 
             // Generate data.
             generateDatas(pid, pwp.provider, asyncInfos, true);

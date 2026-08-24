@@ -33,3 +33,4 @@ org.constellation.process.data.DataInfoCacheProcessDescriptor
 org.constellation.process.sensor.DeleteSensorDescriptor
 org.constellation.process.datasource.DeleteDatasourceDescriptor
 com.examind.process.setup.ReloadFsConfigDescriptor
+com.examind.process.setup.ProviderFileHandleDescriptor

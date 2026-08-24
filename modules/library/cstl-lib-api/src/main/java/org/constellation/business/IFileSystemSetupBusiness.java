@@ -18,6 +18,14 @@
  */
 package org.constellation.business;
 
+import com.examind.dto.fs.Collection;
+import com.examind.dto.fs.Service;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import org.constellation.dto.Data;
+import org.constellation.exception.ConstellationException;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -27,4 +35,10 @@ public interface IFileSystemSetupBusiness {
     void installDatas(boolean async);
     
     void performDiff(boolean async);
+    
+    void asyncServiceReload(String dataset, Map<String, List<Service>> asyncInfos) throws ConstellationException;
+    
+    List<Data> getDataFromCollection(Collection col, boolean async) throws ConstellationException;
+    
+    void handleProvidersChanges(Path providerFilePath, Integer datasourceFileId) throws ConstellationException;
 }
