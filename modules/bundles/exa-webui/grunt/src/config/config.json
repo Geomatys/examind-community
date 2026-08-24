@@ -21,7 +21,8 @@
     "wps": true,
     "thw": true,
     "sts": true,
-    "dggs": true
+    "dggs": true,
+    "stac": true
   },
   "showDatabaseImportData": true
 }

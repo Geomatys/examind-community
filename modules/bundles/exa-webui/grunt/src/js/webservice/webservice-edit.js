@@ -65,6 +65,9 @@ angular.module('cstl-webservice-edit', [
             if ($scope.type === 'dggs') {
                 return [{ 'id': '1.0.0','checked':false}];
             }
+            if ($scope.type === 'stac') {
+                return [{ 'id': '1.0.0','checked':false}];
+            }
             if ($scope.type === 'wmts') {
                 return [{ 'id': '1.0.0','checked':false}];
             }

@@ -77,5 +77,6 @@
     <context:component-scan base-package="com.examind.ogc.api.rest" scoped-proxy="interfaces" />
     <context:component-scan base-package="com.examind.openeo.api.rest" scoped-proxy="interfaces" />
     <context:component-scan base-package="com.examind.dggs.ws.rs" scoped-proxy="interfaces" />
+    <context:component-scan base-package="com.examind.stac.ws.rs" scoped-proxy="interfaces" />
 
 </beans>

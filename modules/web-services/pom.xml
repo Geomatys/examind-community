@@ -52,6 +52,7 @@
         <module>cstl-web-sensor</module>
         <module>cstl-web-sts</module>
         <module>cstl-web-dggs</module>
+        <module>cstl-web-stac</module>
         <module>wps-logic</module>
     </modules>
 

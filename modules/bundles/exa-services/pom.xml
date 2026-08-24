@@ -152,6 +152,11 @@
                 </dependency>
                 <dependency>
                     <groupId>com.examind.community</groupId>
+                    <artifactId>cstl-web-stac</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.examind.community</groupId>
                     <artifactId>cstl-web-wps</artifactId>
                     <version>${project.version}</version>
                     <exclusions>

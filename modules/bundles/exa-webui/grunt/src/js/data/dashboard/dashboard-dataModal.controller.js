@@ -65,7 +65,7 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
                             return item;
                         }
                     });
-                } else if ($scope.service.type.toLowerCase() === 'dggs') {
+                } else if ($scope.service.type.toLowerCase() === 'dggs' || $scope.service.type.toLowerCase() === 'stac') {
                     dataList = dataList.map(function(item){
                         return item;
                     });

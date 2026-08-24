@@ -1,0 +1,21 @@
+<svg width="150" height="120" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+    <g>
+        <title>STAC icon</title>
+        <!-- orbiting satellite asset -->
+        <g id="stac-satellite">
+            <path d="m70,8 a42,42 0 0 1 42,42" stroke="#CCCCCB" stroke-width="2" stroke-dasharray="4,4" fill="none"/>
+            <circle cx="112" cy="50" r="6" fill="#E3E3E3"/>
+            <rect x="97" y="47" width="10" height="6" fill="#CCCCCB" opacity="0.75"/>
+            <rect x="116" y="47" width="10" height="6" fill="#CCCCCB" opacity="0.75"/>
+        </g>
+        <!-- catalog grid of collections -->
+        <g id="stac-catalog">
+            <rect x="10" y="18" width="30" height="22" rx="3" fill="#E3E3E3"/>
+            <rect x="46" y="18" width="30" height="22" rx="3" fill="#E3E3E3" opacity="0.75"/>
+            <rect x="10" y="46" width="30" height="22" rx="3" fill="#CCCCCB" opacity="0.75"/>
+            <rect x="46" y="46" width="30" height="22" rx="3" fill="#CCCCCB" opacity="0.5"/>
+        </g>
+        <!-- "STAC" label, matching the other service-type glyphs -->
+        <text id="stac-label" x="6" y="110" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="30" fill="#CCCCCB">STAC</text>
+    </g>
+</svg>
