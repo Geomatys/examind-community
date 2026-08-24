@@ -1,0 +1,63 @@
+postgresql:
+  enabled: false
+
+allInOne:
+  image:
+    tag: latest
+  env:
+    CSTL_URL: http://examind-server:8080/examind
+  ingress:
+    enabled: false
+
+  extraVolumes:
+    - name: geodata
+      nfs:
+        path: /GeoData
+        readOnly: true
+        server: nasnaval.geomatys.internal
+    - name: terra
+      nfs:
+        path: /terra
+        readOnly: true
+        server: nasnaval.geomatys.internal
+
+  extraVolumeMounts:
+    - name: geodata
+      mountPath: /geodata
+    - name: terra
+      mountPath: /terra
+
+  resources:
+    requests:
+      cpu: 0.1
+      memory: 2Gi
+    limits:
+      cpu: 1
+      memory: 4Gi
+  heapSize:
+    request: 1G
+    limit: 3G
+
+immutable:
+  enabled: true
+  providers:
+    spot:
+      dataType: data-store
+      providerType: GeoTIFF
+      location: "file:///geodata/new_arch/products/geomatys/examind_server/playwright-tests/geotiff/spot6-cog-ms.tif"
+      dataset: MyDataset
+    singsat:
+      dataType: data-store
+      providerType: GeoTIFF
+      location: "file:///terra/Examind/dataset/Orthophoto/singsat.tif"
+      dataset: MyDataset
+  services:
+    wms:
+      identifier: example
+      type: wms
+      metadata:
+        name: "Example WMS"
+        versions:
+          - 1.3.0
+      collections:
+        - dataSet: "MyDataset"

@@ -115,3 +115,9 @@ allInOne:
   ## @param enableDefaultInitContainers Deploy default init containers
   ## Allow users to disable init checks if required.
   enableDefaultInitContainers: true
+
+immutable:
+  enabled: false
+  providers: {}
+  services: {}
+  styles: {}

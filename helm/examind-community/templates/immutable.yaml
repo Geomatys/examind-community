@@ -1,0 +1,34 @@
+{{ if .Values.immutable.enabled }}
+{{ if not (empty .Values.immutable.providers) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{- include "common.names.fullname" . }}-immutable-providers"
+data:
+  {{- range $key, $content := .Values.immutable.providers }}
+  {{ include "examind.forceYamlExt" $key | quote }}: |{{- include "common.tplvalues.render" ( dict "value" $content "context" $ ) | nindent 4 }}
+  {{- end }}
+{{ end }}
+---
+{{ if not (empty .Values.immutable.services) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{- include "common.names.fullname" . }}-immutable-services"
+data:
+  {{- range $key, $content := .Values.immutable.services}}
+  {{ include "examind.forceYamlExt" $key | quote }}: |{{- include "common.tplvalues.render" ( dict "value" $content "context" $ ) | nindent 4 }}
+  {{- end }}
+{{ end }}
+---
+{{ if not (empty .Values.immutable.styles) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{- include "common.names.fullname" . }}-immutable-styles"
+data:
+  {{- range $key, $content := .Values.immutable.styles}}
+  {{ include "examind.forceYamlExt" $key | quote }}: |{{- include "common.tplvalues.render" ( dict "value" $content "context" $ ) | nindent 4 }}
+  {{- end }}
+{{ end }}
+{{ end }}

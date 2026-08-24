@@ -4,7 +4,7 @@ SPDX-License-Identifier: APACHE-2.0
 */}}
 {{- if .Values.allInOne.enabled }}
 # Examind home storage
-{{- if and .Values.allInOne.persistence.enabled (not .Values.allInOne.persistence.existingClaim) }}
+{{- if and .Values.allInOne.persistence.enabled (not .Values.allInOne.persistence.existingClaim) (not .Values.immutable.enabled) }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -177,6 +177,10 @@ spec:
                 -Xmx{{- .Values.allInOne.heapSize.limit }}
                 -Dfile.encoding=UTF-8
                 -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+            {{- if .Values.immutable.enabled }}
+            - name: EXAMIND_API_READONLY
+              value: "true"
+            {{- end }}
             {{- if not (and (hasKey .Values.allInOne.env "SPRING_PROFILES_ACTIVE") .Values.allInOne.env.SPRING_PROFILES_ACTIVE) }}
             - name: SPRING_PROFILES_ACTIVE
               value: {{ include "examind.backend.spring.profiles" . | quote }}
@@ -224,16 +228,35 @@ spec:
           {{- end }}
           # Volume mounts
           volumeMounts:
+            {{- if .Values.immutable.enabled }}
+              {{- range $configType := (list "providers" "services" "styles") }}
+              {{- if not (empty (get $.Values.immutable $configType)) }}
+            - name: {{ printf "%s-immutable-%s" (include "common.names.fullname" $) $configType | quote }}
+              mountPath: {{ printf "%s/data/%s" $.Values.allInOne.persistence.mountPath $configType }}
+              {{- end }}
+              {{- end }}
+            {{- else }}
             - name: data
               mountPath: {{ .Values.allInOne.persistence.mountPath }}
               {{- if .Values.allInOne.persistence.subPath }}
               subPath: {{ .Values.allInOne.persistence.subPath }}
               {{- end }}
+            {{- end }}
           {{- if .Values.allInOne.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.immutable.enabled }}
+        {{- range $configType := (list "providers" "services" "styles") }}
+        {{- if not (empty (get $.Values.immutable $configType)) }}
+        - configMap:
+            defaultMode: 0444
+            name: {{ printf "%s-immutable-%s" (include "common.names.fullname" $) $configType | quote }}
+          name: {{ printf "%s-immutable-%s" (include "common.names.fullname" $) $configType | quote }}
+        {{- end }}
+        {{- end }}
+        {{- else }}
         - name: data
           {{- if .Values.allInOne.persistence.enabled }}
           persistentVolumeClaim:
@@ -241,6 +264,7 @@ spec:
           {{- else }}
           emptyDir: { }
           {{- end }}
+        {{- end }}
       {{- if .Values.allInOne.extraVolumes }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.allInOne.extraVolumes "context" . ) | nindent 8 }}
       {{- end }}
