@@ -97,7 +97,7 @@ public abstract class FSProviderHandler {
         return createProviders(diffMode);
     }
     
-    private void removeProviders(Integer dsFileId) throws ConstellationException {
+    protected void removeProviders(Integer dsFileId) throws ConstellationException {
         List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
         for (DataSourceSelectedPath path : paths) {
             Integer pid = path.getProviderId();

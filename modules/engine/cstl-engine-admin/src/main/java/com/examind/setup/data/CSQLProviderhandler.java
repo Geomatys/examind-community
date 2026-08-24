@@ -31,7 +31,10 @@ import static com.examind.setup.ProviderUtilities.createCSQLProvider;
 import static com.examind.setup.ProviderUtilities.getProviderFileFilter;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.api.PathStatus;
 import static org.constellation.api.PathStatus.ERROR;
@@ -43,6 +46,7 @@ import static org.constellation.api.PathStatus.REMOVED;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.Data;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -69,6 +73,40 @@ public class CSQLProviderhandler extends FSProviderHandler {
         worldGGRes  = pwp.provider.getAdvancedParameter("worldGGResolution", (Double) null);
          
     }
+
+    @Override
+    protected void removeProviders(Integer dsFileId) throws ConstellationException {
+        // we want to remove the product, not the provider (it can be used by another product)
+        // issue here, what to do if the product name has changed?
+        Set<Integer> prIds = new HashSet<>();
+        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
+        for (DataSourceSelectedPath path : paths) {
+            Integer pid = path.getProviderId();
+            if (pid != null && pid != -1) {
+                prIds.add(pid);
+            }
+        }
+        datasourceBusiness.delete(dsFileId);
+        
+        // there should be only one provider id here
+        if (prIds.size() > 1) {
+            LOGGER.warning("Multiple provider id found for csql datasource");
+        } else if (prIds.isEmpty()) {
+            LOGGER.warning("No provider id found for csql datasource");
+            return;
+        }
+        int prId = prIds.iterator().next();
+        
+        DataProvider provider = DataProviders.getProvider(prId);
+        CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
+        try {
+            store.removeProduct(productName);
+        } catch (DataStoreException ex) {
+            throw new ConstellationException("Error while trying to remove csql product: " + productName, ex);
+        }
+    }
+    
+    
     
     @Override
     public Integer createProviders(boolean diffMode) {
@@ -119,6 +157,8 @@ public class CSQLProviderhandler extends FSProviderHandler {
         Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
         final String providerIdentifier = "csql-" + datasourceId;
         Integer prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
+        if (prId == null) throw new ConfigurationException("CSQL Provider " + providerIdentifier + "no longer exist.");
+        
         DataProvider provider = DataProviders.getProvider(prId);
         CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
         
