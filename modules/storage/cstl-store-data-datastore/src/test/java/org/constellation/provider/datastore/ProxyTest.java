@@ -152,7 +152,7 @@ public class ProxyTest {
         assertEquals("Asking the proxy for the origin resource should properly return it", r1, ((ResourceProxy) proxy).getOrigin());
     }
 
-    private interface MustBePreserved {
+    public interface MustBePreserved {
         default String testMethod() {
             return "OK !";
         }
@@ -161,7 +161,7 @@ public class ProxyTest {
     /**
      * Used for testing proper propagation or errors through proxy (see {@link #errors_from_proxified_resource_should_not_be_wrapped()}.
      */
-    private interface CheckedExceptionVerification {
+    public interface CheckedExceptionVerification {
         default void throwError(String errorMessage) throws DataStoreException {
             throw new DataStoreException(errorMessage);
         }
