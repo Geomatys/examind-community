@@ -40,3 +40,19 @@ test:postgresql:
     DATABASE_PASSWORD: exa_password
   services:
     - name: postgres:13.4-alpine3.14
+
+check-helm-templates:
+  image: "alpine/k8s:$FUTURAPOLIS_KUBE_CLUSTER_VERSION"
+  stage: test
+  rules:
+    - changes:
+      - helm/*
+      - helm/**/*
+  script:
+    - helm dependency update helm/examind-community
+    - |
+      for valueFile in $(find helm/examples -type f -name '*.yaml' -not \( -path 'helm/examples/do-not-do-that/*' -o -path 'helm/examples/access-self-signed-certs/*' \) )
+      do
+        printf '\n-------\nVALUES: %s\n-------\n' "$valueFile"
+        helm template -n test --values "$valueFile" test helm/examind-community || exit 1
+      done
