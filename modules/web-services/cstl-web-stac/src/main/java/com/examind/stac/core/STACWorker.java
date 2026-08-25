@@ -2,8 +2,8 @@ package com.examind.stac.core;
 
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
-import org.geotoolkit.ogcapi.model.common.ConfClasses;
-import org.geotoolkit.ogcapi.model.common.LandingPage;
+import org.geotoolkit.ogcapi.dto.common.ConfClasses;
+import org.geotoolkit.ogcapi.dto.common.LandingPage;
 import org.geotoolkit.stac.dto.Collection;
 import org.geotoolkit.stac.dto.Collections;
 import org.geotoolkit.stac.dto.Item;
