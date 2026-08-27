@@ -814,10 +814,10 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>jboss</id>
-            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
-        </repository>
+<!--        <repository>-->
+<!--            <id>jboss</id>-->
+<!--            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>-->
+<!--        </repository>-->
         <repository>
             <id>geomatys</id>
             <name>Geomatys public repository</name>
