@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.springframework.web.util.DisconnectedClientHelper;
 
 @Configuration
 @ComponentScan("org.constellation.admin.web")
@@ -123,6 +124,16 @@ public class DispatcherServletConfiguration implements WebMvcConfigurer {
                                                  HttpServletResponse response,
                                                  Object handler,
                                                  Exception ex) {
+                 // Client went away: nothing useful can be written, and the response is already committed.
+                if (DisconnectedClientHelper.isClientDisconnectedException(ex)) {
+                    LOGGER.log(Level.FINE, "Client disconnected before the response was fully written", ex);
+                    return new ModelAndView(); // empty view: mark as handled, write nothing
+                }
+                // Headers already sent: sendError() would throw IllegalStateException.
+                if (response.isCommitted()) {
+                    LOGGER.log(Level.FINE, "Response already committed, cannot send an error status", ex);
+                    return new ModelAndView();
+                }
                 try {
                     LOGGER.log(Level.SEVERE, "An error has occured: " + ex.getMessage(),ex);
                     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
