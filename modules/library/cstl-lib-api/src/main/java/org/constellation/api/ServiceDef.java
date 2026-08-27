@@ -87,9 +87,6 @@ public enum ServiceDef {
     // QuantizedMesh service definitions
     QUANTIZEDMESH(Specification.QUANTIZEDMESH, Organization.NONE, "1.0.0", Profile.NONE, "2.0.0", "1.0.0", true, true),
 
-    // VTS service definitions
-    VTS(Specification.VTS, Organization.NONE, "1.0.0", Profile.NONE, "2.0.0", "1.0.0", true, true),
-
     // OGC-API DGGS
     DGGS_1_0_0(Specification.DGGS, Organization.OGC, "1.0.0", Profile.NONE, null, "1.1.0", false, true),
 
@@ -225,7 +222,6 @@ public enum ServiceDef {
         STS("Sensor Things Service"),
         TILES3D("3DTiles"),
         QUANTIZEDMESH("QuantizedMesh"),
-        VTS("VTS"),
         DGGS("Discrete Global Grid System"),
         STAC("SpatioTemporal Asset Catalog");
 
@@ -264,8 +260,6 @@ public enum ServiceDef {
                 return TILES3D;
             } else if (QUANTIZEDMESH.name().equalsIgnoreCase(shortName)) {
                 return QUANTIZEDMESH;
-            } else if (VTS.name().equalsIgnoreCase(shortName)) {
-                return VTS;
             } else if (STS.name().equalsIgnoreCase(shortName)) {
                 return STS;
             } else if (DGGS.name().equalsIgnoreCase(shortName)) {
@@ -283,7 +277,7 @@ public enum ServiceDef {
                  ||this.equals(Specification.WPS)
                  ||this.equals(Specification.DGGS) ||this.equals(Specification.STAC)
                  ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D)
-                 ||this.equals(Specification.QUANTIZEDMESH)||this.equals(Specification.VTS);
+                 ||this.equals(Specification.QUANTIZEDMESH) ;
         }
 
         public boolean supportedWXS() {

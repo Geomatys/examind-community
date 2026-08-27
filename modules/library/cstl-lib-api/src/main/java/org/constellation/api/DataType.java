@@ -32,7 +32,6 @@ public enum DataType {
     OBSERVATION,
     TILES3D,
     QMESH,
-    VTS,
     OTHER,
     MAPCONTEXT
 }
