@@ -99,9 +99,9 @@ public class DatabaseRegister {
             final String username = Application.getProperty(AppProperty.CSTL_DATABASE_USERNAME, null);
             final String password = Application.getProperty(AppProperty.CSTL_DATABASE_PASSWORD, null);
             if (password == null || password.isEmpty() || username == null || username.isEmpty()) {
-                exaDatasource = SQLUtilities.getDataSource(exaDbUrl, "examind", exaMaxPoolSize, leakDetectionThreshold, exaMinIdle, exaIdleTimeout, null, null);
+                exaDatasource = SQLUtilities.getDataSource(exaDbUrl, "examind", exaMaxPoolSize, null, leakDetectionThreshold, exaMinIdle, exaIdleTimeout, null, null);
             } else {
-                exaDatasource = SQLUtilities.getDataSource(exaDbUrl, null, "examind", username, password, exaMaxPoolSize, leakDetectionThreshold, exaMinIdle, exaIdleTimeout, null, null);
+                exaDatasource = SQLUtilities.getDataSource(exaDbUrl, null, "examind", username, password, exaMaxPoolSize, null, leakDetectionThreshold, exaMinIdle, exaIdleTimeout, null, null);
             }
 
             boolean separatedPool = Application.getBooleanProperty(AppProperty.EPSG_DATABASE_SEPARATED_POOL, false);
@@ -118,9 +118,9 @@ public class DatabaseRegister {
                     epsgPassword = password;
                 }
                 if (epsgUsername == null || epsgUsername.isEmpty() || epsgPassword == null || epsgPassword.isEmpty()) {
-                    epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold, epsgMinIdle, epsgIdleTimeout, null, null);
+                    epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, null, leakDetectionThreshold, epsgMinIdle, epsgIdleTimeout, null, null);
                 } else {
-                    epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, null, "epsg", epsgUsername, epsgPassword, epsgMaxPoolSize, leakDetectionThreshold, epsgMinIdle, epsgIdleTimeout, null, null);
+                    epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, null, "epsg", epsgUsername, epsgPassword, epsgMaxPoolSize, null, leakDetectionThreshold, epsgMinIdle, epsgIdleTimeout, null, null);
                 }
             } else {
                 epsgDatasource = exaDatasource;

@@ -485,6 +485,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         Long leakDetectionThr = parseIfPresentL(ds.getProperties(), "leakDetectionThreshold");
         Integer minIdle       = parseIfPresentI(ds.getProperties(), "minIdle");
         Long idleTimeout      = parseIfPresentL(ds.getProperties(), "idleTimeout");
+        Long connTimeout      = parseIfPresentL(ds.getProperties(), "connectionTimeout");
         Boolean readOnly      = Boolean.valueOf(ds.getProperties().getOrDefault("readOnly", "false"));
         String decryptedPwd;
         var rawPwd = ds.getPwd();
@@ -498,7 +499,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         } else {
             decryptedPwd = ds.getPwd();
         }
-        HikariConfig config = SQLUtilities.createHikariConfig(null, className, maxPoolSize, ds.getUrl(), ds.getUsername(), decryptedPwd, leakDetectionThr, minIdle, idleTimeout, null, readOnly);
+        HikariConfig config = SQLUtilities.createHikariConfig(null, className, maxPoolSize, ds.getUrl(), ds.getUsername(), decryptedPwd, connTimeout, leakDetectionThr, minIdle, idleTimeout, null, readOnly);
         return cache.getOrCreate(config);
     }
     

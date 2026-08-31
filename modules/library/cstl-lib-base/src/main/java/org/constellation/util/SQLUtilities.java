@@ -40,7 +40,7 @@ public class SQLUtilities {
      * @return A SQL Datasource.
      */
     public static DataSource getDataSource(String connectURL) {
-        return getDataSource(connectURL, null, null, null, null, null, null, null, null, null, null);
+        return getDataSource(connectURL, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -54,7 +54,7 @@ public class SQLUtilities {
      * @return A SQL Datasource.
      */
     public static DataSource getDataSource(String connectURL, String className, String user, String password) {
-        return getDataSource(connectURL, className, null, user, password, null, null, null, null, null, null);
+        return getDataSource(connectURL, className, null, user, password, null, null, null, null, null, null, null);
     }
     
     /**
@@ -63,6 +63,7 @@ public class SQLUtilities {
      * @param databaseURL A database URL in Hiroku like format with included username/password.
      * @param poolName Name assigned to the connection pool.
      * @param maxPoolSize Maximum pool size. If null use Hikari default value.
+     * @param connectionTimeout The maximum amount of time (in milliseconds) for acquiring a connection
      * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
      * logged indicating a possible connection leak. can be {@code null}.
      * @param minIdle The minimum number of idle connections that HikariCP tries to maintain in the pool,
@@ -74,9 +75,9 @@ public class SQLUtilities {
      * 
      * @return An Hikari datasource.
      */
-    public static DataSource getDataSource(String databaseURL, String poolName, Integer maxPoolSize, Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsPropertie, Boolean readOnly) {
+    public static DataSource getDataSource(String databaseURL, String poolName, Integer maxPoolSize, Long connectionTimeout, Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsPropertie, Boolean readOnly) {
         var userInfos = extractUserPasswordUrl(databaseURL);
-        return getDataSource(userInfos[0], null, poolName, userInfos[1], userInfos[2], maxPoolSize, leakDetectionThreshold, minIdle, idleTimeout, dsPropertie, readOnly);
+        return getDataSource(userInfos[0], null, poolName, userInfos[1], userInfos[2], maxPoolSize, connectionTimeout, leakDetectionThreshold, minIdle, idleTimeout, dsPropertie, readOnly);
     }
 
     /**
@@ -88,6 +89,7 @@ public class SQLUtilities {
      * @param userName user name.
      * @param password user pwd.
      * @param maxPoolSize Maximum pool size. If null use Hikari default value.
+     * @param connectionTimeout The maximum amount of time (in milliseconds) for acquiring a connection
      * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is.
      * @param minIdle The minimum number of idle connections that HikariCP tries to maintain in the pool,
      * including both idle and in-use connections.
@@ -98,14 +100,14 @@ public class SQLUtilities {
      * @return
      */
     public static DataSource getDataSource(String databaseURL, String className, String poolName, String userName, String password, Integer maxPoolSize, 
-            Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsPropertie, Boolean readOnly) {
-        HikariConfig config = createHikariConfig(poolName, className, maxPoolSize, databaseURL, userName, password, leakDetectionThreshold, minIdle, idleTimeout, dsPropertie, readOnly);
+            Long connectionTimeout, Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsPropertie, Boolean readOnly) {
+        HikariConfig config = createHikariConfig(poolName, className, maxPoolSize, databaseURL, userName, password, connectionTimeout, leakDetectionThreshold, minIdle, idleTimeout, dsPropertie, readOnly);
         return new HikariDataSource(config);
     }
     
     
     public static HikariConfig createHikariConfig(String connectURL, String className, String user, String password) {
-        return createHikariConfig(null, className, null, connectURL, user, password, null, null, null, null, null);
+        return createHikariConfig(null, className, null, connectURL, user, password, null, null, null, null, null, null);
     }
 
     /**
@@ -117,6 +119,7 @@ public class SQLUtilities {
      * @param jdbcUrl  An JDBC database URL. accept hiroku form.
      * @param userName User name.
      * @param password User password.
+     * @param connectionTimeout The maximum amount of time (in milliseconds) for acquiring a connection
      * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
      * logged indicating a possible connection leak. can be {@code null}.
      * @param minIdle The minimum number of idle connections that HikariCP tries to maintain in the pool,
@@ -129,7 +132,7 @@ public class SQLUtilities {
      * @return An Hikari configuration.
      */
     public static HikariConfig createHikariConfig(String poolName, String className, Integer maxPoolSize, String jdbcUrl, String userName,
-            String password, Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsProperties, Boolean readOnly) {
+            String password, Long connectionTimeout, Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsProperties, Boolean readOnly) {
         HikariConfig config = new HikariConfig();
         jdbcUrl = convertToJDBCUrl(jdbcUrl);
         config.setJdbcUrl(jdbcUrl);
@@ -165,6 +168,9 @@ public class SQLUtilities {
         }
         if (idleTimeout != null) {
             config.setIdleTimeout(idleTimeout);
+        }
+        if (connectionTimeout != null) {
+            config.setConnectionTimeout(connectionTimeout);
         }
         if (readOnly != null) {
             config.setReadOnly(readOnly);
