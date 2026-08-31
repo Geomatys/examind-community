@@ -95,6 +95,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.geometry.wrapper.jts.JTS;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.image.WritablePixelIterator;
+import org.apache.sis.images.ImageBuilder;
 import org.apache.sis.math.Statistics;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.measure.Quantities;
@@ -128,7 +129,6 @@ import org.constellation.ws.LayerWorker;
 import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.dggs.healpix.HealpixDggrs;
 import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.image.BufferedImages;
 import org.geotoolkit.ogcapi.client.dggs.DggsApi;
 import org.geotoolkit.ogcapi.dto.LinkRelations;
 import org.geotoolkit.ogcapi.dto.common.CollectionDescription;
@@ -1245,7 +1245,7 @@ public class DefaultDGGSWorker extends LayerWorker implements DGGSWorker {
                 });
                 final SampleDimension sd = new SampleDimension.Builder().setName("zid").build();
                 tg.setSampleDimensions(List.of(sd));
-                tg.setTemplate(BufferedImages.createImage(1, 1, 1, DataBuffer.TYPE_DOUBLE));
+                tg.setTemplate(new ImageBuilder().setSize(1, 1).setNumBands(1).setDataType(DataBuffer.TYPE_DOUBLE).createBufferedImage());
 
                 final GridCoverage gridCoverage = tg.generate(gridGeometry);
                 final byte[] data = toGeotiff(gridCoverage);
