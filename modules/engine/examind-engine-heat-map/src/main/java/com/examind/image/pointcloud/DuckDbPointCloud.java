@@ -33,26 +33,25 @@ import javax.sql.DataSource;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.collection.BackingStoreException;
+import org.apache.sis.util.iso.Names;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
-import org.geotoolkit.util.NamesExt;
-
 public class DuckDbPointCloud extends AbstractSQLPointCloud {
-    
+
     private final boolean noNullValue = true; // TODO parameters
 
     public DuckDbPointCloud(final Path parquetPath, final String longitudeColumn, final String latitudeColumn) {
         super(parquetPath, longitudeColumn, latitudeColumn);
     }
-    
+
     public DuckDbPointCloud(final DataSource datasource, final String table, final String query, final String longitudeColumn, final String latitudeColumn) {
         super(datasource, table, query, longitudeColumn, latitudeColumn);
     }
-    
+
     @Override
     public Optional<GenericName> getIdentifier() {
-        return Optional.of(NamesExt.create(name));
+        return Optional.of(Names.createLocalName(null,null,name));
     }
 
    @Override

@@ -47,37 +47,37 @@ import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
-import static org.constellation.api.CommonConstants.DATA_ARRAY;
+import org.apache.sis.util.iso.Names;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.AbstractObservationStore;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.observation.feature.SensorFeatureSet;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
-import org.geotoolkit.observation.model.ObservationDataset;
-import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ObservationType;
 import static org.geotoolkit.observation.model.ObservationType.PROFILE;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.result.ResultBuilder;
-import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -92,7 +92,7 @@ import org.opengis.util.GenericName;
 public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore {
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
-    
+
     protected static final String MAIN_QUALIFIER = "main";
     protected static final String DATE_QUALIFIER = "date";
     protected static final String QUALITY_QUALIFIER = "quality";
@@ -129,14 +129,14 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final List<String> obsPropIds;
     protected final List<String> obsPropNames;
     protected final List<String> obsPropDescs;
-    
+
     // timeSeries / trajectory / profiles
     protected final ObservationType observationType;
 
     protected final List<String> qualityColumns;
     protected final List<String> qualityColumnsIds;
     protected final List<String> qualityColumnsTypes;
-    
+
     protected final List<String> parameterColumns;
     protected final List<String> parameterColumnsIds;
     protected final List<String> parameterColumnsTypes;
@@ -165,7 +165,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected final boolean laxHeader;
     protected final boolean computeFoi;
-    
+
     protected final ReentrantLock fileLock;
 
     protected static final GeometryFactory GF = new GeometryFactory();
@@ -175,7 +175,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
         this.dataFile = Paths.get((URI) params.parameter(PATH.getName().toString()).getValue());
         this.dataFileName = dataFile.getFileName().toString();
-        
+
         Character sep = Parameters.castOrWrap(params).getValue(SEPARATOR);
         this.delimiter = sep != null ? sep : 0;
         Character qc =  Parameters.castOrWrap(params).getValue(CHARQUOTE);
@@ -225,12 +225,12 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
         this.procedureName = (String) params.parameter(PROCEDURE_NAME.getName().toString()).getValue();
         this.procedureDesc = (String) params.parameter(PROCEDURE_DESC.getName().toString()).getValue();
-        
+
         if (FileParsingUtils.needLock(mimeType)) {
             fileLock = new ReentrantLock();
         } else fileLock = null;
     }
-    
+
     private ObservationType parseObservationType(String s) {
         if (s == null) return null;
         return switch (s) {
@@ -249,9 +249,9 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         switch (query.getEntityType()) {
             case OBSERVED_PROPERTY   -> { return extractPhenomenonIds();}
             case LOCATION, PROCEDURE -> { return extractProcedureIds();}
-            case FEATURE_OF_INTEREST, OFFERING, OBSERVATION, HISTORICAL_LOCATION, RESULT -> 
+            case FEATURE_OF_INTEREST, OFFERING, OBSERVATION, HISTORICAL_LOCATION, RESULT ->
                 throw new DataStoreException("entity name listing not implemented yet: " + query.getEntityType());
-            default -> 
+            default ->
                 throw new DataStoreException("unexpected object type:" + query.getEntityType());
         }
     }
@@ -260,7 +260,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     public synchronized Collection<? extends Resource> components() throws DataStoreException {
         if (featureSets == null) {
             featureSets = new ArrayList<>();
-            final GenericName name = NamesExt.create(IOUtilities.filenameWithoutExtension(dataFile));
+            final GenericName name = Names.createLocalName(null,null,IOUtilities.filenameWithoutExtension(dataFile));
             featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(name, CommonCRS.defaultGeographic())));
         }
         return featureSets;
@@ -321,7 +321,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         final List<Phenomenon> components = new ArrayList<>();
         for (Field field : fields) {
             if (!(FieldType.MEASURE.equals(field.getType()) || (FieldType.MAIN.equals(field.getType()) && ObservationType.PROFILE.equals(type)))) continue;
-            
+
             String id = extractWithRegex(obsPropRegex, field.getName());
             String name = field.getLabel() != null ? field.getLabel() : id;
             components.add(new Phenomenon(id, name, id, field.getDescription(), field.getProperties()));
@@ -343,7 +343,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             return new CompositePhenomenon(compositeId, name, name, null, null, components);
         }
     }
-    
+
     protected void addMainField(ObservationType observationType, List<Field> fields) {
         switch (observationType) {
             case TIMESERIES, TRAJECTORY  -> fields.add(0, OMUtils.TIME_MAIN_FIELD);
@@ -351,7 +351,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         }
     }
-    
+
     protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
             Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures, String responseFormat) {
 
@@ -388,7 +388,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                 samplingFeatures.add(sp);
             }
         }
-        
+
         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
         final ResultMode resultMode = DATA_ARRAY.equals(responseFormat) ? ResultMode.DATA_ARRAY : ResultMode.CSV;
         ResultBuilder msb = ob.getResults(resultMode);
@@ -450,7 +450,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                 }
             }
             return result.getTimeObject();
-            
+
         } catch (Exception ex) {
             throw new DataStoreException("Failed extracting dates from input file: " + ex.getMessage(), ex);
         }
@@ -548,18 +548,18 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             return parseDate(line, preComputeDateValue, mainIndexes, sdf, lineNumber);
         }
     }
-    
+
     protected DataFileReader getDataFileReader() throws InterruptedException, IOException {
         return getDataFileReader(dataFile);
     }
-    
+
     protected DataFileReader getDataFileReader(Path file) throws InterruptedException, IOException {
         return new LockingDataFileReader(FileParsingUtils.getDataFileReader(mimeType, file, delimiter, quotechar));
     }
-    
+
     private class LockingDataFileReader implements DataFileReader {
         private final DataFileReader delegate;
-        
+
         public LockingDataFileReader(DataFileReader delegate) throws InterruptedException, IOException {
             this.delegate = delegate;
             if (fileLock != null) {
@@ -586,7 +586,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             }
             delegate.close();
         }
-        
+
     }
 
     /**

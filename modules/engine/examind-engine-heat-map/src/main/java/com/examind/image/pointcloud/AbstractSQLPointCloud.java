@@ -28,13 +28,13 @@ import java.util.concurrent.Callable;
 import javax.sql.DataSource;
 import org.apache.sis.geometry.Envelope2D;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.metadata.MetadataBuilder;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
+import org.apache.sis.storage.metadata.MetadataBuilder;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.collection.BackingStoreException;
+import org.apache.sis.util.iso.Names;
 import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -131,7 +131,7 @@ public abstract class AbstractSQLPointCloud implements PointCloudResource {
 
     @Override
     public Optional<GenericName> getIdentifier() {
-        return Optional.of(NamesExt.create(name));
+        return Optional.of(Names.createLocalName(null,null,name));
     }
 
     @Override

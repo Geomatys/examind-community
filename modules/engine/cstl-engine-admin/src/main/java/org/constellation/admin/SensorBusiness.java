@@ -19,66 +19,63 @@
 
 package org.constellation.admin;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Files;
-import java.util.List;
-
-import jakarta.xml.bind.JAXBElement;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
-
-import org.constellation.business.ISensorBusiness;
-import org.constellation.exception.TargetNotFoundException;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.Sensor;
-import org.constellation.repository.DataRepository;
-import org.constellation.repository.SensorRepository;
-import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jakarta.annotation.PostConstruct;
-import jakarta.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.util.iso.Names;
 import org.constellation.admin.util.MetadataUtilities;
 import static org.constellation.api.ProviderConstants.INTERNAL_SENSOR_PROVIDER;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.repository.ServiceRepository;
-import org.constellation.dto.service.config.sos.SensorMLTree;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
-import org.constellation.dto.SensorReference;
+import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IUserBusiness;
-import org.geotoolkit.observation.model.ProcedureDataset;
+import org.constellation.dto.CstlUser;
+import org.constellation.dto.Sensor;
+import org.constellation.dto.SensorReference;
+import org.constellation.dto.service.config.sos.SensorMLTree;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.Data;
+import org.constellation.provider.DataProvider;
+import org.constellation.provider.DataProviders;
 import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
+import org.constellation.repository.DataRepository;
+import org.constellation.repository.SensorRepository;
+import org.constellation.repository.ServiceRepository;
 import org.geotoolkit.observation.model.ObservationType;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 import org.geotoolkit.sml.xml.v101.SensorML;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component("sensorBusiness")
 @Primary
@@ -180,7 +177,7 @@ public class SensorBusiness implements ISensorBusiness {
             boolean rmFromDb = true;
             if (sensor.getProviderId() != null) {
                 final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
-                rmFromDb = provider.remove(NamesExt.create(sensor.getIdentifier()));
+                rmFromDb = provider.remove(Names.createLocalName(null,null,sensor.getIdentifier()));
             }
             if (rmFromDb) {
                 sensorRepository.unlinkSensorFromAllServices(sensor.getId());
@@ -613,7 +610,7 @@ public class SensorBusiness implements ISensorBusiness {
 
     private SensorMLTree getSensorTreeFromSensor(Sensor sensor, List<Sensor> children) {
         String owner = userBusiness.findById(sensor.getOwner()).map(CstlUser::getLogin).orElse(null);
-        
+
         final SensorMLTree t = new SensorMLTree(sensor);
         t.setOwner(owner);
         final List<SensorMLTree> childrenSMT = new ArrayList<>();
@@ -643,7 +640,7 @@ public class SensorBusiness implements ISensorBusiness {
     @Override
     @Transactional
     public Integer generateSensor(final ProcedureDataset process, Integer providerID, final String parentID, final Integer dataID) throws ConfigurationException {
-        
+
         if (providerID == null) {
             providerID = getDefaultInternalProviderID();
         }
@@ -658,12 +655,12 @@ public class SensorBusiness implements ISensorBusiness {
         for (ProcedureDataset child : process.children) {
             generateSensor(child, providerID, process.getId(), dataID);
         }
-        
+
         SensorML sml = MetadataUtilities.getSensorMetadata(process);
-        
+
         // update sensor metadata
         updateSensorMetadata(sid, sml);
-        
+
         // link data to created sensor
         if (dataID != null) {
             linkDataToSensor(dataID, sid);

@@ -18,18 +18,20 @@
  */
 package org.constellation.admin;
 
+import jakarta.annotation.PostConstruct;
 import java.awt.image.RenderedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import jakarta.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.tiling.TileMatrixSet;
+import org.apache.sis.util.iso.Names;
 import org.constellation.api.TaskState;
 import org.constellation.api.TilingMode;
 import org.constellation.dto.DataBrief;
@@ -41,10 +43,8 @@ import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment;
 import org.geotoolkit.storage.multires.TiledResource;
-import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;
 import org.junit.Test;
-import org.apache.sis.coverage.grid.PixelInCell;
 import org.opengis.util.GenericName;
 
 /**
@@ -295,7 +295,7 @@ public class PyramidBusinessTest extends AbstractBusinessTest {
         DataBrief db2 = dataBusiness.getDataBrief(dataIds.get(1), false, true);
 
         final DataProvider inProvider = DataProviders.getProvider(db1.getProviderId());
-        final Data inD = inProvider.get(NamesExt.create(db1.getName()));
+        final Data inD = inProvider.get(Names.createLocalName(null,null,db1.getName()));
 
         Integer mpId = mpBusiness.createFromData(1, "my_context", "CRS:84", inD.getEnvelope(), Arrays.asList(db1, db2));
 

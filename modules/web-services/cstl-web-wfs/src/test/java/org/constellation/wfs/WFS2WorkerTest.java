@@ -18,6 +18,9 @@
  */
 package org.constellation.wfs;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,10 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
-import jakarta.annotation.PostConstruct;
-import jakarta.xml.bind.Marshaller;
-import jakarta.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
+import org.apache.sis.util.iso.Names;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.service.config.wxs.LayerContext;
@@ -43,13 +44,13 @@ import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.ProvidersImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import org.constellation.util.QNameComparator;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
-import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.ws.CstlServiceException;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureType;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureReader;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamValueCollectionWriter;
@@ -57,19 +58,17 @@ import org.geotoolkit.gml.xml.v321.DirectPositionType;
 import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ogc.xml.v200.*;
-import org.geotoolkit.util.NamesExt;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import org.geotoolkit.wfs.xml.*;
 import org.geotoolkit.wfs.xml.v200.*;
 import org.geotoolkit.wfs.xml.v200.ObjectFactory;
 import org.geotoolkit.wfs.xml.v200.Title;
 import org.geotoolkit.xsd.xml.v2001.*;
 import org.junit.*;
-import org.opengis.util.GenericName;
-
-import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import static org.junit.Assert.*;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureType;
+import org.opengis.util.GenericName;
 
 
 /**
@@ -467,7 +466,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
 
          -- XPATH starting with // are no longer supported. TODO wait for sis to handle it.
 
-        
+
         queries = new ArrayList<>();
         pe = new PropertyIsEqualToType(new LiteralType("10972X0137-PONT"), "//gml:name", Boolean.TRUE);
         filter = new FilterType(pe);
@@ -502,7 +501,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
         Map<String, String> prefixMapping = new HashMap<>();
         prefixMapping.put("sp", "http://www.opengis.net/sampling/1.0");
         request.setPrefixMapping(prefixMapping);
-        
+
         result = worker.getFeature(request);
         assertEquals("3.2.1", result.getGmlVersion());
 
@@ -1171,7 +1170,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
          * Test 1 : transaction replace for Feature type NamedPlaces
          */
         final QName layerName = new QName("http://www.opengis.net/gml/3.2", "NamedPlaces");
-        final GenericName dataName = NamesExt.create("NamedPlaces");
+        final GenericName dataName = Names.createLocalName(null,null,"NamedPlaces");
 
         final FeatureData data = (FeatureData) DataProviders.getProviderData(NamedPlaceDataId);
 

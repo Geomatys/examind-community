@@ -26,10 +26,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.map.MapLayers;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.iso.Names;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.dto.MapContextLayersDTO;
@@ -40,7 +41,6 @@ import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.repository.MapContextRepository;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
@@ -75,7 +75,7 @@ public class MapContextProvider extends AbstractDataProvider {
     public Set<GenericName> getKeys() throws ConstellationStoreException {
         final MapContextRepository repo = SpringHelper.getBean(MapContextRepository.class)
                                                       .orElseThrow(() -> new ConstellationStoreException("No spring context available"));
-        return repo.findAll(false).stream().map(mc -> NamesExt.create(mc.getName())).collect(Collectors.toSet());
+        return repo.findAll(false).stream().map(mc -> Names.createLocalName(null,null,mc.getName())).collect(Collectors.toSet());
     }
 
     /**

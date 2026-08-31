@@ -23,20 +23,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
-
 import org.apache.sis.storage.DataStoreException;
-
-import org.geotoolkit.sensor.AbstractSensorStore;
-import org.geotoolkit.sml.xml.AbstractSensorML;
-import org.geotoolkit.util.NamesExt;
-
+import org.apache.sis.util.iso.Names;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.SensorProvider;
+import org.geotoolkit.sensor.AbstractSensorStore;
+import org.geotoolkit.sml.xml.AbstractSensorML;
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.util.GenericName;
 
 /**
  *
@@ -69,7 +66,7 @@ public class SensorStoreProvider extends IndexedNameDataProvider<AbstractSensorS
         if (store != null) {
             try {
                 for (final String sensorId : getMainStore().getSensorNames()) {
-                    results.add(NamesExt.create(sensorId));
+                    results.add(Names.createLocalName(null,null,sensorId));
                 }
             } catch (DataStoreException ex) {
                 LOGGER.log(Level.SEVERE, "Failed to retrieve list of available sensor names.", ex);

@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.util.iso.Names;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
 import org.constellation.api.DataType;
 import org.constellation.api.PathStatus;
@@ -123,7 +124,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Autowired
     private DatasourceRepository datasourceRepository;
-    
+
     @Autowired
     private ServiceRepository serviceRepository;
 
@@ -348,7 +349,7 @@ public class ProviderBusiness implements IProviderBusiness {
         provider.setIdentifier(identifier);
         provider.setImpl(providerFactoryId);
         int pid = providerRepository.create(provider);
-        
+
         // in the case of a new metadata provider we need to link all the csw in "all metadata" mode
         if ("metadata-store".equals(providerFactoryId)) {
             List<Service> csws = serviceRepository.findByType("CSW");
@@ -602,7 +603,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 final List<Sensor> sensors = sensorBusiness.getByProviderId(providerId);
                 // Remove no longer existing sensors.
                 for (final Sensor sensor : sensors) {
-                    if (!keys.contains(NamesExt.create(sensor.getIdentifier()))) {
+                    if (!keys.contains(Names.createLocalName(null,null,sensor.getIdentifier()))) {
                         sensorBusiness.delete(sensor.getId());
                     }
                 }
@@ -611,7 +612,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 for (final GenericName key : copyKeys) {
                     boolean found = false;
                     for (final Sensor sensor : sensors) {
-                        if (NamesExt.match(key, NamesExt.create(sensor.getIdentifier()))) {
+                        if (NamesExt.match(key, Names.createLocalName(null,null,sensor.getIdentifier()))) {
                             found = true;
                             break;
                         }
@@ -647,7 +648,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 // Remove no longer existing metadatas.
                 List<Integer> toRemove = new ArrayList<>();
                 for (final MetadataBrief metadata : metadatas) {
-                    if (!keys.contains(NamesExt.create(metadata.getFileIdentifier()))) {
+                    if (!keys.contains(Names.createLocalName(null,null,metadata.getFileIdentifier()))) {
                         toRemove.add(metadata.getId());
                     }
                 }
@@ -658,7 +659,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 for (final GenericName key : copyKeys) {
                     boolean found = false;
                     for (final MetadataBrief metadata : metadatas) {
-                        if (NamesExt.match(key, NamesExt.create(metadata.getFileIdentifier()))) {
+                        if (NamesExt.match(key, Names.createLocalName(null,null,metadata.getFileIdentifier()))) {
                             found = true;
                             break;
                         }
@@ -697,7 +698,7 @@ public class ProviderBusiness implements IProviderBusiness {
                     keys.remove(indexedDataName.getName()); // Data already exists. We do not want to re-integrate it.
                 }
             }
-            
+
             boolean cacheDataInfo = Application.getBooleanProperty(AppProperty.EXA_CACHE_DATA_INFO, false);
 
             // Add new data.
@@ -720,7 +721,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 Integer dataId = dataBusiness.create(name,
                         providerId, type.name(), provider.isSensorAffectable(),
                         included, null, subType, hideNewData, owner, datasetId);
-                
+
                 // cache data informations in the database
                 if (cacheDataInfo) {
                     dataBusiness.cacheDataInformation(dataId, true);

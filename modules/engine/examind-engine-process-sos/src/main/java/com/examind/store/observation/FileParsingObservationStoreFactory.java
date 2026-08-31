@@ -43,9 +43,9 @@ import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.base.StoreMetadata;
+import org.apache.sis.util.iso.Names;
 import org.geotoolkit.data.csv.Bundle;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -341,7 +341,7 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     }
 
     protected static final AttributeType<Point> TYPE = new DefaultAttributeType<>(
-            Collections.singletonMap(NAME_KEY, NamesExt.create("Point")), Point.class, 1, 1, null);
+            Collections.singletonMap(NAME_KEY, Names.createLocalName(null,null,"Point")), Point.class, 1, 1, null);
 
     protected static final ParameterDescriptorGroup EMPTY_PARAMS = parameters("CalculatePoint", 1);
 

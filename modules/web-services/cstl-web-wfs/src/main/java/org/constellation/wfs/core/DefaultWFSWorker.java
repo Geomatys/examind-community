@@ -19,6 +19,7 @@
 
 package org.constellation.wfs.core;
 
+import jakarta.xml.bind.JAXBElement;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,24 +44,24 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.feature.internal.shared.AttributeConvention;
 import org.apache.sis.geometry.wrapper.jts.JTS;
-import org.apache.sis.storage.aggregate.ConcatenatedFeatureSet;
-import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.WritableFeatureSet;
+import org.apache.sis.storage.aggregate.ConcatenatedFeatureSet;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.Version;
+import org.apache.sis.util.iso.Names;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.Namespaces;
 import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
@@ -93,16 +94,12 @@ import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import static org.constellation.ws.MimeType.APP_GML32_XML;
 import static org.constellation.ws.MimeType.TEXT_GML31_XML;
-import org.geotoolkit.storage.feature.FeatureStore;
-import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
-import org.geotoolkit.storage.feature.FeatureStoreUtilities;
-import org.geotoolkit.storage.memory.InMemoryFeatureSet;
+import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.geotoolkit.feature.xml.BoundingBox;
 import org.geotoolkit.feature.xml.Extent;
-import org.geotoolkit.atom.xml.Link;
-import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.geotoolkit.feature.xml.Utils;
 import org.geotoolkit.feature.xml.XmlFeatureSet;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
@@ -110,6 +107,7 @@ import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureReader;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.filter.binding.Binding;
 import org.geotoolkit.filter.binding.Bindings;
+import org.geotoolkit.filter.capability.FilterCapabilities;
 import org.geotoolkit.filter.visitor.FillCrsVisitor;
 import org.geotoolkit.filter.visitor.IsValidSpatialFilterVisitor;
 import org.geotoolkit.filter.visitor.ListingPropertyVisitor;
@@ -136,6 +134,10 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
+import org.geotoolkit.storage.feature.FeatureStore;
+import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
+import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wfs.xml.CreateStoredQuery;
 import org.geotoolkit.wfs.xml.CreateStoredQueryResponse;
@@ -202,14 +204,13 @@ import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.LogicalOperatorName;
-import org.opengis.filter.Filter;
-import org.geotoolkit.filter.capability.FilterCapabilities;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.SortProperty;
-import org.opengis.filter.BinarySpatialOperator;
-import org.opengis.filter.FilterFactory;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -1113,7 +1114,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         if (!NamesExt.create(typeName).equals(ft.getName()) || !collection.getIdentifier().isPresent()) {
                             try {
                                 //TODO : test cases expect the collection with identifier 'id', we should change this behavior
-                                collection = NameOverride.wrap(collection, typeName, NamesExt.create("id"));
+                                collection = NameOverride.wrap(collection, typeName, Names.createLocalName(null,null,"id"));
                             } catch (DataStoreException ex) {
                                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                             }
@@ -1298,7 +1299,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         col = col.subset(org.geotoolkit.storage.feature.query.Query.reproject(col.getType(), crs));
                     }
 
-                    col = NameOverride.wrap(col, typeName, NamesExt.create("id"));
+                    col = NameOverride.wrap(col, typeName, Names.createLocalName(null,null,"id"));
                     collections.add(col);
                 } catch (DataStoreException ex) {
                     throw new CstlServiceException(ex.getMessage(), ex);
@@ -1705,7 +1706,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             ft = feat.getType();
                             features.add(feat);
                         }
-                        featureObject = new InMemoryFeatureSet(NamesExt.create(collId), ft, features, true);
+                        featureObject = new InMemoryFeatureSet(Names.createLocalName(null,null,collId), ft, features, true);
                     }
                 } catch (IllegalArgumentException ex) {
                     throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE);

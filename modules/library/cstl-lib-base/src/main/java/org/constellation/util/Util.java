@@ -45,6 +45,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.ArgumentChecks;
+import org.apache.sis.util.iso.Names;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.StyledLayerBrief;
@@ -155,14 +156,14 @@ public final class Util {
             final String localPart = layerName.substring(nmspEnd+ 1);
             name = NamesExt.create(namespace, localPart);
         } else {
-            name = NamesExt.create(layerName);
+            name = Names.createLocalName(null,null,layerName);
         }
         return name;
     }
 
     /**
      * Parse a string on the form "a,b,c" or "(a,b,c)(d,e,f)".
-     * 
+     *
      * @param str A string to parse.
      * @return A list of String list.
      */
@@ -329,7 +330,7 @@ public final class Util {
 
     /**
      * return true if the specified string contains forbidden SQL characters, leading to potential SQL injection.
-     * 
+     *
      * @param s
      * @return
      */
@@ -362,7 +363,7 @@ public final class Util {
 
     /**
      * Marshall a configuration object into a String using the {@link GenericDatabaseMarshallerPool}.
-     * 
+     *
      * @param obj An examind configuratin object.
      * @return A XML string representation of the object
      */
@@ -444,7 +445,7 @@ public final class Util {
         for (String fragment : pathFragments) builder.path(fragment);
         return builder.build(true).toUriString();
     }
-    
+
     public static String cleanupFilterRequest(String query) {
         while (query.contains("  ")) {
             query = query.replace("  ", " ");
@@ -456,7 +457,7 @@ public final class Util {
         }
         return query;
     }
-    
+
     private static String cleanupOperator(String query, String operator) {
         String s = " " + operator + " " + operator + " ";
         while (query.contains(s)) {
@@ -476,10 +477,10 @@ public final class Util {
         }
         return query;
     }
-    
+
     public static String concat(String[] components, int to, String separator) {
         if (components == null || to <= 0 || to >= components.length) return "";
-            
+
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (int i = 0; i < to;  i++) {

@@ -22,11 +22,11 @@ import org.apache.sis.map.MapItem;
 import org.apache.sis.map.MapLayers;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.style.Style;
+import org.apache.sis.util.iso.Names;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.Data;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
 
 /**
@@ -38,7 +38,7 @@ public class DefaultMapContextData extends AbstractData<Resource> implements Dat
     protected MapLayers mp;
 
     public DefaultMapContextData(MapLayers mp) {
-        super(NamesExt.create(mp.getIdentifier()), null, null);
+        super(Names.createLocalName(null,null,mp.getIdentifier()), null, null);
         this.mp = mp;
     }
 

@@ -27,24 +27,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.xml.namespace.QName;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
-
 import org.apache.sis.storage.DataStoreException;
-
+import org.apache.sis.util.iso.Names;
+import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.Data;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.IndexedNameDataProvider;
+import org.constellation.provider.MetadataProvider;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.collection.CloseableIterator;
-
-import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.IndexedNameDataProvider;
-import org.constellation.provider.Data;
-import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.MetadataProvider;
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.util.GenericName;
 import org.w3c.dom.Node;
 
 /**
@@ -102,7 +100,7 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
             try {
                 it = store.getIdentifierIterator();
                 while (it.hasNext()) {
-                    results.add(NamesExt.create(it.next()));
+                    results.add(Names.createLocalName(null,null,it.next()));
                 }
 
             } catch (MetadataIoException ex) {
@@ -123,10 +121,10 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
     protected Class getStoreClass() {
         return MetadataStore.class;
     }
-    
+
     @Override
     public boolean deleteMetadata(String metadataID) throws ConstellationStoreException {
-        return remove(NamesExt.create(metadataID));
+        return remove(Names.createLocalName(null,null,metadataID));
     }
 
     @Override
@@ -170,14 +168,14 @@ public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore
         try {
             result = store.storeMetadata(obj);
             if (result) {
-                addKey(NamesExt.create(metadataID));
+                addKey(Names.createLocalName(null,null,metadataID));
             }
         } catch (MetadataIoException ex) {
             LOGGER.log(Level.INFO, "Unable to store a new metadata in provider:" + id, ex);
         }
         return result;
     }
-    
+
     @Override
     public boolean replaceMetadata(String metadataID, Node any) throws ConstellationStoreException {
         final MetadataStore store = getMainStore();

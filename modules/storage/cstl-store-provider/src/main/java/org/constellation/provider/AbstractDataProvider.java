@@ -25,6 +25,7 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.util.iso.Names;
 
 import org.geotoolkit.util.NamesExt;
 
@@ -64,7 +65,7 @@ public abstract class AbstractDataProvider implements DataProvider{
     public Data get(String namespace, String name) throws ConstellationStoreException {
         GenericName gname;
         if (namespace == null || namespace.isEmpty()) {
-            gname = NamesExt.create(name);
+            gname = Names.createLocalName(null,null,name);
         } else {
             gname = NamesExt.create(namespace, name);
         }
