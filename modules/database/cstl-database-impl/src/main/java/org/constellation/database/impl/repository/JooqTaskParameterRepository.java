@@ -26,6 +26,8 @@ import com.examind.database.api.jooq.Tables;
 import org.constellation.dto.process.TaskParameter;
 import com.examind.database.api.jooq.tables.records.TaskParameterRecord;
 import org.constellation.repository.TaskParameterRepository;
+import org.jooq.Condition;
+import org.jooq.impl.DSL;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -54,13 +56,22 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
 
     @Override
     public List<? extends TaskParameter> findAllByNameAndProcess(String name, String authority, String code) {
+        // A null parameter means "no restriction on this column"
+        Condition filter = DSL.noCondition();
+        if (name != null) {
+            filter = filter.and(Tables.TASK_PARAMETER.NAME.eq(name));
+        }
+        if (authority != null) {
+            filter = filter.and(Tables.TASK_PARAMETER.PROCESS_AUTHORITY.eq(authority));
+        }
+        if (code != null) {
+            filter = filter.and(Tables.TASK_PARAMETER.PROCESS_CODE.eq(code));
+        }
         return convertTaskParamListToDto(dsl.select()
                                             .from(Tables.TASK_PARAMETER)
-                                            .where(Tables.TASK_PARAMETER.NAME.eq(name)
-                                            .and(Tables.TASK_PARAMETER.PROCESS_AUTHORITY.eq(authority))
-                                            .and(Tables.TASK_PARAMETER.PROCESS_CODE.eq(code)))
+                                            .where(filter)
                                             .fetchInto(com.examind.database.api.jooq.tables.pojos.TaskParameter.class));
-    }
+}
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)

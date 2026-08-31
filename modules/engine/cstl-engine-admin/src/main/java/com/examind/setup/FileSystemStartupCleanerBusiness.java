@@ -20,12 +20,14 @@ package com.examind.setup;
 
 import com.examind.community.storage.sql.CoverageSQLProvider.CoverageSQLStore;
 import jakarta.annotation.PostConstruct;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IFileSystemStartupCleanerBusiness;
+import org.constellation.business.IProcessBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -33,6 +35,7 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.metadata.Metadata;
+import org.constellation.dto.process.TaskParameter;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -70,6 +73,9 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
     
     @Autowired
     private IDatasourceBusiness datasourceBusiness;
+    
+    @Autowired
+    private IProcessBusiness processBusiness;
     
     @PostConstruct
     public void initFsConfiguration() {
@@ -130,6 +136,12 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
             styleBusiness.deleteAll();
             datasourceBusiness.deleteAll();
         
+            // remove the periodical provider update tasks
+            List<TaskParameter> previousTasks = processBusiness.findTaskParameterByNameAndProcess(null, "examind", "provider.file.handle");
+            for (TaskParameter tp : previousTasks) {
+                processBusiness.deleteTaskParameter(tp.getId());
+            }
+            
         } catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, "Error a filesystem configuration startup", ex);
         }
