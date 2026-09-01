@@ -252,15 +252,17 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             // 4. install providers
             dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "providerFS", analysis.providerDir, FileSystemUtilities::regularProviderFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
-            for (DataSourceSelectedPath path : paths) {
-                handleProviderYamlFile(path, analysis, false);
+            List<AnalysedDsp> providerPaths = priorityOrder(paths, analysis, false);
+            for (AnalysedDsp path : providerPaths) {
+                handleProviderYamlFile(path, analysis);
             }
             
             // 5. install computed providers
             dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "providerComputedFS", analysis.providerDir, FileSystemUtilities::computedProviderFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
-            for (DataSourceSelectedPath path : paths) {
-                handleProviderYamlFile(path, analysis, true);
+            providerPaths = priorityOrder(paths, analysis, true);
+            for (AnalysedDsp path : providerPaths) {
+                handleProviderYamlFile(path, analysis);
             }
             
         } catch (Exception ex) {
@@ -364,28 +366,67 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    private record AnalysedDsp(DataSourceSelectedPath dsp, Path p, ProviderWithPath pwp) {}
+    private record DspPath(DataSourceSelectedPath dsp, Path p) {}
+    
+    /**
+     * Compute a list of provider informations, order by their priority attribute.
+     * 
+     * @param paths A list of datasource recorded path.
+     * @param analysis complete filesystem analysis.
+     * @param computed A flag for coputed provider.
+     * 
+     * @return A list of provider information.
+     * @throws ConstellationException 
+     */
+    private List<AnalysedDsp> priorityOrder(List<DataSourceSelectedPath> paths, FileSystemAnalysis analysis, boolean computed) throws ConstellationException {
+        List<AnalysedDsp> results = new ArrayList<>();
+        Map<String, ProviderWithPath> providers = computed ? analysis.computedProviders : analysis.providers;
+        
+        // compute real path
+        Map<String, DspPath> dspMap = new HashMap<>();
+        for (DataSourceSelectedPath path : paths) {
+            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+            dspMap.put(p.toString(), new DspPath(path, p));
+        }
+        
+        // the provider map is in priority order
+        for (Entry<String, ProviderWithPath> entry : providers.entrySet()) {
+            DspPath dsp = dspMap.get(entry.getKey());
+            results.add(new AnalysedDsp(dsp.dsp, dsp.p, entry.getValue()));
+            dspMap.remove(entry.getKey());
+        }
+        
+        // add the deleted path (they do no appears in the analyzed providers)
+        for (DspPath dsp : dspMap.values()) {
+            results.add(new AnalysedDsp(dsp.dsp, dsp.p, null));
+        }
+        return results;
+    }
+    
     /**
      * Treat a yaml file configuring a provider.
      * Depending ont it status, it will be inserted/updated/removed.
      * 
      * if already integrated, it will handle changes in provider files.
      * 
-     * @param path The file path datasource information.
+     * @param adsp The file path datasource information (including datasource path status, file path, provider configuration).
      * @param analysis Full filesystem analysis.
      * @throws ConstellationException 
      */
-    private void handleProviderYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis, boolean computed) {
+    private void handleProviderYamlFile(AnalysedDsp adsp, FileSystemAnalysis analysis) {
+        DataSourceSelectedPath path = adsp.dsp;
+        Path p = adsp.p;
+        ProviderWithPath pwp = adsp.pwp;
         try {
             PathStatus status = PathStatus.valueOf(path.getStatus());
-            Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
+            
             if (status == REMOVED) {
                 removePollingTask(p);
                 removeProviders(path.getProviderId());
                 datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
                 return;
             }
-
-            ProviderWithPath pwp = computed ? analysis.computedProviders.get(p.toString()) : analysis.providers.get(p.toString());
 
             // file is here but is not valid
             // what to do with the old provider ?

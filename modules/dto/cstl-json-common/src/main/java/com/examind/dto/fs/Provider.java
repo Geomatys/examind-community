@@ -42,6 +42,8 @@ public class Provider {
     private List<Collection> computedData;
     
     private String pollingInterval;
+    
+    private Integer priority;
 
     /**
      * @return the identifier
@@ -205,6 +207,23 @@ public class Provider {
         this.computedData = computedData;
     }
     
+    public String getPollingInterval() {
+        return pollingInterval;
+    }
+
+    public void setPollingInterval(String pollingInterval) {
+        this.pollingInterval = pollingInterval;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -215,6 +234,8 @@ public class Provider {
         sb.append("  providerType='").append(providerType).append("'\n");
         sb.append("  dataset='").append(dataset).append("'\n");
         sb.append("  directoryFilter='").append(directoryFilter).append("'\n");
+        sb.append("  pollingInterval='").append(pollingInterval).append("'\n");
+        sb.append("  priority='").append(priority).append("'\n");
         sb.append("  source=").append(source).append("\n");
 
         sb.append("  advancedParameters={\n");
@@ -238,13 +259,4 @@ public class Provider {
         sb.append("}");
         return sb.toString();
     }
-
-    public String getPollingInterval() {
-        return pollingInterval;
-    }
-
-    public void setPollingInterval(String pollingInterval) {
-        this.pollingInterval = pollingInterval;
-    }
-
 }

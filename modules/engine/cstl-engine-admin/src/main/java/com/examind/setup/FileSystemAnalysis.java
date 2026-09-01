@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,18 +88,29 @@ public class FileSystemAnalysis {
     /**
      * Map of file path / unmarshalled yaml file
      */
-    public final Map<String, ProviderWithPath> providers = new HashMap<>();
+    public final Map<String, ProviderWithPath> providers = new LinkedHashMap<>();
     
     /**
      * Map of file path / unmarshalled yaml file
      */
-    public final Map<String, ProviderWithPath> computedProviders = new HashMap<>();
+    public final Map<String, ProviderWithPath> computedProviders = new LinkedHashMap<>();
     
     /**
      * Asynchroneous mode.
      */
     public final boolean async;
     
+    
+   /**
+    * Orders providers by ascending priority. Providers without a priority (null)
+    * are placed last. Ties are broken on the file path to keep the resulting
+    * order deterministic, since Files.walk() traversal order is not guaranteed.
+    */
+   private static final Comparator<ProviderWithPath> PROVIDER_ORDER =
+           Comparator.<ProviderWithPath, Integer>comparing(
+                           pwp -> pwp.provider.getPriority(),
+                           Comparator.nullsLast(Comparator.naturalOrder()))
+                           .thenComparing(pwp -> pwp.ymlFile.toString());
 
     /**
      * Build and compute the filesystem analysis on the supplied directories.
@@ -171,34 +184,46 @@ public class FileSystemAnalysis {
 
         // 4. regular providers
         try (Stream<Path> stream = Files.walk(providerDir)) {
+            final List<ProviderWithPath> loaded = new ArrayList<>();
             stream.filter(p -> providerFileFilter(p, false)).forEach(path -> {
                 Provider pr = parseYaml(path, Provider.class);
                 if (pr != null) {
                     try {
                         ProviderUtilities.validateProviderFile(pr);
-                        this.providers.put(path.toString(), new ProviderWithPath(pr, path));
+                        loaded.add(new ProviderWithPath(pr, path));
                     } catch (ConfigurationException ex) {
                         LOGGER.log(Level.WARNING, "Error while importing provider: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
                     }
                 }
             });
+            // Insertion order defines iteration order for the LinkedHashMap
+            loaded.sort(PROVIDER_ORDER);
+            for (ProviderWithPath pwp : loaded) {
+                this.providers.put(pwp.ymlFile.toString(), pwp);
+            }
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "Error while accessing the provider directory", ex);
         }
 
         // 5. computed providers
         try (Stream<Path> stream = Files.walk(providerDir)) {
+            final List<ProviderWithPath> loaded = new ArrayList<>();
             stream.filter(p -> providerFileFilter(p, true)).forEach(path -> {
                 Provider pr = parseYaml(path, Provider.class);
                 if (pr != null) {
                     try {
                         ProviderUtilities.validateProviderFile(pr);
-                        this.computedProviders.put(path.toString(), new ProviderWithPath(pr, path));
+                        loaded.add(new ProviderWithPath(pr, path));
                     } catch (ConfigurationException ex) {
                         LOGGER.log(Level.WARNING, "Error while importing provider: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
                     }
                 }
             });
+            // Insertion order defines iteration order for the LinkedHashMap
+            loaded.sort(PROVIDER_ORDER);
+            for (ProviderWithPath pwp : loaded) {
+                this.computedProviders.put(pwp.ymlFile.toString(), pwp);
+            }
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "Error while accessing the provider directory", ex);
         }
