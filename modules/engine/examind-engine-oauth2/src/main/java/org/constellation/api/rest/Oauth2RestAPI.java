@@ -20,13 +20,17 @@ package org.constellation.api.rest;
 
 import org.constellation.services.security.CookieUtils;
 import com.examind.oauth.Oauth2Client;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import static org.constellation.token.TokenUtils.ACCESS_TOKEN;
+import static org.constellation.token.TokenUtils.REFRESH_TOKEN;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,8 +72,28 @@ public class Oauth2RestAPI {
 
             if (values != null) {
                 Map<String, String[]> toSet = new HashMap<>();
-                toSet.put("access_token",  new String[] {(String) values.get("access_token")});
-                toSet.put("refresh_token", new String[] {(String) values.get("refresh_token")});
+                int maxAgeAT;
+                // the SSO provide the expire_in (RFC 6749 §5.1)
+                if (values.containsKey("expires_in")) {
+                    maxAgeAT = (int) values.get("expires_in");
+                }
+                // if no specified we used the exemind configuration (in minutes)
+                else {
+                    maxAgeAT = Application.getLongProperty(AppProperty.CSTL_TOKEN_LIFE, 60L).intValue() * 60;
+                }
+                
+                int maxAgeRT;
+                // keycloak extension
+                if (values.containsKey("refresh_expires_in")) {
+                    maxAgeRT = (int) values.get("refresh_expires_in");
+                }
+                // if no specified we used the exemind configuration (1,5x AT)
+                else {
+                    maxAgeRT = (int) (1.5 * maxAgeAT);
+                }
+                
+                toSet.put("access_token",  new String[] {(String) values.get("access_token"), "Max-Age=" + maxAgeAT});
+                toSet.put("refresh_token", new String[] {(String) values.get("refresh_token"), "Max-Age=" + maxAgeRT});
                 CookieUtils.setCookies(response, toSet);
             }
 
@@ -88,14 +112,24 @@ public class Oauth2RestAPI {
     }
 
     @RequestMapping(value="/oauth2/logout", method=GET)
-    public ResponseEntity logout() {
+    public ResponseEntity logout(HttpServletRequest request, HttpServletResponse response) {
         try {
+            String refreshToken = CookieUtils.getCookie(request, REFRESH_TOKEN);
             Oauth2Client client = new Oauth2Client();
-            String location     = client.getLogoutUrl();
+            client.performLogout(refreshToken);
 
+            // clear cookie
+            CookieUtils.clearAuthCookies(response, Arrays.asList(ACCESS_TOKEN, REFRESH_TOKEN));
+            
+            // return to base uri
             HttpHeaders headers = new HttpHeaders();
+            String location = Application.getProperty(AppProperty.CSTL_URL);
+            if (location != null && !location.endsWith("/")) {
+                   location = location + "/";
+            }
             headers.add("Location", location);
             return new ResponseEntity<String>(headers,HttpStatus.FOUND);
+
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Error at oauth2/logout.", e);
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);

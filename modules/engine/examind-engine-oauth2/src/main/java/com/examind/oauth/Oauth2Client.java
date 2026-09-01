@@ -151,6 +151,26 @@ public class Oauth2Client {
         }
         return logoutUrl + "?redirect_uri=" + cstlBaseUrl;
     }
+    
+    public void performLogout(String refreshToken) {
+        HttpClient client = HttpClientBuilder.create().build();
+        
+        HttpPost request = new HttpPost(logoutUrl);
+
+        List<NameValuePair> params = new ArrayList<>();
+        
+        params.add(new BasicNameValuePair("refresh_token", refreshToken));
+        params.add(new BasicNameValuePair("client_id",     clientId));
+        if (clientSecret != null && !clientSecret.isEmpty()) {
+            params.add(new BasicNameValuePair("client_secret",    clientSecret));
+        }
+        try {
+            request.setEntity(new UrlEncodedFormEntity(params));
+            client.execute(request);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "error logout to keycloak", ex);
+        }
+    }
 
     public Map getUserInfo(String accessToken) throws IOException {
         HttpClient client = HttpClientBuilder.create().build();
