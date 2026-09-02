@@ -307,7 +307,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final MutableStyle style = StyleUtilities.type(stylejson);
-            styleBusiness.updateStyle(id, style);
+            styleBusiness.updateStyle(id, style.getName(), style);
             stylejson.setId(id);
             return new ResponseEntity(id,OK);
         } catch(Exception ex) {

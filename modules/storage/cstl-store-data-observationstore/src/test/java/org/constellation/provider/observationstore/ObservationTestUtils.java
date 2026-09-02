@@ -318,18 +318,8 @@ public class ObservationTestUtils {
         return pls;
     }
     
-    @Deprecated
-    public static String getPhenomenonId(Phenomenon phen) {
-        return phen.getId();
-    }
-    
     public static List<String> getPhenomenonIds(List<Phenomenon> phens) {
         return phens.stream().map(phen -> phen.getId()).toList();
-    }
-    
-    @Deprecated
-    public static String getProcessId(Procedure proc) {
-        return proc.getId();
     }
 
     public static Set<String> getProcessIds(List<Procedure> procs) {
@@ -339,11 +329,6 @@ public class ObservationTestUtils {
     public static String getFOIId(Observation template) {
         assertNotNull(template.getFeatureOfInterest());
         return template.getFeatureOfInterest().getId();
-    }
-
-    @Deprecated
-    public static String getFOIId(SamplingFeature sf) {
-        return sf.getId();
     }
 
     public static Set<String> getFOIIds(List<SamplingFeature> sfs) {

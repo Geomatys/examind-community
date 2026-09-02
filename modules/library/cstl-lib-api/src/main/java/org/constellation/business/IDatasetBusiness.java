@@ -46,18 +46,6 @@ public interface IDatasetBusiness {
     /**
      * Proceed to update metadata for given dataset identifier.
      *
-     * @param datasetIdentifier given dataset identifier.
-     * @param metadata metadata as {@link org.apache.sis.metadata.iso.DefaultMetadata} to update.
-     * @throws ConstellationException
-     *
-     * @deprecated use the updateMetadata method with the hidden flag
-     */
-    @Deprecated
-    void updateMetadata(final String datasetIdentifier, final Object metadata) throws ConstellationException;
-
-    /**
-     * Proceed to update metadata for given dataset identifier.
-     *
      * @param datasetId given dataset identifier.
      * @param metadata metadata as {@link org.apache.sis.metadata.iso.DefaultMetadata} to update.
      * @param hidden flag to indicate if the metadata should be hidden for now.

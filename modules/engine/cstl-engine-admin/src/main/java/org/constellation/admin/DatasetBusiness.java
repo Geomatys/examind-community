@@ -181,27 +181,6 @@ public class DatasetBusiness implements IDatasetBusiness {
      */
     @Override
     @Transactional
-    public void updateMetadata(final String datasetIdentifier, final Object metadata)
-            throws ConstellationException {
-        final Integer dataset = datasetRepository.findIdForIdentifier(datasetIdentifier);
-        if (dataset != null) {
-            Integer internalProviderID = metadataBusiness.getDefaultInternalProviderID();
-            if (internalProviderID != null) {
-                final String metadataID = Utils.findIdentifier(metadata);
-                metadataBusiness.updateMetadata(metadataID, metadata, null, dataset, null, null, internalProviderID, "DOC");
-            } else {
-                LOGGER.warning("No metadata provider available");
-            }
-        } else {
-            throw new TargetNotFoundException("Dataset :" + datasetIdentifier + " not found");
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
     public void updateMetadata(final int datasetId, final Object metadata, boolean hidden) throws ConstellationException {
         Integer internalProviderID = metadataBusiness.getDefaultInternalProviderID();
         if (internalProviderID != null) {

@@ -132,6 +132,7 @@ import static org.geotoolkit.processing.chain.model.Element.END;
 import org.geotoolkit.processing.chain.model.ElementProcess;
 import org.geotoolkit.processing.chain.model.Parameter;
 import org.geotoolkit.processing.chain.model.ParameterFormat;
+import org.geotoolkit.wps.adaptor.LiteralAdaptor;
 import org.geotoolkit.wps.client.WebProcessingClient;
 import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
 import org.geotoolkit.wps.xml.v200.Bill;
@@ -1357,7 +1358,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                     // Extract the type name from the first domain (standard for OGC)
                     type = String.class;
                     if (literal.getLiteralDataDomain() != null && !literal.getLiteralDataDomain().isEmpty()) {
-                        type = WPSUtils.getValueClass(literal.getLiteralDataDomain().get(0).getDataType());
+                        type = LiteralAdaptor.getValueClass(literal.getLiteralDataDomain().get(0).getDataType());
                     }
                 } else if (in.getDataDescription() instanceof ComplexData) {
                     type = URI.class;
@@ -1411,7 +1412,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                     // Extract the type name from the first domain (standard for OGC)
                     type = String.class;
                     if (literal.getLiteralDataDomain() != null && !literal.getLiteralDataDomain().isEmpty()) {
-                        type = WPSUtils.getValueClass(literal.getLiteralDataDomain().get(0).getDataType());
+                        type = LiteralAdaptor.getValueClass(literal.getLiteralDataDomain().get(0).getDataType());
                     }
                 } else if (out.getDataDescription() instanceof ComplexData) {
                     type = File.class;

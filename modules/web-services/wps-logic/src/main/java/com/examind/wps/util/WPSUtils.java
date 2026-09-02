@@ -77,7 +77,6 @@ import org.constellation.provider.DataProviders;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
 import org.geotoolkit.ows.xml.BoundingBox;
-import org.geotoolkit.ows.xml.DomainMetadata;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
@@ -173,7 +172,7 @@ public class WPSUtils {
 
         // If the parameter descriptor is a group
         // We don't go through the group hierarchy
-        if (gpd instanceof ParameterDescriptorGroup pdg) {
+        if (gpd instanceof ParameterDescriptorGroup) {
             throw new UnsupportedOperationException("Not implemented yet : the desired input/output is a group");
         }
         else {
@@ -426,8 +425,7 @@ public class WPSUtils {
 
         String role = null;
         List<AdditionalParameter> additionalParams = null;
-        if (param instanceof ExtendedParameterDescriptor) {
-            ExtendedParameterDescriptor extParam = (ExtendedParameterDescriptor) param;
+        if (param instanceof ExtendedParameterDescriptor extParam) {
             Map<String, Object> userMap = extParam.getUserObject();
             if (userMap != null) {
                 additionalParams = new ArrayList<>();
@@ -1152,9 +1150,9 @@ public class WPSUtils {
             }
 
             try {
-                if(inputDescriptor instanceof ParameterDescriptor) {
+                if(inputDescriptor instanceof ParameterDescriptor inD) {
                     if (alreadySet.contains(inputIdCode)) {
-                        ParameterValue newOccurence = ((ParameterDescriptor)inputDescriptor).createValue();
+                        ParameterValue newOccurence = inD.createValue();
                         newOccurence.setValue(dataValue);
                         in.values().add(newOccurence);
                     } else {
@@ -1285,45 +1283,5 @@ public class WPSUtils {
             }
         }
         return isClean;
-    }
-
-    /**
-     * @deprecated remove when geotk > 26.03.18 and replace by LiteralAdaptor.getValueClass
-     */
-    @Deprecated
-    public static Class getValueClass(DomainMetadata type) {
-        if (type == null) return String.class;
-        Class clazz = findClass(type.getReference());
-        if (clazz == null) clazz = findClass(type.getValue());
-        if (clazz == null) clazz = String.class;
-        return clazz;
-    }
-
-    /**
-     * @deprecated remove when geotk > 26.03.18 and replace by LiteralAdaptor.getValueClass
-     */
-    @Deprecated
-    private static Class findClass(String value) {
-        if (value == null) return null;
-        Class clazz = null;
-        try {
-            clazz = Class.forName(value);
-        } catch (ClassNotFoundException ex) {
-            value = value.toLowerCase();
-            if (value.contains("double")) {
-                clazz = Double.class;
-            } else if (value.contains("boolean")) {
-                clazz = Boolean.class;
-            } else if (value.contains("float")) {
-                clazz = Float.class;
-            } else if (value.contains("short")) {
-                clazz = Short.class;
-            } else if (value.contains("integer")) {
-                clazz = Integer.class;
-            } else if (value.contains("long")) {
-                clazz = Long.class;
-            }
-        }
-        return clazz;
     }
 }

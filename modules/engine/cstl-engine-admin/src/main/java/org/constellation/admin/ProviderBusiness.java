@@ -367,36 +367,6 @@ public class ProviderBusiness implements IProviderBusiness {
         return pid;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void update(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException {
-        if (getIDFromIdentifier(id) == null) {
-            throw new TargetNotFoundException("Unexting provider for name " + id);
-        }
-
-        final String providerType = spiName.name;
-        final DataProviderFactory pFactory = DataProviders.getFactory(providerType);
-        final ParameterValueGroup providerConfig = pFactory.getProviderDescriptor().createValue();
-
-        providerConfig.parameter("id").setValue(id);
-        providerConfig.parameter("providerType").setValue(providerType);
-        final ParameterValueGroup choice =
-                providerConfig.groups("choice").get(0).addGroup(spiConfiguration.getDescriptor().getName().getCode());
-        org.apache.sis.parameter.Parameters.copy(spiConfiguration, choice);
-
-        String config;
-        try {
-            config = ParamUtilities.writeParameter(providerConfig);
-        } catch (IOException ex) {
-            throw new ConfigurationException(ex.getMessage(), ex);
-        }
-
-        update(id, config);
-    }
-
     @Override
     @Transactional
     public void update(final String id, final ProviderConfiguration config) throws ConfigurationException {

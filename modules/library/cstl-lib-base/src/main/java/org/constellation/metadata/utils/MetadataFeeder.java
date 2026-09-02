@@ -1092,28 +1092,6 @@ public class MetadataFeeder {
                 .flatMap(extent -> extent.getTemporalElements().stream())
                 .map(TemporalExtent::getExtent);
     }
-    /**
-     *
-     * @return Any Geographic bbox found, or null.
-     * @deprecated return only one of possibly many boxes defined. Please consider using {@link #getGeographicBBoxes()}
-     * instead. For exact same behavior, you can use {@code getGeographicBBoxes().findAny().orElse(null); }
-     */
-    @Deprecated
-    public GeographicBoundingBox getGeographicBoundingBox() {
-        final Identification identification = getIdentification(eater);
-        if (identification != null) {
-            for (Extent extent : identification.getExtents()) {
-                if (extent != null) {
-                    for (GeographicExtent geographicExtent : extent.getGeographicElements()) {
-                        if (geographicExtent instanceof GeographicBoundingBox) {
-                            return (GeographicBoundingBox) geographicExtent;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
 
     public URI getQuickLookUrl() {
         final Identification identification = getIdentification(eater);

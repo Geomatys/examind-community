@@ -96,8 +96,6 @@ public interface IProviderBusiness {
 
     void update(String id, ProviderConfiguration config) throws ConfigurationException;
 
-    void update(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException;
-
     /**
      * Create and save a provider object with given identifier.Input spi and configuration must be DataProviderFactory
      * and its proper configuration filled from org.constellation.provider.DataProviderFactory#getProviderDescriptor().
