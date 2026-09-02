@@ -137,6 +137,14 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
             LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
         }
         
+        try {
+            // Try to load HSQL driver for further use
+            Class.forName("org.hsqldb.jdbc.JDBCDriver");
+            LOGGER.log(Level.INFO, "HSQL loading success!");
+        } catch (ClassNotFoundException ex) {
+            LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
+        }
+        
         // for filesystem configuration mode we don't create all the default resources.
         boolean createDefaultResource = true;
         for (String ap : env.getActiveProfiles()) {
