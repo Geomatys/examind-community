@@ -473,7 +473,7 @@
                                 </div>
                             </div>
                             <div id="block-information-right" class="col-sm-4">
-                                <div ng-if="service.type !== 'csw' && service.type !== 'wmts' && service.type !== 'tms' && service.type !== 'wms'">
+                                <div ng-if="service.type !== 'csw' && service.type !== 'wmts' && service.type !== 'tms' && service.type !== 'wms' && service.type !== 'wcs'">
                                     <a data-toggle="modal"
                                        class="btn btn-add btn-lg btn-block"
                                        data-test-id="edit-service-add"
@@ -481,6 +481,17 @@
                                         <span class="fa fa-plus"
                                               style="margin-right:5px;"></span>
                                         <span translate="service.edit.dashboard.action.add.button">Add</span>
+                                    </a>
+                                </div>
+                                <div ng-if="service.type.toLowerCase() === 'wcs'">
+                                    <a id="showDataToAddWMS"
+                                       data-test-id="edit-service-add-layer"
+                                       data-toggle="modal"
+                                       class="btn btn-add btn-lg btn-block"
+                                       ng-click="showDataToAddWCS()">
+                                        <span class="fa fa-plus"
+                                              style="margin-right:5px;"></span>
+                                        <span translate="service.edit.dashboard.wmts.action.addnewlayer.button">Add</span>
                                     </a>
                                 </div>
                                 <div ng-if="service.type.toLowerCase() === 'wms'">

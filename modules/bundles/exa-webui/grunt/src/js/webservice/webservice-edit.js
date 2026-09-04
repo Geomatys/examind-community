@@ -402,6 +402,27 @@ angular.module('cstl-webservice-edit', [
                 );
             });
         };
+        
+        $scope.showDataToAddWCS = function() {
+            var modal = $modal.open({
+                templateUrl: 'views/webservice/wcs/modalAddLayer.html',
+                controller: 'WCSAddLayerModalController',
+                resolve: {
+                    service: function() { return $scope.service; }
+                }
+            });
+            modal.result.then(function() {
+                Examind.map.getLayers($scope.type,
+                    $routeParams.id).then(
+                    function (response) {//success
+                        $scope.layers = response.data;
+                        Dashboard($scope, response.data, true);
+                        $scope.selected = null;
+                        $scope.showLayerDashboardMap();
+                    }
+                );
+            });
+        };
 
         $scope.canAddMetadata = function (){
            return $scope.canAddMetadataFlag;
@@ -1556,6 +1577,145 @@ angular.module('cstl-webservice-edit', [
             $modalInstance.close();
         };
     })
+    .controller('WCSAddLayerModalController', function($scope, $modal, $modalInstance, service,
+                                                        Growl, Examind, Dashboard) {
+        $scope.service = service;
+        $scope.values = {
+            listSelect : [],
+            userLayerName : '',
+            listWCSLayers : []
+        };
+
+        // handle display mode for this modal popup
+        $scope.mode = {
+            display: 'internal',
+            previous: undefined
+        };
+
+        $scope.wrap = {};
+
+        $scope.wrap.nbbypage = 5;
+
+        /**
+         * function to add data to service
+         */
+        $scope.choose = function() {
+            if ($scope.values.listSelect.length === 0) {
+                Growl('warning', 'Warning', 'No data selected!');
+                return;
+            }
+            
+            //using angular.forEach to avoid jsHint warning when declaring function in loop
+            angular.forEach($scope.values.listSelect, function (value) {
+                var layer = {
+                    name: value.name,
+                    namespace: value.namespace,
+                    alias: value.namespace ? value.namespace + '-' + value.name : value.name,
+                    service: $scope.service.id,
+                    dataId: value.id,
+                    date: null,
+                    config: null,
+                    ownerId: value.ownerId,
+                    title: null
+                };
+
+                if ($scope.values.listSelect.length === 1) {
+                    var modal = $modal.open({
+                        templateUrl: 'views/data/layerInfo.html',
+                        controller: 'LayerInfoAddModalController',
+                        resolve: {
+                            'layer': function () {
+                                return layer;
+                            }
+                        }
+                    });
+                    modal.result.then(function () {
+                        Examind.map.addLayerNew(layer).then(
+                            function (response) {//on success
+                                Growl('success', 'Success', response.data.message);
+                                $scope.close();
+                            },
+                            function (err) {//on error
+                                Growl('error', 'Error', err.data.message);
+                                $scope.dismiss();
+                            }
+                        );
+                    });
+                } else {
+                    Examind.map.addLayerNew(layer).then(
+                        function (response) {//on success
+                            Growl('success', 'Success', response.data.message);
+                            $scope.close();
+                        },
+                        function (err) {//on error
+                            Growl('error', 'Error', err.data.message);
+                            $scope.dismiss();
+                        }
+                    );
+                }
+            });
+        };
+
+        $scope.goToLastStep = function() {
+            //get all layers in this wcs service to compare for existing layer names.
+            Examind.map.getLayers($scope.service.type,
+                $scope.service.identifier).then(
+                function (response) {//success
+                    $scope.values.listWCSLayers = response.data;
+                    if($scope.mode.display==='internal' && $scope.values.userLayerName === '' && $scope.values.listSelect.length===1){
+                        //set the layerName for singleton list
+                        var name = $scope.values.listSelect[0].name;
+                        if(!checkLayerName(name+'_pyramid')){
+                            $scope.values.userLayerName = name+'_pyramid';
+                        }else {
+                            $scope.values.userLayerName = '';
+                        }
+                    }else {
+                        $scope.values.userLayerName = '';
+                    }
+                    $scope.mode.previous=$scope.mode.display;
+                    $scope.mode.display='lastStep';
+                },function(){//error
+                    Growl('warning', 'Warning', 'An error occurred!');
+                }
+            );
+        };
+
+        function checkLayerName(name) {
+            if(name && name.length>0 &&
+                $scope.values.listWMSLayers && $scope.values.listWMSLayers.length>0){
+                for(var i=0;i<$scope.values.listWMSLayers.length;i++){
+                    var lay=$scope.values.listWMSLayers[i];
+                    if(lay.name === name || lay.alias === name) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        $scope.isValidWCSLayerName = function(){
+            var letters = /^[A-Za-zàèìòùáéíóúäëïöüñãõåæøâêîôû0-9\-_]+$/;
+            var name = $scope.values.userLayerName;
+            var passRegEx = false;
+            if(name && name.match(letters)) {
+                passRegEx = true;
+            }
+            return passRegEx;
+        };
+
+        $scope.isLayerNameExists = function() {
+            return checkLayerName($scope.values.userLayerName);
+        };
+
+        $scope.dismiss = function() {
+            $modalInstance.dismiss('close');
+        };
+
+        $scope.close = function() {
+            $modalInstance.close();
+        };
+    })
     .controller('CSWAddMetadataModalController', function ($scope, $modalInstance, service,
                                                            Growl, Examind, DashboardHelper, metadataQuery, SelectionApi) {
         $scope.service = service;
@@ -1898,6 +2058,163 @@ angular.module('cstl-webservice-edit', [
         };
 
         $scope.initInternalDataWMTS();
+    })
+    .controller('Step1WCSInternalDataController', function($scope, Dashboard, Examind, $filter) {
+        /**
+         * To fix angular bug with nested scope.
+         */
+        $scope.wrap = {};
+
+        $scope.wrap.nbbypage = 5;
+
+        $scope.dataSelect={all:false};
+
+        $scope.clickFilter = function(ordType){
+            $scope.wrap.ordertype = ordType;
+            $scope.wrap.orderreverse = !$scope.wrap.orderreverse;
+        };
+
+        $scope.initInternalDataWCS = function() {
+            Examind.datas.getDataListLight(false).then(function (response) {
+                var dataList = response.data;
+                dataList = dataList.map(function(item){
+                    if (item.type.toLowerCase() === 'coverage') {
+                        return item;
+                    }
+                });
+                Dashboard($scope, dataList, true);
+            });
+            if($scope.mode.previous!=='lastStep') {
+                $scope.values.listSelect.splice(0, $scope.values.listSelect.length);//clear array
+            }
+            setTimeout(function(){
+                $scope.previewData();
+            },200);
+        };
+
+        $scope.previewData = function() {
+            //clear the map
+            if (DataViewer.map) {
+                DataViewer.map.setTarget(undefined);
+            }
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
+            DataViewer.initConfig();
+            if($scope.values.listSelect.length >0){
+                var layerName,providerId;
+                for(var i=0;i<$scope.values.listSelect.length;i++){
+                    var dataItem = $scope.values.listSelect[i];
+                    if (dataItem.namespace) {
+                        layerName = '{' + dataItem.namespace + '}' + dataItem.name;
+                    } else {
+                        layerName = dataItem.name;
+                    }
+                    providerId = dataItem.provider;
+                    var layerData;
+                    var type = dataItem.type?dataItem.type.toLowerCase():null;
+                    if (dataItem.targetStyle && dataItem.targetStyle.length > 0) {
+                        layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.id,layerName,
+                                                                    dataItem.targetStyle[0].name,null,null,type!=='vector');
+                    } else {
+                        layerData = DataViewer.createLayer(cstlUrl,dataItem.id,layerName,null,type!=='vector');
+                    }
+                    //to force the browser cache reloading styled layer.
+                    layerData.get('params').ts=new Date().getTime();
+                    DataViewer.layers.push(layerData);
+                }
+                var dataIds = $scope.values.listSelect.map(function (value) {
+                    return value.id;
+                });
+                Examind.datas.mergedDataExtent(dataIds).then(
+                    function(response) {// on success
+                        DataViewer.initMap('styledMapPreviewForWMTS');
+                        if(response.data && response.data.boundingBox) {
+                            var bbox = response.data.boundingBox;
+                            var extent = [bbox[0],bbox[1],bbox[2],bbox[3]];
+                            DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
+                        }
+                    }, function() {//on error
+                        // failed to calculate an extent, just load the full map
+                        DataViewer.initMap('styledMapPreviewForWMTS');
+                    }
+                );
+            }else {
+                DataViewer.initMap('styledMapPreviewForWMTS');
+                DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom()+1);
+            }
+        };
+
+        /**
+         * Proceed to select all items of dashboard
+         * depending on the property binded to checkbox.
+         */
+        $scope.selectAllData = function() {
+            var array = $filter('filter')($scope.wrap.fullList, {'type':$scope.wrap.filtertype, '$': $scope.wrap.filtertext},$scope.wrap.matchExactly);
+            $scope.values.listSelect = ($scope.dataSelect.all) ? array.slice(0) : [];
+            $scope.previewData();
+        };
+        /**
+         * binding call when clicking on each row item.
+         */
+        $scope.toggleDataInArray = function(item){
+            var itemExists = false;
+            for (var i = 0; i < $scope.values.listSelect.length; i++) {
+                if ($scope.values.listSelect[i].id === item.id) {
+                    itemExists = true;
+                    $scope.values.listSelect.splice(i, 1);//remove item
+                    break;
+                }
+            }
+            if(!itemExists){
+                $scope.values.listSelect.push(item);
+            }
+            $scope.dataSelect.all=($scope.values.listSelect.length === $scope.wrap.fullList.length);
+            $scope.previewData();
+
+        };
+        /**
+         * Returns true if item is in the selected items list.
+         * binding function for css purposes.
+         * @param item
+         * @returns {boolean}
+         */
+        $scope.isInSelected = function(item){
+            for(var i=0; i < $scope.values.listSelect.length; i++){
+                if($scope.values.listSelect[i].id === item.id){
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        $scope.setTargetStyle = function(data,index) {
+            var tmp = data.targetStyle.splice(index,1);
+            data.targetStyle.unshift(tmp[0]);
+            $scope.previewData();
+        };
+
+        /**
+         * truncate text with JS.
+         * Why not use CSS for this?
+         *
+         * css rule is
+         * {
+         *  width: 100px
+         *  white-space: nowrap
+         *  overflow: hidden
+         *  text-overflow: ellipsis // This is where the magic happens
+         *  }
+         *
+         * @param text
+         * @param length
+         * @returns {string}
+         */
+        $scope.truncate = function(text,length){
+            if(text) {
+                return (text.length > length) ? text.substr(0, length) + "..." : text;
+            }
+        };
+
+        $scope.initInternalDataWCS();
     })
     /**
      * Controller of WMS internal data
