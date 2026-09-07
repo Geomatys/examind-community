@@ -5,6 +5,8 @@ import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
+import org.geotoolkit.openeo.dto.process.DataTypeSchema;
+import org.geotoolkit.openeo.process.OpenEOExposedProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -12,11 +14,12 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * @author Quentin BIALOTA (Geomatys)
  */
-public class SaveResultCoverageDescriptor extends AbstractCstlProcessDescriptor {
+public class SaveResultCoverageDescriptor extends AbstractCstlProcessDescriptor implements OpenEOExposedProcess {
 
     public static final String NAME = "coverage.save_result";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Save a coverage in a specified format");
@@ -73,5 +76,21 @@ public class SaveResultCoverageDescriptor extends AbstractCstlProcessDescriptor 
     @Override
     public AbstractCstlProcess buildProcess(ParameterValueGroup input) {
         return new SaveResultCoverageProcess(this, input);
+    }
+
+    @Override
+    public String getOpenEOProcessId() {
+        return "save_result";
+    }
+
+    @Override
+    public DataTypeSchema[] getOpenEOSchemaOverride(String descriptorName, String type, Class<?> clazz,
+                                                    boolean isArray, boolean mandatory) {
+        if (clazz == String.class && descriptorName.equalsIgnoreCase(FORMAT_NAME)) {
+            return new DataTypeSchema[]{
+                    new DataTypeSchema(List.of(DataTypeSchema.Type.STRING), "output-format")
+            };
+        }
+        return null;
     }
 }

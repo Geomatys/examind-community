@@ -5,6 +5,7 @@ import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
+import org.geotoolkit.openeo.process.OpenEOExposedProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterDescriptor;
@@ -20,7 +21,7 @@ import java.util.Map;
  *
  * @author Quentin BIALOTA (Geomatys)
  */
-public class LoadStacDescriptor extends AbstractCstlProcessDescriptor {
+public class LoadStacDescriptor extends AbstractCstlProcessDescriptor implements OpenEOExposedProcess {
 
     public static final String NAME = "coverage.openeo.load.stac";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Load STAC.");
@@ -125,6 +126,11 @@ public class LoadStacDescriptor extends AbstractCstlProcessDescriptor {
     @Override
     public AbstractCstlProcess buildProcess(ParameterValueGroup input) {
         return new LoadStacProcess(this, input);
+    }
+
+    @Override
+    public String getOpenEOProcessId() {
+        return "load_stac";
     }
 }
 

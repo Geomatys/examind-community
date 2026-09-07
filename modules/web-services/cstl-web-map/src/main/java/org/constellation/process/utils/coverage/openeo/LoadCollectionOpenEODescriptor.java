@@ -5,6 +5,8 @@ import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
+import org.geotoolkit.openeo.dto.process.DataTypeSchema;
+import org.geotoolkit.openeo.process.OpenEOExposedProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterDescriptor;
@@ -12,15 +14,15 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
 
 /**
  * Process descriptor for loading a collection in OpenEO.
  *
  * @author Quentin BIALOTA (Geomatys)
  */
-public class LoadCollectionOpenEODescriptor extends AbstractCstlProcessDescriptor {
+public class LoadCollectionOpenEODescriptor extends AbstractCstlProcessDescriptor implements OpenEOExposedProcess {
 
     public static final String NAME = "coverage.openeo.load";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Load a collection.");
@@ -141,6 +143,21 @@ public class LoadCollectionOpenEODescriptor extends AbstractCstlProcessDescripto
     @Override
     public AbstractCstlProcess buildProcess(ParameterValueGroup input) {
         return new LoadCollectionOpenEOProcess(this, input);
+    }
+
+    @Override
+    public String getOpenEOProcessId() {
+        return "load_collection";
+    }
+
+
+    @Override
+    public DataTypeSchema[] getOpenEOSchemaOverride(String descriptorName, String type, Class<?> clazz,
+                                                    boolean isArray, boolean mandatory) {
+        if (descriptorName.equalsIgnoreCase(COVERAGE_LAYER_NAME)) {
+            return new DataTypeSchema[]{new DataTypeSchema(type == null ? List.of() : List.of(DataTypeSchema.Type.fromValue(type, isArray)), "collection-id")};
+        }
+        return null;
     }
 }
 
