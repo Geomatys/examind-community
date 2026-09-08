@@ -20,7 +20,6 @@ package com.examind.ogc.api.rest.coverages;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -43,6 +42,7 @@ import org.geotoolkit.ogcapi.model.common.Schema;
 import org.geotoolkit.ogcapi.model.coverage.DataRecord;
 import org.geotoolkit.ogcapi.model.coverage.DomainSet;
 import org.geotoolkit.ogcapi.model.common.Conformance;
+import org.geotoolkit.ogcapi.model.common.Collections;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
 import static org.constellation.coverage.core.AtomLinkBuilder.buildDocumentLinks;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -74,7 +75,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping("coverage/{serviceId:.+}")
 public class OGCCoverageAPI extends GridWebService<WCSWorker> implements ConformanceProvider {
 
-    private static final List<Link> CONFORMS = Collections.unmodifiableList(Arrays.asList( //TODO : Conformity with Part 1 html, Part 2 simple-query & html
+    private static final List<Link> CONFORMS = List.of( //TODO : Conformity with Part 1 html, Part 2 simple-query & html
             new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core", null, null, null, null, null),
             new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page", null, null, null, null, null),
             new Link("http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json", null, null, null, null, null),
@@ -87,7 +88,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
             //new Link("https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html", null, null, null), Doesn't conform
 
             new Link("http://www.opengis.net/spec/ogcapi-coverages-1/1.0/conf/core", null, null, null, null, null)
-    ));
+    );
 
     public static final String SPECIFICATION_URL = "https://docs.ogc.org/DRAFTS/19-087.html";
 
@@ -95,24 +96,14 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         // here we use wcs for worker retrieval purpose
         super(ServiceDef.Specification.WCS);
     }
-
+    
     @Override
     protected ResponseObject treatIncomingRequest(Object objectRequest, WCSWorker worker) {
         try {
             String format = getParameter("f", false);
-            if (format == null) {
-                format = "application/json";
-            }
-            final boolean asJson = format.contains(MimeType.APP_JSON);
-            MediaType media;
-            if (asJson) {
-                media = MediaType.APPLICATION_JSON;
-            } else {
-                media = MediaType.APPLICATION_XML;
-            }
-
-            LandingPage landingPage = buildLandingPage(format, worker.getId());
-            return new ResponseObject(landingPage, media, HttpStatus.OK);
+            verifyFormatValue(format);
+            LandingPage landingPage = buildLandingPage(worker.getId());
+            return new ResponseObject(landingPage, MediaType.APPLICATION_JSON, HttpStatus.OK);
         } catch (CstlServiceException ex) {
             return processExceptionResponse(ex, ServiceDef.WCS_2_0_0, worker);
         }
@@ -124,36 +115,27 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         return new ResponseObject(new ErrorMessage(exc));
     }
 
-    @RequestMapping(value = "/", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity getLandingPage(@PathVariable("serviceId") String serviceId, @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) {
+    @RequestMapping(value = "/", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity getLandingPage(@PathVariable("serviceId") String serviceId, @RequestParam(name = "f", required = false) String format) {
         try {
-            final boolean asJson = format.contains(MimeType.APP_JSON);
-            MediaType media;
-            if (asJson) {
-                media = MediaType.APPLICATION_JSON;
-            } else {
-                media = MediaType.APPLICATION_XML;
-            }
-            LandingPage landingPage = buildLandingPage(format, serviceId);
-            return new ResponseObject(landingPage, media, HttpStatus.OK).getResponseEntity();
+            verifyFormatValue(format);
+            LandingPage landingPage = buildLandingPage(serviceId);
+            return new ResponseObject(landingPage, MediaType.APPLICATION_JSON, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
 
-    private LandingPage buildLandingPage(String format, String serviceId) {
-        final boolean asJson = format.contains(MimeType.APP_JSON);
+    private LandingPage buildLandingPage(String serviceId) {
         String url    = getServiceURL() + "/coverage/" + serviceId;
         String wcsUrl = getServiceURL() + "/wcs/" + serviceId + "?";
 
         List<Link> links = new ArrayList<>();
         links.add(new Link(url + "/api", "service-desc", null, "en", "the API definition", null));
-        buildDocumentLinks(url, asJson, links, false);
+        buildDocumentLinks(url, links);
         links.add(new Link(url + "/conformance", "conformance", MimeType.APP_JSON, "en", "OGC API conformance classes implemented by this server as JSON", null));
-        links.add(new Link(url + "/conformance?f=application/xml", "conformance", MimeType.APP_XML, "en", "OGC API conformance classes implemented by this server as XML", null));
         links.add(new Link(url + "/collections", "data", MimeType.APP_JSON, "en", "Information about the feature collections as JSON", null));
-        links.add(new Link(url + "/collections?f=application/xml", "data", MimeType.APP_XML, "en", "Information about the feature collections as XML", null));
         return new LandingPage().links(links);
     }
 
@@ -162,56 +144,42 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         return new RedirectView(SPECIFICATION_URL);
     }
 
-    @RequestMapping(value = "/conformance", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity getConformance(@RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) {
+    @RequestMapping(value = "/conformance", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getConformance(@RequestParam(name = "f", required = false) String format) {
         try {
-            final boolean asJson = format.contains(MimeType.APP_JSON);
-            MediaType media;
-            if (asJson) {
-                media = MediaType.APPLICATION_JSON;
-            } else {
-                media = MediaType.APPLICATION_XML;
-            }
+            verifyFormatValue(format);
             Conformance conformance = new Conformance(CONFORMS);
-            return new ResponseObject(conformance, media, HttpStatus.OK).getResponseEntity();
+            return new ResponseObject(conformance, MediaType.APPLICATION_JSON, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
 
-    @RequestMapping(value = "/collections", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @RequestMapping(value = "/collections", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getCollections(@PathVariable("serviceId") String serviceId,
                                          @RequestParam(value = "bbox", required = false, defaultValue = "") String bbox,
-                                         @RequestParam(value = "time", required = false, defaultValue = "") String time,
-                                         @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) {
+                                         @RequestParam(value = "time", required = false, defaultValue = "") String time, 
+                                         @RequestParam(name = "f", required = false) String format) {
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
 
         if (worker != null) {
             try {
+                verifyFormatValue(format);
                 List<CollectionDescription> layers = worker.getCollections(new ArrayList<>(), false);
-                org.geotoolkit.ogcapi.model.common.Collections response = new org.geotoolkit.ogcapi.model.common.Collections();
+                Collections response = new Collections();
 
                 response.setCollections(layers);
 
-                final boolean asJson = format.contains(MimeType.APP_JSON);
-                MediaType media;
                 String url = getServiceURL() + "/coverage/" + serviceId + "/collections";
 
                 List<Link> links = new ArrayList<>();
-                buildDocumentLinks(url, asJson, links, false);
+                buildDocumentLinks(url, links);
 
                 response.setLinks(links);
 
-                if (asJson) {
-                    media = MediaType.APPLICATION_JSON;
-                } else {
-                    media = MediaType.APPLICATION_XML;
-                    //collections.setXMLBBoxMode();
-                }
-
-                return new ResponseObject(response, media, HttpStatus.OK).getResponseEntity();
+                return new ResponseObject(response, MediaType.APPLICATION_JSON, HttpStatus.OK).getResponseEntity();
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
                 return new ErrorMessage(ex).build();
@@ -220,33 +188,21 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = "/collections/{collectionId}", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @RequestMapping(value = "/collections/{collectionId}", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity getCollection(@PathVariable("serviceId") String serviceId,
-                                        @PathVariable(value = "collectionId") String collectionId,
-                                        @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) {
+                                      @PathVariable(value = "collectionId") String collectionId,
+                                      @RequestParam(name = "f", required = false) String format) {
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
 
         if (worker != null) {
             try {
-                // if the layer does not exist an exception will be thrown
-                final List<CollectionDescription> layers = worker.getCollections(Collections.singletonList(collectionId), false);
-                final boolean asJson = format.contains(MimeType.APP_JSON);
-                Object result;
-                MediaType media;
-                if (asJson) {
-                    media = MediaType.APPLICATION_JSON;
-                    result = layers.get(0);
-                } else {
-                    media = MediaType.APPLICATION_XML;
-                    org.geotoolkit.ogcapi.model.common.Collections collections = new org.geotoolkit.ogcapi.model.common.Collections();
-                    collections.setLinks(new ArrayList<>());
-                    collections.setCollections(layers);
-                    //collections.setXMLBBoxMode();
-                    result = collections;
-                }
-                return new ResponseObject(result, media, HttpStatus.OK).getResponseEntity();
-
+                verifyFormatValue(format);
+                final List<CollectionDescription> layers = worker.getCollections(List.of(collectionId), false);
+                
+                 // if the layer does not exist an exception will be thrown
+                CollectionDescription result = layers.get(0);
+                return new ResponseObject(result, MediaType.APPLICATION_JSON, HttpStatus.OK).getResponseEntity();
             } catch (CstlServiceException ex) {
                 if (ex.getExceptionCode().equals(LAYER_NOT_DEFINED)) {
                     return new ErrorMessage(HttpStatus.NOT_FOUND).i18N(I18nCodes.Collection.NOT_FOUND).build();
@@ -347,24 +303,20 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
     @RequestMapping(value = "/collections/{collectionId}/coverage/domainset", method = RequestMethod.GET)
     public ResponseEntity coverageDomainSet(@PathVariable("serviceId") String serviceId,
                                    @PathVariable(value = "collectionId") String collectionId,
-                                   @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format,
+                                   @RequestParam(name = "f", required = false) String format,
                                    @RequestParam(name = "bbox", required = false) List<Double> bbox,
                                    @RequestParam(name = "bbox-crs", required = false) String bboxCrs) throws ConstellationException {
 
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
 
-        final boolean asJson = format.contains(MimeType.APP_JSON);
-        if (!asJson) {
-            format = MediaType.APPLICATION_XML_VALUE;
-        }
-
         if (worker != null) {
             try {
+                verifyFormatValue(format);
                 // if the layer does not exist an exception will be thrown
                 DomainSet response = worker.getDomainSet(collectionId, bbox, bboxCrs);
 
-                return new ResponseObject(response, format).getResponseEntity();
+                return new ResponseObject(response, MediaType.APPLICATION_JSON).getResponseEntity();
 
             } catch (CstlServiceException ex) {
                 if (ex.getExceptionCode().equals(LAYER_NOT_DEFINED)) {
@@ -390,22 +342,18 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
     @RequestMapping(value = "/collections/{collectionId}/coverage/rangetype", method = RequestMethod.GET)
     public ResponseEntity coverageRangeType(@PathVariable("serviceId") String serviceId,
                                             @PathVariable(value = "collectionId") String collectionId,
-                                            @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) throws ConstellationException {
+                                            @RequestParam(name = "f", required = false) String format) throws ConstellationException {
 
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
 
-        final boolean asJson = format.contains(MimeType.APP_JSON);
-        if (!asJson) {
-            format = MediaType.APPLICATION_XML_VALUE;
-        }
-
         if (worker != null) {
             try {
+                verifyFormatValue(format);
                 // if the layer does not exist an exception will be thrown
                 DataRecord response = worker.getDataRecord(collectionId);
 
-                return new ResponseObject(response, format).getResponseEntity();
+                return new ResponseObject(response, MediaType.APPLICATION_JSON).getResponseEntity();
 
             } catch (CstlServiceException ex) {
                 if (ex.getExceptionCode().equals(LAYER_NOT_DEFINED)) {
@@ -434,20 +382,19 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
     @RequestMapping(value = "/collections/{collectionId}/schema", method = RequestMethod.GET)
     public ResponseEntity coverageSchema(@PathVariable("serviceId") String serviceId,
                                             @PathVariable(value = "collectionId") String collectionId,
-                                            @RequestParam(name = "subset", required = false) String subset, // Not standard, but useful to reduce the size of the response when only a subset of dimensions is needed
-                                            @RequestParam(name = "force-calculate-stats", required = false, defaultValue = "false") boolean forceCalculateStatistics, // Not standard, but useful to force the calculation of the statistics
-                                            @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format) throws ConstellationException {
+                                            // Not standard, but useful to reduce the size of the response when only a subset of dimensions is needed
+                                            @RequestParam(name = "subset", required = false) String subset, 
+                                            // Not standard, but useful to force the calculation of the statistics
+                                            @RequestParam(name = "force-calculate-stats", required = false, defaultValue = "false") boolean forceCalculateStatistics,
+                                            @RequestParam(name = "f", required = false) String format
+                                        ) throws ConstellationException {
 
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
 
-        final boolean asJson = format.contains(MimeType.APP_JSON);
-        if (!asJson) {
-            format = MediaType.APPLICATION_XML_VALUE;
-        }
-
         if (worker != null) {
             try {
+                verifyFormatValue(format);
                 List<String> subsetData = new ArrayList<>();
                 if (subset != null && !subset.isEmpty()) {
                     subsetData = Arrays.stream(subset.split(",")).toList();
@@ -456,7 +403,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
                 // if the layer does not exist an exception will be thrown
                 Schema response = worker.getSchema(collectionId, subsetData, forceCalculateStatistics);
 
-                return new ResponseObject(response, format).getResponseEntity();
+                return new ResponseObject(response, MediaType.APPLICATION_JSON).getResponseEntity();
 
             } catch (CstlServiceException ex) {
                 if (ex.getExceptionCode().equals(LAYER_NOT_DEFINED)) {
@@ -475,5 +422,11 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
     @Override
     public List<Link> getConformances() {
         return CONFORMS;
+    }
+    
+    private static void verifyFormatValue(String format) throws CstlServiceException {
+        if (format != null && !format.isEmpty() && !format.contains(MimeType.APP_JSON)) {
+            throw new CstlServiceException("Unsupported media type for format", null, INVALID_PARAMETER_VALUE, "f", 406);
+        }
     }
 }

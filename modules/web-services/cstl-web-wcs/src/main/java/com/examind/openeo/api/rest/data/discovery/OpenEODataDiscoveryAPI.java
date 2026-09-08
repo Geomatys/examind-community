@@ -16,7 +16,6 @@ import org.constellation.configuration.Application;
 import org.constellation.coverage.core.WCSWorker;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.GridWebService;
 import org.constellation.ws.rs.ResponseObject;
@@ -164,7 +163,7 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
 
     /**
      * {@inheritDoc}
-     * @param objectRequest if the server receive a POST request in XML,
+     * @param objectRequest if the server receive a POST request in XML/json,
      *        this object contain the request. Else for a GET or a POST kvp
      *        request this parameter is {@code null}
      *
@@ -191,10 +190,9 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
             }
         } else {
             //For the moment only json format is accepted
-            MediaType media = MediaType.APPLICATION_JSON;
             try {
-                Collections collections  = buildCollections(worker, MimeType.APP_JSON);
-                return new ResponseObject(collections, media, HttpStatus.OK);
+                Collections collections  = buildCollections(worker);
+                return new ResponseObject(collections, MediaType.APPLICATION_JSON, HttpStatus.OK);
             } catch (CstlServiceException ex) {
                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
                 return new ResponseObject(HttpStatus.NOT_FOUND);
@@ -248,7 +246,7 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
 
             if (worker != null) {
                 try {
-                    Collections response = buildCollections(worker, MimeType.APP_JSON);
+                    Collections response = buildCollections(worker);
                     return new ResponseObject(response, MediaType.APPLICATION_JSON, HttpStatus.OK).getResponseEntity();
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -379,13 +377,12 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
      * @return the collections response
      * @throws CstlServiceException if an error occurs
      */
-    private Collections buildCollections(final WCSWorker worker, String format) throws CstlServiceException {
+    private Collections buildCollections(final WCSWorker worker) throws CstlServiceException {
         List<Collection> layers = worker.getCollections(List.of(), true).stream().map(collection -> (Collection) collection).toList();
 
         List<Link> links = new ArrayList<>();
-        final boolean asJson = format.contains(MimeType.APP_JSON);
         String url = getServiceURL() + "/openeo/" + worker.getId() + "/collections";
-        buildDocumentLinks(url, asJson, links, false);
+        buildDocumentLinks(url, links);
 
         return new Collections(layers, links);
     }

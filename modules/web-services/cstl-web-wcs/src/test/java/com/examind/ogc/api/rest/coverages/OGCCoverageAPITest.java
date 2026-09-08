@@ -25,7 +25,6 @@ import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.test.utils.Order;
 import org.constellation.ws.embedded.AbstractGrizzlyServer;
 import org.constellation.ws.embedded.WCSControllerConfig;
 import org.geotoolkit.wcs.xml.WCSMarshallerPool;
@@ -40,6 +39,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.logging.Level;
 import jakarta.xml.bind.JAXBException;
+import java.net.URI;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.TestEnvironment;
 
@@ -60,6 +60,7 @@ import org.constellation.exception.ConstellationException;
  * @author Quentin BIALOTA (Geomatys)
  * @author Hilmi BOUALLAGUE (Geomatys)
  * @author Johann Sorel (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
 @RunWith(TestRunner.class)
 public class OGCCoverageAPITest extends AbstractGrizzlyServer {
@@ -170,109 +171,71 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 1)
     public void testLandingPage() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
         String content = getStringResponse(conn);
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/landing-page.json");
         compareJSON(expected, content);
-
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/landing-page.xml");
-        domCompare(expected, content);
     }
 
     @Test
-    @Order(order = 2)
     public void testApi() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/api");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/api").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(302, ((HttpURLConnection) conn).getResponseCode());
     }
 
     @Test
-    @Order(order = 3)
     public void testConformance() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/conformance");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/conformance").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
         String content = getStringResponse(conn);
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/conformance.json");
         compareJSON(expected, content);
-
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/conformance?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/conformance.xml");
-        domCompare(expected, content);
-
     }
 
     @Test
-    @Order(order = 4)
     public void testCollections() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
 
         String content = getStringResponse(conn);
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/collections.json");
         compareJSON(expected, content);
-
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/collections.xml");
-        domCompare(expected, content);
     }
 
     @Test
-    @Order(order = 5)
     public void getCoverageInfo() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
 
         String content = getStringResponse(conn);
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/coverage_info.json");
         compareJSON(expected, content);
-
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/coverage_info.xml");
-        domCompare(expected, content);
     }
 
     @Test
-    @Order(order = 6)
     public void getCoverageInfoInvalid() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/collections/default/missingId");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/collections/default/missingId").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(404, ((HttpURLConnection) conn).getResponseCode());
     }
 
     @Test
-    @Order(order = 7)
     public void getCoverageDomainSet() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/domainset");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/domainset").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
 
@@ -280,16 +243,8 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/domainset.json");
         compareJSON(expected, content);
 
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/domainset?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/domainset.xml");
-        domCompare(expected, content);
-        
         // TODO : Fix issue with NetCDF
-//        URL requestNC = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/coverage/domainset");
+//        URL requestNC = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/coverage/domainset");
 //        URLConnection connNC = requestNC.openConnection();
 //        assertEquals(200, ((HttpURLConnection) connNC).getResponseCode());
 //
@@ -301,10 +256,9 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 8)
     public void getCoverageRangeType() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/rangetype");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/rangetype").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
 
@@ -312,20 +266,12 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/rangetype.json");
         compareJSON(expected, content);
 
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage/rangetype?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/rangetype.xml");
-        domCompare(expected, content);
     }
 
     @Test
-    @Order(order = 9)
     public void getCoverageSchema() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
 
@@ -333,16 +279,8 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/schema.json");
         compareJSON(expected, content);
 
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/schema.xml");
-        domCompare(expected, content);
-
         // TODO : Fix issue with NetCDF
-//        URL requestNC = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/schema");
+//        URL requestNC = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/schema");
 //        URLConnection connNC = requestNC.openConnection();
 //        assertEquals(200, ((HttpURLConnection) connNC).getResponseCode());
 //
@@ -354,10 +292,9 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 10)
     public void getCoverageSchemaForceStatisticsCalculation() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema?force-calculate-stats=true");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema?force-calculate-stats=true").toURL();
         URLConnection conn = request.openConnection();
         assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
 
@@ -365,16 +302,8 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
         String expected = getStringFromFile("com/examind/ogc/api/rest/coverages/json/schema-force.json");
         compareJSON(expected, content);
 
-        request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/schema?f=xml");
-        conn = request.openConnection();
-        assertEquals(200, ((HttpURLConnection) conn).getResponseCode());
-
-        content = getStringResponse(conn);
-        expected = getStringFromFile("com/examind/ogc/api/rest/coverages/xml/schema-force.xml");
-        domCompare(expected, content);
-
         // TODO : Fix issue with NetCDF
-//        URL requestNC = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/schema?force-calculate-stats=true");
+//        URL requestNC = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_netcdf/schema?force-calculate-stats=true");
 //        URLConnection connNC = requestNC.openConnection();
 //        assertEquals(200, ((HttpURLConnection) connNC).getResponseCode());
 //
@@ -386,10 +315,9 @@ public class OGCCoverageAPITest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 11)
     public void getCoverage() throws Exception {
         init();
-        URL request = new URL("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage");
+        URL request = new URI("http://localhost:" + getCurrentPort() + "/WS/coverage/default/collections/test_tif/coverage").toURL();
 
         Path p = configDir.resolve("test_tif.tif");
         writeInFile(request, p);

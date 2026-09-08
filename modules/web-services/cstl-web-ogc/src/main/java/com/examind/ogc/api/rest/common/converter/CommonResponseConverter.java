@@ -19,15 +19,11 @@
 
 package com.examind.ogc.api.rest.common.converter;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.xml.bind.Marshaller;
-import org.constellation.ws.MimeType;
-import org.geotoolkit.ogcapi.marshaller.CommonResponseMarshallerPool;
 import org.geotoolkit.ogcapi.model.common.CommonResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -59,7 +55,7 @@ public class CommonResponseConverter implements HttpMessageConverter<CommonRespo
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
-        return Arrays.asList(MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.APPLICATION_JSON);
+        return Arrays.asList(MediaType.APPLICATION_JSON);
     }
 
     @Override
@@ -70,32 +66,11 @@ public class CommonResponseConverter implements HttpMessageConverter<CommonRespo
     @Override
     public void write(CommonResponse t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
-            MediaType media = null;
-            try {
-                media = outputMessage.getHeaders().getContentType();
-            } catch (InvalidMediaTypeException ex) {
-                // we let pass for GML mme type not supported by Spring
-            }
-
-            if (isXMLMime(media)) {
-                final Marshaller m = CommonResponseMarshallerPool.getInstance().acquireMarshaller();
-
-                m.marshal(t, outputMessage.getBody());
-                CommonResponseMarshallerPool.getInstance().recycle(m);
-            } else {
-                ObjectMapper m = new ObjectMapper();
-                m.setSerializationInclusion(Include.NON_NULL);
-                m.writeValue(outputMessage.getBody(), t);
-            }
+            ObjectMapper m = new ObjectMapper();
+            m.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
+            m.writeValue(outputMessage.getBody(), t);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Exception while writing the CommonAPI response", ex);
         }
-    }
-
-    private boolean isXMLMime(MediaType media) {
-        // default to json if null
-        // some mime type lost their initial space character.
-        return media != null && (MediaType.APPLICATION_XML.equals(media) || MediaType.TEXT_XML.equals(media) ||
-                media.includes(MediaType.TEXT_XML) || media.toString().equals(MimeType.APP_GML32_XML.replaceAll(" ", "")));
     }
 }
