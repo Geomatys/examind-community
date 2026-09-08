@@ -538,6 +538,24 @@
                     <ows:AnyValue/>
                 </LiteralData>
             </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
+                </LiteralData>
+            </Input>
         </DataInputs>
         <ProcessOutputs>
             <Output>
@@ -4107,7 +4125,6 @@
                 <LiteralData>
                     <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
                     <ows:AllowedValues>
-                        <ows:Value>GROOVY</ows:Value>
                         <ows:Value>LUA</ows:Value>
                     </ows:AllowedValues>
                 </LiteralData>
@@ -4381,6 +4398,24 @@
                 <LiteralData>
                     <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
                     <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
                 </LiteralData>
             </Input>
         </DataInputs>
@@ -5932,6 +5967,24 @@
                     </Supported>
                 </ComplexData>
             </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
+                </LiteralData>
+            </Input>
         </DataInputs>
         <ProcessOutputs>
             <Output>
@@ -7082,6 +7135,24 @@
                     </Supported>
                 </ComplexData>
             </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
+                </LiteralData>
+            </Input>
         </DataInputs>
         <ProcessOutputs>
             <Output>
@@ -7206,6 +7277,24 @@
                         </Format>
                     </Supported>
                 </ComplexData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
+                </LiteralData>
             </Input>
         </DataInputs>
         <ProcessOutputs>
@@ -7733,6 +7822,24 @@
                     <ows:AnyValue/>
                 </LiteralData>
             </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
+                </LiteralData>
+            </Input>
         </DataInputs>
         <ProcessOutputs>
             <Output>
@@ -7823,6 +7930,24 @@
                 <LiteralData>
                     <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
                     <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
                 </LiteralData>
             </Input>
         </DataInputs>
@@ -7949,6 +8074,24 @@
                         </Format>
                     </Supported>
                 </ComplexData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:input:outputSampleType</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>SOURCE</ows:Value>
+                        <ows:Value>BYTE</ows:Value>
+                        <ows:Value>USHORT</ows:Value>
+                        <ows:Value>SHORT</ows:Value>
+                        <ows:Value>INT</ows:Value>
+                        <ows:Value>FLOAT</ows:Value>
+                        <ows:Value>DOUBLE</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>DOUBLE</DefaultValue>
+                </LiteralData>
             </Input>
         </DataInputs>
         <ProcessOutputs>

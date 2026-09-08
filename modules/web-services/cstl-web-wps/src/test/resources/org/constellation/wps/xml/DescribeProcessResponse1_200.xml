@@ -332,6 +332,27 @@
                     </LiteralDataDomain>
                 </wps:LiteralData>
             </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
             <wps:Output>
                 <ows:Title xml:lang="fr-FR">Result</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
@@ -2073,7 +2094,6 @@
                     <wps:Format mimeType="text/plain" default="true"/>
                     <LiteralDataDomain>
                         <ows:AllowedValues>
-                            <ows:Value>GROOVY</ows:Value>
                             <ows:Value>LUA</ows:Value>
                         </ows:AllowedValues>
                         <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
@@ -2217,6 +2237,27 @@
                     <LiteralDataDomain>
                         <ows:AnyValue/>
                         <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
                     </LiteralDataDomain>
                 </wps:LiteralData>
             </wps:Input>
@@ -3012,6 +3053,27 @@
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
             <wps:Output>
                 <ows:Title xml:lang="fr-FR">Result</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
@@ -3539,6 +3601,27 @@
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
             <wps:Output>
                 <ows:Title xml:lang="fr-FR">Result</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
@@ -3587,6 +3670,27 @@
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
                 </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
             </wps:Input>
             <wps:Output>
                 <ows:Title xml:lang="fr-FR">Result</ows:Title>
@@ -3921,6 +4025,27 @@
                     </LiteralDataDomain>
                 </wps:LiteralData>
             </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
             <wps:Output>
                 <ows:Title xml:lang="fr-FR">Result</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
@@ -3964,6 +4089,27 @@
                     <LiteralDataDomain>
                         <ows:AnyValue/>
                         <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
                     </LiteralDataDomain>
                 </wps:LiteralData>
             </wps:Input>
@@ -4015,6 +4161,27 @@
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
                 </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">OutputSampleType</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sample type of the result coverage: BYTE, USHORT, SHORT, INT, FLOAT, DOUBLE (default), or SOURCE to keep the input coverage's original sample type (legacy behaviour, truncates non-integral results).</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:input:outputSampleType</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>SOURCE</ows:Value>
+                            <ows:Value>BYTE</ows:Value>
+                            <ows:Value>USHORT</ows:Value>
+                            <ows:Value>SHORT</ows:Value>
+                            <ows:Value>INT</ows:Value>
+                            <ows:Value>FLOAT</ows:Value>
+                            <ows:Value>DOUBLE</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>DOUBLE</ows:DefaultValue>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
             </wps:Input>
             <wps:Output>
                 <ows:Title xml:lang="fr-FR">Result</ows:Title>
