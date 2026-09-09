@@ -21,7 +21,7 @@ package com.examind.ogc.api.rest.coverages.converter;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.geotoolkit.ogcapi.model.coverage.CoverageResponse;
+import org.geotoolkit.ogcapi.dto.coverage.CoverageResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
