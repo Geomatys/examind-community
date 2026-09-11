@@ -191,10 +191,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "srs=EPSG:4326&bbox=-180,-90,180,90&"
             + "styles=&layers=";
     
+    // on the feroe island that match the date.
     private static final String WMS_GETMAP_SHAPE_TIME = "request=GetMap&service=WMS&version=1.3.0&"
             + "format=image/png&width=256&height=256&"
-            + "CRS=EPSG%3A3857&BBOX=410925.4640611075%2C5439870.428999424%2C415817.43387135875%2C5444762.398809675&"
-            + "layers=" + COUNTRIES + "&styles=&TIME=2023-03-13";
+            + "CRS=EPSG%3A3857&BBOX=-919047.0751%2C8688245.2063%2C-633859.8215%2C8973432.4599&"
+            + "layers=" + COUNTRIES + "&styles=&TIME=2027-03-13T12:00:00Z";
 
     private static final String WMS_GETFEATUREINFO_PLAIN_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -897,6 +898,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/png");
 
+        // for debug purpose
+        writeImageInFile(image, "image/png", CONFIG_DIR.resolve("SHAPE-TIME.png"));
+        
         // Test on the returned image.
         assertTrue(!(ImageTesting.isImageEmpty(image)));
         assertEquals(256, image.getWidth());
@@ -1203,13 +1207,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 .splitAsStream(extentTimeValueStr)
                 .map(String::valueOf)
                 .collect(Collectors.toUnmodifiableSet());
-        assertEquals(Set.of("2026-03-13", 
-                            "2027-03-13", 
-                            "2023-03-13", 
-                            "2024-03-13", 
-                            "2021-03-13", 
-                            "2025-03-13", 
-                            "2022-03-13"), extentTimeValues);
+        assertEquals(Set.of("2026-03-13T12:00:00Z", 
+                            "2027-03-13T12:00:00Z", 
+                            "2023-03-13T12:00:00Z", 
+                            "2024-03-13T12:00:00Z", 
+                            "2021-03-13T12:00:00Z", 
+                            "2025-03-13T12:00:00Z", 
+                            "2022-03-13T12:00:00Z"), extentTimeValues);
 
 
         String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();

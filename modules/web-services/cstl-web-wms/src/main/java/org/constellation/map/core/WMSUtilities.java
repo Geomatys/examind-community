@@ -21,9 +21,15 @@ package org.constellation.map.core;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -62,6 +68,11 @@ public class WMSUtilities {
     static {
         ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC") );
     }
+    public static final DateTimeFormatter ISO_8601_DATETIMEFORMATTER = new DateTimeFormatterBuilder()
+                .appendPattern("uuuu-MM-dd['T'HH:mm:ss'Z']")
+                .toFormatter(Locale.CANADA)
+                .withZone(ZoneId.of("UTC"))
+                .withResolverStyle(ResolverStyle.STRICT);
     
     public static BufferedImage getLegendGraphicImg(final MapItem mapItem, Dimension dimension, final LegendTemplate template,
                                           final Style style, final String rule, final Double scale)
@@ -264,6 +275,9 @@ public class WMSUtilities {
             synchronized (ISO_8601_FORMATTER) {
                 return ISO_8601_FORMATTER.format(d);
             }
+        }
+        if (obj instanceof TemporalAccessor temporal) {
+            return ISO_8601_DATETIMEFORMATTER.format(temporal);
         }
         return obj.toString();
     }
