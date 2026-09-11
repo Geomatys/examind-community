@@ -143,16 +143,26 @@ public class FileSystemUtilities {
         return result;
     }
     
+    /**
+     * File filter based on yaml extension and its content for regular provider.
+     * 
+     * @param path A file.
+     */
     public static boolean regularProviderFileFilter(Path path) {
         return providerFileFilter(path, Boolean.FALSE);
     }
     
+     /**
+     * File filter based on yaml extension and its content for computed provider.
+     * 
+     * @param path A file.
+     */
     public static boolean computedProviderFileFilter(Path path) {
         return providerFileFilter(path, Boolean.TRUE);
     }
     
      /**
-     * file filter based on yaml extension and its content.
+     * File filter based on yaml extension and its content.
      * 
      * @param path A file.
      * @param computedResource a flag to determine if the provider file contains or not a computed provider.
@@ -167,16 +177,22 @@ public class FileSystemUtilities {
         }
     }
     
+    /**
+     * File filter based on yaml extension and its content for sevice generating data.
+     * 
+     * @param path A file.
+     */
     public static boolean serviceWithDataFileFilter(Path path) {
         return serviceFileFilter(path, Boolean.TRUE);
     }
     
+    /**
+     * File filter based on yaml extension and its content for regular service.
+     * 
+     * @param path A file.
+     */
     public static boolean serviceNoDataFileFilter(Path path) {
         return serviceFileFilter(path, Boolean.FALSE);
-    }
-    
-    public static boolean serviceFileFilter(Path path) {
-        return serviceFileFilter(path, null);
     }
     
     /**

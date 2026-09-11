@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.api.PathStatus;
 import static org.constellation.api.PathStatus.ERROR;
@@ -52,7 +51,8 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 
 /**
- *
+ * Provider handler for coverage-SQL.
+ * 
  * @author glegal
  */
 public class CSQLProviderhandler extends FSProviderHandler {

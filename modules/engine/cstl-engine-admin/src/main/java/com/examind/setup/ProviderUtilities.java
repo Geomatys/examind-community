@@ -103,6 +103,14 @@ public class ProviderUtilities {
         return ProviderSourceType.FILE; 
     }
     
+    /**
+     * Return a Provider handler for the specified provider configuration.
+     * 
+     * @param pwp Provider configuration.
+     * @param analysis Filesystem analysis containing async relations (if asynchroneous mode is activated).
+     * 
+     * @return A {@link FSProviderHandler}
+     */
     public static FSProviderHandler getHandler(FileSystemAnalysis.ProviderWithPath pwp, FileSystemAnalysis analysis) {
         return switch (pwp.sourceType) {
             case CSQL      -> new CSQLProviderhandler(pwp,     analysis.asyncInfos);
@@ -141,10 +149,35 @@ public class ProviderUtilities {
         }
     }
 
+    /**
+     * Build a provider Configuration.
+     * 
+     * @param factoryName provider factory name (like: data-store, observation-store, ...)
+     * @param providerIdentifier Chosen provider identifier.
+     * @param impl Identifier of the store handling the data (like: GeoTIFF, geojson, ...)
+     * @param datasourceId Datasource to add to the provider configuration (mostly use for SQL datasource)
+     * @param datasourceParamName Name of the datasource parameter if "datasourceId" is specified.
+     * @return
+     * @throws ConstellationException 
+     */
     private static Config createProviderConfig(String factoryName, String providerIdentifier, String impl, Integer datasourceId, String datasourceParamName) throws ConstellationException {
-        return createProviderConfig(factoryName, providerIdentifier, impl, datasourceId, datasourceParamName, null, Set.of());
+        return createProviderConfig(factoryName, providerIdentifier, impl, datasourceId, datasourceParamName, Map.of(), Set.of());
     }
     
+    /**
+     * Build a provider Configuration.
+     * 
+     * @param factoryName provider factory name (like: data-store, observation-store, ...)
+     * @param providerIdentifier Chosen provider identifier.
+     * @param impl Identifier of the store handling the data (like: GeoTIFF, geojson, ...)
+     * @param datasourceId Datasource to add to the provider configuration (mostly use for SQL datasource)
+     * @param datasourceParamName Name of the datasource parameter if "datasourceId" is specified.
+     * @param parameters Map of parameters to dd to the provider configration.
+     * @param ignoredParameters Set of parameter names to ignore from the "parameters".
+     * 
+     * @return A providert configuration.
+     * @throws ConstellationException 
+     */
     private static Config createProviderConfig(String factoryName, String providerIdentifier, String impl, 
             Integer datasourceId, String datasourceParamName, 
             Map<String, String> parameters, Set<String> ignoredParameters) throws ConstellationException {
@@ -164,30 +197,59 @@ public class ProviderUtilities {
             config.parameter(datasourceParamName).setValue(datasourceId);
         }
         
-        if (parameters != null) {
-            for (Map.Entry<String, String> param : parameters.entrySet()) {
-                // skip some reserved or know parameter
-                String key = param.getKey();
-                if (ignoredParameters.contains(key)) continue;
-                try {
-                    ParameterValue<?> paramValue = config.parameter(param.getKey());
-                    paramValue.setValue(ObjectConverters.convert(param.getValue(), paramValue.getDescriptor().getValueClass()));
-                } catch (ParameterNotFoundException ex) {
-                    LOGGER.log(Level.WARNING, "Erreur while setting advanced parameter " + param.getKey() + " on provider: " + providerIdentifier, ex);
-                }
+        for (Map.Entry<String, String> param : parameters.entrySet()) {
+            // skip some reserved or know parameter
+            String key = param.getKey();
+            if (ignoredParameters.contains(key)) continue;
+            try {
+                ParameterValue<?> paramValue = config.parameter(param.getKey());
+                paramValue.setValue(ObjectConverters.convert(param.getValue(), paramValue.getDescriptor().getValueClass()));
+            } catch (ParameterNotFoundException ex) {
+                LOGGER.log(Level.WARNING, "Erreur while setting advanced parameter " + param.getKey() + " on provider: " + providerIdentifier, ex);
             }
         }
         return new Config(source, config);
     }
     
+    /**
+     * Store a provider pointing on a datasource.
+     * 
+     * @param conf Provider configuration from the yaml file.
+     * @param pBusiness provider bean.
+     * @param datasourceId Datasource id.
+     * 
+     * @return The created provider id.
+     * @throws ConstellationException 
+     */
     public static Integer createSourceProvider(Provider conf, IProviderBusiness pBusiness, Integer datasourceId) throws ConstellationException {
         return createProvider(conf, pBusiness, datasourceId, null);
     }
     
+    /**
+     * Store a provider pointing on a file.
+     * 
+     * @param conf Provider configuration from the yaml file.
+     * @param pBusiness provider bean.
+     * @param pathUri File path.
+     * 
+     * @return The created provider id.
+     * @throws ConstellationException 
+     */
     public static Integer createFileProvider(Provider conf, IProviderBusiness pBusiness, URI pathUri) throws ConstellationException {
         return createProvider(conf, pBusiness, null, pathUri);
     }
     
+    /**
+     * Store a provider.
+     * 
+     * @param conf Provider configurtion from the yaml file.
+     * @param pBusiness provider bean.
+     * @param datasourceId Datasource id.
+     * @param pathUri File path.
+     * 
+     * @return The created provider id.
+     * @throws ConstellationException 
+     */
     private static Integer createProvider(Provider conf, IProviderBusiness pBusiness, Integer datasourceId, URI pathUri) throws ConstellationException {
         String providerIdentifier = conf.getGeneratedIdentifier();
         
@@ -205,6 +267,16 @@ public class ProviderUtilities {
         return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, factoryName, config.source);
     }
     
+    /**
+     * Store a computed provider.
+     * 
+     * @param conf Provider configurtion from the yaml file.
+     * @param pBusiness provider bean.
+     * @param datas Data list to add to the computed provider.
+     * 
+     * @return The created provider id.
+     * @throws ConstellationException 
+     */
     public static Integer createComputedProvider(Provider conf, IProviderBusiness pBusiness, List<Data> datas) throws ConstellationException {
         String providerIdentifier = conf.getGeneratedIdentifier();
         String impl = conf.getProviderType();
@@ -220,7 +292,16 @@ public class ProviderUtilities {
         }
         return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, COMPUTED_PROVIDER, config.source);
     }
-    
+   
+    /**
+     * Build a coverage SQL provider.
+     * 
+     * @param pBusiness provider bean.
+     * @param providerIdentifier Chosen provider identifier.
+     * @param datasourceId SQL datasource for coverage sql provider.
+     * @return
+     * @throws ConstellationException 
+     */
     public static Integer createCSQLProvider(IProviderBusiness pBusiness, String providerIdentifier, Integer datasourceId) throws ConstellationException {
         Config config = createProviderConfig("data-store", providerIdentifier, "exa-coverage-sql", datasourceId, "datasourceId");
 
@@ -228,7 +309,15 @@ public class ProviderUtilities {
         return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", config.source);
     }
     
-    
+    /**
+     * Build a Metadata file provider.
+     * 
+     * @param pBusiness provider bean.
+     * @param serviceId csw service identifier.
+     * @param dataDirectory Path to the metadata files.
+     * @return
+     * @throws ConstellationException 
+     */
     public static Integer createMetadataFSProvider(IProviderBusiness pBusiness, String serviceId, String dataDirectory) throws ConstellationException {
         final String providerIdentifier   = "csw-" + serviceId;
         final Config config = createProviderConfig("metadata-store", providerIdentifier, "FilesystemMetadata", null, null);
@@ -241,6 +330,15 @@ public class ProviderUtilities {
         return pid;
     }
     
+    /**
+     * Build a Sensor file provider.
+     * 
+     * @param pBusiness provider bean.
+     * @param serviceId sensor service identifier.
+     * @param dataDirectory Path to the metadata files.
+     * @return
+     * @throws ConstellationException 
+     */
     public static Integer createSensorFSProvider(IProviderBusiness pBusiness, String serviceId, String path) throws ConstellationException {
         final String providerIdentifier   = "sensor-" + serviceId;
         final Config config = createProviderConfig("sensor-store", providerIdentifier, "filesensor", null, null);
@@ -252,6 +350,17 @@ public class ProviderUtilities {
     
     private final static Set<String> SKIPPED_OM = Set.of("om-implementation", "sn-implementation", "direct-provider", "create-data", "generate-from-existing", "sensor-metadata-path");
     
+    
+    /**
+     * Build an OM2 observation provider.
+     * 
+     * @param pBusiness provider bean.
+     * @param serviceId sensor service identifier.
+     * @param datasourceId SQL datasource id
+     * @param parameters Map of parameters to add to the provider configration.
+     * @return
+     * @throws ConstellationException 
+     */
     public static Integer createOM2DatabaseProvider(IProviderBusiness pBusiness, String serviceId, Map<String, String> parameters, Integer datasourceId) {
         try {
             final String providerIdentifier   = "om-" + serviceId;
@@ -270,6 +379,16 @@ public class ProviderUtilities {
         }
     }
     
+    /**
+     * Build an OM2 sensor provider.
+     * 
+     * @param pBusiness provider bean.
+     * @param serviceId sensor service identifier.
+     * @param datasourceId SQL datasource id
+     * @param parameters Map of parameters to add to the provider configration.
+     * @return
+     * @throws ConstellationException 
+     */
     public static Integer createSensorDatabaseProvider(IProviderBusiness pBusiness, String serviceId, Map<String, String> parameters, Integer datasourceId) {
         try {
             final String providerIdentifier   = "sensor-" + serviceId;
@@ -288,6 +407,11 @@ public class ProviderUtilities {
         }
     }
     
+    /**
+     * Add default OM2 configuration.
+     * 
+     * @param config A provider configuration.
+     */
     private static void addOMSpecificProperties(Config config) {
         config.config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
         config.config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
@@ -295,6 +419,12 @@ public class ProviderUtilities {
         config.config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
     }
     
+    /**
+     * handle special case for provider with specific path parameter name.
+     * 
+     * @param providerConf Provider configuration.
+     * @return the specific parameter name.
+     */
     public static String getPathParamName(Provider providerConf) {
         if (providerConf.getSource() != null) return null;
         if ("coverage-xml-pyramid".equals(providerConf.getProviderType())) {
@@ -306,6 +436,12 @@ public class ProviderUtilities {
         return null;
     }
     
+    /**
+     * A file filter for the  specified provider configuration.
+     * 
+     * @param providerConf A provider configuration.
+     * @return 
+     */
     public static Predicate<Path> getProviderFileFilter(Provider providerConf) {
         String dirFilter = providerConf.getDirectoryFilter();
         final Pattern dirPattern = (dirFilter != null) ? Pattern.compile(dirFilter) : null;

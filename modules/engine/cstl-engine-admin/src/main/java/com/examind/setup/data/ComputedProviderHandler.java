@@ -28,6 +28,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import org.constellation.dto.Data;
 
+/**
+ * Provider handler for computed data.
+ * 
+ * @author glegal
+ */
 public class ComputedProviderHandler extends FSProviderHandler {
     
     public ComputedProviderHandler(FileSystemAnalysis.ProviderWithPath pwp, Map<String, List<Service>> asyncInfos) {

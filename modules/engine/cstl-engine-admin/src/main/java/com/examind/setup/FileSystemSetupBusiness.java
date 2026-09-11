@@ -82,7 +82,8 @@ import org.geotoolkit.process.ProcessFinder;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
- *
+ * Handle data / styles / service at startup from a set of files.
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 @Component
@@ -139,7 +140,13 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     @Qualifier("cstlExecutor")
     private TaskExecutor taskExecutor;
     
-    
+    /**
+     * Perform Filesystem analysis.
+     * If "async" parameter is set to {@code true}, the relations between providers and service will be computed.
+     * 
+     * @param async Asynchoneous mode.
+     * @return A {@link FileSystemAnalysis}
+     */
     private FileSystemAnalysis analyze(boolean async) {
         Path styleDir = configBusiness.getStylesDirectory();
         Path servDir  = configBusiness.getServicesDirectory();
@@ -147,6 +154,15 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return new FileSystemAnalysis(styleDir, servDir, provDir, this::parseStyle, async);
     }
     
+    /**
+     * Executed at examind startup.
+     * If not deactivated by {@link AppProperty.EXA_FS_STARTUP} it will install all the data / styles / service
+     * from the filesystem configuration files.
+     * 
+     * It will extract the following application properties:
+     *  - {@link AppProperty.EXA_FS_ASYNC} activate asynchroneous mode.
+     *  - {@link AppProperty.EXA_FS_DIFF} activate diff mode.
+     */
     @PostConstruct
     public void initFsConfiguration() {
         boolean execAtStartup = Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE);
@@ -180,6 +196,8 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     /**
      * Install all the styles, services and providers from the filesystem configuration.
+     * In this mode, it will only insert or update the entites that are not yet present 
+     * or those who are modified.
      * 
      * @param async asynchroneous mode.
      */
@@ -189,12 +207,24 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         performDiff(analysis);
     }
     
+    /**
+     * Install all the styles, services and providers from the filesystem configuration.
+     * 
+     * @param async asynchroneous mode.
+     */
     @Override
     public void installDatas(boolean async) {
         FileSystemAnalysis analysis = analyze(async);
         installDatas(analysis);
     }
     
+    /**
+     * Install all the styles, services and providers from the filesystem configuration.
+     * In this mode, it will only insert or update the entites that are not yet present 
+     * or those who are modified.
+     * 
+     * @param analysis filesystem analysis.
+     */
     private void performDiff(FileSystemAnalysis analysis) {
         try {
             
@@ -202,7 +232,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             int dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "stylesFS", analysis.styleDir, FileSystemUtilities::sldFileFilter);
             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                handleStyleYamlFile(path, analysis);
+                handleStyleXmlFile(path, analysis);
             }
             
             // 2. install services with data
@@ -245,8 +275,16 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     """);
     }
     
-    
-    private void handleStyleYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis) throws ConstellationException {
+    /**
+     * Treat a XML file containing a style.
+     * Depending ont it status, it will be inserted/updated/removed.
+     * Does nothing if already integrated.
+     * 
+     * @param path The file path datasource information.
+     * @param analysis Full filesystem analysis.
+     * @throws ConstellationException 
+     */
+    private void handleStyleXmlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis) throws ConstellationException {
         Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
         MutableStyle style = analysis.styles.get(p.toString());
         
@@ -282,6 +320,15 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    /**
+     * Treat a yaml fileconfiguring a service.
+     * Depending ont it status, it will be inserted/updated/removed.
+     * Does nothing if already integrated.
+     * 
+     * @param path The file path datasource information.
+     * @param analysis Full filesystem analysis.
+     * @throws ConstellationException 
+     */
     private void handleServiceYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis, boolean withData) throws ConstellationException {
         Path p = datasourceBusiness.getDatasourcePath(path.getDatasourceId(), path.getPath());
         Service serv = withData ? analysis.servicesWithData.get(p.toString()) : analysis.services.get(p.toString());
@@ -317,6 +364,16 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    /**
+     * Treat a yaml file configuring a provider.
+     * Depending ont it status, it will be inserted/updated/removed.
+     * 
+     * if already integrated, it will handle changes in provider files.
+     * 
+     * @param path The file path datasource information.
+     * @param analysis Full filesystem analysis.
+     * @throws ConstellationException 
+     */
     private void handleProviderYamlFile(DataSourceSelectedPath path, FileSystemAnalysis analysis, boolean computed) {
         try {
             PathStatus status = PathStatus.valueOf(path.getStatus());
@@ -378,6 +435,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    /**
+     * remove a polling task for a provider.
+     * 
+     * @param ymlFile The yaml file contining the providr configuration.
+     * @throws ConstellationException 
+     */
     private void removePollingTask(Path ymlFile) throws ConstellationException {
         final String taskName = "Provider polling: " + ymlFile.toString();
         // remove previous polling task if exist
@@ -387,6 +450,13 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    /**
+     * Add a polling task for a provider (if configured in the yaml file).
+     * 
+     * @param pwp Instancied provider configuration.
+     * @param datasourceFileId Provider datasource id.
+     * @throws Exception 
+     */
     private void addPollingTask(ProviderWithPath pwp, Integer datasourceFileId) throws Exception {
         if (pwp.provider.getPollingInterval() != null) {
             final String cronTime = DurationToCronConverter.getCronExpression(pwp.provider.getPollingInterval());
@@ -416,6 +486,13 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    /**
+     * Handle changes in provider files.
+     * 
+     * @param providerFilePath The yaml file path containing the provider configuration. 
+     * @param datasourceFileId Provider datasource id.
+     * @throws ConstellationException 
+     */
     @Override
     public void handleProvidersChanges(Path providerFilePath, Integer datasourceFileId) throws ConstellationException {
         FileSystemAnalysis analysis = analyze(true);
@@ -424,6 +501,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         handler.handleProviderFileChanges(datasourceFileId);
     }
     
+    /**
+     * Install all the styles, services and providers from the filesystem configuration.
+     * 
+     * @param analysis filesystem analysis.
+     */
     private void installDatas(FileSystemAnalysis analysis) {
         try {
                     
@@ -598,6 +680,11 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return -1;
     }
     
+    /**
+     * Update a service from its configuration.
+     * 
+     * @param instance Service configuration.
+     */
     private Integer updateService(Integer serviceId, Service instance, boolean async) throws ConstellationException {
         // for now we do an simple remove/create 
         // TODO update metadata
@@ -606,6 +693,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return createService(instance, async);
     }
     
+    /**
+     * Remove all the providers from the specified datasource.
+     * 
+     * @param dsFileId datasource identifier.
+     * @throws ConstellationException 
+     */
     private void removeProviders(Integer dsFileId) throws ConstellationException {
         if (dsFileId == null || dsFileId == -1) return;
         List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
@@ -778,9 +871,17 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return datas;
     }
     
+    /**
+     * Reload all the service having a lin ith the specified dataset.
+     * 
+     * @param dataset A dataset identifier.s
+     * @param asyncInfos Computed dataset/service relations.
+     * 
+     * @throws ConstellationException 
+     */
     @Override
     public void asyncServiceReload(String dataset, Map<String, List<Service>> asyncInfos) throws ConstellationException {
-        List<Service> services = asyncInfos.getOrDefault(dataset, new ArrayList<>());
+        List<Service> services = asyncInfos.getOrDefault(dataset, List.of());
         for (Service service : services) {
             Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(service.getType(), service.getIdentifier());
             if (sid != null) {
@@ -797,6 +898,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
+    /**
+     * Parse a geotk style from a XML file.
+     * 
+     * @param path XML file path.
+     * @return a parsed {@link MutableStyle}.
+     */
     private MutableStyle parseStyle(Path path) {
         String fileName = path.getFileName().toString();
         String styleName = IOUtilities.filenameWithoutExtension(fileName);
@@ -810,6 +917,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return style;
     }
 
+    /**
+     * Import a {@link MutableStyle} into examind.
+     * 
+     * @param style A {@link MutableStyle}.
+     * @return The assigned style id.
+     */
     private Integer importStyle(MutableStyle style) {
         try {
             String type = "sld";

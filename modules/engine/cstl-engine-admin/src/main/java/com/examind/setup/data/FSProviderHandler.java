@@ -36,7 +36,8 @@ import org.constellation.repository.DataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- *
+ * Abstract class to handle providers updates.
+ * 
  * @author glegal
  */
 public abstract class FSProviderHandler {
@@ -85,10 +86,24 @@ public abstract class FSProviderHandler {
      */
     public abstract Integer createProviders(boolean diffMode);
     
+    /**
+     * Handle changes in files involved in this provider handler.
+     * 
+     * @param datasourceFileID The datasource identifier of the providers files.
+     * @throws ConstellationException 
+     */
     public void handleProviderFileChanges(Integer datasourceFileID) throws ConstellationException {
-        
+        // does nothing by default (for non files provider for example).
     }
     
+    /**
+     * Handle changes provider handler configuration.
+     * 
+     * @param dsFileId The datasource identifier of the providers files.
+     * @param diffMode Flag for diff mode.
+     * @return
+     * @throws ConstellationException 
+     */
     public Integer updateProviders(Integer dsFileId, boolean diffMode) throws ConstellationException {
         // for now we do an simple remove/create 
         // TODO update metadata
@@ -97,6 +112,12 @@ public abstract class FSProviderHandler {
         return createProviders(diffMode);
     }
     
+    /**
+     * Remove the providers for this handler.
+     * 
+     * @param dsFileId The datasource identifier of the providers files.
+     * @throws ConstellationException 
+     */
     protected void removeProviders(Integer dsFileId) throws ConstellationException {
         List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
         for (DataSourceSelectedPath path : paths) {
@@ -108,6 +129,15 @@ public abstract class FSProviderHandler {
         datasourceBusiness.delete(dsFileId);
     }
     
+    /**
+     * Geneerates the datas for the specified provider
+     * 
+     * @param pid Provider id.
+     * @param conf Provider configuration (From the yaml file).
+     * @param asyncInfos Provider/service relations in case of asynchroneous mode.
+     * @param create true if the datas does not already exist.
+     * @throws ConstellationException 
+     */
     protected void generateDatas(int pid, Provider conf, Map<String, List<Service>> asyncInfos, boolean create) throws ConstellationException {
         int datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
         generateDatas(pid, datasetId, asyncInfos, create);

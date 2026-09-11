@@ -39,7 +39,8 @@ import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.exception.ConstellationException;
 
 /**
- *
+ * Provider handler for files.
+ * 
  * @author glegal
  */
 public class FileProviderHandler extends FSProviderHandler {

@@ -47,7 +47,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 /**
- *
+ * Perform data / styles / service removal at startup.
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 @Component
@@ -77,6 +78,10 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
     @Autowired
     private IProcessBusiness processBusiness;
     
+    /**
+     * Executed at examind startup.
+     * If not deactivated by {@link AppProperty.EXA_FS_STARTUP} it will remove all the data / styles / service
+     */
     @PostConstruct
     public void initFsConfiguration() {
         if (Application.getBooleanProperty(AppProperty.EXA_FS_STARTUP, Boolean.TRUE)) {
@@ -84,6 +89,9 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
         }
     }
     
+    /**
+     * Remove all the data / styles / service.
+     */
     @Override
     public void cleanupDatas() {
         LOGGER.info("""
