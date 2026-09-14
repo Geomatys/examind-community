@@ -59,6 +59,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.WritableFeatureSet;
 import org.apache.sis.storage.aggregate.ConcatenatedFeatureSet;
 import org.apache.sis.storage.event.StoreListener;
+import org.apache.sis.storage.internal.shared.FeatureSetContentEvent;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.Version;
 import org.apache.sis.util.iso.Names;
@@ -133,7 +134,6 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
-import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
@@ -1480,10 +1480,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                                 //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
                                 final AtomicInteger acc = new AtomicInteger();
-                                final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<>() {
+                                final StoreListener<FeatureSetContentEvent> listener = new StoreListener<>() {
                                     @Override
-                                    public void eventOccurred(FeatureStoreContentEvent event) {
-                                        if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
+                                    public void eventOccurred(FeatureSetContentEvent event) {
+                                        if (event.getType() == FeatureSetContentEvent.Type.ADD) {
                                             Set<ResourceId> identifiers = new HashSet<>();
                                             separate(event.getIds(), identifiers);
                                             for (ResourceId id : identifiers) {
@@ -1493,9 +1493,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                         }
                                     }
                                 };
-                                origin.addListener(FeatureStoreContentEvent.class, listener);
+                                origin.addListener(FeatureSetContentEvent.class, listener);
                                 wOrigin.add(featureCollection.iterator());
-                                origin.removeListener(FeatureStoreContentEvent.class, listener);
+                                origin.removeListener(FeatureSetContentEvent.class, listener);
                                 totalInserted += acc.get();
                             } else {
                                 throw new CstlServiceException("The specified FeatureSet does not suport the write operations.");
@@ -1784,10 +1784,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                         //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
                         final AtomicInteger acc = new AtomicInteger();
-                        final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<>() {
+                        final StoreListener<FeatureSetContentEvent> listener = new StoreListener<>() {
                             @Override
-                            public void eventOccurred(FeatureStoreContentEvent event) {
-                                if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
+                            public void eventOccurred(FeatureSetContentEvent event) {
+                                if (event.getType() == FeatureSetContentEvent.Type.ADD) {
                                     Set<ResourceId> identifiers = new HashSet<>();
                                     separate(event.getIds(), identifiers);
                                     for (ResourceId id : identifiers) {
@@ -1797,11 +1797,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                 }
                             }
                         };
-                        fs.addListener(FeatureStoreContentEvent.class, listener);
+                        fs.addListener(FeatureSetContentEvent.class, listener);
                         try (Stream<Feature> stream = featureCollection.features(false)) {
                             fs.add(stream.iterator());
                         }
-                        fs.removeListener(FeatureStoreContentEvent.class, listener);
+                        fs.removeListener(FeatureSetContentEvent.class, listener);
                     }
 
                 } catch (ConstellationStoreException | DataStoreException | FeatureStoreRuntimeException ex) {

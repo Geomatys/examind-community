@@ -41,8 +41,8 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.sis.storage.WritableFeatureSet;
+import org.apache.sis.storage.internal.shared.FeatureSetContentEvent;
 import org.constellation.util.OMSQLDialect;
-import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.opengis.filter.ResourceId;
 
 public class SensorFeatureSet extends AbstractFeatureSet implements StoreResource, WritableFeatureSet {
@@ -122,7 +122,7 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
             }) {
             List<ResourceId> results = writer.add(features);
             for (ResourceId rid: results) {
-                listeners.fire( FeatureStoreContentEvent.class, new FeatureStoreContentEvent(this, FeatureStoreContentEvent.Type.ADD, sft.getName(), rid));
+                listeners.fire( FeatureSetContentEvent.class, new FeatureSetContentEvent(this, FeatureSetContentEvent.Type.ADD, rid));
             }
             //todo find a way to return created feature ids other than by event
             //return result;
