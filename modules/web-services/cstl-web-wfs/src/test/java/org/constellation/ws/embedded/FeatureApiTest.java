@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 1)
     public void testGetLandingPage() throws Exception {
         init();
-        URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default");
+        URL request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default").toURL();
         URLConnection con = request.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String result = getStringResponse(request);
@@ -127,7 +128,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
 
         compareJSON(expectedResult, result);
 
-        request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default?f=application/xml");
+        request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default?f=application/xml").toURL();
         con = request.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         result = getStringResponse(request);
@@ -140,14 +141,14 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 2)
     public void testGetCollections() throws Exception {
         init();
-        URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections");
+        URL request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections").toURL();
         Object o = unmarshallJsonResponse(request, Collections.class);
         Assert.assertTrue(o instanceof Collections);
         Collections collections = (Collections) o;
         verifyCollection(collections, COLLECTION_ID, -2.0, 2.0, -1.0, 6.0);
         verifyCollection(collections, COLLECTION_ALIAS, -80.72487831115721, -80.70324897766113, 35.2553619492954, 35.27035945142482);
 
-        request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections?f=application/xml");
+        request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections?f=application/xml").toURL();
         URLConnection con = request.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String result = getStringResponse(request);
@@ -184,7 +185,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 4)
     public void testGetConformance() throws Exception {
         init();
-        URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/conformance");
+        URL request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/conformance").toURL();
         URLConnection con = request.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         Object o = unmarshallJsonResponse(request, Conformance.class);
@@ -195,7 +196,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
 
         compareJSON(expectedResult, result);
 
-        request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/conformance?f=application/xml");
+        request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/conformance?f=application/xml").toURL();
         con = request.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         result = getStringResponse(request);
@@ -208,14 +209,14 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 6)
     public void testGetCollection() throws Exception {
         init();
-        URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections");
+        URL request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections").toURL();
         Object o = unmarshallJsonResponse(request, Collections.class);
         Assert.assertTrue(o instanceof Collections);
         Collections c = (Collections) o;
 
         for (Collection listedCollection : c.getCollections()) {
             String collectionId = listedCollection.getId();
-            URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId);
+            URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId).toURL();
             URLConnection con = requestCollection.openConnection();
             Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
             Object oCollection = unmarshallJsonResponse(requestCollection, Collection.class);
@@ -242,7 +243,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
             }
 
             if (collectionId.equals(COLLECTION_ID)) {
-                request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "?f=application/xml");
+                request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "?f=application/xml").toURL();
                 con = request.openConnection();
                 Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
                 String result = getStringResponse(request);
@@ -257,14 +258,14 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 7)
     public void testGetCollectionItems() throws Exception {
         init();
-        URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections");
+        URL request = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections").toURL();
         Object o = unmarshallJsonResponse(request, Collections.class);
         Assert.assertTrue(o instanceof Collections);
         Collections c = (Collections) o;
 
         for (int i = 0; i < c.getCollections().size(); i++) {
             String collectionId = c.getCollections().get(i).getId();
-            URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "/items");
+            URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "/items").toURL();
             URLConnection con = requestCollection.openConnection();
             Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         }
@@ -274,7 +275,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 8)
     public void testGetCollectionItemsAlias() throws Exception {
         init();
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ALIAS + "/items");
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ALIAS + "/items").toURL();
         URLConnection con = requestCollection.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String result = getStringResponse(requestCollection);
@@ -287,7 +288,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     public void testGetCollectionItemsWithBBox() throws Exception {
         init();
         String bbox = "1,0,0,1";
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?bbox=" + bbox);
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?bbox=" + bbox).toURL();
         URLConnection con = requestCollection.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String result = getStringResponse(requestCollection);
@@ -302,7 +303,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     public void testGetCollectionItemsWithLimit() throws Exception {
         init();
         final Integer limit = 2;
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?limit=" + limit.toString());
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?limit=" + limit.toString()).toURL();
         URLConnection con = requestCollection.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String result = getStringResponse(requestCollection);
@@ -321,7 +322,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 10)
     public void testGetCollectionItemsWithLimitInvalid() throws Exception {
         init();
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?limit=err");
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?limit=err").toURL();
         URLConnection con = requestCollection.openConnection();
         assertEquals(400, ((HttpURLConnection) con).getResponseCode());
     }
@@ -330,7 +331,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 11)
     public void testGetCollectionItemsWithUnknownParam() throws Exception {
         init();
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?timer=2&oui=non");
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?timer=2&oui=non").toURL();
         URLConnection con = requestCollection.openConnection();
         Assert.assertEquals(400, ((HttpURLConnection) con).getResponseCode());
     }
@@ -340,7 +341,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     public void testGetCollectionItemsResponseContent() throws Exception {
         init();
         final int limit = 2;
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?limit=" + limit);
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?limit=" + limit).toURL();
         String result = getStringResponse(requestCollection);
         String expectedResult = getStringFromFile("com/examind/feat/json/fc_links.json");
         expectedResult = expectedResult.replace("$collectionId", COLLECTION_ID);
@@ -352,7 +353,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 16)
     public void testGetCollectionFeature() throws Exception {
         init();
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items");
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items").toURL();
         String resultCollection = getStringResponse(requestCollection);
         String expectedResult = getStringFromFile("com/examind/feat/json/f_op_collection.json");
         expectedResult = expectedResult.replace("$collectionId", COLLECTION_ID);
@@ -364,7 +365,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
         String[] splitIdFeature = splitFeatureCollection[2].split(" : ");
         String featureId = splitIdFeature[1].substring(1, splitIdFeature[1].length() - 1);
 
-        URL requestFeature = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items/" + featureId);
+        URL requestFeature = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items/" + featureId).toURL();
         URLConnection con = requestFeature.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String resultFeature = getStringResponse(requestFeature);
@@ -378,7 +379,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 16)
     public void testGetCollectionFeatureXml() throws Exception {
         init();
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?f=application/xml");
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?f=application/xml").toURL();
         String resultCollection = getStringResponse(requestCollection);
         String expectedResult = getStringFromFile("com/examind/feat/xml/f_op_collection.xml");
 
@@ -391,7 +392,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
         Assert.assertNotEquals(-1, endIdPos);
         String featureId = resultCollection.substring(idPos, endIdPos);
 
-        URL requestFeature = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items/" + featureId + "?f=application/xml");
+        URL requestFeature = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items/" + featureId + "?f=application/xml").toURL();
         URLConnection con = requestFeature.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String resultFeature = getStringResponse(requestFeature);
@@ -404,7 +405,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
     @Order(order = 17)
     public void testGetCollectionFeatureResponseContent() throws Exception {
         init();
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items");
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items").toURL();
         String resultCollection = getStringResponse(requestCollection);
         String expectedResult = getStringFromFile("com/examind/feat/json/f_link_collection.json");
         expectedResult = expectedResult.replace("$collectionId", COLLECTION_ID);
@@ -416,7 +417,7 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
         String[] splitIdFeature = splitFeatureCollection[2].split(" : ");
         String featureId = splitIdFeature[1].substring(1, splitIdFeature[1].length() - 1);
 
-        URL requestFeature = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items/" + featureId);
+        URL requestFeature = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items/" + featureId).toURL();
         URLConnection con = requestFeature.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String resultFeature = getStringResponse(requestFeature);
@@ -452,21 +453,21 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
         Schema schema = createSchema(schemaPath);
         final Validator validator = schema.newValidator();
 
-        URL requestLandingPage = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default?f=application/xml");
+        URL requestLandingPage = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default?f=application/xml").toURL();
         URLConnection con = requestLandingPage.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         Object o = unmarshallResponse(requestLandingPage);
         Assert.assertTrue(o instanceof LandingPage);
         validationFromSchema(getStringResponse(requestLandingPage), validator);
 
-        URL requestConformance = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/conformance?f=application/xml");
+        URL requestConformance = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/conformance?f=application/xml").toURL();
         con = requestConformance.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         Object ob = unmarshallResponse(requestConformance);
         Assert.assertTrue(ob instanceof Conformance);
         validationFromSchema(getStringResponse(requestConformance), validator);
 
-        URL requestCollections = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections?f=application/xml");
+        URL requestCollections = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections?f=application/xml").toURL();
         con = requestCollections.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         Object obj = unmarshallResponse(requestCollections);
@@ -475,14 +476,14 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
         Collections c = (Collections) obj;
         String collectionId = c.getCollections().get(9).getId();
 
-        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "?f=application/xml");
+        URL requestCollection = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "?f=application/xml").toURL();
         con = requestCollection.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         Object object = unmarshallResponse(requestCollection);
         Assert.assertTrue(object instanceof Collections);
         validationFromSchema(getStringResponse(requestCollection), validator);
 
-        URL requestItems = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "/items?f=application/xml");
+        URL requestItems = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "/items?f=application/xml").toURL();
         con = requestItems.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         String resultItems = getStringResponse(requestItems);
@@ -490,19 +491,19 @@ public class FeatureApiTest extends AbstractWFSRequestTest {
         String[] splitId = splitResult[1].split("\"");
         String featureId = splitId[1];
 
-       URL requestFeature = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "/items/" + featureId + "?f=application/xml");
+       URL requestFeature = new URI("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "/items/" + featureId + "?f=application/xml").toURL();
        con = requestFeature.openConnection();
        Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
     }
 
 
-    public Schema createSchema(String schemaPath) throws SAXException, MalformedURLException {
+    public Schema createSchema(String schemaPath) throws Exception {
         final SchemaFactory sf = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
         if (schemaPath.startsWith("file://")) {
             schemaPath = schemaPath.substring(7);
             return sf.newSchema(new File(schemaPath));
         } else {
-            return sf.newSchema(new URL(schemaPath));
+            return sf.newSchema(new URI(schemaPath).toURL());
         }
     }
 

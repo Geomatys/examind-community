@@ -43,7 +43,6 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.feature.internal.shared.AttributeConvention;
@@ -577,20 +576,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             //search only the given list
             for (final QName name : names) {
                 if (name == null) {continue;}
-                final LayerCache layer;
+                final LayerCache layer      = getFeatureLayer(userLogin, name);
+                final FeatureData fLayer    = (FeatureData) layer.getData();
+                final FeatureSet featureset = fLayer.getOrigin();
                 try {
-                    layer = getLayerCache(userLogin, name);
-                } catch (CstlServiceException ex) {
-                    throw new CstlServiceException(UNKNOW_TYPENAME + name, INVALID_PARAMETER_VALUE, "typenames");
-                }
-                if (!(layer.getData() instanceof FeatureData)) {
-                    throw new CstlServiceException(UNKNOW_TYPENAME + name, INVALID_PARAMETER_VALUE, "typenames");
-                }
-
-                final FeatureData fLayer = (FeatureData) layer.getData();
-                try {
-                    FeatureSet featureset = fLayer.getOrigin();
-                    FeatureType ftType = fLayer.getType();
+                    final FeatureType ftType = fLayer.getType();
 
                     if (featureset instanceof XmlFeatureSet) {
                         final Map params = ((XmlFeatureSet) featureset).getSchema();
@@ -761,15 +751,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
             suffix = "";
         } else {
-            final LayerCache layer;
-            try {
-                layer = getLayerCache(userLogin, request.featureType);
-            } catch (CstlServiceException ex) {
-                throw new CstlServiceException(UNKNOW_TYPENAME + request.featureType, INVALID_PARAMETER_VALUE, "typenames");
-            }
-            if(!(layer.getData() instanceof FeatureData)) {
-                throw new CstlServiceException(UNKNOW_TYPENAME + request.featureType, INVALID_PARAMETER_VALUE, "typenames");
-            }
+            final LayerCache layer = getFeatureLayer(userLogin, request.featureType);
             final FeatureData data = (FeatureData) layer.getData();
 
             try {
@@ -1230,15 +1212,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
             for (QName typeName : typeNames) {
 
-                final LayerCache layer;
-                try {
-                    layer = getLayerCache(userLogin, typeName);
-                } catch (CstlServiceException ex) {
-                    throw new CstlServiceException(UNKNOW_TYPENAME + typeName, INVALID_PARAMETER_VALUE, "typenames");
-                }
-                if (!(layer.getData() instanceof FeatureData)) {continue;}
-
-                final FeatureData data = (FeatureData) layer.getData();
+                final LayerCache layer  = getFeatureLayer(userLogin, typeName);
+                final FeatureData data  = (FeatureData) layer.getData();
                 final FeatureSet origin = data.getOrigin();
 
                 final FeatureType ft;
@@ -1448,13 +1423,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         }
                         throw new CstlServiceException("Unexpected Object to insert:" + featureType);
                     }
-                    final QName typeName = Utils.getQnameFromName(ft.getName());
-                    final LayerCache layer;
-                    try {
-                        layer = getLayerCache(userLogin, typeName);
-                    } catch (Exception ex) {
-                        throw new CstlServiceException(UNKNOW_TYPENAME + typeName);
-                    }
+                    final QName typeName   = Utils.getQnameFromName(ft.getName());
+                    final LayerCache layer = getFeatureLayer(userLogin, typeName);
                     final FeatureData data = (FeatureData) layer.getData();
                     try {
                         final FeatureType type = data.getType();
@@ -1475,37 +1445,29 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                 LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
                             }
                         } else {
-                            FeatureSet origin = data.getOrigin();
-                            if (origin instanceof WritableFeatureSet wOrigin) {
-
-                                //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
-                                final AtomicInteger acc = new AtomicInteger();
-                                final StoreListener<FeatureSetContentEvent> listener = new StoreListener<>() {
-                                    @Override
-                                    public void eventOccurred(FeatureSetContentEvent event) {
-                                        if (event.getType() == FeatureSetContentEvent.Type.ADD) {
-                                            Set<ResourceId> identifiers = new HashSet<>();
-                                            separate(event.getIds(), identifiers);
-                                            for (ResourceId id : identifiers) {
-                                                inserted.put(id.getIdentifier(), handle);
-                                            }
-                                            acc.addAndGet(identifiers.size());
+                            WritableFeatureSet wOrigin = getWritableFeatureSet(data);
+                            //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
+                            final AtomicInteger acc = new AtomicInteger();
+                            final StoreListener<FeatureSetContentEvent> listener = new StoreListener<>() {
+                                @Override
+                                public void eventOccurred(FeatureSetContentEvent event) {
+                                    if (event.getType() == FeatureSetContentEvent.Type.ADD) {
+                                        Set<ResourceId> identifiers = new HashSet<>();
+                                        separate(event.getIds(), identifiers);
+                                        for (ResourceId id : identifiers) {
+                                            inserted.put(id.getIdentifier(), handle);
                                         }
+                                        acc.addAndGet(identifiers.size());
                                     }
-                                };
-                                origin.addListener(FeatureSetContentEvent.class, listener);
-                                wOrigin.add(featureCollection.iterator());
-                                origin.removeListener(FeatureSetContentEvent.class, listener);
-                                totalInserted += acc.get();
-                            } else {
-                                throw new CstlServiceException("The specified FeatureSet does not suport the write operations.");
-                            }
+                                }
+                            };
+                            wOrigin.addListener(FeatureSetContentEvent.class, listener);
+                            wOrigin.add(featureCollection.iterator());
+                            wOrigin.removeListener(FeatureSetContentEvent.class, listener);
+                            totalInserted += acc.get();
                         }
                     } catch (ConstellationStoreException | DataStoreException ex) {
-                        Logging.unexpectedException(LOGGER,DefaultWFSWorker.class,"transaction", ex);
-                    } catch (ClassCastException ex) {
-                        Logging.unexpectedException(LOGGER,DefaultWFSWorker.class,"transaction", ex);
-                        throw new CstlServiceException("The specified Datastore does not suport the write operations.");
+                        throw new CstlServiceException(ex);
                     }
                 }
 
@@ -1520,12 +1482,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
                 final Filter filter = transformJAXBFilter(deleteRequest.getFilter(), Filter.exclude(), namespaceMapping, currentVersion);
 
-                final LayerCache layer;
-                try {
-                    layer = getLayerCache(userLogin, deleteRequest.getTypeName());
-                } catch (CstlServiceException ex) {
-                    throw new CstlServiceException(UNKNOW_TYPENAME + deleteRequest.getTypeName(), INVALID_PARAMETER_VALUE, "typename");
-                }
+                final LayerCache layer = getFeatureLayer(userLogin, deleteRequest.getTypeName());
                 final FeatureData data = (FeatureData) layer.getData();
                 try {
                     final FeatureType ft = data.getType();
@@ -1541,16 +1498,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                     totalDeleted = totalDeleted + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
-                    if (fs instanceof WritableFeatureSet wfs) {
-                        wfs.removeIf((f)-> filter.test(f));
-                    } else {
-                        throw new CstlServiceException("This feature set is not Writable");
-                    }
+                    WritableFeatureSet wOrigin = getWritableFeatureSet(data);
+                    wOrigin.removeIf((f)-> filter.test(f));
                 } catch (ConstellationStoreException | DataStoreException ex) {
                     throw new CstlServiceException(ex);
-                } catch (ClassCastException ex) {
-                    Logging.unexpectedException(LOGGER,DefaultWFSWorker.class,"transaction", ex);
-                    throw new CstlServiceException("The specified Datastore does not suport the delete operations.");
                 }
 
             /*
@@ -1571,12 +1522,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 //decode crs--------------------------------------------------------
                 final CoordinateReferenceSystem crs = extractCRS(updateRequest.getSrsName());
 
-                final LayerCache layer;
-                try {
-                    layer = getLayerCache(userLogin, updateRequest.getTypeName());
-                } catch (CstlServiceException ex) {
-                    throw new CstlServiceException(UNKNOW_TYPENAME + updateRequest.getTypeName(), INVALID_PARAMETER_VALUE, "typename");
-                }
+                final LayerCache layer = getFeatureLayer(userLogin, updateRequest.getTypeName());
                 final FeatureData data = (FeatureData) layer.getData();
                 try {
                     final FeatureType ft = data.getType();
@@ -1652,19 +1598,17 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     query.setSelection(cleanFilter);
                     totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
-                    final FeatureSet origin = data.getOrigin();
-                    if (origin instanceof WritableFeatureSet wfs) {
-                        wfs.replaceIf(filter, new UnaryOperator<Feature>() {
-                            @Override
-                            public Feature apply(Feature feat) {
-                                for (Entry<String, Object> entry : values.entrySet()) {
-                                    Binding pa = Bindings.getBinding(Feature.class, entry.getKey());
-                                    pa.set(feat, entry.getKey(), entry.getValue());
-                                }
-                                return feat;
+                    WritableFeatureSet wOrigin = getWritableFeatureSet(data);
+                    wOrigin.replaceIf(filter, new UnaryOperator<Feature>() {
+                        @Override
+                        public Feature apply(Feature feat) {
+                            for (Entry<String, Object> entry : values.entrySet()) {
+                                Binding pa = Bindings.getBinding(Feature.class, entry.getKey());
+                                pa.set(feat, entry.getKey(), entry.getValue());
                             }
-                        });
-                    }
+                            return feat;
+                        }
+                    });
                 } catch (ConstellationStoreException | DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
@@ -1741,23 +1685,18 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     throw new CstlServiceException("Unexpected replacement object:" + featureType);
                 }
 
-                final LayerCache layer;
-                try {
-                    layer = getLayerCache(userLogin, Utils.getQnameFromName(typeName));
-                } catch (CstlServiceException ex) {
-                    throw new CstlServiceException(UNKNOW_TYPENAME + typeName);
-                }
+                final LayerCache layer = getFeatureLayer(userLogin, Utils.getQnameFromName(typeName));
+                final FeatureData data = (FeatureData) layer.getData();
 
                 try {
-                    final FeatureData data = (FeatureData) layer.getData();
-                    final FeatureType ft    = data.getType();
-                    final WritableFeatureSet fs = (WritableFeatureSet) data.getOrigin();
-                    final String layerName  = data.getName().toString();
+                    final FeatureType ft       = data.getType();
+                    WritableFeatureSet wOrigin = getWritableFeatureSet(data);
+                    final String layerName     = data.getName().toString();
 
                     // we extract the number of feature to replace
                     final FeatureQuery query = new FeatureQuery();
                     query.setSelection(processFilter(ft, filter, null));
-                    totalReplaced = totalReplaced + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
+                    totalReplaced = totalReplaced + (int) FeatureStoreUtilities.getCount(wOrigin.subset(query)).intValue();
 
                     /*final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(ft);
                     if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(featureCollection.getType()))) {
@@ -1788,14 +1727,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                 }
                             }
                         };
-                        fs.addListener(FeatureSetContentEvent.class, listener);
-                        fs.replaceIf(filter, new UnaryOperator<Feature>() {
+                        wOrigin.addListener(FeatureSetContentEvent.class, listener);
+                        wOrigin.replaceIf(filter, new UnaryOperator<Feature>() {
                             @Override
                             public Feature apply(Feature feat) {
                                return newFeature;
                             }
                         });
-                        fs.removeListener(FeatureSetContentEvent.class, listener);
+                        wOrigin.removeListener(FeatureSetContentEvent.class, listener);
                     }
 
                 } catch (ConstellationStoreException | DataStoreException | FeatureStoreRuntimeException ex) {
@@ -1824,7 +1763,26 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
         return response;
     }
+    
+    private static WritableFeatureSet getWritableFeatureSet(FeatureData data) throws CstlServiceException {
+        FeatureSet origin = data.getOrigin();
+        if (origin instanceof WritableFeatureSet wOrigin) return wOrigin;
+        throw new CstlServiceException("The specified FeatureSet does not suport the write operations.");
+    }
 
+    private LayerCache getFeatureLayer(String userLogin, QName typeName) throws CstlServiceException {
+        final LayerCache layer;
+        try {
+            layer = getLayerCache(userLogin, typeName);
+        } catch (CstlServiceException ex) {
+            throw new CstlServiceException(UNKNOW_TYPENAME + typeName, INVALID_PARAMETER_VALUE, "typenames");
+        }
+        if (!(layer.getData() instanceof FeatureData)) {
+            throw new CstlServiceException(UNKNOW_TYPENAME + typeName, INVALID_PARAMETER_VALUE, "typenames");
+        }
+        return layer;
+    }
+    
     private static void separate(final Filter f, Set<ResourceId> addTo) {
         if (f.getOperatorType() == LogicalOperatorName.OR) {
             for (final Filter c : ((LogicalOperator<?>) f).getOperands()) {
@@ -1983,12 +1941,13 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 filter = (Filter) new CrsAdjustFilterVisitor(exposedCrs, trueCrs).visit(filter);
             }
 
-        } catch (FactoryException|PropertyNotFoundException|IllegalStateException ex) {
+        } catch (FactoryException | PropertyNotFoundException | IllegalStateException ex) {
             /* In case we cannot analyze CRS (no geometric property, or multiple
              * ones, or if a problem occurs with referencing engine), we simply
              * ignore the filter.
              */
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage());
+            LOGGER.log(Level.FINER, ex.getMessage(), ex);
         }
         return filter;
     }
@@ -2297,7 +2256,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             layers = new ArrayList<>();
             for (String name : names) {
                 final QName collName = Util.parseQName(name);
-                layers.add(getLayerCache(userLogin, collName));
+                layers.add(getFeatureLayer(userLogin, collName));
             }
         }
         return layers.stream().map(r -> dataToCollection(r)).collect(Collectors.toList());
@@ -2356,7 +2315,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     public FeatureSetWrapper getCollectionItems(String collectionId, Filter filter, int limit, int offset, boolean includedMatched) throws CstlServiceException {
         try {
             final String userLogin = getUserLogin();
-            final LayerCache layer = getLayerCache(userLogin, Util.parseQName(collectionId));
+            final LayerCache layer = getFeatureLayer(userLogin, Util.parseQName(collectionId));
             final FeatureData data = (FeatureData) layer.getData();
             FeatureSet fs          = data.getOrigin();
             FeatureQuery query     = null;

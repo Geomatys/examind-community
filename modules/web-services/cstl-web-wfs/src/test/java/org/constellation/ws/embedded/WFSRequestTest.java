@@ -51,6 +51,7 @@ import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.StringReader;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -315,7 +316,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         initPool();
 
         // Creates a valid GetCapabilities url.
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL);
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL).toURL();
 
         Object obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof WFSCapabilitiesType);
@@ -324,7 +325,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         String currentUrl =  responseCaps.getOperationsMetadata().getOperation(GET_CAPABILITIES).getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
         assertEquals("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?", currentUrl);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?" + WFS_GETCAPABILITIES_URL);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?" + WFS_GETCAPABILITIES_URL).toURL();
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof WFSCapabilitiesType);
 
@@ -333,7 +334,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?", currentUrl);
 
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL).toURL();
 
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof WFSCapabilitiesType);
@@ -341,27 +342,27 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         currentUrl =  responseCaps.getOperationsMetadata().getOperation(GET_CAPABILITIES).getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
         assertEquals("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?", currentUrl);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_ERROR_URL);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_ERROR_URL).toURL();
         obj = unmarshallResponse(getCapsUrl);
         assertTrue("unexpected type:" + obj.getClass().getName(), obj instanceof ExceptionReport);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_AV);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_AV).toURL();
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof org.geotoolkit.wfs.xml.v200.WFSCapabilitiesType);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_SERV);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_SERV).toURL();
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof org.geotoolkit.ows.xml.v100.ExceptionReport);
         org.geotoolkit.ows.xml.v100.ExceptionReport report100 = (org.geotoolkit.ows.xml.v100.ExceptionReport) obj;
         assertEquals("1.1.0", report100.getVersion());
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_SERV2);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_SERV2).toURL();
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof ExceptionReport);
         ExceptionReport report200 = (ExceptionReport) obj;
         assertEquals("2.0.2", report200.getVersion());
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_VERS);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_VERS).toURL();
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof org.geotoolkit.wfs.xml.v200.WFSCapabilitiesType);
     }
@@ -372,7 +373,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=2)
     public void testWFSGetFeaturePOST() throws Exception {
 
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
        /*
         * SamplingPoint GetFeature
@@ -429,7 +430,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Test
     @Order(order=2)
     public void testWFSGetFeaturePOSTPagination() throws Exception {
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
        /*
         * SamplingPoint GetFeature full request
@@ -505,7 +506,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=3)
     public void testWFSGetFeaturePOSTV2() throws Exception {
 
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
         /*
         * SamplingPoint GetFeature
@@ -566,7 +567,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=3)
     public void testWFSGetFeaturePOSTV2Pagination() throws Exception {
 
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
         /*
         * SamplingPoint GetFeature full request
@@ -693,7 +694,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSGetFeatureGET() throws Exception {
         final URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -718,7 +719,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSGetFeatureCQLGET() throws Exception {
         final URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CQL_URL);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CQL_URL).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -746,7 +747,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         initPool();
         URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_ALIAS);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_ALIAS).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -760,7 +761,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals(1, feat.getFeatureMember().size());
 
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_ALIAS_V2);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_ALIAS_V2).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -780,7 +781,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSGetFeatureGET2() throws Exception {
         final URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_V2);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_V2).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -808,7 +809,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSGetFeatureGETStoredQuery() throws Exception {
         final URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_SQ_URL);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_SQ_URL).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -833,7 +834,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_DESCRIBE_FEATURE_TYPE_URL);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_DESCRIBE_FEATURE_TYPE_URL).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -848,7 +849,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals(5, schema.getIncludeOrImportOrRedefine().size());
 
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?" + WFS_DESCRIBE_FEATURE_TYPE_URL_V2);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?" + WFS_DESCRIBE_FEATURE_TYPE_URL_V2).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -873,7 +874,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         initPool();
 
         // Creates a valid GetCapabilities url.
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
 
         // for a POST request
@@ -1001,7 +1002,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSTransactionUpdate() throws Exception {
 
         // Creates a valid GetCapabilities url.
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -1047,7 +1048,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSListStoredQueries() throws Exception {
 
         // Creates a valid GetCapabilities url.
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
         final ListStoredQueriesType request = new ListStoredQueriesType("WFS", "2.0.0", null);
 
@@ -1065,7 +1066,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSDescribeStoredQueries() throws Exception {
 
         // Creates a valid GetCapabilities url.
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
         final DescribeStoredQueriesType request = new DescribeStoredQueriesType("WFS", "2.0.0", null, Arrays.asList("urn:ogc:def:storedQuery:OGC-WFS::GetFeatureById"));
 
@@ -1083,7 +1084,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSGetPropertyValue() throws Exception {
 
         // Creates a valid GetCapabilities url.
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?").toURL();
 
          /**
          * Test 1 : query on typeName samplingPoint with HITS
@@ -1135,12 +1136,12 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         initPool();
 
         // Creates a valid GetCapabilities url.
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0").toURL();
 
         Object obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof WFSCapabilitiesType);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0").toURL();
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof org.geotoolkit.wfs.xml.v200.WFSCapabilitiesType);
     }
@@ -1152,7 +1153,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/schema");
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/schema").toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1166,7 +1167,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals(5, schema.getIncludeOrImportOrRedefine().size());
 
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test/2.0.0/schema");
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/test/2.0.0/schema").toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1181,7 +1182,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals(4, schema.getIncludeOrImportOrRedefine().size());
 
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test/2.0.0/BasicPolygons.xsd");
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/test/2.0.0/BasicPolygons.xsd").toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1217,7 +1218,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSGetFeatureREST() throws Exception {
         URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint?" + WFS_GETFEATURE_FILTER);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint?" + WFS_GETFEATURE_FILTER).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1238,7 +1239,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
 
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint?" + WFS_GETFEATURE_FILTER_V2);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint?" + WFS_GETFEATURE_FILTER_V2).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1266,7 +1267,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSTransactionInsertREST() throws Exception {
         initPool();
 
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint").toURL();
 
 
         // for a POST request
@@ -1309,7 +1310,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=17)
     public void testWFSTransactionReplaceREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint?" + WFS_REPLACE_FILTER);
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint?" + WFS_REPLACE_FILTER).toURL();
 
 
         // for a POST request
@@ -1331,7 +1332,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         assertEquals(ExpResult, result);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint").toURL();
 
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
         String xmlExpResult = getStringFromFile("org/constellation/xml/samplingPointCollection-5.xml");
@@ -1354,7 +1355,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=18)
     public void testWFSTransactionDeleteREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint?" + WFS_DELETE_FILTER);
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint?" + WFS_DELETE_FILTER).toURL();
 
 
         // for a POST request
@@ -1372,7 +1373,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         assertEquals(ExpResult, result);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint").toURL();
 
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
         String xmlExpResult = getStringFromFile("org/constellation/xml/samplingPointCollection-6.xml");
@@ -1386,7 +1387,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=19)
     public void testWFSGetFeatureByIDREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint/station-014");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint/station-014").toURL();
 
 
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
@@ -1401,7 +1402,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=20)
     public void testWFSTransactionReplaceByIdREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-014");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-014").toURL();
 
 
         // for a POST request
@@ -1423,7 +1424,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         assertEquals(ExpResult, result);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint").toURL();
 
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
         String xmlExpResult = getStringFromFile("org/constellation/xml/samplingPointCollection-7.xml");
@@ -1438,7 +1439,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSTransactionDeleteByIdREST() throws Exception {
 
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-014");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-014").toURL();
 
 
         // for a POST request
@@ -1456,7 +1457,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         assertEquals(ExpResult, result);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/SamplingPoint").toURL();
 
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
         String xmlExpResult = getStringFromFile("org/constellation/xml/samplingPointCollection-3.xml");
@@ -1473,7 +1474,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
          /**
          * Test 1 : query on typeName samplingPoint with HITS
          */
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/property/sampledFeature?resultType=hits");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/property/sampledFeature?resultType=hits").toURL();
 
 
         Object result = unmarshallResponse(getCapsUrl.openConnection());
@@ -1487,7 +1488,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         /**
          * Test 2 : query on typeName samplingPoint with RESULTS
          */
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/property/sampledFeature");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/property/sampledFeature").toURL();
 
         String sresult = getStringResponse(getCapsUrl.openConnection());
 
@@ -1497,7 +1498,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         /**
          * Test 3 : query on typeName samplingPoint with RESULTS
          */
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/property/position");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/property/position").toURL();
         sresult = getStringResponse(getCapsUrl.openConnection());
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.embedded.ValueCollectionOM2.xml"));
@@ -1518,7 +1519,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=23)
     public void testWFSTransactionUpdateREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/property/geometry?" + WFS_UPDATE_FILTER);
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/property/geometry?" + WFS_UPDATE_FILTER).toURL();
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -1541,7 +1542,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         /**
          * We verify that the namedPlaces have been changed
          */
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces").toURL();
 
         // Try to unmarshall something from the response returned by the server.
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
@@ -1559,7 +1560,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
          /**
          * Test 1 : query on typeName samplingPoint with HITS
          */
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-004/sampledFeature");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-004/sampledFeature").toURL();
 
         String sresult = getStringResponse(getCapsUrl.openConnection());
 
@@ -1569,7 +1570,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         /**
          * Test 3 : query on typeName samplingPoint with RESULTS
          */
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-004/position");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/SamplingPoint/station-004/position").toURL();
         sresult = getStringResponse(getCapsUrl.openConnection());
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.embedded.ValueCollectionOM2_single.xml"));
@@ -1581,7 +1582,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=24)
     public void testWFSTransactionUpdateByIdREST() throws Exception {
 
-         URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/NamedPlaces.1/geometry");
+         URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/NamedPlaces.1/geometry").toURL();
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -1604,7 +1605,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         /**
          * We verify that the namedPlaces have been changed
          */
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces").toURL();
 
         // Try to unmarshall something from the response returned by the server.
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
@@ -1619,7 +1620,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=25)
     public void testWFSTransactionUpdateNullByIdREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/NamedPlaces.1/NAME");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/NamedPlaces.1/NAME").toURL();
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -1640,7 +1641,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         /**
          * We verify that the namedPlaces have been changed
          */
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces").toURL();
 
         // Try to unmarshall something from the response returned by the server.
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
@@ -1656,7 +1657,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSListStoredQueriesREST() throws Exception {
 
         // Creates a valid GetCapabilities url.
-        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query");
+        final URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query").toURL();
 
 
         Object obj = unmarshallResponse(getCapsUrl.openConnection());
@@ -1669,7 +1670,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=27)
     public void testWFSAdhocStoredQueriesREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query").toURL();
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -1694,7 +1695,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         }
         Assert.assertNotNull(id);
 
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/" + id);
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/" + id).toURL();
 
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
         String xmlExpResult = getStringFromFile("org/constellation/wfs/xml/embedded/singleNamedPlaces.xml");
@@ -1708,7 +1709,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertTrue(response instanceof DropStoredQueryResponseType);
 
         // verify that the query is removed
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query").toURL();
 
         listQuery = (ListStoredQueriesResponseType) unmarshallResponse(getCapsUrl.openConnection());
         assertEquals(2, listQuery.getStoredQuery().size());
@@ -1719,7 +1720,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void testWFSStoredQueriesREST() throws Exception {
 
         // Creates a valid GetCapabilities url.
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1");
+        URL getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1").toURL();
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -1731,12 +1732,12 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof CreateStoredQueryResponseType);
 
         // verify that the query is added
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query").toURL();
         ListStoredQueriesResponseType listQuery = (ListStoredQueriesResponseType) unmarshallResponse(getCapsUrl.openConnection());
         assertEquals(3, listQuery.getStoredQuery().size());
 
         // execute it
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1?param1=Goose%20Island");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1?param1=Goose%20Island").toURL();
 
         String xmlResult    = getStringResponse(getCapsUrl.openConnection());
         String xmlExpResult = getStringFromFile("org/constellation/wfs/xml/embedded/singleNamedPlaces.xml");
@@ -1746,7 +1747,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         domCompare(xmlResult, xmlExpResult);
 
         // replace
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1").toURL();
         conec = getCapsUrl.openConnection();
 
         putRequestFile(conec, "org/constellation/wfs/xml/embedded/StoredQuery2.xml");
@@ -1756,7 +1757,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof CreateStoredQueryResponseType);
 
         // execute it
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1?param1=Goose%20Island");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query/STquery1?param1=Goose%20Island").toURL();
 
         xmlResult    = getStringResponse(getCapsUrl.openConnection());
         xmlExpResult = getStringFromFile("org/constellation/wfs/xml/embedded/singleNamedPlaces2.xml");
@@ -1771,7 +1772,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertTrue(response instanceof DropStoredQueryResponseType);
 
         // verify that the query is removed
-        getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query");
+        getCapsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/2.0.0/query").toURL();
 
         listQuery = (ListStoredQueriesResponseType) unmarshallResponse(getCapsUrl.openConnection());
         assertEquals(2, listQuery.getStoredQuery().size());
@@ -1788,7 +1789,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
          */
         URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE1);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE1).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1809,7 +1810,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
          * one result expected
 
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE2);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE2).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1830,7 +1831,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
          * zero result expected
          */
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE3);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE3).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1858,7 +1859,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
          */
         URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_BBOX);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_BBOX).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1883,7 +1884,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
          */
         URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETPROP_VALUE_BBOX);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETPROP_VALUE_BBOX).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1907,7 +1908,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         final URL getfeatsUrl;
         try {
-            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wfs/default?" +WFS_DESCRIBE_FEATURE_TYPE_URL);
+            getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() +"/WS/wfs/default?" +WFS_DESCRIBE_FEATURE_TYPE_URL).toURL();
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1937,7 +1938,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         initPool();
 
         //for WFS 1.1.0
-        URL getfeatsUrl= new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON);
+        URL getfeatsUrl= new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON).toURL();
         String result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
         String expected = getStringFromFile("org/constellation/wfs/json/collection-v1.json");
@@ -1945,7 +1946,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals(expected, result);
 
         //for WFS 2.0.0
-        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON2);
+        getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON2).toURL();
         result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
         expected = getStringFromFile("org/constellation/wfs/json/collection-v2.json");
@@ -1953,7 +1954,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals(expected, result);
 
         //for WFS 2.0.0 shapefile
-        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON3);
+        getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON3).toURL();
         result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
         expected = getStringFromFile("org/constellation/wfs/json/collection2.json");
@@ -1961,7 +1962,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertEquals(expected, result);
 
         //for WFS 2.0.0 aggregated features
-        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON4);
+        getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON4).toURL();
         result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
         expected = getStringFromFile("org/constellation/wfs/json/aggregated.json");
@@ -1975,7 +1976,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     public void listInstanceTest() throws Exception {
         initPool();
 
-        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/wfs/all");
+        URL liUrl = new URI("http://localhost:" + getCurrentPort() + "/API/OGC/wfs/all").toURL();
 
         URLConnection conec = liUrl.openConnection();
 
@@ -1998,7 +1999,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order = 33)
     public void testWFSGetFeatureIsLikeMatchCaseDefault() throws Exception {
         final URL getfeatsUrl;
-        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_DEFAULT);
+        getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_DEFAULT).toURL();
 
         String result = getStringResponse(getfeatsUrl);
         result = result.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -2011,7 +2012,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order = 34)
     public void testWFSGetFeatureIsLikeMatchCaseTrue() throws Exception {
         final URL getfeatsUrl;
-        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_TRUE);
+        getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_TRUE).toURL();
 
         String result = getStringResponse(getfeatsUrl);
         result = result.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -2024,7 +2025,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order = 35)
     public void testWFSGetFeatureIsLikeMatchCaseFalse() throws Exception {
         final URL getfeatsUrl;
-        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_FALSE);
+        getfeatsUrl = new URI("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_FALSE).toURL();
 
         String result = getStringResponse(getfeatsUrl);
         result = result.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
