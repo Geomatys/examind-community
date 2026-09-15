@@ -1583,7 +1583,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     if (ft == null) {
                         throw new CstlServiceException("Unable to find the featuretype:" + layer.getName());
                     }
-                    final FeatureSet fs = (FeatureSet) data.getOrigin();
+                    final FeatureSet fs = data.getOrigin();
 
                     final Map<String,Object> values = new HashMap<>();
 
@@ -1714,16 +1714,16 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     throw new CstlServiceException(ex);
                 }
                 final GenericName typeName;
-                FeatureSet featureCollection;
+                Feature newFeature;
 
                 if (featureObject instanceof Feature feature) {
                     final FeatureType fType = feature.getType();
                     typeName = fType.getName();
-                    featureCollection = new InMemoryFeatureSet(fType, List.of(feature));
+                    newFeature = feature;
                 } else if (featureObject instanceof FeatureSet fs) {
                     try {
                         typeName = fs.getType().getName();
-                        featureCollection = (FeatureSet) featureObject;
+                        newFeature = fs.features(false).findFirst().orElseThrow(DataStoreException::new);
                     } catch (DataStoreException ex) {
                         throw new CstlServiceException(ex);
                     }
@@ -1759,48 +1759,42 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     query.setSelection(processFilter(ft, filter, null));
                     totalReplaced = totalReplaced + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
-                    // first remove the feature to replace
-                    fs.removeIf(filter::test);
-
-                    // then add the new one
-                    final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(ft);
+                    /*final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(ft);
                     if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(featureCollection.getType()))) {
                         final FeatureQuery reproject = org.geotoolkit.storage.feature.query.Query.reproject(featureCollection.getType(), trueCrs);
                         featureCollection = featureCollection.subset(reproject);
-                    }
+                    }*/
 
                     DataStore store = data.getStore();
                     if (store instanceof FeatureStore fst) {
-                        try (Stream<Feature> stream = featureCollection.features(false)) {
-                            List<Feature> collected = stream.collect(Collectors.toList());
-                            final List<ResourceId> features = fst.addFeatures(layerName, collected);
+                        final List<ResourceId> features = fst.addFeatures(layerName, List.of(newFeature));
 
-                            for (ResourceId fid : features) {
-                                replaced.put(fid.getIdentifier(), handle);// get the id of the replaced feature
-                                LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
-                            }
+                        for (ResourceId fid : features) {
+                            replaced.put(fid.getIdentifier(), handle);// get the id of the replaced feature
+                            LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
                         }
                     } else {
 
                         //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
-                        final AtomicInteger acc = new AtomicInteger();
                         final StoreListener<FeatureSetContentEvent> listener = new StoreListener<>() {
                             @Override
                             public void eventOccurred(FeatureSetContentEvent event) {
-                                if (event.getType() == FeatureSetContentEvent.Type.ADD) {
+                                if (event.getType() == FeatureSetContentEvent.Type.UPDATE) {
                                     Set<ResourceId> identifiers = new HashSet<>();
                                     separate(event.getIds(), identifiers);
                                     for (ResourceId id : identifiers) {
                                         replaced.put(id.getIdentifier(), handle);// get the id of the replaced feature
                                     }
-                                    acc.addAndGet(identifiers.size());
                                 }
                             }
                         };
                         fs.addListener(FeatureSetContentEvent.class, listener);
-                        try (Stream<Feature> stream = featureCollection.features(false)) {
-                            fs.add(stream.iterator());
-                        }
+                        fs.replaceIf(filter, new UnaryOperator<Feature>() {
+                            @Override
+                            public Feature apply(Feature feat) {
+                               return newFeature;
+                            }
+                        });
                         fs.removeListener(FeatureSetContentEvent.class, listener);
                     }
 

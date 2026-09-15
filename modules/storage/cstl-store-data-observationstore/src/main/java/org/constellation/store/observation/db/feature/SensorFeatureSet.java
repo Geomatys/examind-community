@@ -134,7 +134,6 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
     @Override
     public void removeIf(Predicate<? super Feature> filter) throws DataStoreException {
         final FeatureType sft = getType();
-        boolean match = false;
         try (CloseableIterator<Feature> reader = switch (readerType) {
                 case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
                 case SENSOR_FEATURE   -> new OM2SensorFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
@@ -142,8 +141,9 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
             while (reader.hasNext()) {
                 Feature feature = reader.next();
                 if (filter.test(feature)) {
+                    ResourceId identifier = FeatureExt.getId(feature);
                     reader.remove();
-                    match = true;
+                    listeners.fire( FeatureSetContentEvent.class, new FeatureSetContentEvent(this, FeatureSetContentEvent.Type.DELETE, identifier));
                 }
             }
         } catch (SQLException ex) {
@@ -154,7 +154,33 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
 
     @Override
     public void replaceIf(Predicate<? super Feature> filter, UnaryOperator<Feature> updater) throws DataStoreException {
-       throw new DataStoreException("Not supported.");
+        final FeatureType sft = getType();
+        try (CloseableIterator<Feature> reader = switch (readerType) {
+                case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
+                case SENSOR_FEATURE   -> new OM2SensorFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
+            };
+            OM2FeatureWriter writer = switch (readerType) {
+                case SAMPLING_FEATURE -> new OM2SamplingFeatureWriter(source.getConnection(), schemaPrefix, "sampling-point", dialect);
+                case SENSOR_FEATURE   -> new OM2SensorFeatureWriter(source.getConnection(), schemaPrefix, "", dialect);
+            }
+            ) {
+            while (reader.hasNext()) {
+                Feature feature = reader.next();
+                if (filter.test(feature)) {
+                    ResourceId fid = FeatureExt.getId(feature);
+                    //we remove the matching feature
+                    reader.remove();
+                    
+                    // and write the replacement
+                    Feature f = updater.apply(feature);
+                    writer.add(List.of(f).iterator());
+                    
+                    listeners.fire(FeatureSetContentEvent.class, new FeatureSetContentEvent(this, FeatureSetContentEvent.Type.UPDATE, fid));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
