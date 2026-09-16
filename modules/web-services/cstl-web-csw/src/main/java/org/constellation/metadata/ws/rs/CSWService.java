@@ -862,7 +862,7 @@ public class CSWService extends OGCWebService<CSWworker> {
             CSWUtils.updateCswURL(description, cswUrl);
             return new ResponseObject(description, "application/opensearchdescription+xml").getResponseEntity();
         } else {
-            LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+            LOGGER.log(Level.WARNING, "Received request on undefined CSW instance identifier:{0}", serviceId);
             return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
         }
     }
@@ -894,7 +894,7 @@ public class CSWService extends OGCWebService<CSWworker> {
                 return processExceptionResponse(ex, serviceDef, worker).getResponseEntity();
             }
         } else {
-            LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+            LOGGER.log(Level.WARNING, "Received request on undefined CSW instance identifier:{0}", serviceId);
             return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
         }
     }

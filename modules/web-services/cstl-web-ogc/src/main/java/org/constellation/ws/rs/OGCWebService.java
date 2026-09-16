@@ -170,7 +170,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
 
         // unbounded URL
         } else {
-            LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceID);
+            LOGGER.log(Level.WARNING, "Received request on undefined {0} instance identifier: {1}", new Object[]{this.serviceName, serviceID});
             return new ResponseObject(HttpStatus.NOT_FOUND);
         }
     }

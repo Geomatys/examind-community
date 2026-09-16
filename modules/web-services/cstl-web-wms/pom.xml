@@ -114,6 +114,16 @@
         <scope>test</scope>
     </dependency>
     <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derby</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derbytools</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
         <groupId>org.geotoolkit</groupId>
         <artifactId>geotk-feature-gml</artifactId>
         <scope>test</scope>

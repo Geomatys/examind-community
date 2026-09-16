@@ -42,7 +42,7 @@ public class EPSGDatabaseIniter {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.database.configuration");
     
-    private static final Version LAST_EPSG_VERSION = new Version("12.047");
+    private static final Version LAST_EPSG_VERSION = new Version("13.101");
 
     @Autowired
     private IClusterBusiness clusterBusiness;
