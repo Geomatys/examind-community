@@ -424,6 +424,27 @@ angular.module('cstl-webservice-edit', [
             });
         };
 
+        $scope.showDataToAddSTAC = function() {
+            var modal = $modal.open({
+                templateUrl: 'views/webservice/wcs/modalAddLayer.html', // Reuse the same as WCS for now
+                controller: 'WCSAddLayerModalController',
+                resolve: {
+                    service: function() { return $scope.service; }
+                }
+            });
+            modal.result.then(function() {
+                Examind.map.getLayers($scope.type,
+                    $routeParams.id).then(
+                    function (response) {//success
+                        $scope.layers = response.data;
+                        Dashboard($scope, response.data, true);
+                        $scope.selected = null;
+                        $scope.showLayerDashboardMap();
+                    }
+                );
+            });
+        };
+
         $scope.canAddMetadata = function (){
            return $scope.canAddMetadataFlag;
         };

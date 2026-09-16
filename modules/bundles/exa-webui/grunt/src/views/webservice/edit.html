@@ -473,7 +473,7 @@
                                 </div>
                             </div>
                             <div id="block-information-right" class="col-sm-4">
-                                <div ng-if="service.type !== 'csw' && service.type !== 'wmts' && service.type !== 'tms' && service.type !== 'wms' && service.type !== 'wcs'">
+                                <div ng-if="service.type !== 'csw' && service.type !== 'wmts' && service.type !== 'tms' && service.type !== 'wms' && service.type !== 'wcs' && service.type !== 'stac'">
                                     <a data-toggle="modal"
                                        class="btn btn-add btn-lg btn-block"
                                        data-test-id="edit-service-add"
@@ -489,6 +489,17 @@
                                        data-toggle="modal"
                                        class="btn btn-add btn-lg btn-block"
                                        ng-click="showDataToAddWCS()">
+                                        <span class="fa fa-plus"
+                                              style="margin-right:5px;"></span>
+                                        <span translate="service.edit.dashboard.wmts.action.addnewlayer.button">Add</span>
+                                    </a>
+                                </div>
+                                <div ng-if="service.type.toLowerCase() === 'stac'">
+                                    <a id="showDataToAddSTAC"
+                                       data-test-id="edit-service-add-layer"
+                                       data-toggle="modal"
+                                       class="btn btn-add btn-lg btn-block"
+                                       ng-click="showDataToAddSTAC()">
                                         <span class="fa fa-plus"
                                               style="margin-right:5px;"></span>
                                         <span translate="service.edit.dashboard.wmts.action.addnewlayer.button">Add</span>
