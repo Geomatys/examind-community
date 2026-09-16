@@ -316,7 +316,7 @@ angular.module('cstl-webservice-create', [
             if (self.guiConfig.transactional) {
                 if (self.type === 'sos' || self.type === 'csw' || self.type === 'sts') {
                     self.source.profile = 'transactional';
-                } else if(self.type === 'wfs' || self.type === 'wps' || self.type === 'dggs' || self.type === 'stac') {
+                } else if(self.type === 'wfs' || self.type === 'wps' || self.type === 'dggs') {
                     self.source.customParameters.transactional = self.guiConfig.transactional;
                 }
             }
