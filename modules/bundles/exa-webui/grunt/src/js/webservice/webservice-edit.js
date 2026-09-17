@@ -426,7 +426,7 @@ angular.module('cstl-webservice-edit', [
 
         $scope.showDataToAddSTAC = function() {
             var modal = $modal.open({
-                templateUrl: 'views/webservice/wcs/modalAddLayer.html', // Reuse the same as WCS for now
+                templateUrl: 'views/webservice/stac/modalAddLayer.html',
                 controller: 'WCSAddLayerModalController',
                 resolve: {
                     service: function() { return $scope.service; }
@@ -2236,6 +2236,149 @@ angular.module('cstl-webservice-edit', [
         };
 
         $scope.initInternalDataWCS();
+    })
+    /**
+     * Controller of STAC internal data.
+     * Unlike WCS (coverage-only), STAC accepts any data type (coverage, vector, sensor, observation...),
+     * so it reuses the same UI as WCS but without the coverage type restriction.
+     */
+    .controller('Step1STACInternalDataController', function($scope, Dashboard, Examind, $filter) {
+        $scope.wrap = {};
+
+        $scope.wrap.nbbypage = 5;
+
+        $scope.dataSelect={all:false};
+
+        $scope.clickFilter = function(ordType){
+            $scope.wrap.ordertype = ordType;
+            $scope.wrap.orderreverse = !$scope.wrap.orderreverse;
+        };
+
+        $scope.initInternalDataSTAC = function() {
+            Examind.datas.getDataListLight(false).then(function (response) {
+                Dashboard($scope, response.data, true);
+            });
+            if($scope.mode.previous!=='lastStep') {
+                $scope.values.listSelect.splice(0, $scope.values.listSelect.length);//clear array
+            }
+            setTimeout(function(){
+                $scope.previewData();
+            },200);
+        };
+
+        $scope.previewData = function() {
+            //clear the map
+            if (DataViewer.map) {
+                DataViewer.map.setTarget(undefined);
+            }
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
+            DataViewer.initConfig();
+            if($scope.values.listSelect.length >0){
+                var layerName,providerId;
+                for(var i=0;i<$scope.values.listSelect.length;i++){
+                    var dataItem = $scope.values.listSelect[i];
+                    if (dataItem.namespace) {
+                        layerName = '{' + dataItem.namespace + '}' + dataItem.name;
+                    } else {
+                        layerName = dataItem.name;
+                    }
+                    providerId = dataItem.provider;
+                    var layerData;
+                    var type = dataItem.type?dataItem.type.toLowerCase():null;
+                    if (dataItem.targetStyle && dataItem.targetStyle.length > 0) {
+                        layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.id,layerName,
+                                                                    dataItem.targetStyle[0].name,null,null,type!=='vector');
+                    } else {
+                        layerData = DataViewer.createLayer(cstlUrl,dataItem.id,layerName,null,type!=='vector');
+                    }
+                    //to force the browser cache reloading styled layer.
+                    layerData.get('params').ts=new Date().getTime();
+                    DataViewer.layers.push(layerData);
+                }
+                var dataIds = $scope.values.listSelect.map(function (value) {
+                    return value.id;
+                });
+                Examind.datas.mergedDataExtent(dataIds).then(
+                    function(response) {// on success
+                        DataViewer.initMap('styledMapPreviewForWMTS');
+                        if(response.data && response.data.boundingBox) {
+                            var bbox = response.data.boundingBox;
+                            var extent = [bbox[0],bbox[1],bbox[2],bbox[3]];
+                            DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
+                        }
+                    }, function() {//on error
+                        // failed to calculate an extent, just load the full map
+                        DataViewer.initMap('styledMapPreviewForWMTS');
+                    }
+                );
+            }else {
+                DataViewer.initMap('styledMapPreviewForWMTS');
+                DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom()+1);
+            }
+        };
+
+        /**
+         * Proceed to select all items of dashboard
+         * depending on the property binded to checkbox.
+         */
+        $scope.selectAllData = function() {
+            var array = $filter('filter')($scope.wrap.fullList, {'type':$scope.wrap.filtertype, '$': $scope.wrap.filtertext},$scope.wrap.matchExactly);
+            $scope.values.listSelect = ($scope.dataSelect.all) ? array.slice(0) : [];
+            $scope.previewData();
+        };
+        /**
+         * binding call when clicking on each row item.
+         */
+        $scope.toggleDataInArray = function(item){
+            var itemExists = false;
+            for (var i = 0; i < $scope.values.listSelect.length; i++) {
+                if ($scope.values.listSelect[i].id === item.id) {
+                    itemExists = true;
+                    $scope.values.listSelect.splice(i, 1);//remove item
+                    break;
+                }
+            }
+            if(!itemExists){
+                $scope.values.listSelect.push(item);
+            }
+            $scope.dataSelect.all=($scope.values.listSelect.length === $scope.wrap.fullList.length);
+            $scope.previewData();
+
+        };
+        /**
+         * Returns true if item is in the selected items list.
+         * binding function for css purposes.
+         * @param item
+         * @returns {boolean}
+         */
+        $scope.isInSelected = function(item){
+            for(var i=0; i < $scope.values.listSelect.length; i++){
+                if($scope.values.listSelect[i].id === item.id){
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        $scope.setTargetStyle = function(data,index) {
+            var tmp = data.targetStyle.splice(index,1);
+            data.targetStyle.unshift(tmp[0]);
+            $scope.previewData();
+        };
+
+        /**
+         * truncate text with JS.
+         * @param text
+         * @param length
+         * @returns {string}
+         */
+        $scope.truncate = function(text,length){
+            if(text) {
+                return (text.length > length) ? text.substr(0, length) + "..." : text;
+            }
+        };
+
+        $scope.initInternalDataSTAC();
     })
     /**
      * Controller of WMS internal data
