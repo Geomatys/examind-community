@@ -42,7 +42,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.sis.storage</groupId>
-            <artifactId>sis-coveragejson</artifactId>
+            <artifactId>sis-json</artifactId>
             <version>${sis.version}</version>
         </dependency>
         <dependency>
