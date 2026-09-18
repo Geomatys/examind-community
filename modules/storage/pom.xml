@@ -31,6 +31,7 @@
         <module>cstl-store-data-sensor</module>
         <module>exa-store-data-sql</module>
         <module>exa-store-data-coveragesql</module>
+        <module>exa-store-data-csvaggregate</module>
     </modules>
 
 </project>
