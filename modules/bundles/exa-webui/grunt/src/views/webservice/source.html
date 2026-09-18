@@ -510,6 +510,7 @@
                         <div class="form-group">
                             <div class="checkbox inline">
                                 <input type="checkbox"
+                                       data-test-id="wps-transactional"
                                        ng-model="wsChooseCtrl.guiConfig.transactional"/>
                                 <span>{{"service.config.source.wps.transactionalLabel" | translate}}</span>
                             </div>
@@ -517,6 +518,7 @@
                         <div class="form-group">
                             <div class="checkbox inline">
                                 <input type="checkbox"
+                                       data-test-id="wps-transaction-securized"
                                        ng-model="wsChooseCtrl.guiConfig.transactionSecurized"/>
                                 <span>{{"service.config.source.wps.securizedDeployLabel" | translate}}</span>
                             </div>
@@ -524,6 +526,7 @@
                         <div class="form-group">
                             <div class="checkbox inline">
                                 <input type="checkbox"
+                                       data-test-id="wps-execute-securized"
                                        ng-model="wsChooseCtrl.guiConfig.executeSecurized"/>
                                 <span>{{"service.config.source.wps.securizedExecuteLabel" | translate}}</span>
                             </div>
@@ -536,6 +539,7 @@
             <div class="pull-right" style="margin: 20px 30px;">
                 <button class="btn btn-add" type="button"
                         ng-click="wsChooseCtrl.saveServiceSource()"
+                        data-test-id="wps-save"
                         translate="label.save">Save
                 </button>
             </div>
