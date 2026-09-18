@@ -18,9 +18,10 @@
  */
 package com.examind.dggs;
 
+import java.io.InputStream;
 import java.net.URI;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import static org.junit.Assert.assertTrue;
+import org.geotoolkit.nio.IOUtilities;
 import org.junit.Test;
 
 /**
@@ -55,70 +56,15 @@ public class Conformance18_CoverageJsonZoneDataEncodingTest extends DGGSAbstract
         final String zoneId = "14";
 
         { //check getting the data as geosjon
-            final String dto = sendRequestAndParse(
+            final String resultJson = sendRequestAndParse(
                         new URI("http://localhost:" + getCurrentPort() + "/WS/dggs/default/collections/"+dataId+"/dggs/"+dggrsId+"/zones/"+zoneId+"/data?zone-depth=1"),
                         "application/prs.coverage+json", String.class);
 
-            System.out.println(dto);
+            final InputStream resStream = Conformance18_CoverageJsonZoneDataEncodingTest.class.getResourceAsStream("Conformance18.json");
+            String expectedJson = IOUtilities.toString(resStream);
 
-            assertTrue(dto.toString().startsWith(
-                """
-                {
-                    "type": "Coverage",
-                    "domain": {
-                        "type": "Domain",
-                        "domainType": "Grid",
-                        "axes": {
-                            "x": {
-                                "start": -44.6484375,
-                                "stop": 44.6484375,
-                                "num": 128
-                            },
-                            "y": {
-                                "start": 41.48367181065532,
-                                "stop": -41.48367181065532,
-                                "num": 128
-                            }
-                        },
-                        "referencing": [
-                            {
-                                "coordinates": [
-                                    "x",
-                                    "y"
-                                ],
-                                "system": {
-                                    "type": "GeographicCRS",
-                                    "id": "urn:ogc:def:crs:OGC:1.3:CRS84"
-                                }
-                            }
-                        ]
-                    },
-                    "parameters": {
-                        "band1": {
-                            "type": "Parameter",
-                            "id": "band1"
-                        },
-                        "band2": {
-                            "type": "Parameter",
-                            "id": "band2"
-                        }
-                    },
-                    "ranges": {
-                        "band1": {
-                            "type": "NdArray",
-                            "dataType": "float",
-                            "axisNames": [
-                                "y",
-                                "x"
-                            ],
-                            "shape": [
-                                128,
-                                128
-                            ],
-                            "values": [
-                """));
+            compareJSON(expectedJson, resultJson);
         }
-
         //todo profiles
     }
 
