@@ -6,6 +6,7 @@
 variables:
   MAVEN_LOCAL: ".m2_local"
   MAVEN_OPTS: "-Dmaven.repo.local=$MAVEN_LOCAL -Djava.awt.headless=true"
+  SIS_DATA: "$CI_PROJECT_DIR/.sis_data"
   SONAR_HOST_URL: "https://sonar.geomatys.com"
   DEPLOY_SERVER: "releases::https://nexus.geomatys.com/repository/releases/"
   HELM_REPO_URL: "https://nexus.geomatys.com/repository/helm-public/"
@@ -26,6 +27,9 @@ stages:
 
 # Cannot use newer version of maven because we still need http repositories (Ex: http://jaspersoft.jfrog.io/jaspersoft)
 image: maven:3.9.9-eclipse-temurin-23
+
+before_script:
+  - mkdir -p "$SIS_DATA"
 
 # Force removing artifacts installed by local jobs, to avoid cache corruption with snapshots.
 after_script:
