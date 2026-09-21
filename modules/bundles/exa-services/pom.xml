@@ -204,6 +204,11 @@
                     <artifactId>examind-engine-oauth2</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>com.examind.community</groupId>
+                    <artifactId>exa-store-data-csvaggregate</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>

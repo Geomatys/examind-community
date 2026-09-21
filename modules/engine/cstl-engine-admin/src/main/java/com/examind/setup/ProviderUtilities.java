@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
@@ -45,6 +46,7 @@ import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
+import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -130,6 +132,7 @@ public class ProviderUtilities {
     public static void validateProviderFile(Provider provider) throws ConfigurationException {
         if (provider.getProviderType() == null) throw new ConfigurationException("Provider type is missing.");
         if (provider.getDataset()      == null) throw new ConfigurationException("Dataset is missing.");
+        if (DataStores.getProviderById(provider.getProviderType()) == null) throw new ConfigurationException("Unexisting provider type.");
         
         ProviderSourceType type = getProviderSourceType(provider);
         switch(type) {
