@@ -18,17 +18,19 @@
  */
 package com.examind.setup.data;
 
-import com.examind.community.storage.sql.CoverageSQLProvider.CoverageSQLStore;
 import com.examind.dto.fs.Service;
 import static com.examind.setup.DatasourceUtilities.getOrCreateDatasourceForProviderFiles;
 import static com.examind.setup.DatasourceUtilities.getOrCreateSQLDatasource;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
+import static com.examind.setup.FileSystemUtilities.getDataPathPath;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.constellation.dto.DataSourceSelectedPath;
 import static com.examind.setup.ProviderUtilities.createCSQLProvider;
+import static com.examind.setup.ProviderUtilities.createProvider;
 import static com.examind.setup.ProviderUtilities.getProviderFileFilter;
+import com.examind.storage.DatabaseIndexedStore;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,29 +57,25 @@ import org.constellation.provider.DataProviders;
  * 
  * @author glegal
  */
-public class CSQLProviderhandler extends FSProviderHandler {
+public class DBIndexedFileProviderhandler extends FSProviderHandler {
     
-    private final String productName;
-    private final String subDataType;
-    private final boolean asChild;
-    private final boolean worldGG;
-    private final Double worldGGRes;
+    private final Map<String,String> parameters;
     
-    public CSQLProviderhandler(ProviderWithPath pwp, Map<String, List<Service>> asyncInfos) {
+    public DBIndexedFileProviderhandler(ProviderWithPath pwp, Map<String, List<Service>> asyncInfos) {
         super(pwp, asyncInfos);
-         
-        productName = pwp.provider.getAdvancedParameter("productName", (String) null);
-        subDataType = pwp.provider.getAdvancedParameter("subDataType", (String) null);
-        asChild     = pwp.provider.getAdvancedParameter("asChild", false);
-        worldGG     = pwp.provider.getAdvancedParameter("worldGG", false);
-        worldGGRes  = pwp.provider.getAdvancedParameter("worldGGResolution", (Double) null);
-         
+         this.parameters = pwp.provider.getAdvancedParameters();
+    }
+    
+    /**
+     * For now we have some difference between CSQL and csv aggregate.
+     * so we hard code some behaviour waiting dor harmonization.
+     */
+    private boolean isSingleProvider() {
+        return pwp.provider.getProviderType().equals("csql");
     }
 
     @Override
     protected void removeProviders(Integer dsFileId) throws ConstellationException {
-        // we want to remove the product, not the provider (it can be used by another product)
-        // issue here, what to do if the product name has changed?
         Set<Integer> prIds = new HashSet<>();
         List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
         for (DataSourceSelectedPath path : paths) {
@@ -90,19 +88,26 @@ public class CSQLProviderhandler extends FSProviderHandler {
         
         // there should be only one provider id here
         if (prIds.size() > 1) {
-            LOGGER.warning("Multiple provider id found for csql datasource");
+            LOGGER.warning("Multiple provider id found for database indexed");
         } else if (prIds.isEmpty()) {
-            LOGGER.warning("No provider id found for csql datasource");
+            LOGGER.warning("No provider id found for database indexed");
             return;
         }
         int prId = prIds.iterator().next();
         
-        DataProvider provider = DataProviders.getProvider(prId);
-        CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
-        try {
-            store.removeProduct(productName);
-        } catch (DataStoreException ex) {
-            throw new ConstellationException("Error while trying to remove csql product: " + productName, ex);
+        if (isSingleProvider()) {
+            
+            // we want to remove the product, not the provider (it can be used by another resource)
+            // issue here, what to do if the product name has changed?
+            DataProvider provider = DataProviders.getProvider(prId);
+            DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();
+            try {
+                store.removeResource(parameters);
+            } catch (DataStoreException ex) {
+                throw new ConstellationException("Error while trying to remove csql data. ", ex);
+            }
+        } else {
+            providerBusiness.removeProvider(prId);
         }
     }
     
@@ -114,31 +119,36 @@ public class CSQLProviderhandler extends FSProviderHandler {
 
             Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
 
-            int dsrcId = getOrCreateDatasourceForProviderFiles(datasourceBusiness, pwp, diffMode);
+            int dsrcId = getOrCreateDatasourceForProviderFiles(datasourceBusiness, pwp, null, diffMode);
             List<DataSourceSelectedPath> files = datasourceBusiness.getSelectedPath(dsrcId, Integer.MAX_VALUE);
 
             Integer datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
         
-            final String providerIdentifier = "csql-" + datasourceId;
-            Integer prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
-        
-            // we keep only one provider by datasource
-            if (prId == null) {
-                prId = createCSQLProvider(providerBusiness, providerIdentifier, datasourceId);
+            Integer prId;
+            if (isSingleProvider()) {
+                // we keep only one provider by datasource
+                final String providerIdentifier = "csql-" + datasourceId;
+                prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
+                if (prId == null) {
+                    prId = createCSQLProvider(providerBusiness, providerIdentifier, datasourceId);
+                }
+            } else {
+                Path rootDir = getDataPathPath(pwp.ymlFile.getParent(), pwp.provider.getLocation());
+                prId = createProvider(pwp.provider, providerBusiness, datasourceId, rootDir.toUri());
             }
         
             DataProvider provider = DataProviders.getProvider(prId);
-            CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
+            DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();
         
             for (DataSourceSelectedPath dsp : files) {
                 // as we are in creation mode, we assume that all the files are in pending status
                 try {
                     Path p = datasourceBusiness.getDatasourcePath(dsp.getDatasourceId(), dsp.getPath());
-                    store.createOrAddToProduct(productName, worldGG, worldGGRes, asChild, subDataType, p);
+                    store.createOrAddToResource(parameters, List.of(p));
 
                     datasourceBusiness.updatePathStatusAndProvider(dsp.getDatasourceId(), dsp.getPath(), INTEGRATED, prId);
                 } catch (DataStoreException ex) {
-                    LOGGER.log(Level.WARNING, "Error while integrating file into coverage sql: " + dsp.getPath() + " provider: " + pwp.provider.getIdentifier(), ex);
+                    LOGGER.log(Level.WARNING, "Error while integrating file into database indexed: " + dsp.getPath() + " provider: " + pwp.provider.getIdentifier(), ex);
                     datasourceBusiness.updatePathStatusAndProvider(dsp.getDatasourceId(), dsp.getPath(), ERROR, prId);
                 }
             }
@@ -153,14 +163,14 @@ public class CSQLProviderhandler extends FSProviderHandler {
 
     @Override
     public void handleProviderFileChanges(Integer datasourceFileID) throws ConstellationException {
-        // look for CSQL provider
+        // look for database indexed provider
         Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
-        final String providerIdentifier = "csql-" + datasourceId;
+        final String providerIdentifier = pwp.provider.getDataType() + "-" + datasourceId;
         Integer prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
-        if (prId == null) throw new ConfigurationException("CSQL Provider " + providerIdentifier + "no longer exist.");
+        if (prId == null) throw new ConfigurationException("Database indexed Provider " + providerIdentifier + "no longer exist.");
         
         DataProvider provider = DataProviders.getProvider(prId);
-        CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
+        DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();
         
         Predicate<Path> fileFilter = getProviderFileFilter(pwp.provider);
         datasourceBusiness.scanForModification(datasourceFileID, fileFilter);
@@ -178,11 +188,11 @@ public class CSQLProviderhandler extends FSProviderHandler {
                 case PENDING -> {
                     PathStatus newStatus;
                     try {
-                        store.createOrAddToProduct(productName, worldGG, worldGGRes, asChild, subDataType, p);
+                        store.createOrAddToResource(parameters, List.of(p));
                         newStatus = INTEGRATED;
                         hasChanges = true;
                     } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Error while inserting  new file in coverage-sql provider : " + p.toString(), ex);
+                        LOGGER.log(Level.WARNING, "Error while inserting  new file in database indexed provider : " + p.toString(), ex);
                         newStatus = ERROR;
                     }
                     datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
@@ -190,12 +200,12 @@ public class CSQLProviderhandler extends FSProviderHandler {
                 case MODIFIED -> {
                     PathStatus newStatus;
                     try {
-                        store.removeFromProduct(productName, p);
-                        store.createOrAddToProduct(productName, worldGG, worldGGRes, asChild, subDataType, p);
+                        store.removeFromResource(parameters, p);
+                        store.createOrAddToResource(parameters, List.of(p));
                         newStatus = INTEGRATED;
                         hasChanges = true;
                     } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Error while inserting  modified file in coverage-sql provider : " + p.toString(), ex);
+                        LOGGER.log(Level.WARNING, "Error while inserting  modified file in database indexed provider : " + p.toString(), ex);
                         newStatus = ERROR;
                     }
                     datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
@@ -203,23 +213,23 @@ public class CSQLProviderhandler extends FSProviderHandler {
 
                 case REMOVED -> {
                     try {
-                        store.removeFromProduct(productName, p);
+                        store.removeFromResource(parameters, p);
                         hasChanges = true;
                     } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Error while removing file from coverage-sql provider : " + p.toString(), ex);
+                        LOGGER.log(Level.WARNING, "Error while removing file from database indexed provider : " + p.toString(), ex);
                     }
                     datasourceBusiness.removePath(datasourceFileID, path.getPath());
                 }
                 case ERROR -> {
                     // idk, do we need tro try to re-insert it?
-                    LOGGER.log(Level.WARNING, "File still in insertion error for coverage-sql provider : " + p.toString());
+                    LOGGER.log(Level.WARNING, "File still in insertion error for database indexed provider : " + p.toString());
                 }
                 case INTEGRATED -> {
                     // nothing to do
                 }
                 case NO_DATA -> {
                     // idk
-                    LOGGER.log(Level.WARNING, "File still produce no data for coverage-sql provider : " + p.toString());
+                    LOGGER.log(Level.WARNING, "File still produce no data for database indexed provider : " + p.toString());
                 }
             }
         }
@@ -239,11 +249,14 @@ public class CSQLProviderhandler extends FSProviderHandler {
         // with cache activated, the createOrUpdateData may not update the cache if the data was already present
         boolean cached = Application.getBooleanProperty(AppProperty.EXA_CACHE_DATA_INFO, false);
         
+        // todo find a generic way:
+        String productName = parameters.getOrDefault("productName", null);
         if (create | cached) {
             List<Integer> productIds = new ArrayList<>();
             List<Data> datas = dataRepository.findByProviderId(pid);
             for (Data data : datas) {
-                if (data.getName().equals(productName)     ||  // single product
+                if (productName == null ||
+                    data.getName().equals(productName)     ||  // single product
                     data.getNamespace().equals(productName)) { // aggregated product
                     productIds.add(data.getId());
                     
@@ -253,8 +266,6 @@ public class CSQLProviderhandler extends FSProviderHandler {
             }
             dataBusiness.acceptDatas(productIds, null, false);
         }
-        
-        
 
         // ASYNC MODE Add layer and reload needed service
         if (asyncInfos != null && dataset != null) {

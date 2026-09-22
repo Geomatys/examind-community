@@ -37,8 +37,12 @@ import org.constellation.exception.ConstellationException;
 public class DatasourceUtilities {
     
     public static int getOrCreateDatasourceForProviderFiles(IDatasourceBusiness dBusiness, FileSystemAnalysis.ProviderWithPath pwp, boolean computeHash) throws ConstellationException {
-        Predicate<Path> fileFilter = getProviderFileFilter(pwp.provider);
         String storeId = pwp.provider.getProviderType();
+        return getOrCreateDatasourceForProviderFiles(dBusiness, pwp, storeId, computeHash);
+    }
+    
+    public static int getOrCreateDatasourceForProviderFiles(IDatasourceBusiness dBusiness, FileSystemAnalysis.ProviderWithPath pwp, String storeId, boolean computeHash) throws ConstellationException {
+        Predicate<Path> fileFilter = getProviderFileFilter(pwp.provider);
         Path rootDir = getDataPathPath(pwp.ymlFile.getParent(), pwp.provider.getLocation());
         String dsIdentifier = pwp.provider.getIdentifier();
                 
@@ -53,11 +57,6 @@ public class DatasourceUtilities {
         int dsId;
         DataSource candidate = dBusiness.getDatasource(dsIdentifier);
         if (candidate == null) {
-            // special case for csql as the files are from another store
-            // maybe add a sub-type
-            if ("coverage-sql".equals(storeId)) {
-                storeId = null;
-            }
             
             URI rootDirUri = rootDir.toUri();
             DataSource ds = new DataSource();

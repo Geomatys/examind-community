@@ -20,6 +20,10 @@ package com.examind.community.storage.csv;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -126,6 +130,40 @@ final class CsvAggregateSchema {
     }
 
     /**
+     * Reads the column schema directly from an already created {@code public.tableName}
+     * SQL table, instead of re-parsing a reference CSV file. The synthetic {@code geom}
+     * point column that {@link CsvAggregateStore#createTable} adds in spatial mode is
+     * excluded, so the result only reflects the original CSV columns.
+     */
+    static CsvSchema readSchema(Connection connection, String tableName) throws DataStoreException {
+        final List<String> columns = new ArrayList<>();
+        final List<String> types = new ArrayList<>();
+        try (ResultSet rs = connection.getMetaData().getColumns(null, "public", tableName, null)) {
+            while (rs.next()) {
+                final String columnName = rs.getString("COLUMN_NAME");
+                if ("geom".equalsIgnoreCase(columnName)) continue;
+                columns.add(columnName);
+                types.add(isNumericType(rs.getInt("DATA_TYPE")) ? "DOUBLE PRECISION" : "TEXT");
+            }
+        } catch (SQLException ex) {
+            throw new DataStoreException("Unable to read schema of SQL table: " + tableName, ex);
+        }
+        if (columns.isEmpty()) {
+            throw new DataStoreException("No columns found for SQL table: " + tableName);
+        }
+        return new CsvSchema(columns, types.toArray(String[]::new));
+    }
+
+    /** Whether a JDBC {@link Types} constant maps to the {@code DOUBLE PRECISION} SQL type used by {@link #createTable}. */
+    private static boolean isNumericType(int sqlType) {
+        return switch (sqlType) {
+            case Types.DOUBLE, Types.FLOAT, Types.REAL, Types.NUMERIC, Types.DECIMAL,
+                 Types.INTEGER, Types.BIGINT, Types.SMALLINT, Types.TINYINT -> true;
+            default -> false;
+        };
+    }
+
+    /**
      * Ensures {@code csvFile} has the exact same columns, in the same order, as
      * {@code reference}, and no conflicting header type hint.
      */
@@ -135,7 +173,7 @@ final class CsvAggregateSchema {
             throw new DataStoreException("CSV file '" + csvFile
                     + "' does not share the same columns as the reference file: expected "
                     + reference.columns() + " but found " + candidate.columns());
-        }
+            }
         for (int i = 0; i < candidate.sqlTypes().length; i++) {
             final String candidateType = candidate.sqlTypes()[i];
             if (candidateType != null && !candidateType.equals(reference.sqlTypes()[i])) {

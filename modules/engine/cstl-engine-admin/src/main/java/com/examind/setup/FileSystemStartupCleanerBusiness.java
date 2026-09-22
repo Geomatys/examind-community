@@ -19,6 +19,7 @@
 package com.examind.setup;
 
 import com.examind.community.storage.sql.CoverageSQLProvider.CoverageSQLStore;
+import com.examind.storage.DatabaseIndexedStore;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.logging.Level;
@@ -122,15 +123,16 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
                     }
                 }
                 
-                // special case for coverage-sql removal
-                if ("data-store".equals(pb.getImpl()) && pb.getConfig().contains("coverage-sql")) {
+                // special case for database indexed removal
+                // todo find a more generic way to identifiy database indexed store
+                if ("data-store".equals(pb.getImpl()) && (pb.getConfig().contains("coverage-sql") || pb.getConfig().contains("csv-aggregate"))) {
                     try {
-                        // this time we really want to instanciate it if not alread
+                        // this time we really want to instanciate it if not already
                         if (provider == null) {
                             provider = DataProviders.getProvider(pb.getId());
                         }
-                        CoverageSQLStore store = (CoverageSQLStore) provider.getMainStore();
-                        store.removeAllProducts();
+                        DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();
+                        store.removeAllResource();
                         
                     } catch (Exception ex) {
                         LOGGER.log(Level.WARNING, "Unable to remove the coverage-sql store.", ex);

@@ -21,8 +21,8 @@ package com.examind.setup;
 
 import com.examind.dto.fs.Provider;
 import static com.examind.setup.FileSystemUtilities.regexFileFilter;
-import com.examind.setup.data.CSQLProviderhandler;
 import com.examind.setup.data.ComputedProviderHandler;
+import com.examind.setup.data.DBIndexedFileProviderhandler;
 import com.examind.setup.data.FSProviderHandler;
 import com.examind.setup.data.FileProviderHandler;
 import com.examind.setup.data.OtherProviderHandler;
@@ -35,7 +35,6 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
@@ -61,7 +60,7 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class ProviderUtilities {
     
-    public static final String COVERAGE_SQL = "coverage-sql";
+    public static final List<String> DB_INDEXED = List.of("csv-aggregate");
     public static final String COMPUTED_PROVIDER = "computed-resource";
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.setup");
@@ -79,13 +78,13 @@ public class ProviderUtilities {
     /**
      * Category of providers.
      * - Computed is for data that are made of other data.
-     * - Coverage SQL data are a special mode where multiple files are grouped together with an SQL schemas that store metadata.
+     * - DB indexed data are a special mode where multiple files are grouped together with an SQL schemas that store metadata.
      * - File store data are provider pointing to a single (and eventually other complementary files) like shapefile, tiff
      * - Other store. For now we put in there SQL feature but maybe other will fall into this category.
      */
     public enum ProviderSourceType {
         COMPUTED,
-        CSQL,
+        DB_INDEXED,
         OTHER,
         FILE
     }
@@ -97,7 +96,7 @@ public class ProviderUtilities {
      * @return 
      */
     public static ProviderSourceType getProviderSourceType(Provider conf) {
-        if (COVERAGE_SQL.equals(conf.getProviderType()))  return ProviderSourceType.CSQL;
+        if (DB_INDEXED.contains(conf.getProviderType()))  return ProviderSourceType.DB_INDEXED;
         if (COMPUTED_PROVIDER.equals(conf.getDataType())) return ProviderSourceType.COMPUTED;
         
         if (conf.getSource() != null && conf.getLocation() == null) return  ProviderSourceType.OTHER;
@@ -115,10 +114,10 @@ public class ProviderUtilities {
      */
     public static FSProviderHandler getHandler(FileSystemAnalysis.ProviderWithPath pwp, FileSystemAnalysis analysis) {
         return switch (pwp.sourceType) {
-            case CSQL      -> new CSQLProviderhandler(pwp,     analysis.asyncInfos);
-            case COMPUTED  -> new ComputedProviderHandler(pwp, analysis.asyncInfos);
-            case FILE      -> new FileProviderHandler(pwp,     analysis.asyncInfos);
-            case OTHER     -> new OtherProviderHandler(pwp,    analysis.asyncInfos);
+            case DB_INDEXED -> new DBIndexedFileProviderhandler(pwp, analysis.asyncInfos);
+            case COMPUTED   -> new ComputedProviderHandler(pwp,      analysis.asyncInfos);
+            case FILE       -> new FileProviderHandler(pwp,          analysis.asyncInfos);
+            case OTHER      -> new OtherProviderHandler(pwp,         analysis.asyncInfos);
         }; 
     }
 
@@ -136,9 +135,9 @@ public class ProviderUtilities {
         
         ProviderSourceType type = getProviderSourceType(provider);
         switch(type) {
-            case CSQL -> {
-                if (provider.getSource()   == null) throw new ConfigurationException("Source is missing for coverage sql provider.");
-                if (provider.getLocation() == null) throw new ConfigurationException("Location is missing for coverage sql provider.");
+            case DB_INDEXED -> {
+                if (provider.getSource()   == null) throw new ConfigurationException("Source is missing for database indexed provider.");
+                if (provider.getLocation() == null) throw new ConfigurationException("Location is missing for database indexed provider.");
             }
             case COMPUTED -> {
                 if (provider.getComputedData() == null || provider.getComputedData().isEmpty()) {
@@ -253,7 +252,7 @@ public class ProviderUtilities {
      * @return The created provider id.
      * @throws ConstellationException 
      */
-    private static Integer createProvider(Provider conf, IProviderBusiness pBusiness, Integer datasourceId, URI pathUri) throws ConstellationException {
+    public static Integer createProvider(Provider conf, IProviderBusiness pBusiness, Integer datasourceId, URI pathUri) throws ConstellationException {
         String providerIdentifier = conf.getGeneratedIdentifier();
         
         if (pBusiness.existIdentifier(providerIdentifier)) {

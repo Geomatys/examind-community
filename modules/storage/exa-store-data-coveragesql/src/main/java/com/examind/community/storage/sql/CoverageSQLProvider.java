@@ -18,9 +18,11 @@
  */
 package com.examind.community.storage.sql;
 
+import com.examind.storage.DatabaseIndexedStore;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -119,9 +121,9 @@ public class CoverageSQLProvider extends DataStoreProvider {
         return new CoverageSQLStore(p);
     }
     
-     private final Double defaultWorldGGRes = 0.002083333333333d;
+    private final Double defaultWorldGGRes = 0.002083333333333d;
 
-    public class CoverageSQLStore extends DataStore implements Aggregate {
+    public class CoverageSQLStore extends DatabaseIndexedStore implements Aggregate {
         
         @Autowired
         private IDatasourceBusiness datasourceBusiness;
@@ -145,11 +147,21 @@ public class CoverageSQLProvider extends DataStoreProvider {
             
             geotkStore = geotkProvider.open(geotkParams);
         }
-        
-        public void createOrAddToProduct(String productName, boolean worldGG, Double worldGGRes, boolean asChild, String subDataType, List<Path> dataPaths) throws DataStoreException {
-            GridGeometry gg = null;
+       
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void createOrAddToResource(Map<String, String> parameters, List<Path> dataPaths) throws DataStoreException {
+            String productName = parameters.getOrDefault("productName", (String) null);
+            String subDataType = parameters.getOrDefault("subDataType", (String) null);
+            boolean asChild    = Boolean.parseBoolean(parameters.getOrDefault("asChild", "false"));
+            boolean worldGG    = Boolean.parseBoolean(parameters.getOrDefault("worldGG", "false"));
+            String worldGGResS = parameters.getOrDefault("worldGGResolution",null);
+            GridGeometry gg    = null;
+            Double worldGGRes  = defaultWorldGGRes;
             if (worldGG) {
-                if (worldGGRes == null) worldGGRes = defaultWorldGGRes;
+                if (worldGGResS != null) worldGGRes = Double.valueOf(worldGGResS);
                 gg = GridGeometries.getWorldGG(worldGGRes);
             }
             AddOption opt = AddOption.CREATE_PRODUCT;
@@ -163,15 +175,20 @@ public class CoverageSQLProvider extends DataStoreProvider {
             geotkStore.addRaster(productName, gg, opt, null, fileProvider, dataPaths.toArray(Path[]::new));
         }
         
-        public void createOrAddToProduct(String productName, boolean worldGG, Double worldGGRes, boolean asChild, String subDataType, Path dataPath) throws DataStoreException {
-            createOrAddToProduct(productName, worldGG, worldGGRes, asChild, subDataType, List.of(dataPath));
-        }
-        
-        public void removeFromProduct(String productName, Path dataPath) throws DataStoreException {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void removeFromResource(Map<String, String> parameters, Path dataPath) throws DataStoreException {
             geotkStore.removeRaster(dataPath);
         }
         
-        public void removeProduct(String productName) throws DataStoreException {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void removeResource(Map<String, String> parameters) throws DataStoreException {
+            String productName = parameters.getOrDefault("productName", null);
             Resource res = geotkStore.findResource(productName);
             if (res != null) {
                 // remove from store
@@ -179,7 +196,8 @@ public class CoverageSQLProvider extends DataStoreProvider {
             }
         }
         
-        public void removeAllProducts() throws DataStoreException {
+        @Override
+        public void removeAllResource() throws DataStoreException {
             for (Resource res : geotkStore.components()) {
                 // remove from store
                 geotkStore.remove(res);

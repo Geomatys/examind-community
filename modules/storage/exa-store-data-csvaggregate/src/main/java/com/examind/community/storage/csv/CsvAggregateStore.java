@@ -61,6 +61,8 @@ import static com.examind.community.storage.csv.CsvAggregateProvider.LAT_COLUMN;
 import static com.examind.community.storage.csv.CsvAggregateProvider.LON_COLUMN;
 import static com.examind.community.storage.csv.CsvAggregateProvider.EPSG;
 import static com.examind.community.storage.csv.CsvAggregateProvider.DELIMITER;
+import com.examind.storage.DatabaseIndexedStore;
+import java.util.Map;
 
 /**
  * A {@link DataStore} that loads a set of CSV files sharing the same schema into a
@@ -74,7 +76,7 @@ import static com.examind.community.storage.csv.CsvAggregateProvider.DELIMITER;
  *
  * @author Quentin Bialota (Geomatys)
  */
-public final class CsvAggregateStore extends DataStore implements Aggregate {
+public final class CsvAggregateStore extends DatabaseIndexedStore implements Aggregate {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.community.storage.csv");
     private static final int BATCH_SIZE = 1000;
@@ -189,7 +191,31 @@ public final class CsvAggregateStore extends DataStore implements Aggregate {
             return false;
         }
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void createOrAddToResource(Map<String, String> parameters, List<Path> dataPaths) throws DataStoreException {
+        loadData(dataPaths);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeFromResource(Map<String, String> parameters, Path dataPath) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet ins csv aggregate store.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeResource(Map<String, String> parameters) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet ins csv aggregate store.");
+    }
+    
     /**
      * Drops then recreates the PostGIS table and loads all CSV files into it.
      * Every file is checked against the reference schema (built from the first
@@ -203,20 +229,31 @@ public final class CsvAggregateStore extends DataStore implements Aggregate {
         if (csvFiles == null || csvFiles.isEmpty()) {
             throw new DataStoreException("No CSV files to aggregate into table " + tableName);
         }
-        final CsvSchema referenceSchema = CsvAggregateSchema.readSchema(csvFiles.get(0), delimiter);
-        CsvAggregateSchema.resolveUnresolvedTypes(csvFiles.get(0), delimiter, referenceSchema, TYPE_SAMPLE_ROWS);
-        for (Path csvFile : csvFiles) {
-            CsvAggregateSchema.validateSchema(csvFile, delimiter, referenceSchema);
-        }
-
         try {
-            dropTableIfExists();
-            createTable(referenceSchema);
-
+            final boolean update = tableExists();
+            final CsvSchema referenceSchema;
+            if (update) {
+                try (Connection c = datasource.getConnection()) {
+                    referenceSchema = CsvAggregateSchema.readSchema(c, tableName);
+                }
+            } else {
+                Path firstCsv = csvFiles.get(0);
+                referenceSchema = CsvAggregateSchema.readSchema(firstCsv, delimiter);
+                CsvAggregateSchema.resolveUnresolvedTypes(firstCsv, delimiter, referenceSchema, TYPE_SAMPLE_ROWS);
+            }
+            
+            // verify that each file follow the same schema.
+            for (Path csvFile : csvFiles) {
+                CsvAggregateSchema.validateSchema(csvFile, delimiter, referenceSchema);
+            }
+        
+            if (!update) {
+                createTable(referenceSchema);
+            }
             for (Path csvFile : csvFiles) {
                 insertCsvData(csvFile, referenceSchema);
             }
-            if (spatialMode) {
+            if (!update && spatialMode) {
                 createSpatialIndex();
             }
             refreshSisStore();
@@ -226,11 +263,12 @@ public final class CsvAggregateStore extends DataStore implements Aggregate {
                     "Failed to load CSV data into PostGIS table '" + tableName + "'", ex);
         }
     }
-
+    
     /**
      * Drops the PostGIS table. Called by FileSystemStartupCleanerBusiness.
      */
-    public void dropTable() throws DataStoreException {
+    @Override
+    public void removeAllResource() throws DataStoreException {
         try {
             dropTableIfExists();
         } catch (SQLException ex) {
