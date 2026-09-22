@@ -61,6 +61,7 @@ import static com.examind.community.storage.csv.CsvAggregateProvider.LAT_COLUMN;
 import static com.examind.community.storage.csv.CsvAggregateProvider.LON_COLUMN;
 import static com.examind.community.storage.csv.CsvAggregateProvider.EPSG;
 import static com.examind.community.storage.csv.CsvAggregateProvider.DELIMITER;
+import static com.examind.community.storage.csv.CsvAggregateSchema.FILE_ORIGIN;
 import com.examind.storage.DatabaseIndexedStore;
 import java.util.Map;
 
@@ -205,7 +206,14 @@ public final class CsvAggregateStore extends DatabaseIndexedStore implements Agg
      */
     @Override
     public void removeFromResource(Map<String, String> parameters, Path dataPath) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet ins csv aggregate store.");
+        try (Connection c = datasource.getConnection();
+             PreparedStatement stmt = c.prepareStatement("DELETE FROM public." + qi(tableName) + " WHERE " + qi(FILE_ORIGIN) + " = ?");
+            ) {
+            stmt.setString(1, dataPath.toString());
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while removing a file from csv aggrgation,", ex);
+        }
     }
 
     /**
@@ -359,8 +367,13 @@ public final class CsvAggregateStore extends DatabaseIndexedStore implements Agg
             while (it.hasNext()) {
                 final Feature f = it.next();
                 for (int i = 0; i < columns.size(); i++) {
-                    final Object val = f.getPropertyValue(columns.get(i));
-                    setParam(p, i + 1, val, "DOUBLE PRECISION".equals(schema.sqlTypes()[i]));
+                    String column = columns.get(i);
+                    if (FILE_ORIGIN.equals(column)) {
+                        setParam(p, i + 1, csvFile.toString(), false);
+                    } else {
+                        final Object val = f.getPropertyValue(column);
+                        setParam(p, i + 1, val, "DOUBLE PRECISION".equals(schema.sqlTypes()[i]));
+                    }
                 }
                 if (spatialMode) {
                     final Double lon = lonIdx >= 0 ? toDouble(f.getPropertyValue(columns.get(lonIdx))) : null;

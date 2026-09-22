@@ -73,27 +73,33 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
     private boolean isSingleProvider() {
         return pwp.provider.getProviderType().equals("csql");
     }
-
-    @Override
-    protected void removeProviders(Integer dsFileId) throws ConstellationException {
+    
+    private Integer resolveProviderId(Integer datasourceFileID) throws ConstellationException {
         Set<Integer> prIds = new HashSet<>();
-        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
+        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceFileID, Integer.MAX_VALUE);
         for (DataSourceSelectedPath path : paths) {
             Integer pid = path.getProviderId();
             if (pid != null && pid != -1) {
                 prIds.add(pid);
             }
         }
-        datasourceBusiness.delete(dsFileId);
         
-        // there should be only one provider id here
-        if (prIds.size() > 1) {
+         if (prIds.size() > 1) {
             LOGGER.warning("Multiple provider id found for database indexed");
         } else if (prIds.isEmpty()) {
             LOGGER.warning("No provider id found for database indexed");
-            return;
+            return null;
         }
-        int prId = prIds.iterator().next();
+        return prIds.iterator().next();
+    }
+
+    @Override
+    protected void removeProviders(Integer datasourceFileID) throws ConstellationException {
+        
+        Integer prId = resolveProviderId(datasourceFileID);
+        datasourceBusiness.delete(datasourceFileID);
+        
+        if (prId == null) return;
         
         if (isSingleProvider()) {
             
@@ -163,11 +169,9 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
 
     @Override
     public void handleProviderFileChanges(Integer datasourceFileID) throws ConstellationException {
-        // look for database indexed provider
-        Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
-        final String providerIdentifier = pwp.provider.getDataType() + "-" + datasourceId;
-        Integer prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
-        if (prId == null) throw new ConfigurationException("Database indexed Provider " + providerIdentifier + "no longer exist.");
+        
+        Integer prId = resolveProviderId(datasourceFileID);
+        if (prId == null) throw new ConfigurationException("Database indexed Provider not found.");
         
         DataProvider provider = DataProviders.getProvider(prId);
         DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();

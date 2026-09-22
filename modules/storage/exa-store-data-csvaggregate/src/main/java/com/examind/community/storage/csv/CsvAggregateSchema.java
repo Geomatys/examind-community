@@ -48,6 +48,8 @@ import org.opengis.feature.PropertyType;
  * @author Quentin Bialota (Geomatys)
  */
 final class CsvAggregateSchema {
+    
+    public static final String FILE_ORIGIN = "file_origin";
 
     private CsvAggregateSchema() {}
 
@@ -82,6 +84,10 @@ final class CsvAggregateSchema {
         if (columns.isEmpty()) {
             throw new DataStoreException("Empty or missing header in CSV file: " + csvFile);
         }
+        // Add file origin column to record the file origin of each line
+        columns.add(FILE_ORIGIN);
+        types.add("TEXT");
+        
         return new CsvSchema(columns, types.toArray(String[]::new));
     }
 

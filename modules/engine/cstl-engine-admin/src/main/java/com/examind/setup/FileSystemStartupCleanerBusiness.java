@@ -135,7 +135,7 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
                         store.removeAllResource();
                         
                     } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Unable to remove the coverage-sql store.", ex);
+                        LOGGER.log(Level.WARNING, "Unable to remove the database indexed store.", ex);
                     }
                 }
                 if (provider != null) provider.dispose();

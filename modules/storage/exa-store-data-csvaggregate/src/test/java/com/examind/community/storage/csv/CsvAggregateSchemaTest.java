@@ -50,6 +50,8 @@ import com.examind.community.storage.csv.CsvAggregateSchema.CsvSchema;
  */
 public class CsvAggregateSchemaTest {
 
+    public static final String FILE_ORIGIN = "file_origin";
+    
     /** Fresh temp directory per test, so files from one test cannot leak into another. */
     private Path dir;
 
@@ -90,7 +92,7 @@ public class CsvAggregateSchemaTest {
 
         CsvSchema schema = CsvAggregateSchema.readSchema(reference, ';');
         CsvAggregateSchema.resolveUnresolvedTypes(reference, ';', schema, 20);
-        assertEquals(List.of("id", "name", "value"), schema.columns());
+        assertEquals(List.of("id", "name", "value", FILE_ORIGIN), schema.columns());
 
         // Must not throw: same columns, same order.
         CsvAggregateSchema.validateSchema(other, ';', schema);
