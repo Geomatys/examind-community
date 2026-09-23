@@ -199,6 +199,13 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "An error occurred when updating datasource providers.", ex);
         }
+        
+        LOGGER.log(Level.INFO, "update old shapefile providers ...");
+        try {
+            updateOldShapefileProvider();
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "An error occurred when updating old shapefile providers.", ex);
+        }
 
         //check if data analysis is required
         boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.TRUE);
@@ -326,12 +333,36 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
         }
     }
     
+    private void updateOldShapefileProvider() {
+        LOGGER.info("=== Updating legacy Shapefile providers ===");
+        for (ProviderBrief pb : providerBusiness.getProviders()) {
+            String config = pb.getConfig();
+            if (config.contains("<shapefile>")) {
+                String url     = extractMarkValue(config, "path", false);
+                try {
+                    config = replaceTag(config, "shapefile", "esri_shapefile");
+                    config = replaceMark(config, "path", "<location>" + url + "</location>");
+                    config = removeMarks(config, "create_spatial_index", "memory_mapped_buffer", "load_qix");
+                    providerBusiness.update(pb.getId(), config);
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.WARNING, "Error while migrating shapefile provider to new version.", ex);
+                }
+            }
+        }
+    }
+    
     private static String removeMarks(String xml, String... tags) {
         for (String tag : tags) {
             String mark = extractMarkValue(xml, tag, true);
             if (mark == null) continue;
             xml = xml.replace(mark, "");
         }
+        return xml;
+    }
+    
+    private static String replaceTag(String xml, String tag, String replacement) {
+        xml = xml.replace("<" + tag + ">", "<" + replacement + ">");
+        xml = xml.replace("</" + tag + ">", "</" + replacement + ">");
         return xml;
     }
     
