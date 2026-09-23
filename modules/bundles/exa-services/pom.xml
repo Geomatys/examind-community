@@ -322,6 +322,10 @@
         </dependency>
         <dependency>
             <groupId>org.apache.sis.storage</groupId>
+            <artifactId>sis-shapefile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sis.storage</groupId>
             <artifactId>sis-earth-observation</artifactId>
         </dependency>
         <dependency>

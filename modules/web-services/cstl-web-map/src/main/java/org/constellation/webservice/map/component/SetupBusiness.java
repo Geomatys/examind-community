@@ -491,9 +491,9 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
             }
 
             final Path dst = dataDirectory.resolve("shapes");
-            createProvider(dst.resolve("CNTR_BN_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-linestring", "vector", "shapefile", "path");
-            createProvider(dst.resolve("CNTR_LB_2006.shp"),     GENERIC_SHAPE_PROVIDER + "-point",      "vector", "shapefile", "path");
-            createProvider(dst.resolve("CNTR_RG_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-polygon",    "vector", "shapefile", "path");
+            createProvider(dst.resolve("CNTR_BN_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-linestring", "vector", "esri_shapefile", "location");
+            createProvider(dst.resolve("CNTR_LB_2006.shp"),     GENERIC_SHAPE_PROVIDER + "-point",      "vector", "esri_shapefile", "location");
+            createProvider(dst.resolve("CNTR_RG_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-polygon",    "vector", "esri_shapefile", "location");
         }
 
         /**

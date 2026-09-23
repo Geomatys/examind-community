@@ -79,12 +79,16 @@
             <artifactId>geotk-index</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-shapefile</artifactId>
+            <groupId>org.apache.sis.storage</groupId>
+            <artifactId>sis-shapefile</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-coverage-geotiff</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-feature-csv</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

@@ -51,7 +51,6 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
     @Test
     @Order(order=1)
     public void createTest() throws Exception {
-        LOGGER.info("TEST CREATE");
         DataSource ds = new DataSource();
         ds.setUrl(rootDir.toUri().toString());
         ds.setPermanent(true);
@@ -65,7 +64,6 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
     @Test
     @Order(order=2)
     public void analyseTest() throws Exception {
-        LOGGER.info("TEST ANALYSE");
         List<DataSource> dss = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
         Assert.assertEquals(1, dss.size());
         DataSource ds = dss.get(0);
@@ -76,7 +74,7 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
 
         Map<String, Set<String>> analyse = datasourceBusiness.computeDatasourceStores(ds.getId(), false, null, true, false, false, null);
         Assert.assertNotNull(analyse);
-        Assert.assertTrue(analyse.containsKey("shapefile"));
+        Assert.assertTrue(analyse.containsKey("esri shapefile"));
         Assert.assertTrue(analyse.containsKey("GeoTIFF"));
         Assert.assertTrue(analyse.containsKey("geojson"));
         Assert.assertTrue(analyse.containsKey("World file"));
@@ -89,13 +87,12 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
     @Test
     @Order(order=3)
     public void selectPathTest() throws Exception {
-        LOGGER.info("TEST SELECT");
         List<DataSource> dss = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
         Assert.assertEquals(1, dss.size());
         DataSource ds = dss.get(0);
         Assert.assertNotNull(ds);
 
-        ds.setStoreId("shapefile");
+        ds.setStoreId("esri shapefile");
         ds.setFormat("application/x-shapefile");
 
         datasourceBusiness.update(ds);
@@ -110,7 +107,6 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
     @Test
     @Order(order=4)
     public void treatSelectedPathTest() throws Exception {
-        LOGGER.info("TEST TREAT PATH");
         List<DataSource> dss = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
         Assert.assertEquals(1, dss.size());
         DataSource ds = dss.get(0);
@@ -119,7 +115,7 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
         DataSourceSelectedPath path = datasourceBusiness.getSelectedPath(ds.getId(), "/org/constellation/ws/embedded/wms111/shapefiles/BasicPolygons.shp");
         Assert.assertNotNull(path);
 
-        DataStoreProvider factory = DataStores.getProviderById("shapefile");
+        DataStoreProvider factory = DataStores.getProviderById("esri shapefile");
 
         Assert.assertNotNull(factory);
         final DataCustomConfiguration.Type storeParams = DataProviders.buildDatastoreConfiguration(factory, "data-store", null);
