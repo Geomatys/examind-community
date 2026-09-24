@@ -18,6 +18,7 @@
  */
 package org.constellation.ws.embedded;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 //import org.constellation.api.rest.converter.PortrayalMessageConverter;
@@ -27,8 +28,7 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.xml.MarshallingHttpMessageConverter;
-import org.springframework.oxm.xstream.XStreamMarshaller;
+import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -48,8 +48,8 @@ public class RestAPIControllerConfig extends WebMvcConfigurationSupport {
         converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
 
-        final XStreamMarshaller marshaller = new XStreamMarshaller();
-        converters.add(new MarshallingHttpMessageConverter(marshaller,marshaller));
+        XmlMapper xmlMapper = new XmlMapper();
+        converters.add(new MappingJackson2XmlHttpMessageConverter(xmlMapper));
     }
     
     @Override
