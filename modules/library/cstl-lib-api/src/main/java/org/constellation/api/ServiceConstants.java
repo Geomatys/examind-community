@@ -44,4 +44,14 @@ public class ServiceConstants {
     public static final String INSERT_SENSOR = "InsertSensor";
     public static final String INSERT_RESULT = "InsertResult";
     public static final String INSERT_RESULT_TEMPLATE = "InsertResultTemplate";
+
+   /*
+    * openEO
+    */
+    /**
+     * {@link org.constellation.dto.process.Task#getType()} value used to persist an openEO job
+     * as a Task row. Shared between the module that creates these tasks and the module that
+     * filters them out of the generic Task Manager UI.
+     */
+    public static final String OPENEO_JOB_TASK_TYPE = "openeo-job";
 }

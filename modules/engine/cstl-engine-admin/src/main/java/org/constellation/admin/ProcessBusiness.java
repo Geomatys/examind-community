@@ -320,6 +320,12 @@ public class ProcessBusiness implements IProcessBusiness {
     }
 
     @Override
+    @Transactional
+    public void deleteTask(String uuid) throws ConstellationException {
+        taskRepository.delete(uuid);
+    }
+
+    @Override
     public List<Task> listRunningTasks() {
         return taskRepository.findRunningTasks();
     }

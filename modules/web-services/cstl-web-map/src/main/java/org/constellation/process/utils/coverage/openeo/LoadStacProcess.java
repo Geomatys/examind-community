@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.constellation.process.utils.coverage.openeo.LoadCollectionOpenEODescriptor.PROPERTIES;
 import static org.constellation.process.utils.coverage.openeo.LoadStacDescriptor.BANDS;
 import static org.constellation.process.utils.coverage.openeo.LoadStacDescriptor.OUTPUT;
+import static org.constellation.process.utils.coverage.openeo.LoadStacDescriptor.PROPERTIES;
 import static org.constellation.process.utils.coverage.openeo.LoadStacDescriptor.SPATIAL_EXTENT;
 import static org.constellation.process.utils.coverage.openeo.LoadStacDescriptor.STAC_URL;
 import static org.constellation.process.utils.coverage.openeo.LoadStacDescriptor.TEMPORAL_EXTENT;
@@ -100,6 +100,14 @@ public class LoadStacProcess extends AbstractCstlProcess  {
                 paramsLoad.parameter(StacClientItemsGetURIsDescriptor.TEMPORAL_EXTENT.getName().getCode()).setValue(temporalExtent);
                 paramsLoad.parameter(StacClientItemsGetURIsDescriptor.BANDS.getName().getCode()).setValue(bands);
 
+                Map<String, Map<String, Object>> stacQuery;
+                try {
+                    stacQuery = toStacQuery(properties);
+                } catch (RuntimeException ex) {
+                    throw new ProcessException("Invalid 'properties' argument: expected a map of STAC property name to a single-node openEO condition process graph (e.g. {\"eo:cloud_cover\": {\"process_graph\": {...}}}). Message : " + ex.getMessage(), this, ex);
+                }
+                paramsLoad.parameter(StacClientItemsGetURIsDescriptor.QUERY.getName().getCode()).setValue(stacQuery);
+
                 // Uncomment these lines if we need somewhere to set Collection, or the Extractor Class (we have one by default)
                 // paramsLoad.parameter(StacClientItemsGetURIsDescriptor.COLLECTION.getName().getCode()).setValue(null);
                 // paramsLoad.parameter(StacClientItemsGetURIsDescriptor.EXTRACTOR_CLASS.getName().getCode()).setValue(null);
@@ -129,6 +137,8 @@ public class LoadStacProcess extends AbstractCstlProcess  {
                 throw new ProcessException("Error while opening the datastore with items stored in the external stac collection. Message : " + ex.getMessage(), this, ex);
             } catch (IOException ex) {
                 throw new ProcessException("Error while creating the download folder. Message : " + ex.getMessage(), this, ex);
+            } catch (ProcessException ex) {
+                throw ex;
             } catch (Exception ex) {
                 throw new ProcessException("Error while downloading the item. Message : " + ex.getMessage(), this, ex);
             }
@@ -149,5 +159,50 @@ public class LoadStacProcess extends AbstractCstlProcess  {
         } catch (DataStoreException ex) {
             throw new ProcessException("Error while opening the datastore with items stored in the external stac collection. Message : " + ex.getMessage(), this);
         }
+    }
+
+    /**
+     * Translates openEO's {@code load_stac}/{@code load_collection} {@code properties} argument
+     * (a map of STAC item property name to a comparison condition expressed as a single-node child
+     * process graph, e.g.
+     * {@code {"eo:cloud_cover": {"process_graph": {"n1": {"process_id": "lte",
+     * "arguments": {"x": {"from_parameter": "x"}, "y": 50}, "result": true}}}}}
+     * ) into the generic STAC API Query Extension shape ({@code {"eo:cloud_cover": {"lte": 50}}})
+     * expected by {@link StacClientItemsGetURIsDescriptor#QUERY}.
+     *
+     * NOTE : (only handles the flat single-node comparison shape openEO generates for this
+     * argument. Nested/callback conditions are out of scope, same ceiling as the descriptor's
+     * "properties" argument elsewhere)
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Map<String, Object>> toStacQuery(Map properties) {
+        if (properties == null || properties.isEmpty()) {
+            return null;
+        }
+        Map<String, Map<String, Object>> query = new java.util.LinkedHashMap<>();
+        for (Object entryObj : properties.entrySet()) {
+            Map.Entry<String, Object> entry = (Map.Entry<String, Object>) entryObj;
+            Map<String, Object> processGraph = asMap(asMap(entry.getValue()).get("process_graph"));
+            for (Object nodeObj : processGraph.values()) {
+                Map<String, Object> node = asMap(nodeObj);
+                if (!Boolean.TRUE.equals(node.get("result"))) {
+                    continue;
+                }
+                String processId = (String) node.get("process_id");
+                Map<String, Object> arguments = asMap(node.get("arguments"));
+                query.put(entry.getKey(), Map.of(processId, arguments.get("y")));
+                break;
+            }
+        }
+        return query;
+    }
+
+    /**
+     * @return {@code o} cast to a {@code Map}, or an empty map if {@code o} is not a {@code Map}
+     * (defensive, since the openEO condition JSON arrives as untyped nested {@code Map}s).
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> asMap(Object o) {
+        return o instanceof Map ? (Map<String, Object>) o : Map.of();
     }
 }

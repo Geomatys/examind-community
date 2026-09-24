@@ -109,23 +109,6 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
         return (external != null ? external.getRight() : null);
     }
 
-    /**
-     * File system config (per-service "externalStacUrl" property on the WPS service sharing this serviceId)
-     * takes priority over the {@code EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE} app property.
-     *
-     * @param serviceId the WPS serviceId
-     * @return the configured url, or null if none
-     */
-    private String serviceConfigStacUrl(String serviceId) {
-        return SpringHelper.getBean(IServiceBusiness.class).map(sb -> {
-            try {
-                return sb.getConfiguration("wps", serviceId).getProperty("externalStacUrl");
-            } catch (ConfigurationException ex) {
-                return null;
-            }
-        }).orElse(null);
-    }
-
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
@@ -162,6 +145,23 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
     }
 
     /**
+     * File system config (per-service "externalStacUrl" property on the WPS service sharing this serviceId)
+     * takes priority over the {@code EXA_OPENEO_EXTERNAL_STAC_PER_WPS_SERVICE} app property.
+     *
+     * @param serviceId the WPS serviceId
+     * @return the configured url, or null if none
+     */
+    private String serviceConfigStacUrl(String serviceId) {
+        return SpringHelper.getBean(IServiceBusiness.class).map(sb -> {
+            try {
+                return sb.getConfiguration("wps", serviceId).getProperty("externalStacUrl");
+            } catch (ConfigurationException ex) {
+                return null;
+            }
+        }).orElse(null);
+    }
+
+    /**
      * {@inheritDoc}
      * @param objectRequest if the server receive a POST request in XML/json,
      *        this object contain the request. Else for a GET or a POST kvp
@@ -177,11 +177,9 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
         if (remoteStacUrl != null) {
             try {
                 String targetUrl = remoteStacUrl + "/collections";
-                String rawJson = restTemplate.getForObject(targetUrl, String.class);
                 String proxyBaseUrl = getServiceURL() + "/openeo/" + worker.getId();
 
-                assert rawJson != null;
-                String proxiedJson = rawJson.replace(remoteStacUrl, proxyBaseUrl);
+                String proxiedJson = fetchAndRewriteHrefs(remoteStacUrl, targetUrl, proxyBaseUrl);
 
                 return new ResponseObject(proxiedJson, MediaType.APPLICATION_JSON, HttpStatus.OK);
             } catch (Exception ex) {
@@ -227,11 +225,9 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
         if (remoteStacUrl != null) {
             try {
                 String targetUrl = remoteStacUrl + "/collections";
-                String rawJson = restTemplate.getForObject(targetUrl, String.class);
                 String proxyBaseUrl = getServiceURL() + "/openeo/" + serviceId;
 
-                assert rawJson != null;
-                String proxiedJson = rawJson.replace(remoteStacUrl, proxyBaseUrl);
+                String proxiedJson = fetchAndRewriteHrefs(remoteStacUrl, targetUrl, proxyBaseUrl);
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -270,11 +266,9 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
         if (remoteStacUrl != null) {
             try {
                 String targetUrl = remoteStacUrl + "/collections/" + collectionId;
-                String rawJson = restTemplate.getForObject(targetUrl, String.class);
                 String proxyBaseUrl = getServiceURL() + "/openeo/" + serviceId;
 
-                assert rawJson != null;
-                String proxiedJson = rawJson.replace(remoteStacUrl, proxyBaseUrl);
+                String proxiedJson = fetchAndRewriteHrefs(remoteStacUrl, targetUrl, proxyBaseUrl);
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -319,11 +313,9 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
         if (remoteStacUrl != null) {
             try {
                 String targetUrl = remoteStacUrl + "/collections/" + collectionId + "/items";
-                String rawJson = restTemplate.getForObject(targetUrl, String.class);
                 String proxyBaseUrl = getServiceURL() + "/openeo/" + serviceId;
 
-                assert rawJson != null;
-                String proxiedJson = rawJson.replace(remoteStacUrl, proxyBaseUrl);
+                String proxiedJson = fetchAndRewriteHrefs(remoteStacUrl, targetUrl, proxyBaseUrl);
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -351,11 +343,9 @@ public class OpenEODataDiscoveryAPI extends GridWebService<WCSWorker> {
         if (remoteStacUrl != null) {
             try {
                 String targetUrl = remoteStacUrl + "/collections/" + collectionId + "/queryables";
-                String rawJson = restTemplate.getForObject(targetUrl, String.class);
                 String proxyBaseUrl = getServiceURL() + "/openeo/" + serviceId;
 
-                assert rawJson != null;
-                String proxiedJson = rawJson.replace(remoteStacUrl, proxyBaseUrl);
+                String proxiedJson = fetchAndRewriteHrefs(remoteStacUrl, targetUrl, proxyBaseUrl);
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_JSON)

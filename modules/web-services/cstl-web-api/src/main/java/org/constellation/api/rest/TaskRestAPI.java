@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.constellation.api.ServiceConstants;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMapContextBusiness;
@@ -564,6 +565,13 @@ public class TaskRestAPI extends AbstractRestAPI {
         Map<Integer, List<TaskStatus>> map = new HashMap<>();
 
         for (Task task : tasks) {
+            // TODO: openEO jobs are persisted as Task rows (see OpenEOProcessService#storeJobTask)
+            // for lack of a dedicated openEO table, but they have no TaskParameter and don't belong
+            // in the Task Manager UI. Remove this filter once openEO jobs get their own persistence.
+            if (ServiceConstants.OPENEO_JOB_TASK_TYPE.equals(task.getType())) {
+                continue;
+            }
+
             Integer taskParameterId = task.getTaskParameterId();
 
             if (!map.containsKey(taskParameterId)) {
@@ -657,8 +665,10 @@ public class TaskRestAPI extends AbstractRestAPI {
         status.setEnd(task.getDateEnd());
         status.setOutput(task.getTaskOutput());
 
+        // TODO: defensive null-check for tasks with no TaskParameter (e.g. openEO jobs persisted as
+        // Task rows, see ServiceConstants#OPENEO_JOB_TASK_TYPE). Remove once such tasks get their own persistence.
         final TaskParameter taskParameter = processBusiness.getTaskParameterById(task.getTaskParameterId());
-        status.setTitle(taskParameter.getName());
+        status.setTitle(taskParameter != null ? taskParameter.getName() : null);
         return status;
     }
 }

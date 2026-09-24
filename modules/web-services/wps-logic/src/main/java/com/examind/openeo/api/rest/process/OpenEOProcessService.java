@@ -1,5 +1,11 @@
 package com.examind.openeo.api.rest.process;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.constellation.api.rest.ErrorMessage;
+import org.geotoolkit.openeo.dto.capabilities.Argument;
+import org.geotoolkit.openeo.dto.service.Service;
+import org.geotoolkit.openeo.dto.capabilities.ServiceType;
 import org.geotoolkit.openeo.dto.CheckMessage;
 import org.geotoolkit.openeo.dto.ResponseMessage;
 import org.geotoolkit.openeo.dto.process.BoundingBox;
@@ -19,16 +25,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.DefaultParameterDescriptor;
 import org.apache.sis.referencing.CRS;
+import org.constellation.api.ServiceConstants;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.business.ITokenBusiness;
+import org.constellation.business.IUserBusiness;
 import org.constellation.dto.process.ChainProcess;
 import org.constellation.dto.process.Registry;
+import org.constellation.dto.process.Task;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
+import org.constellation.ws.UnauthorizedException;
 import org.constellation.ws.rs.OGCWebService;
 import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.atom.xml.Link;
@@ -96,6 +106,7 @@ import static org.springframework.http.HttpStatus.FAILED_DEPENDENCY;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -139,9 +150,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     private ITokenBusiness tokenBusiness;
 
     /**
-     * Map of job IDs to their corresponding processes.
+     * User business service, used to resolve the current caller's numeric id
+     * so openEO jobs can be persisted with an owner.
      */
-    private final Map<String, Process> jobIdToProcessMap;
+    @Autowired
+    private IUserBusiness userBusiness;
+
+    /**
+     * Jackson mapper used to persist the openEO {@link Process} graph associated
+     * to a job into {@link Task#getTaskOutput()}.
+     */
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final ExternalStacManager externalStac;
 
@@ -150,8 +169,68 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
      */
     public OpenEOProcessService() {
         super(ServiceDef.Specification.WPS);
-        this.jobIdToProcessMap = new HashMap<>();
         this.externalStac = new ExternalStacManager();
+    }
+
+    /**
+     * @return the numeric id of the currently authenticated user.
+     * @throws UnauthorizedException if no user is currently authenticated
+     */
+    private Integer getCurrentUserId() throws ConstellationException {
+        if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+            throw new UnauthorizedException("Authentication is required to perform this operation");
+        }
+        String login = SecurityManagerHolder.getInstance().getCurrentUserLogin();
+        return userBusiness.findOne(login)
+                .orElseThrow(() -> new ConstellationException("No user found for login " + login))
+                .getId();
+    }
+
+    /**
+     * @param task the persisted job task, may be {@code null}
+     * @return {@code true} if the task exists and belongs to the currently authenticated user
+     */
+    private boolean isOwnedByCurrentUser(Task task) throws ConstellationException {
+        return task != null && task.getOwner() != null && task.getOwner().equals(getCurrentUserId());
+    }
+
+    /**
+     * Persist the openEO job/process association, tagged with the current user as owner,
+     * so it survives restarts and can be scoped per user.
+     *
+     * TODO: this piggybacks on the generic {@link Task} entity for lack of a dedicated openEO
+     * table, and repurposes {@code taskOutput} (normally the process' output, set by
+     * QuartzJobListener) to store the process' *input* definition instead. These tasks have no
+     * TaskParameter and are filtered out of the Task Manager UI (see {@link ServiceConstants#OPENEO_JOB_TASK_TYPE}).
+     * Replace with dedicated openEO persistence and drop this reuse of Task.
+     */
+    private void storeJobTask(String jobId, Process process) throws ConstellationException {
+        Task task = new Task();
+        task.setIdentifier(jobId);
+        task.setType(ServiceConstants.OPENEO_JOB_TASK_TYPE);
+        task.setOwner(getCurrentUserId());
+        task.setState("PENDING");
+        task.setDateStart(System.currentTimeMillis());
+        try {
+            task.setTaskOutput(objectMapper.writeValueAsString(process));
+        } catch (JsonProcessingException ex) {
+            throw new ConstellationException("Cannot serialize openEO process graph for job " + jobId, ex);
+        }
+        processBusiness.addTask(task);
+    }
+
+    /**
+     * @return the openEO {@link Process} graph associated to the given job, or {@code null} if none is stored.
+     */
+    private Process readJobProcess(Task task) throws ConstellationException {
+        if (task == null || task.getTaskOutput() == null) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(task.getTaskOutput(), Process.class);
+        } catch (JsonProcessingException ex) {
+            throw new ConstellationException("Cannot deserialize openEO process graph for job " + task.getIdentifier(), ex);
+        }
     }
 
     /**
@@ -562,7 +641,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
 
         boolean result = processBusiness.deleteChainProcess("examind-dynamic", USER_DEFINED_PROCESS_PREFIX + processGraphId);
         if (!result) {
-            new ResponseEntity(
+            return new ResponseEntity(
                     new ResponseMessage(UUID.randomUUID().toString(), "CannotDeleteProcess", "Impossible do delete the process " + processGraphId, List.of()),
                     INTERNAL_SERVER_ERROR);
         }
@@ -740,8 +819,18 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                     Map<String, String> jobMap = new HashMap<>();
                     jobMap.put("job_id", statusInfo.getJobID());
 
-                    // Keep track of the process associated to the jobId
-                    jobIdToProcessMap.put(statusInfo.getJobID(), process);
+                    // Persist the process associated to the jobId, tagged with the current user as owner
+                    try {
+                        storeJobTask(statusInfo.getJobID(), process);
+                    } catch (UnauthorizedException ex) {
+                        return new ResponseEntity(
+                                new ResponseMessage(UUID.randomUUID().toString(), "AuthenticationRequired", "Info : " + ex.getMessage(), List.of()),
+                                UNAUTHORIZED);
+                    } catch (ConstellationException ex) {
+                        return new ResponseEntity(
+                                new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : " + ex.getMessage(), List.of()),
+                                INTERNAL_SERVER_ERROR);
+                    }
 
                     return new ResponseEntity(jobMap, CREATED);
                 } else {
@@ -769,14 +858,22 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             try {
                 Set<String> jobIds = worker.getJobList(null);
                 for (String jobId : jobIds) {
+                    // Only list jobs owned by the current user - jobs without a persisted, owned
+                    // Task (e.g. created before this fix) are excluded rather than shown to everyone.
+                    Task jobTask = processBusiness.getTask(jobId);
+                    if (!isOwnedByCurrentUser(jobTask)) {
+                        continue;
+                    }
+
                     StatusInfo statusInfo = worker.getStatus(new GetStatus("WPS", "2.0.0", jobId));
                     Job job = new Job();
                     job.setId(jobId);
                     job.setStatus(Status.wpsStatusEquivalentTo(statusInfo.getStatus()));
                     job.setCreated(statusInfo.getCreationTime());
-                    job.setProgress(statusInfo.getPercentCompleted());
+                    Integer progress = statusInfo.getPercentCompleted();
+                job.setProgress(progress != null ? progress : 0);
 
-                    Process assiociatedProcess = jobIdToProcessMap.get(jobId);
+                    Process assiociatedProcess = readJobProcess(jobTask);
                     if (assiociatedProcess != null) {
                         job.setProcess(assiociatedProcess);
                     }
@@ -784,9 +881,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                     jobs.addJobsItem(job);
                 }
 
+            } catch (UnauthorizedException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "AuthenticationRequired", "Info : " + ex.getMessage(), List.of()),
+                        UNAUTHORIZED);
             } catch (CstlServiceException ex) {
                 return new ResponseEntity(
                         new ResponseMessage(UUID.randomUUID().toString(), "ServerError", "Info : " + ex.getMessage(), List.of()),
+                        INTERNAL_SERVER_ERROR);
+            } catch (ConstellationException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : " + ex.getMessage(), List.of()),
                         INTERNAL_SERVER_ERROR);
             }
 
@@ -810,6 +915,13 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             Job job = new Job();
 
             try {
+                Task jobTask = processBusiness.getTask(jobId);
+                if (!isOwnedByCurrentUser(jobTask)) {
+                    return new ResponseEntity(
+                            new ResponseMessage(UUID.randomUUID().toString(), "JobNotFound", "Info : The job with the id : " + jobId + " was not found.", List.of()),
+                            NOT_FOUND);
+                }
+
                 StatusInfo statusInfo = worker.getStatus(new GetStatus("WPS", "2.0.0", jobId));
                 if (statusInfo == null) {
                     return new ResponseEntity(
@@ -823,16 +935,25 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 job.setUpdated(statusInfo.getCreationTime());
                 job.setDescription(statusInfo.getMessage());
 
-                Process assiociatedProcess = jobIdToProcessMap.get(jobId);
+                Process assiociatedProcess = readJobProcess(jobTask);
                 if (assiociatedProcess != null) {
                     job.setProcess(assiociatedProcess);
                 }
 
-                job.setProgress(statusInfo.getPercentCompleted());
+                Integer progress = statusInfo.getPercentCompleted();
+                job.setProgress(progress != null ? progress : 0);
 
+            } catch (UnauthorizedException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "AuthenticationRequired", "Info : " + ex.getMessage(), List.of()),
+                        UNAUTHORIZED);
             } catch (CstlServiceException ex) {
                 return new ResponseEntity(
                         new ResponseMessage(UUID.randomUUID().toString(), "ServerError", "Info : " + ex.getMessage(), List.of()),
+                        INTERNAL_SERVER_ERROR);
+            } catch (ConstellationException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : " + ex.getMessage(), List.of()),
                         INTERNAL_SERVER_ERROR);
             }
 
@@ -854,6 +975,12 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         final WPSWorker worker = getWorker(serviceId);
         if (worker != null) {
             try {
+                if (!isOwnedByCurrentUser(processBusiness.getTask(jobId))) {
+                    return new ResponseEntity(
+                            new ResponseMessage(UUID.randomUUID().toString(), "JobNotFound", "Info : The job with the id : " + jobId + " was not found.", List.of()),
+                            NOT_FOUND);
+                }
+
                 Object result = worker.runProcess(jobId);
                 if (result instanceof StatusInfo statusInfo) {
                     Status status = Status.wpsStatusEquivalentTo(statusInfo.getStatus());
@@ -861,9 +988,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 } else {
                     return new ResponseEntity(ACCEPTED);
                 }
+            } catch (UnauthorizedException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "AuthenticationRequired", "Info : " + ex.getMessage(), List.of()),
+                        UNAUTHORIZED);
             } catch (CstlServiceException ex) {
                 return new ResponseEntity(
                         new ResponseMessage(UUID.randomUUID().toString(), "ServerError", "Info : " + ex.getMessage(), List.of()),
+                        INTERNAL_SERVER_ERROR);
+            } catch (ConstellationException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : " + ex.getMessage(), List.of()),
                         INTERNAL_SERVER_ERROR);
             }
         }
@@ -885,6 +1020,12 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             return new ResponseEntity<>("Service ID: " + serviceId + " not found", NOT_FOUND);
 
         try {
+            if (!isOwnedByCurrentUser(processBusiness.getTask(jobId))) {
+                return new ResponseEntity<>(
+                        new ResponseMessage(UUID.randomUUID().toString(), "JobNotFound", "Info : The job with the id : " + jobId + " was not found.", List.of()),
+                        NOT_FOUND);
+            }
+
             Object result = worker.getResult(new GetResult("WPS", "2.0.0", jobId));
 
             if (result == null)
@@ -923,9 +1064,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                     new ResponseMessage(UUID.randomUUID().toString(), "JobResultError", "Info : Job result could not be retrieved", List.of()),
                     FAILED_DEPENDENCY);
 
+        } catch (UnauthorizedException ex) {
+            return new ResponseEntity<>(
+                    new ResponseMessage(UUID.randomUUID().toString(), "AuthenticationRequired", ex.getMessage(), List.of()),
+                    UNAUTHORIZED);
         } catch (CstlServiceException ex) {
             return new ResponseEntity<>(
                     new ResponseMessage(UUID.randomUUID().toString(), "ServerError", ex.getMessage(), List.of()),
+                    INTERNAL_SERVER_ERROR);
+        } catch (ConstellationException ex) {
+            return new ResponseEntity<>(
+                    new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", ex.getMessage(), List.of()),
                     INTERNAL_SERVER_ERROR);
         }
     }
@@ -944,6 +1093,12 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         final WPSWorker worker = getWorker(serviceId);
         if (worker != null) {
             try {
+                if (!isOwnedByCurrentUser(processBusiness.getTask(jobId))) {
+                    return new ResponseEntity(
+                            new ResponseMessage(UUID.randomUUID().toString(), "JobNotFound", "Info : The job with the id : " + jobId + " was not found.", List.of()),
+                            NOT_FOUND);
+                }
+
                 Object result = worker.getResult(new GetResult("WPS", "2.0.0", jobId));
 
                 HttpHeaders headers = new HttpHeaders();
@@ -970,9 +1125,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                 }
 
                 return new ResponseEntity(result, OK);
+            } catch (UnauthorizedException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "AuthenticationRequired", "Info : " + ex.getMessage(), List.of()),
+                        UNAUTHORIZED);
             } catch (CstlServiceException ex) {
                 return new ResponseEntity(
                         new ResponseMessage(UUID.randomUUID().toString(), "ServerError", "Info : " + ex.getMessage(), List.of()),
+                        INTERNAL_SERVER_ERROR);
+            } catch (ConstellationException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : " + ex.getMessage(), List.of()),
                         INTERNAL_SERVER_ERROR);
             }
         }
@@ -992,11 +1155,16 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
         final WPSWorker worker = getWorker(serviceId);
         if (worker != null) {
             try {
+                if (!isOwnedByCurrentUser(processBusiness.getTask(jobId))) {
+                    return new ResponseEntity(
+                            new ResponseMessage(UUID.randomUUID().toString(), "JobNotFound", "Info : The job with the id : " + jobId + " was not found.", List.of()),
+                            NOT_FOUND);
+                }
+
                 String processId = worker.getProcessAssociated(jobId);
                 worker.dismiss(new Dismiss("WPS", "2.0.0", jobId));
 
-                // Remove the jobId to process mapping
-                jobIdToProcessMap.remove(jobId);
+                processBusiness.deleteTask(jobId);
 
                 if (processId != null) {
                     //Process ID returned is like : "urn:exa:wps:examind-dynamic::temp-openeo-evi-execution"
@@ -1005,9 +1173,17 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
                     String lastPart = parts[parts.length - 1];
                     deleteProcess(lastPart);
                 }
+            } catch (UnauthorizedException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "AuthenticationRequired", "Info : " + ex.getMessage(), List.of()),
+                        UNAUTHORIZED);
             } catch (CstlServiceException ex) {
                 return new ResponseEntity(
                         new ResponseMessage(UUID.randomUUID().toString(), "ServerError", "Info : " + ex.getMessage(), List.of()),
+                        INTERNAL_SERVER_ERROR);
+            } catch (ConstellationException ex) {
+                return new ResponseEntity(
+                        new ResponseMessage(UUID.randomUUID().toString(), "InternalServerError", "Info : " + ex.getMessage(), List.of()),
                         INTERNAL_SERVER_ERROR);
             }
             return new ResponseEntity(OK);
@@ -1071,8 +1247,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             if (in.getSchema()[0].getType().isEmpty()) {
                 inputParameterClass = Object.class;
             } else {
-                //TODO : Find a way to put all "types" in input
-                inputParameterClass = in.getSchema()[0].getType().getFirst().getClassAssociated(in.getSchema()[0].getSubType());
+                inputParameterClass = in.getSchema()[0].getPrimaryType().getClassAssociated(in.getSchema()[0].getSubType());
             }
             final Parameter param = new Parameter(in.getName(), inputParameterClass, in.getName(), in.getDescription(), 1, 1);
             inputs.put(in.getName(), param);
@@ -1091,9 +1266,7 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             if (processReturnSchema.getType().isEmpty()) {
                 outputParameterClass = Object.class;
             } else {
-                //TODO : Find a way to put all "types" in output
-                DataTypeSchema.Type type = processReturnSchema.getType().stream().findFirst().orElse(DataTypeSchema.Type.OBJECT);
-                outputParameterClass = type.getClassAssociated(processReturnSchema.getSubType());
+                outputParameterClass = processReturnSchema.getPrimaryType().getClassAssociated(processReturnSchema.getSubType());
             }
         } else {
             outputParameterClass = Object.class;
