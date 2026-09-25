@@ -83,6 +83,12 @@ public interface IProcessBusiness {
 
     void deleteTask(String uuid) throws ConstellationException;
 
+    /**
+     * @param type value of {@link Task#getType()} to filter on.
+     * @return all persisted tasks with the given type.
+     */
+    List<Task> getTasksByType(String type) throws ConstellationException;
+
     void cancelTask(final String taskId) throws ConstellationException;
 
     void cancelTaskForTaskParameter(final Integer taskparamId) throws ConstellationException;

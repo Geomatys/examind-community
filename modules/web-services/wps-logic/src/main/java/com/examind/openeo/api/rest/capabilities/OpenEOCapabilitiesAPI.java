@@ -152,6 +152,9 @@ public class OpenEOCapabilitiesAPI extends OGCWebService<WPSWorker> {
         endpoints.add(new Endpoint("/jobs/{job_id}/results", List.of(Endpoint.MethodsEnum.POST, Endpoint.MethodsEnum.GET)));
         endpoints.add(new Endpoint("/jobs/{job_id}/results/download", List.of(Endpoint.MethodsEnum.GET)));
         endpoints.add(new Endpoint("/jobs/{job_id}", List.of(Endpoint.MethodsEnum.GET, Endpoint.MethodsEnum.DELETE)));
+        endpoints.add(new Endpoint("/services", List.of(Endpoint.MethodsEnum.GET, Endpoint.MethodsEnum.POST)));
+        endpoints.add(new Endpoint("/services/{service_id}", List.of(Endpoint.MethodsEnum.GET, Endpoint.MethodsEnum.PATCH, Endpoint.MethodsEnum.DELETE)));
+        endpoints.add(new Endpoint("/services/{service_id}/logs", List.of(Endpoint.MethodsEnum.GET)));
 
         capabilities.setEndpoints(endpoints);
 

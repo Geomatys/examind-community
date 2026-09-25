@@ -124,6 +124,7 @@ public abstract class AbstractGrizzlyServer {
             "org.constellation.wfs.ws.rs",
             "com.examind.ogc.api.rest.coverages",
             "com.examind.openeo.api.rest.process",
+            "com.examind.openeo.api.rest.service",
             "org.constellation.sos.ws.rs",
             "org.constellation.sos.ws.rs.provider",
             "org.constellation.wmts.ws.rs",

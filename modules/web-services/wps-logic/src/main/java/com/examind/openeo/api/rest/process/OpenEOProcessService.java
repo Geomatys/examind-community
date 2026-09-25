@@ -751,6 +751,63 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
     }
 
     /**
+     * Executes an openEO process graph synchronously and returns the resulting output file.
+     * Reuses the same deploy/execute/cleanup sequence as {@link #runProcessSynchronously}, so
+     * other openEO controllers (e.g. secondary services) can materialize a process graph's
+     * result as a concrete file without duplicating that logic.
+     *
+     * @param serviceId the WPS service instance to run the process on
+     * @param process the process graph to execute
+     * @return the path to the resulting output file
+     * @throws ConstellationException if the service/process is invalid or execution doesn't produce a file
+     */
+    public Path runProcessGraphToFile(String serviceId, Process process) throws ConstellationException {
+        String processId = null;
+        try {
+            putServiceIdParam(serviceId);
+            final WPSWorker worker = getWorker(serviceId);
+            if (worker == null) {
+                throw new ConstellationException("Service ID : " + serviceId + " not found");
+            }
+
+            if (process.getId() == null) {
+                process.setId(UUID.randomUUID().toString());
+            } else {
+                process.setId(process.getId() + "-" + UUID.randomUUID());
+            }
+
+            List<ProcessDescriptor> descriptorList = getDescriptorList();
+            CheckMessage checkMessage = process.isProcessGraphValid(descriptorList);
+            if (!checkMessage.isValid()) {
+                throw new ConstellationException("Info : " + checkMessage.getMessage());
+            }
+
+            List<ResponseMessage> listError = new ArrayList<>();
+            externalStac.checkProcessLoadCollectionsWithExternalStac(process, serviceId, listError);
+            if (!listError.isEmpty()) {
+                throw new ConstellationException(listError.getFirst().getMessage());
+            }
+
+            processId = deployUserDefinedProcess(process, true, false, serviceId);
+            worker.updateProcess();
+
+            Object response = createProcessJob(processId, worker, process, false);
+            if (!(response instanceof Path path)) {
+                throw new ConstellationException("The process did not produce a file result.");
+            }
+            return path;
+        } catch (ConstellationException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new ConstellationException("Error while executing process graph: " + ex.getMessage(), ex);
+        } finally {
+            if (processId != null) {
+                deleteProcess(processId);
+            }
+        }
+    }
+
+    /**
      * Create a process asynchronously (call /jobs/{job_id}/results to run the process / job)
      *
      * @param serviceId the ID of the service to use for running the process

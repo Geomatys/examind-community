@@ -61,6 +61,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.constellation.api.CstlJobListener;
 import org.constellation.api.CstlScheduler;
 import org.constellation.business.IClusterBusiness;
@@ -323,6 +324,14 @@ public class ProcessBusiness implements IProcessBusiness {
     @Transactional
     public void deleteTask(String uuid) throws ConstellationException {
         taskRepository.delete(uuid);
+    }
+
+    @Override
+    public List<Task> getTasksByType(String type) throws ConstellationException {
+        return taskRepository.findAll().stream()
+                .filter(t -> type.equals(t.getType()))
+                .map(Task.class::cast)
+                .collect(Collectors.toList());
     }
 
     @Override

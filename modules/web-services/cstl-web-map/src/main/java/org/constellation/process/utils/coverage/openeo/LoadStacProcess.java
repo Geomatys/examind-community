@@ -107,7 +107,7 @@ public class LoadStacProcess extends AbstractCstlProcess  {
                     throw new ProcessException("Invalid 'properties' argument: expected a map of STAC property name to a single-node openEO condition process graph (e.g. {\"eo:cloud_cover\": {\"process_graph\": {...}}}). Message : " + ex.getMessage(), this, ex);
                 }
                 paramsLoad.parameter(StacClientItemsGetURIsDescriptor.QUERY.getName().getCode()).setValue(stacQuery);
-
+                
                 // Uncomment these lines if we need somewhere to set Collection, or the Extractor Class (we have one by default)
                 // paramsLoad.parameter(StacClientItemsGetURIsDescriptor.COLLECTION.getName().getCode()).setValue(null);
                 // paramsLoad.parameter(StacClientItemsGetURIsDescriptor.EXTRACTOR_CLASS.getName().getCode()).setValue(null);

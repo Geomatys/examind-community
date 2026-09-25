@@ -1,0 +1,26 @@
+{
+  "title": "test-secondary-service",
+  "type": "wcs",
+  "process": {
+    "id": "secondary-service-process",
+    "process_graph": {
+      "load": {
+        "process_id": "load_collection",
+        "arguments": {
+          "id": "martinique",
+          "bands": ["1"]
+        }
+      },
+      "save": {
+        "process_id": "save_result",
+        "arguments": {
+          "format": "GTIFF",
+          "data": {
+            "from_node": "load"
+          }
+        },
+        "result": true
+      }
+    }
+  }
+}

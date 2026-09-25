@@ -19,6 +19,8 @@
 package org.constellation.ws.embedded.wps;
 
 import java.util.List;
+import org.constellation.coverage.ws.rs.GridCoverageWriter;
+import org.constellation.coverage.ws.rs.WCSResponseWriter;
 import org.constellation.wps.ws.rs.BoundingBoxWriter;
 import org.constellation.wps.ws.rs.FeatureSetWriter;
 import org.constellation.wps.ws.rs.FileWriter;
@@ -50,6 +52,11 @@ public class WPSControllerConfig  extends WebMvcConfigurationSupport {
         converters.add(new GeometryWriter());
         converters.add(new WPSJSONResponseWriter());
         converters.add(new WPSResponseWriter());
+        // <--openEO secondary-service tests publish real WCS instances and need to
+        // parse their GetCapabilities XML response, alongside the WPS converters above.
+        converters.add(new WCSResponseWriter());
+        converters.add(new GridCoverageWriter());
+        // openEO-->
         converters.add(new ExceptionReportWriter());
         converters.add(new MappingJackson2HttpMessageConverter());
     }
