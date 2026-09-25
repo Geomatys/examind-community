@@ -17,8 +17,6 @@
 
   <tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager" />
 
-  <bean id="xml.xstream.marshaller" class="org.springframework.oxm.xstream.XStreamMarshaller" />
-
   <!-- mutipart upload configuration -->
   <bean id="multipartResolver"
           class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
@@ -46,9 +44,10 @@
         <bean class="org.constellation.api.rest.converter.TimeObjectConverter" />
         <bean class="org.constellation.api.rest.converter.AbstractGeometryConverter" />
         <!--fallback on generic xml marshaller-->
-        <bean class="org.springframework.http.converter.xml.MarshallingHttpMessageConverter">
-            <property name="marshaller" ref="xml.xstream.marshaller" />
-            <property name="unmarshaller" ref="xml.xstream.marshaller" />
+        <bean class="org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter">
+            <constructor-arg>
+                <bean class="com.fasterxml.jackson.dataformat.xml.XmlMapper" />
+            </constructor-arg>
         </bean>
     </mvc:message-converters>
   </mvc:annotation-driven>
