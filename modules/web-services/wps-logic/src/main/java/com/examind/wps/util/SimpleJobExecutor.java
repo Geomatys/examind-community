@@ -20,13 +20,9 @@ public class SimpleJobExecutor implements AutoCloseable {
 
     /**
      * Executor thread pool.
+     * TODO: change executor type according to concurrent job limitation (i.e create a fixedthreadpool, etc.)
      */
-    private final ExecutorService executor;
-
-    private SimpleJobExecutor() {
-        // TODO: change executor type according to concurrent job limitation (i.e create a fixedthreadpool, etc.)
-        executor = Executors.newCachedThreadPool(new SimpleThreadFactory());
-    }
+    private final ExecutorService executor = Executors.newCachedThreadPool(new SimpleThreadFactory());
 
     public <T> Future<T> submit(final Callable<T> job) {
         return executor.submit(job);
@@ -60,9 +56,7 @@ public class SimpleJobExecutor implements AutoCloseable {
         private final AtomicInteger threadNumber = new AtomicInteger(1);
 
         SimpleThreadFactory() {
-            SecurityManager s = System.getSecurityManager();
-            group = (s != null) ? s.getThreadGroup() :
-                                  Thread.currentThread().getThreadGroup();
+            group = Thread.currentThread().getThreadGroup();
         }
 
         @Override

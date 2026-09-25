@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Map;
 import org.flywaydb.core.internal.util.PlaceholderReplacer;
 
@@ -333,21 +331,25 @@ public class ExaPlaceHolderReplacer extends PlaceholderReplacer {
         return output;
     }
 
-    public static InputStream getResourceAsStream(final String url) {
-        final ClassLoader cl = getContextClassLoader();
+    /**
+     * Obtain the Thread Context ClassLoader.
+     */
+    private static ClassLoader getContextClassLoader() {
+        return Thread.currentThread().getContextClassLoader();
+    }
+
+    /**
+     * Return an input stream of the specified resource.
+     */
+    private static InputStream getResourceAsStream(final String url) {
+        ClassLoader cl = getContextClassLoader();
+        if (cl == null) {
+            cl = ExaPlaceHolderReplacer.class.getClassLoader();
+        }
         return cl.getResourceAsStream(url);
     }
 
-    public static ClassLoader getContextClassLoader() {
-        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            @Override
-            public ClassLoader run() {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        });
-    }
-
-    public static String toString(final InputStream stream, final Charset encoding) throws IOException {
+    private static String toString(final InputStream stream, final Charset encoding) throws IOException {
 
         final StringBuilder sb  = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, encoding))) {

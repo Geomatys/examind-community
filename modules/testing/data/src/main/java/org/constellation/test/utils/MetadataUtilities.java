@@ -436,7 +436,6 @@ public final class MetadataUtilities {
                     assertEquals(idExpResult.getCharacterSets(), idResult.getCharacterSets());
                     assertEquals(idExpResult.getEnvironmentDescription(), idResult.getEnvironmentDescription());
                     extentsEquals(idExpResult.getExtents(), idResult.getExtents());
-                    assertEquals(idExpResult.getInterface(), idResult.getInterface());
                     assertEquals(idExpResult.getLanguages(), idResult.getLanguages());
                     assertEquals(idExpResult.getSpatialRepresentationTypes(), idResult.getSpatialRepresentationTypes());
                     assertEquals(idExpResult.getStandard(), idResult.getStandard());

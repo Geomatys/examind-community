@@ -26,8 +26,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -94,19 +92,17 @@ public final class Util {
      * Obtain the Thread Context ClassLoader.
      */
     public static ClassLoader getContextClassLoader() {
-        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            @Override
-            public ClassLoader run() {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        });
+        return Thread.currentThread().getContextClassLoader();
     }
 
     /**
      * Return an input stream of the specified resource.
      */
     public static InputStream getResourceAsStream(final String url) {
-        final ClassLoader cl = getContextClassLoader();
+        ClassLoader cl = getContextClassLoader();
+        if (cl == null) {
+            cl = Util.class.getClassLoader();
+        }
         return cl.getResourceAsStream(url);
     }
 

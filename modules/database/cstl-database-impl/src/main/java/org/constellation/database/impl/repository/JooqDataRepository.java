@@ -676,7 +676,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     public SortedSet<Date> getDataTimes(int dataId, boolean range) {
         final SortedSet<Date> results = new TreeSet<>();
         if (range) {
-            Record2<Long, Long> rec = dsl.select(DATA_TIMES.DATE.min().as("min"), DATA_TIMES.DATE.max().as("max")).from(DATA_TIMES).where(DATA_TIMES.DATA_ID.eq(dataId)).fetchOne();
+            Record2<Long, Long> rec = dsl.select(DSL.min(DATA_TIMES.DATE).as("min"), DSL.max(DATA_TIMES.DATE).as("max")).from(DATA_TIMES).where(DATA_TIMES.DATA_ID.eq(dataId)).fetchOne();
             if (rec.value1() != null && rec.value2() != null) {
                 results.add(new Date(rec.value1()));
                 results.add(new Date(rec.value2()));

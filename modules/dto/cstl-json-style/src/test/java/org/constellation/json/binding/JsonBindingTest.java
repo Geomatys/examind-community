@@ -22,11 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
+import static org.constellation.util.Util.getResourceAsStream;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.style.DefaultMutableRule;
@@ -139,14 +137,5 @@ public class JsonBindingTest {
         final StringWriter jsonWriter2 = new StringWriter(1024);
         objectMapper.writeValue(jsonWriter2, stroke);
         // TODO : check Jackson written Json
-    }
-
-    public static InputStream getResourceAsStream(final String url) {
-        final ClassLoader cl = getContextClassLoader();
-        return cl.getResourceAsStream(url);
-    }
-
-    public static ClassLoader getContextClassLoader() {
-        return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> Thread.currentThread().getContextClassLoader());
     }
 }
