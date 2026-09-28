@@ -567,7 +567,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                     String userUrl = getFileSystem(ds, true).uri;
 
                     /* sometimes (like S3 provider) the error is launched
-                     * only as we request Path informations.
+                     * only as we request Path information.
                      * in other case (like SMB provider) we have no credential error,
                      * only Files.exist() return false.
                      */

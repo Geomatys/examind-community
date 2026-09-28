@@ -137,7 +137,9 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             connection: {
                 login: '',
                 password: '',
-                region: ''
+                region: '',
+                customHost: '',
+                customPort: ''
             },
             readFromRemote: false,
             scheme: 's3://',
@@ -276,10 +278,32 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
                     if (self.remote.protocol.readFromRemote) {
                         dataSource.permanent = true;
                     }
+
+                    dataSource.properties = {};
                     if (self.remote.protocol.connection.region) {
-                        dataSource.properties = {
-                                                 "aws.region": self.remote.protocol.connection.region
-                                               };
+                        dataSource.properties["aws.region"] = self.remote.protocol.connection.region;
+                    }
+
+                    let host = self.remote.protocol.connection.customHost
+                    let port = self.remote.protocol.connection.customPort
+
+                    if (host) {
+                        dataSource.properties["s3.host"] = host;
+                        host = host.replace(/^https?:\/\//, ''); //remove http:// or https:// if present
+
+                        if (port) {
+                            dataSource.properties["s3.port"] = port;
+                        } else {
+                            if (self.remote.protocol.connection.customHost.includes("https")) {
+                                dataSource.properties["s3.port"] = 443;
+                                port = 443;
+                            } else if (self.remote.protocol.connection.customHost.includes("http")) {
+                                dataSource.properties["s3.port"] = 80;
+                                port = 80;
+                            }
+                        }
+
+                        dataSource.url = `s3://${host}:${port}/` + dataSource.url.slice("s3://".length);
                     }
                 }
                 explore = true;

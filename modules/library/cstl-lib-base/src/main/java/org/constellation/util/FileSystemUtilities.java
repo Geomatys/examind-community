@@ -103,17 +103,48 @@ public class FileSystemUtilities {
                 userURI = new URI(userUrl);
                 break;
             case "s3":
-                if (userName != null && !userName.isEmpty()) {
-                    userUrl = baseUrl.replace("://", "://" + userName + '@');
-                } else {
-                    userUrl = baseUrl;
-                }
-                baseURI = new URI(userUrl);
-                userURI = new URI(userUrl);
                 prop.put("aws.secretAccessKey", password);
                 if (properties != null && properties.containsKey("aws.region")) {
                     prop.put("aws.region", properties.get("aws.region"));
                 }
+
+                baseURI = new URI(baseUrl);
+
+                String s3Host = properties != null ? properties.get("s3.host") : null;
+                boolean isHttps = s3Host == null || !s3Host.startsWith("http://");
+                prop.put("isHttps", isHttps);
+
+                if (baseURI.getPort() == -1) {
+                    String hostname = null;
+                    if (s3Host != null) {
+                        hostname = s3Host.replaceFirst("^https?://", "");
+                        String s3Port = properties.get("s3.port");
+                        hostname = hostname + ":" + (s3Port != null ? s3Port : (isHttps ? "443" : "80"));
+                    }
+
+                    if (userName != null && !userName.isEmpty()) {
+                        if (hostname != null) {
+                            userUrl = baseUrl.replace("://", "://" + userName + '@' + hostname + '/');
+                        } else {
+                            userUrl = baseUrl.replace("://", "://" + userName + '@');
+                        }
+                    } else {
+                        if (hostname != null) {
+                            userUrl = baseUrl.replace("://", "://" + hostname + '/');
+                        } else {
+                            userUrl = baseUrl;
+                        }
+                    }
+                } else {
+                    if (userName != null && !userName.isEmpty()) {
+                        userUrl = baseUrl.replace("://", "://" + userName + '@');
+                    } else {
+                        userUrl = baseUrl;
+                    }
+                }
+
+                baseURI = new URI(userUrl);
+                userURI = new URI(userUrl);
                 break;
             case "database":
                 prop.put("username", userName);

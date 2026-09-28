@@ -90,7 +90,7 @@
                         </div>
                     </div>
                     <div class="form-group" ng-show="remoteCtrl.remote.protocol.id === 's3'">
-                        <label for="password" class="col-sm-3 control-label">
+                        <label for="region" class="col-sm-3 control-label">
                             <span>{{'wiz.data.import.step1.label.region' | translate}}</span>
                         </label>
                         <div class="col-sm-9">
@@ -98,6 +98,26 @@
                                    ng-model="remoteCtrl.remote.protocol.connection.region"
                                    placeholder="{{'wiz.data.import.step1.label.region' | translate}}"
                                    data-test-id="region-s3-remote-protocol">
+                        </div>
+                    </div>
+                    <div class="form-group" ng-show="remoteCtrl.remote.protocol.id === 's3'">
+                        <label for="host" class="col-sm-3 control-label">
+                            <span>{{'wiz.data.import.step1.label.custom.host' | translate}}</span>
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="host" type="text" class="form-control"
+                                   ng-model="remoteCtrl.remote.protocol.connection.customHost"
+                                   placeholder="{{'wiz.data.import.step1.label.custom.host' | translate}}">
+                        </div>
+                    </div>
+                    <div class="form-group" ng-show="remoteCtrl.remote.protocol.id === 's3'">
+                        <label for="port" class="col-sm-3 control-label">
+                            <span>{{'wiz.data.import.step1.label.custom.port' | translate}}</span>
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="port" type="text" class="form-control"
+                                   ng-model="remoteCtrl.remote.protocol.connection.customPort"
+                                   placeholder="{{'wiz.data.import.step1.label.custom.port' | translate}}">
                         </div>
                     </div>
                 </div>

@@ -311,6 +311,8 @@
   "wiz.data.import.step1.label.secret.key": "Clef secrète",
   "wiz.data.import.step1.label.access.key": "Clef d'accès",
   "wiz.data.import.step1.label.region": "Région",
+  "wiz.data.import.step1.label.custom.host": "URL de l'Hôte personnalisé",
+  "wiz.data.import.step1.label.custom.port": "Port personnalisé",
   "wiz.data.import.step1.label.protocol": "Protocole",
   "wiz.data.import.step1.label.database": "Base de données",
   "wiz.data.import.step1.label.tooltip.database.port": "Numéro du port de la base de donnée",
