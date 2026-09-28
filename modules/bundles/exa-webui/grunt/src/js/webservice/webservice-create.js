@@ -114,6 +114,9 @@ angular.module('cstl-webservice-create', [
             if (self.type === 'stac') {
                 return [{ 'id': '1.0.0', 'checked': true}];
             }
+            if (self.type === 'edr') {
+                return [{ 'id': '1.1.0', 'checked': true}];
+            }
             if (self.type === 'wmts') {
                 return [{ 'id': '1.0.0', 'checked': true}];
             }
@@ -198,7 +201,7 @@ angular.module('cstl-webservice-create', [
                 function(response) {
                     webserviceFactory.serviceId = response.data.id;
                     Growl('success', 'Success', 'Service ' + self.metadata.name + ' successfully created');
-                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'sts' || self.type === 'wfs' || self.type === 'wms' || self.type === 'wcs' || self.type === 'wmts' || self.type === 'wps' || self.type === 'dggs' || self.type === 'stac') {
+                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'sts' || self.type === 'wfs' || self.type === 'wms' || self.type === 'wcs' || self.type === 'wmts' || self.type === 'wps' || self.type === 'dggs' || self.type === 'stac' || self.type === 'edr') {
                         $location.path('/webservice/'+ self.type +'/'+ self.metadata.identifier +'/source');
                     } else {
                         $location.path('/webservice');

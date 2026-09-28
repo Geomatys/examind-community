@@ -22,7 +22,8 @@
     "thw": true,
     "sts": true,
     "dggs": true,
-    "stac": true
+    "stac": true,
+    "edr": true
   },
   "showDatabaseImportData": true
 }

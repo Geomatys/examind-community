@@ -306,7 +306,12 @@ public enum AppProperty {
     EXA_WMS_STRICT("examind.wms.strict", true, Boolean.class),
 
     EXA_WMS_BACKGROUND_URL("examind.wms.background", false, String.class),
-    
+
+    /**
+     * Maximum number of grid cells (all dimensions multiplied) a single EDR data query may read (default is 10 000 000).
+     */
+    EXA_EDR_MAX_CELLS("examind.edr.max.cells", false, Long.class),
+
     EXA_API_READONLY("examind.api.readonly", false, Boolean.class),
 
     EXA_ENABLE_INTERNAL_SIS_STORE("examind.enable.internal.sis.store", false, Boolean.class),

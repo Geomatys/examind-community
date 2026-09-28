@@ -69,6 +69,12 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
                     dataList = dataList.map(function(item){
                         return item;
                     });
+                } else if ($scope.service.type.toLowerCase() === 'edr') {
+                    dataList = dataList.map(function(item){
+                        if (item.type.toLowerCase() === 'coverage') {
+                            return item;
+                        }
+                    });
                 } else if ($scope.service.type.toLowerCase() === 'wfs') {
                     dataList = dataList.map(function(item){
                         if (item.type.toLowerCase() === 'vector' || item.type.toLowerCase() === 'sensor' || item.type.toLowerCase() === 'observation') {

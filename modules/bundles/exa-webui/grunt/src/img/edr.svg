@@ -1,0 +1,26 @@
+<svg width="150" height="120" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+    <g>
+        <title>EDR icon</title>
+        <!-- coverage grid being queried -->
+        <g id="edr-grid">
+            <rect x="10" y="10" width="20" height="20" fill="#E3E3E3"/>
+            <rect x="32" y="10" width="20" height="20" fill="#CCCCCB" opacity="0.75"/>
+            <rect x="54" y="10" width="20" height="20" fill="#E3E3E3" opacity="0.5"/>
+            <rect x="10" y="32" width="20" height="20" fill="#CCCCCB" opacity="0.75"/>
+            <rect x="32" y="32" width="20" height="20" fill="#E3E3E3" opacity="0.5"/>
+            <rect x="54" y="32" width="20" height="20" fill="#CCCCCB" opacity="0.75"/>
+            <rect x="10" y="54" width="20" height="20" fill="#E3E3E3" opacity="0.5"/>
+            <rect x="32" y="54" width="20" height="20" fill="#CCCCCB" opacity="0.75"/>
+            <rect x="54" y="54" width="20" height="20" fill="#E3E3E3"/>
+        </g>
+        <!-- trajectory / corridor query crossing the grid -->
+        <path id="edr-trajectory" d="M4,70 C30,60 40,24 84,18 S118,30 124,48" stroke="#CCCCCB" stroke-width="2" stroke-dasharray="4,4" fill="none"/>
+        <!-- position query: a pin with a radius ring -->
+        <g id="edr-position">
+            <circle cx="112" cy="62" r="14" stroke="#CCCCCB" stroke-width="2" fill="none" opacity="0.75"/>
+            <circle cx="112" cy="62" r="5" fill="#E3E3E3"/>
+        </g>
+        <!-- "EDR" label, matching the other service-type glyphs -->
+        <text id="edr-label" x="6" y="110" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="30" fill="#CCCCCB">EDR</text>
+    </g>
+</svg>

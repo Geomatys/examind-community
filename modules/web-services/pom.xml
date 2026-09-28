@@ -53,6 +53,7 @@
         <module>cstl-web-sts</module>
         <module>cstl-web-dggs</module>
         <module>cstl-web-stac</module>
+        <module>cstl-web-edr</module>
         <module>wps-logic</module>
     </modules>
 

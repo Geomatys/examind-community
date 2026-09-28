@@ -91,7 +91,10 @@ public enum ServiceDef {
     DGGS_1_0_0(Specification.DGGS, Organization.OGC, "1.0.0", Profile.NONE, null, "1.1.0", false, true),
 
     // STAC API
-    STAC_1_0_0(Specification.STAC, Organization.OGC, "1.0.0", Profile.NONE, null, "1.1.0", false, true);
+    STAC_1_0_0(Specification.STAC, Organization.OGC, "1.0.0", Profile.NONE, null, "1.1.0", false, true),
+
+    // OGC-API EDR
+    EDR_1_1_0(Specification.EDR, Organization.OGC, "1.1.0", Profile.NONE, null, "1.1.0", false, true);
 
     /**
      * Name of the specification.
@@ -223,7 +226,8 @@ public enum ServiceDef {
         TILES3D("3DTiles"),
         QUANTIZEDMESH("QuantizedMesh"),
         DGGS("Discrete Global Grid System"),
-        STAC("SpatioTemporal Asset Catalog");
+        STAC("SpatioTemporal Asset Catalog"),
+        EDR("Environmental Data Retrieval");
 
         public final String fullName;
 
@@ -266,6 +270,8 @@ public enum ServiceDef {
                 return DGGS;
             } else if (STAC.name().equalsIgnoreCase(shortName)) {
                 return STAC;
+            } else if (EDR.name().equalsIgnoreCase(shortName)) {
+                return EDR;
             }
             throw new IllegalArgumentException(shortName + " is not a valid service specification.");
         }
@@ -276,6 +282,7 @@ public enum ServiceDef {
                  ||this.equals(Specification.WCS)  ||this.equals(Specification.SOS)
                  ||this.equals(Specification.WPS)
                  ||this.equals(Specification.DGGS) ||this.equals(Specification.STAC)
+                 ||this.equals(Specification.EDR)
                  ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D)
                  ||this.equals(Specification.QUANTIZEDMESH) ;
         }
