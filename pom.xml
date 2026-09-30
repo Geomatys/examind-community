@@ -187,10 +187,15 @@
             <groupId>net.postgis</groupId>
             <artifactId>postgis-jdbc</artifactId>
         </dependency>
-         <!-- TODO: verify if we really need derby, as most of the time, EPSG db should be deployed in PostgreSQL or HSQLDB -->
+         <!-- still used by lucene R-tree index -->
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbytools</artifactId>
             <scope>runtime</scope>
         </dependency>
 
