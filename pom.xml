@@ -665,6 +665,11 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-hdf</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-processing</artifactId>
                 <version>${geotoolkit.version}</version>
                 <!-- Import Quartz which imports an obsolete version of Hikari, causing problems with HikariConfig serialization (datacube) -->

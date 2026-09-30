@@ -331,6 +331,10 @@
             <artifactId>geotk-coverage-hgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-hdf</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.sis.storage</groupId>
             <artifactId>sis-shapefile</artifactId>
         </dependency>
@@ -418,7 +422,7 @@
             <artifactId>jaxb-runtime</artifactId>
             <scope>runtime</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
