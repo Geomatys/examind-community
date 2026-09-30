@@ -119,6 +119,10 @@ public class LayerCache {
         return nip.layerId;
     }
 
+    public Integer getDataId() {
+        return nip.dataId;
+    }
+
     public Optional<String> getAlias() {
         if (nip.alias != null) {
             return Optional.of(nip.alias);

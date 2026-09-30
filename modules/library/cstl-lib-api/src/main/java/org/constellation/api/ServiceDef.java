@@ -268,10 +268,10 @@ public enum ServiceDef {
                 return STS;
             } else if (DGGS.name().equalsIgnoreCase(shortName)) {
                 return DGGS;
-            } else if (STAC.name().equalsIgnoreCase(shortName)) {
-                return STAC;
             } else if (EDR.name().equalsIgnoreCase(shortName)) {
                 return EDR;
+            } else if (STAC.name().equalsIgnoreCase(shortName)) {
+                return STAC;
             }
             throw new IllegalArgumentException(shortName + " is not a valid service specification.");
         }

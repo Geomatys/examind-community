@@ -1,12 +1,32 @@
+/*
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
+ *
+ * Copyright 2026 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.examind.stac;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpResponse;
+import java.util.List;
 import org.geotoolkit.ogcapi.dto.common.ConfClasses;
 import org.geotoolkit.ogcapi.dto.common.LandingPage;
 import org.geotoolkit.ogcapi.dto.common.Link;
+import org.geotoolkit.stac.dto.Asset;
 import org.geotoolkit.stac.dto.Collection;
 import org.geotoolkit.stac.dto.Collections;
 import org.geotoolkit.stac.dto.Item;
@@ -14,6 +34,7 @@ import org.geotoolkit.stac.dto.ItemCollection;
 import org.junit.Test;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -240,5 +261,68 @@ public class STACServiceTest extends STACAbstractTest {
         final URI uri = new URI("http://localhost:" + getCurrentPort() + "/WS/stac/default/collections/coveragepng/items/unknown");
         final HttpResponse<byte[]> response = sendRequest(uri, "application/json");
         assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.statusCode());
+    }
+
+    /**
+     * Calls {@code GET /WS/stac/default/collections/coveragepng/items/coveragepng} and checks
+     * that the item's {@code assets} map exposes a WMS {@code GetMap} preview (the coverage
+     * layer is also linked, by {@link STACAbstractTest#initLayerList()}, to a "defaultWms"
+     * WMS service instance) but no WFS asset, since coverage data has no WFS GetFeature.
+     */
+    @Test
+    public void getItemAssetsWmsTest() throws Exception {
+        initLayerList();
+
+        final URI uri = new URI("http://localhost:" + getCurrentPort() + "/WS/stac/default/collections/coveragepng/items/coveragepng");
+        final HttpResponse<byte[]> response = sendRequest(uri, "application/json");
+        assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());
+
+        final Item dto = MAPPER.readValue(response.body(), Item.class);
+        assertNotNull(dto.getAssets());
+        final Asset visual = asset(dto, "wms-defaultWms-coveragepng");
+        assertEquals(List.of("visual"), visual.getRoles());
+        assertTrue(visual.getHref().contains("/wms/defaultWms?"));
+        assertTrue(visual.getHref().contains("REQUEST=GetMap"));
+        assertTrue(visual.getHref().contains("LAYERS=coveragepng"));
+
+        // coverage data is also linked to a "defaultWcs" WCS instance (default skeleton,
+        // advertising version 2.0.1), so it should expose a WCS 2.0 GetCoverage data asset.
+        final Asset data = asset(dto, "wcs-defaultWcs-coveragepng");
+        assertEquals(List.of("data"), data.getRoles());
+        assertTrue(data.getHref().contains("/wcs/defaultWcs?"));
+        assertTrue(data.getHref().contains("VERSION=2.0.1"));
+        assertTrue(data.getHref().contains("REQUEST=GetCoverage"));
+        assertTrue(data.getHref().contains("COVERAGEID=coveragepng"));
+    }
+
+    /**
+     * Calls {@code GET /WS/stac/default/collections/city/items/city} and checks that the
+     * item's {@code assets} map exposes both a WMS preview and a WFS {@code GetFeature}
+     * download, since the "city" vector layer is linked to both a "defaultWms" and a
+     * "defaultWfs" service instance.
+     */
+    @Test
+    public void getItemAssetsWfsTest() throws Exception {
+        initLayerList();
+
+        final URI uri = new URI("http://localhost:" + getCurrentPort() + "/WS/stac/default/collections/city/items/city");
+        final HttpResponse<byte[]> response = sendRequest(uri, "application/json");
+        assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());
+
+        final Item dto = MAPPER.readValue(response.body(), Item.class);
+        assertNotNull(dto.getAssets());
+        assertEquals(List.of("visual"), asset(dto, "wms-defaultWms-city").getRoles());
+        final Asset data = asset(dto, "wfs-defaultWfs-city");
+        assertEquals(List.of("data"), data.getRoles());
+        assertTrue(data.getHref().contains("/wfs/defaultWfs?"));
+        assertTrue(data.getHref().contains("REQUEST=GetFeature"));
+        assertTrue(data.getHref().contains("TYPENAMES=city"));
+    }
+
+    private static Asset asset(Item dto, String key) {
+        assertNotNull(dto.getAssets());
+        final Asset asset = dto.getAssets().get(key);
+        assertNotNull("missing asset " + key + " in " + dto.getAssets().keySet(), asset);
+        return asset;
     }
 }

@@ -681,6 +681,11 @@ public class ServiceBusiness implements IServiceBusiness {
     }
 
     @Override
+    public List<Service> getDataLinkedServices(int dataId) {
+        return serviceRepository.findByDataId(dataId);
+    }
+
+    @Override
     public List<Service> getProviderLinkedSensorServices(Integer providerId) {
         return serviceRepository.getProviderLinkedSensorServices(providerId);
     }

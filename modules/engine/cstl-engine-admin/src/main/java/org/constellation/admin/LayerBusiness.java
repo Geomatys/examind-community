@@ -550,6 +550,17 @@ public class LayerBusiness implements ILayerBusiness {
      * {@inheritDoc}
      */
     @Override
+    public List<QName> getLayerNames(Integer serviceId, Integer dataId) {
+        // same naming rule as LayerWorker#getNameFromNIP: an alias is exposed without namespace
+        return layerRepository.findByServiceIdAndDataId(serviceId, dataId).stream()
+                .map(l -> l.getAlias() != null ? new QName(l.getAlias()) : l.getName())
+                .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean isAvailableName(Integer serviceId, String name, String namespace) {
         // namespace seems to be always empty instead of null in data, but in layer namespace are never empty.
         String nsmp = (namespace != null && !namespace.isEmpty()) ? namespace : null;

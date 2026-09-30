@@ -70,7 +70,7 @@ import org.springframework.lang.NonNull;
 public abstract class LayerWorker extends AbstractWorker<LayerContext> {
 
     @Autowired
-    private ILayerBusiness layerBusiness;
+    protected ILayerBusiness layerBusiness;
 
     @Autowired
     protected IStyleBusiness styleBusiness;

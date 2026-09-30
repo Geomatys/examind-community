@@ -1,3 +1,21 @@
+/*
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
+ *
+ * Copyright 2026 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.examind.stac;
 
 import java.io.IOException;
@@ -78,6 +96,26 @@ public abstract class STACAbstractTest extends AbstractGrizzlyServer {
 
                 for (DataImport d : datas) {
                     layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
+                }
+
+                // Also link every data to a WMS and a WFS service instance (never started), and the
+                // coverage data to a WCS instance, each advertising the version used by the asset
+                // request templates, so that STAC items built on top of them get WMS/WFS/WCS assets,
+                // exercising DefaultSTACWorker#buildAssets.
+                final org.constellation.dto.contact.Details wmsDetails = new org.constellation.dto.contact.Details();
+                wmsDetails.setVersions(java.util.List.of("1.3.0"));
+                Integer wmsId = serviceBusiness.create("wms", "defaultWms", null, wmsDetails, null);
+                final org.constellation.dto.contact.Details wfsDetails = new org.constellation.dto.contact.Details();
+                wfsDetails.setVersions(java.util.List.of("2.0.0"));
+                Integer wfsId = serviceBusiness.create("wfs", "defaultWfs", null, wfsDetails, null);
+                final org.constellation.dto.contact.Details wcsDetails = new org.constellation.dto.contact.Details();
+                wcsDetails.setVersions(java.util.List.of("2.0.1"));
+                Integer wcsId = serviceBusiness.create("wcs", "defaultWcs", null, wcsDetails, null);
+                layerBusiness.add(didCoverage.id, "coveragepng", null, "coveragepng", "coveragepng", wmsId, null);
+                layerBusiness.add(didCoverage.id, "coveragepng", null, "coveragepng", "coveragepng", wcsId, null);
+                for (DataImport d : datas) {
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, wmsId, null);
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, wfsId, null);
                 }
 
                 serviceBusiness.start(defId);

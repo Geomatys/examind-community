@@ -277,7 +277,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, co
     @Override
     public List<Layer> findByServiceIdAndDataId(int serviceId, int dataId) {
         return convertListToDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.DATA.eq(dataId))
-                .and(LAYER.ALIAS.isNull()).fetchInto(com.examind.database.api.jooq.tables.pojos.Layer.class));
+                .fetchInto(com.examind.database.api.jooq.tables.pojos.Layer.class));
 
     }
 

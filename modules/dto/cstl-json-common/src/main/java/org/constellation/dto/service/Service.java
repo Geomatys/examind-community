@@ -19,6 +19,7 @@
 package org.constellation.dto.service;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -86,6 +87,14 @@ public class Service extends ServiceReference implements Serializable {
 
     public void setVersions(String versions) {
         this.versions = versions;
+    }
+
+    /**
+     * @param version A version number, e.g. {@code "1.3.0"}.
+     * @return {@code true} if this service instance advertises the specified version.
+     */
+    public boolean hasVersion(String version) {
+        return versions != null && Arrays.asList(versions.split("µ")).contains(version);
     }
 
     /**

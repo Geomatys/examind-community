@@ -342,6 +342,14 @@ public interface IServiceBusiness {
     List<Service> getDataLinkedSensorServices(int dataId);
 
     /**
+     * Return all the services (WMS, WCS, WFS, ...) exposing the specified Data through a layer.
+     *
+     * @param dataId A data identifier.
+     * @return A list of services.
+     */
+    List<Service> getDataLinkedServices(int dataId);
+
+    /**
      * Link a service and a provider
      *
      * @param serviceID Service identifier (must be a sensor service like STA or SOS).

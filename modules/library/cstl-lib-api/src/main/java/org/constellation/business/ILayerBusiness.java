@@ -20,6 +20,7 @@ package org.constellation.business;
 
 import java.util.List;
 import java.util.Map;
+import javax.xml.namespace.QName;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerConfig;
@@ -205,6 +206,18 @@ public interface ILayerBusiness {
      * 
      */
     boolean isAvailableAlias(Integer serviceId, String alias);
+
+    /**
+     * Return the names under which the specified Data is exposed in the specified service.
+     * A data can be published several times in the same service (e.g. with different default styles),
+     * so one name is returned per layer: its alias (without namespace) if one was set, otherwise its
+     * qualified layer name (namespace + local part, the namespace being empty if there is none).
+     *
+     * @param serviceId The service identifier.
+     * @param dataId The data identifier.
+     * @return The exposed layer names, empty if the data is not linked to the service through a layer.
+     */
+    List<QName> getLayerNames(Integer serviceId, Integer dataId);
 
     /**
      * Return {code true} if the specified name/namespace is available in the service.
