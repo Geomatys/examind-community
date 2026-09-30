@@ -460,11 +460,6 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-feature-shapefile</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-storage</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
