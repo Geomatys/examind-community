@@ -78,6 +78,17 @@ Default configuration is defined in `cstl-database-api` pom file.
 </properties>
 ```
 
+You can run a database matching this configuration using Docker, if the port 5432 on the host machine is not already bound:
+
+```bash
+docker run -d --rm --name exa-jooq-gen \
+-p "5432:5432" \
+-e "POSTGRES_USER=examind" \
+-e "POSTGRES_PASSWORD=examind" \
+-e "POSTGRES_DB=exa-generate" \
+postgres:18.6
+```
+
 After database is created, we can build Constellation with `generate` profile:
 
 ```bash
