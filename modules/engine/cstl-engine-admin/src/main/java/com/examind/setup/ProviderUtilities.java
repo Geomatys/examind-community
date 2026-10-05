@@ -30,11 +30,16 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.apache.sis.referencing.IdentifiedObjects;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
@@ -133,7 +138,13 @@ public class ProviderUtilities {
     public static void validateProviderFile(Provider provider) throws ConfigurationException {
         if (provider.getProviderType() == null) throw new ConfigurationException("Provider type is missing.");
         if (provider.getDataset()      == null) throw new ConfigurationException("Dataset is missing.");
-        if (DataStores.getProviderById(provider.getProviderType()) == null) throw new ConfigurationException("Unexisting provider type.");
+        if (DataStores.getProviderById(provider.getProviderType()) == null) {
+            final String acceptedProviderNames = org.apache.sis.storage.DataStores.providers().stream()
+                    .map(ProviderUtilities::getName)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining(", "));
+            throw new ConfigurationException("Unexisting provider type. Accepted values: " + acceptedProviderNames);
+        }
         
         ProviderSourceType type = getProviderSourceType(provider);
         switch(type) {
@@ -151,6 +162,12 @@ public class ProviderUtilities {
             }
             case OTHER -> {}
         }
+    }
+
+    private static String getName(DataStoreProvider provider) {
+        if (provider == null) return null;
+        final var name = IdentifiedObjects.getName(provider.getOpenParameters(), null);
+        return name != null ? name : provider.getShortName();
     }
 
     /**
