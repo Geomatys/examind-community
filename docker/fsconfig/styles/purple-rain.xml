@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns6:UserStyle xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:ns3="http://www.opengis.net/gml" xmlns:ns4="http://www.opengis.net/se" xmlns:ns5="http://www.w3.org/1999/xlink" xmlns:ns6="http://www.opengis.net/sld" xmlns:ns7="http://www.opengis.net/ogc" xmlns:ns8="http://geotoolkit.org">
+  <ns4:Name>purple-rain</ns4:Name>
+  <ns4:Description>
+    <ns4:Title></ns4:Title>
+    <ns4:Abstract></ns4:Abstract>
+  </ns4:Description>
+  <ns6:IsDefault>false</ns6:IsDefault>
+  <ns4:FeatureTypeStyle>
+    <ns4:Description>
+      <ns4:Title></ns4:Title>
+      <ns4:Abstract></ns4:Abstract>
+    </ns4:Description>
+    <ns4:Rule>
+      <ns4:Name>purple-rain</ns4:Name>
+      <ns4:Description>
+        <ns4:Title>Purple rain</ns4:Title>
+        <ns4:Abstract>Dashed purple lines</ns4:Abstract>
+      </ns4:Description>
+      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>
+      <ns4:MaxScaleDenominator>5.0E9</ns4:MaxScaleDenominator>
+      <ns4:LineSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>line</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Stroke>
+          <ns4:SvgParameter name="stroke">
+            <ns7:Literal>#630B8A</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-dasharray">6.0 6.0</ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-dashoffset">
+            <ns7:Literal>0.0</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linecap">
+            <ns7:Literal>square</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linejoin">
+            <ns7:Literal>bevel</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-width">
+            <ns7:Literal>2</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Stroke>
+        <ns4:PerpendicularOffset>
+          <ns7:Literal>0.0</ns7:Literal>
+        </ns4:PerpendicularOffset>
+      </ns4:LineSymbolizer>
+    </ns4:Rule>
+  </ns4:FeatureTypeStyle>
+</ns6:UserStyle>

@@ -1,0 +1,4 @@
+dataType: data-store
+dataset: Example
+location: file:///datasets/geotiff-test-data/utm.tif
+providerType: GeoTIFF

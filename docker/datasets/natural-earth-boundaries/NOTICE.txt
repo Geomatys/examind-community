@@ -1,0 +1,3 @@
+Downloaded from Natural Earth: https://www.naturalearthdata.com/downloads/110m-cultural-vectors/
+
+License: public domain

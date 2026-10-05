@@ -1,0 +1,4 @@
+dataset: Example
+dataType: data-store
+location: file:///datasets/natural-earth-boundaries/ne_110m_admin_0_pacific_groupings.shp
+providerType: "shapefile"

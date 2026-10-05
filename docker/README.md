@@ -60,3 +60,27 @@ Note that in the compose file, if you remove the line:
 >         -Djavax.net.ssl.trustStore=/tmp/truststore/cacerts
 
 Then Examind uses the default java trust store, and the file is not downloadable anymore.
+
+## FileSystem based configuration (Immutable)
+
+_Run it using:_
+
+```bash
+docker compose -f compose-fsconfig.yaml up
+```
+
+This example shows how to prepare a set of configuration files to startup Examind with a set of predefined layers and services.
+
+This sample is very simple, and works as follows:
+
+* [./fsconfig/styles](./fsconfig/styles) directory contains a set of SLD files to import.
+* [./fsconfig/providers](./fsconfig/providers) directory contains a set of YAML configuration files usable to import datasets.
+  The directory contains one file for each datasource to import (in this example, a GeoTiff and a Shapefile).
+  All imported layers are grouped in a single "Example" dataset.
+* [./fsconfig/services](./fsconfig/services) contains a single [wms.yaml](./fsconfig/services/wms.yaml) file that create a WMS 1.3.0 service that publishes imported datasets.
+  The file imports all layers grouped in "Example" dataset, and associate the prepared style from [./fsconfig/styles](./fsconfig/styles) directory to the published vector layer.
+
+To activate parsing and import of file definitions at startup, one must activate the `fsconfig` Spring profile.
+Once done, Examind will search for all configuration file in its home, under `$CSTL_HOME/data/providers`, `$CSTL_HOME/data/styles` and `$CSTL_HOME/data/services` directories.
+
+For details about the file-system configuration options, see [related documentation](TODO).

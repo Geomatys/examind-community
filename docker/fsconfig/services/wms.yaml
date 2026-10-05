@@ -1,0 +1,15 @@
+# Import all layers present in dataset "Example",
+# but override style for one specific data.
+# The style has been imported on startup from the "styles" directory.
+# The layer has been imported from "providers/shp-boundaries.yaml" file.
+collections:
+  - dataSet: Example
+    data:
+      - name: ne_110m_admin_0_pacific_groupings
+        style: purple-rain
+identifier: example
+metadata:
+  name: Example WMS
+  versions:
+    - 1.3.0
+type: wms
