@@ -217,6 +217,69 @@ It is possible to activate *suspend* mode so that Examind waits for the debugger
 include::../examples/debug/values-debug-pause-startup.yaml[]
 ----
 
+=== Deploy an immutable server
+
+To deploy an instance of Examind with a freezed state, it is possible to use the `immutable` configuration to define a set of styles, data providers and OGC services to setup on startup.
+
+To do it, one must:
+
+. Activate `immutable` mode:
++
+[source,yaml]
+----
+immutable:
+  enabled: true
+----
+. Define a set of Yaml configurations for the resources to import:
++
+[source,yaml]
+----
+immutable:
+  providers:
+    # Define a set of data providers. Each key is a Yaml file that will be mounted in Examind server
+    my-geotiff.yaml:
+      dataType: data-store
+      providerType: GeoTIFF
+      location: "file:///mounted/volume/my-data.tif"
+      dataset: MyDataset
+    my-netcdf.yaml:
+      dataType: data-store
+      providerType: NetCDF
+      location: "file:///mounted/volume/my-data.nc"
+      dataset: MyDataset
+----
+
+Examples:
+
+.Mount and publish data provided by the binary data of a configmap
+
+. Define a ConfigMap with a "binaryData" section containing your binary file:
++
+[source,yaml]
+----
+include::../examples/immutable-configurations/embedded-binary-data.yaml[lines="1..5,7"]
+    {{base64 encoded content}}
+----
+. Customize values to mount the configmap, and provide mounted data path as immutable configuration:
++
+[source,yaml]
+----
+include::../examples/immutable-configurations/values-load-embedded-data.yaml[]
+----
+<.> Attach the configmap containing the data file to Examind pod
+<.> Mounts the attached configmap in indicated directory
+<.> Instruct Examind to load the file provided by the config map from the mounted directory
+
+.Mount and publish data from an NFS server:
+
+[source,yaml]
+----
+include::../examples/immutable-configurations/values-load-from-nfs.yaml[]
+----
+<.> Define an inline volume with the NFS share information
+<.> Mounts the attached NFS volume in indicated directory
+<.> Configure providers publishing data from the NFS mount path
+
 == Future improvements
 
 * EPSG database configuration (for now, it uses the same database as Examind)

@@ -1,0 +1,29 @@
+allInOne:
+  # Define a volume mounting previously created Configmap containing datasets as binary data (see ./embedded-binary-data.yaml)
+  extraVolumes:
+    - name: embedded-binary-data
+      configMap:
+        name: embedded-binary-datasets # <.>
+
+  extraVolumeMounts:
+    - name: embedded-binary-data
+      mountPath: /embedded-binary-data # <.>
+
+# Define immutable configuration, loading datasets and services from Yaml definitions
+immutable:
+  enabled: true
+  providers:
+    geotiff-file:
+      dataType: data-store
+      providerType: GeoTIFF
+      location: "file:///embedded-binary-data/utm.tif" # <.>
+      dataset: Example
+  services:
+    wms:
+      name: "Example WMS"
+      identifier: example
+      type: wms
+      versions:
+        - 1.3.0
+      collections:
+        - dataSet: "Example"

@@ -1,0 +1,36 @@
+allInOne:
+  # Define a volume mounting an NFS export in Examind container
+  extraVolumes:
+    - name: nfs-data
+      nfs: # <1>
+        path: /export/data
+        readOnly: true
+        server: nfs.server.internal
+
+  extraVolumeMounts:
+    - name: nfs-data
+      mountPath: /nfs-data # <2>
+
+# Define immutable configuration, loading datasets and services from Yaml definitions
+immutable:
+  enabled: true
+  providers:
+    geotiff-file:
+      dataType: data-store
+      providerType: GeoTIFF
+      location: "file:///nfs-data/geotiff/my-data.tif" # <3>
+      dataset: MyDataset
+    netcdf-file:
+      dataType: data-store
+      providerType: NetCDF
+      location: "file:///nfs-data/netcdf/my-data.nc" # <3>
+      dataset: MyDataset
+  services:
+    wms:
+      name: "Example WMS"
+      identifier: example
+      type: wms
+      versions:
+        - 1.3.0
+      collections:
+        - dataSet: "MyDataset"
