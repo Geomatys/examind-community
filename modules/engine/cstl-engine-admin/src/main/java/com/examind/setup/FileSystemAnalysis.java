@@ -130,15 +130,43 @@ public class FileSystemAnalysis {
         this.async = async;
         analyseFileSystem(parseStyle);
     }
-    
+
+    /**
+     * Resolve the symbolic link of the specified path.
+     * A link and its target designate the same configuration file, and must be seen as such,
+     * to avoid analysing twice the same file.
+     *
+     * @param path A file path.
+     * @return The real path, or the input path if it cannot be resolved.
+     */
+    private static Path resolveLink(Path path) {
+        try {
+            return path.toRealPath();
+        } catch (Exception ex) {
+            LOGGER.log(Level.FINER, "Unable to resolve path: " + path, ex);
+            return path;
+        }
+    }
+
+    /**
+     * List the files of the specified directory, resolving symbolic links and removing
+     * the duplicates: a link and the file it points to must be analyzed only once.
+     *
+     * @param dir A directory to walk through.
+     * @return A stream of distinct real file paths.
+     */
+    private static Stream<Path> walk(Path dir) throws IOException {
+        return Files.walk(dir).map(FileSystemAnalysis::resolveLink).distinct();
+    }
+
     /**
      * Analyse the filesystem.
-     * 
+     *
      * @param parseStyle A method to parse style.
      */
     private void analyseFileSystem(Function<Path, MutableStyle> parseStyle) {
         // 1. styles
-        try (Stream<Path> stream = Files.walk(styleDir)) {
+        try (Stream<Path> stream = walk(styleDir)) {
             stream.filter(FileSystemUtilities::sldFileFilter).forEach(path -> {
                 
                 MutableStyle style = parseStyle.apply(path);
@@ -149,7 +177,7 @@ public class FileSystemAnalysis {
         }
 
         // 2. services with data
-        try (Stream<Path> stream = Files.walk(serviceDir)) {
+        try (Stream<Path> stream = walk(serviceDir)) {
             stream.filter(p -> serviceFileFilter(p, true)).forEach(path -> {
                 Service s = parseYaml(path, Service.class);
                 if (s != null) {
@@ -166,7 +194,7 @@ public class FileSystemAnalysis {
         }
         
         // 3. services
-        try (Stream<Path> stream = Files.walk(serviceDir)) {
+        try (Stream<Path> stream = walk(serviceDir)) {
             stream.filter(p -> serviceFileFilter(p, false)).forEach(path -> {
                 Service s = parseYaml(path, Service.class);
                 if (s != null) {
@@ -183,7 +211,7 @@ public class FileSystemAnalysis {
         }
 
         // 4. regular providers
-        try (Stream<Path> stream = Files.walk(providerDir)) {
+        try (Stream<Path> stream = walk(providerDir)) {
             final List<ProviderWithPath> loaded = new ArrayList<>();
             stream.filter(p -> providerFileFilter(p, false)).forEach(path -> {
                 Provider pr = parseYaml(path, Provider.class);
@@ -206,7 +234,7 @@ public class FileSystemAnalysis {
         }
 
         // 5. computed providers
-        try (Stream<Path> stream = Files.walk(providerDir)) {
+        try (Stream<Path> stream = walk(providerDir)) {
             final List<ProviderWithPath> loaded = new ArrayList<>();
             stream.filter(p -> providerFileFilter(p, true)).forEach(path -> {
                 Provider pr = parseYaml(path, Provider.class);
