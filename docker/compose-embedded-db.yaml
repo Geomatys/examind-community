@@ -3,7 +3,7 @@ name: "examind-community-embedded-db"
 
 services :
   examind:
-    image: images.geomatys.com/examind/examind-community:latest
+    image: images.geomatys.com/examind/examind-community:1.2.9
     ports:
       - "8080:8080"
     volumes:
