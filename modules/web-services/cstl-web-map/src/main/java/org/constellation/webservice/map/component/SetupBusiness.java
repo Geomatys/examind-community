@@ -200,12 +200,12 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
             LOGGER.log(Level.WARNING, "An error occurred when updating datasource providers.", ex);
         }
         
-        LOGGER.log(Level.INFO, "update old shapefile providers ...");
+        /*LOGGER.log(Level.INFO, "update old shapefile providers ...");
         try {
             updateOldShapefileProvider();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "An error occurred when updating old shapefile providers.", ex);
-        }
+        }*/
 
         //check if data analysis is required
         boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.TRUE);
