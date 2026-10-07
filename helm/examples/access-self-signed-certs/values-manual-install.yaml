@@ -1,0 +1,50 @@
+examind:
+  # tag::ssc-instructions[]
+  allInOne:
+    extraVolumes:
+      # Make target insecure certificate available to Examind pod <.>
+      - name: self-signed-cert
+        secret:
+          secretName: self-signed-cert
+      # Define a volume to store trustore override into. <.>
+      # Here, an ephemeral directory is enough, as the init container generate the complete truststore
+      - name: amended-truststore
+        emptyDir: {}
+    initContainers:
+      # Adapt default Examind truststore to accept self-signed certificate mounted in /tmp/cert <.>
+      - name: amend-truststore
+        image: >-
+          {{- printf "%s:%s" (tpl .Values.allInOne.image.repository .) (default .Chart.AppVersion .Values.allInOne.image.tag) }}
+        imagePullPolicy: >-
+          {{- .Values.allInOne.image.pullPolicy }}
+        volumeMounts:
+          - mountPath: /tmp/cert
+            name: self-signed-cert
+          - mountPath: /tmp/truststore
+            name: amended-truststore
+        command:
+          - /bin/sh
+          - -c
+          - >-
+            ls -lh /tmp/cert
+            &&
+            cp "${JAVA_HOME}/lib/security/cacerts" /tmp/truststore/
+            &&
+            ls -lh /tmp/truststore
+            &&            
+            keytool 
+            -importcert
+            -trustcacerts
+            -alias self-signed
+            -file /tmp/cert/self-signed.crt
+            -keystore /tmp/truststore/cacerts
+            -noprompt
+    extraVolumeMounts:
+      # Mount amended truststore in examind <.>
+      - name: amended-truststore
+        mountPath: /tmp/truststore
+    env:
+      # Activate amended truststore <.>
+      JAVA_TOOL_OPTIONS: >-
+        -Djavax.net.ssl.trustStore=/tmp/truststore/cacerts
+  # end::ssc-instructions[]

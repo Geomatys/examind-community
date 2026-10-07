@@ -116,6 +116,51 @@ spec:
         {{- if .Values.allInOne.initContainers }}
         {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.initContainers "context" $) | nindent 8 }}
         {{- end }}
+        {{- if not (empty .Values.allInOne.trustcerts) }}
+        - name: import-certificates
+          image: {{ printf "%s:%s"
+                           (required "You must provide your own docker image to run. Specify Docker image url in `.Values.allInOne.image.repository`" (tpl .Values.allInOne.image.repository .))
+                           (default .Chart.AppVersion .Values.allInOne.image.tag)
+                    | quote
+                 }}
+          imagePullPolicy: {{ .Values.allInOne.image.pullPolicy }}
+          volumeMounts:
+            - name: custom-truststore
+              mountPath: /custom-truststore
+            {{- range $certSecret := .Values.allInOne.trustcerts }}
+            - name: {{ printf "%s-mnt" $certSecret | quote }}
+              mountPath: {{ printf "/tmp/trustcerts/%s" $certSecret | quote }}
+              readOnly: true
+            {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              error() {
+                echo "ERROR: $1" >&2
+                exit 1
+              }
+
+              cp $JAVA_HOME/lib/security/cacerts /custom-truststore || error "Cannot copy java truststore"
+              find /tmp/trustcerts -type f \( -iname '*.crt' -o -iname '*.cert' \) -exec sh -c '
+              n=0
+              for ca do
+                alias=${ca#/tmp/trustcerts/}
+                keytool \
+                -importcert \
+                -trustcacerts \
+                -alias "$alias" \
+                -file "$ca" \
+                -keystore /custom-truststore/cacerts \
+                -noprompt \
+                || { echo "ERROR: Failed importing certificate $ca" >&2; exit 1; }
+                echo "Imported certificate $alias"
+                n=$((n + 1))
+              done
+              echo "Imported $n certificates"
+              ' ignored-arg {} + \
+              || error 'failed finding certificate files'
+        {{- end }}
       containers:
         - name: {{ include "examind.all-in-one.fullname"  . }}
           image: {{ printf "%s:%s"
@@ -171,12 +216,26 @@ spec:
                   name: {{ include "examind.backend.databaseSecretName" . }}
                   key: {{ include "examind.backend.databaseSecretPasswordKey" . }}
             {{- end }}
-            - name: CATALINA_OPTS
+            - name: JAVA_TOOL_OPTIONS
               value: >-
                 -Xms{{- .Values.allInOne.heapSize.request }}
                 -Xmx{{- .Values.allInOne.heapSize.limit }}
                 -Dfile.encoding=UTF-8
                 -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+                {{- if .Values.allInOne.debug }}
+                {{
+                  printf "-agentlib:jdwp=transport=dt_socket,server=y,suspend=%s,address=%s:%d"
+                  (.Values.allInOne.debug.suspend | ternary "y" "n")
+                  (.Values.allInOne.debug.hostPattern | default "localhost")
+                  (.Values.allInOne.debug.port | int)
+                }}
+                {{- end }}
+                {{- if not (empty .Values.allInOne.trustcerts) }}
+                -Djavax.net.ssl.trustStore=/custom-truststore/cacerts
+                {{- end }}
+                {{- if .Values.allInOne.env.JAVA_TOOL_OPTIONS }}
+                {{ (tpl .Values.allInOne.env.JAVA_TOOL_OPTIONS .) }}
+                {{- end }}
             {{- if .Values.immutable.enabled }}
             - name: EXAMIND_API_READONLY
               value: "true"
@@ -184,14 +243,6 @@ spec:
             {{ if .Values.allInOne.debug.enabled }}
             - name: DEBUG
               value: "true"
-            - name: JAVA_TOOL_OPTIONS
-              value: {{
-                printf "-agentlib:jdwp=transport=dt_socket,server=y,suspend=%s,address=%s:%d"
-                (.Values.allInOne.debug.suspend | ternary "y" "n")
-                (.Values.allInOne.debug.hostPattern | default "localhost")
-                (.Values.allInOne.debug.port | int)
-                | quote
-              }}
             {{- end }}
             {{- if not (and (hasKey .Values.allInOne.env "SPRING_PROFILES_ACTIVE") .Values.allInOne.env.SPRING_PROFILES_ACTIVE) }}
             - name: SPRING_PROFILES_ACTIVE
@@ -199,18 +250,20 @@ spec:
             {{- end }}
             {{- if not (empty .Values.allInOne.extraEnvVars) }}
               {{- range $extraEnv := .Values.allInOne.extraEnvVars }}
-                {{- if has $extraEnv.name (list "CSTL_HOME" "DATABASE_URL" "DATABASE_USERNAME" "DATABASE_PASSWORD" "CATALINA_OPTS") }}
+                {{- if has $extraEnv.name (list "CSTL_HOME" "DATABASE_URL" "DATABASE_USERNAME" "DATABASE_PASSWORD" "JAVA_TOOL_OPTIONS") }}
                   {{ fail (printf "It is forbidden to override environment variable %s" $extraEnv.name) }}
                 {{- end }}
               {{- end }}
               {{- .Values.allInOne.extraEnvVars | toYaml | nindent 12 }}
             {{- end }}
             {{- range $key, $value := .Values.allInOne.env }}
-                {{- if has $key (list "CSTL_HOME" "DATABASE_URL" "DATABASE_USERNAME" "DATABASE_PASSWORD" "CATALINA_OPTS") }}
+                {{- if has $key (list "CSTL_HOME" "DATABASE_URL" "DATABASE_USERNAME" "DATABASE_PASSWORD") }}
                   {{ fail (printf "It is forbidden to override environment variable %s" $key) }}
-                {{- end }}
+                {{/* JAVA_TOOL_OPTIONS is already merged above*/}}
+                {{- else if not (eq $key "JAVA_TOOL_OPTIONS") }}
             - name: {{ $key | quote }}
               value: {{ $value | quote }}
+                {{- end }}
             {{- end }}
           # Probes
           {{- if not (or .Values.allInOne.debug.enabled .Values.diagnosticMode.enabled) }}
@@ -257,6 +310,11 @@ spec:
           {{- if .Values.allInOne.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
+          {{- if not (empty .Values.allInOne.trustcerts) }}
+            - name: custom-truststore
+              mountPath: /custom-truststore
+              readOnly: true
+          {{- end }}
       restartPolicy: Always
       volumes:
         {{- if .Values.immutable.enabled }}
@@ -279,6 +337,15 @@ spec:
         {{- end }}
       {{- if .Values.allInOne.extraVolumes }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.allInOne.extraVolumes "context" . ) | nindent 8 }}
+      {{- end }}
+      {{- if not (empty .Values.allInOne.trustcerts) }}
+        - name: custom-truststore
+          emptyDir: {}
+        {{- range $certSecret := .Values.allInOne.trustcerts }}
+        - name: {{ printf "%s-mnt" $certSecret | quote }}
+          secret:
+            secretName: {{ $certSecret | quote }}
+        {{- end }}
       {{- end }}
 
 ---

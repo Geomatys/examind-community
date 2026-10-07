@@ -58,57 +58,12 @@ certificate:
     -----END PRIVATE KEY-----
 
 examind:
-  # tag::ssc-instructions[]
   postgresql:
     enabled: false
   allInOne:
-    extraVolumes:
-      # Make target insecure certificate available to Examind pod <.>
-      - name: self-signed-cert
-        secret:
-          secretName: self-signed-cert
-      # Define a volume to store trustore override into. <.>
-      # Here, an ephemeral directory is enough, as the init container generate the complete truststore
-      - name: amended-truststore
-        emptyDir: {}
-    initContainers:
-      # Adapt default Examind truststore to accept self-signed certificate mounted in /tmp/cert <.>
-      - name: amend-truststore
-        image: "images.geomatys.com/examind/examind-community:1.2.7"
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-          - mountPath: /tmp/cert
-            name: self-signed-cert
-          - mountPath: /tmp/truststore
-            name: amended-truststore
-        command:
-          - /bin/sh
-          - -c
-          - >-
-            ls -lh /tmp/cert
-            &&
-            cp "${JAVA_HOME}/lib/security/cacerts" /tmp/truststore/
-            &&
-            ls -lh /tmp/truststore
-            &&            
-            keytool 
-            -importcert
-            -trustcacerts
-            -alias self-signed
-            -file /tmp/cert/self-signed.crt
-            -keystore /tmp/truststore/cacerts
-            -noprompt
     persistence:
       enabled: false
     ingress:
       enabled: false
-    extraVolumeMounts:
-      # Mount amended truststore in examind <.>
-      - name: amended-truststore
-        mountPath: /tmp/truststore
     env:
       CSTL_URL: http://localhost:8080/examind
-      # Activate amended truststore <.>
-      JAVA_OPTS: >-
-        -Djavax.net.ssl.trustStore=/tmp/truststore/cacerts
-  # end::ssc-instructions[]

@@ -1,0 +1,6 @@
+examind:
+  # tag::ssc-instructions[]
+  allInOne:
+    trustcerts:
+      - self-signed-cert
+  # end::ssc-instructions[]

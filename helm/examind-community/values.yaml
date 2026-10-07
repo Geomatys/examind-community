@@ -120,6 +120,8 @@ allInOne:
     port: 8000
     hostPattern: localhost
     suspend: false
+  trustcerts: []
+
 immutable:
   enabled: false
   providers: {}

@@ -1,0 +1,19 @@
+apiVersion: v2
+appVersion: "0.1.0"
+version: "0.1.0"
+name: "access-self-signed-certs"
+description: |
+  . Install the chart: 
+     . Manual version: `helm install --wait -n test-ssc --create-namespace --values values-manual-install.yaml ssc-demo self-signed-demo-chart`
+     . Manual version: `helm install --wait -n test-ssc --create-namespace --values values-managed-install.yaml ssc-demo self-signed-demo-chart`
+  . Port forward examind: `kubectl -n test-ssc port-forward services/ssc-demo-examind-all-in-one 8080:8080`
+  . Access Examind admin UI on http://localhost:8080/examind
+  . Data > Add data > Cloud > HTTPS
+  . download sample file from https://insecure-warehouse:9443/geojson-sample.json
+  . Once finished, you can uninstall the demo using `helm uninstall -n test-ssc ssc-demo`
+
+dependencies:
+  - name: examind-community
+    alias: examind
+    version: "1.1.0"
+    repository: file://../../../examind-community

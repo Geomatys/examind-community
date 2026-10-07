@@ -174,22 +174,37 @@ State can desynchronize between database and Examind if postgresql and Examind a
 
 === Trust a _specific_ self-signed certificate
 
-To trust a specific self-signed certificate, you must:
+==== Managed version
 
-. Make target certificate accessible to Examind pod
+If you have a set of TLS certificate files (*.crt, *.cert) available through one or more Kubernetes secrets,
+you can provide these secrets at install, and Examind will import and trust those certificates.
+In the values, fill the `allInOne.trustcerts` list attribute with the names of the secrets containing the certificates:
+
+[source,yaml,indent=0]
+----
+include::../examples/access-self-signed-certs/values-managed-install.yaml[tag=ssc-instructions]
+----
+
+==== Manually import certificates
+
+If you cannot provide the certificates to trust using a secret, you can import them manually.
+You must find a way to make them available to an init container that will then import them:
+
+. Make target certificate accessible to Examind pod (using a volume, or by downloading them in an init-container)
 . Define a custom volume (an empty dir suffice) to hold an overrided version of the java truststore
 . Use an init container that:
-** mounts the target self-signed/insecure certificate
+** mounts the target self-signed/insecure certificate (or that downloads them on the fly)
 ** mounts the truststore to amend
 ** import the certificate in the Java truststore override.
 . Mount the truststore override into Examind container
 . Add a Java system property to import the new truststore
 
-Example:
+Here is an example that makes the same thing as the managed version, but with this manual procedure.
+It mounts the secret that provides the certificates in an init container that then import them in the target keystore:
 
-[source,yaml]
+[source,yaml,indent=0]
 ----
-include::../examples/access-self-signed-certs/values.yaml[tag=ssc-instructions]
+include::../examples/access-self-signed-certs/values-manual-install.yaml[tag=ssc-instructions]
 ----
 
 === Debug mode
