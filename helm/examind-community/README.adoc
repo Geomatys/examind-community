@@ -192,6 +192,31 @@ Example:
 include::../examples/access-self-signed-certs/values.yaml[tag=ssc-instructions]
 ----
 
+=== Debug mode
+
+It is possible to deploy Examind in debug mode:
+
+[source,yaml]
+----
+include::../examples/debug/values-debug-jvm.yaml[]
+----
+
+In this mode, the health probes are disabled, and a java debugger is opened on port 8000.
+No service is opened on Kubernetes side for safety reason.
+Therefore, to connect your debugger, you have to forward the debug port manually:
+
+[source,bash]
+----
+kubectl port-forward pods/<examind-pod-id> "8000:8000"
+----
+
+It is possible to activate *suspend* mode so that Examind waits for the debugger to be attached before attempting to start. To do so, configure the following values:
+
+[source,yaml]
+----
+include::../examples/debug/values-debug-pause-startup.yaml[]
+----
+
 == Future improvements
 
 * EPSG database configuration (for now, it uses the same database as Examind)

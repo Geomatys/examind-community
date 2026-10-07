@@ -181,6 +181,18 @@ spec:
             - name: EXAMIND_API_READONLY
               value: "true"
             {{- end }}
+            {{ if .Values.allInOne.debug.enabled }}
+            - name: DEBUG
+              value: "true"
+            - name: JAVA_TOOL_OPTIONS
+              value: {{
+                printf "-agentlib:jdwp=transport=dt_socket,server=y,suspend=%s,address=%s:%d"
+                (.Values.allInOne.debug.suspend | ternary "y" "n")
+                (.Values.allInOne.debug.hostPattern | default "localhost")
+                (.Values.allInOne.debug.port | int)
+                | quote
+              }}
+            {{- end }}
             {{- if not (and (hasKey .Values.allInOne.env "SPRING_PROFILES_ACTIVE") .Values.allInOne.env.SPRING_PROFILES_ACTIVE) }}
             - name: SPRING_PROFILES_ACTIVE
               value: {{ include "examind.backend.spring.profiles" . | quote }}
@@ -201,7 +213,7 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
           # Probes
-          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if not (or .Values.allInOne.debug.enabled .Values.diagnosticMode.enabled) }}
           {{- if .Values.allInOne.customLivenessProbe }}
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.customLivenessProbe "context" $) | nindent 12 }}
           {{- else if .Values.allInOne.livenessProbe.enabled }}

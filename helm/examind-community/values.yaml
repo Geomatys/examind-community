@@ -115,7 +115,11 @@ allInOne:
   ## @param enableDefaultInitContainers Deploy default init containers
   ## Allow users to disable init checks if required.
   enableDefaultInitContainers: true
-
+  debug:
+    enabled: false
+    port: 8000
+    hostPattern: localhost
+    suspend: false
 immutable:
   enabled: false
   providers: {}

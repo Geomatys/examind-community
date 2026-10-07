@@ -1,0 +1,4 @@
+allInOne:
+  debug:
+    enabled: true
+    suspend: true
