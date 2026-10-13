@@ -27,6 +27,7 @@ function remoteSourceDirective() {
             showAdvancedConfigBlock: '&',
             selectAll: '&',
             hideField: '&',
+            getLabel: '&?',
             upDir: '&',
             openDir: '&',
             disableUpDir: '&',
@@ -79,6 +80,115 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
     self.selectAll = $scope.selectAll();
 
     self.hideField = $scope.hideField();
+
+    self.getLabel = $scope.getLabel() || angular.noop;
+
+    /**
+     * STAC asset selection block.
+     * The user analyses a STAC Item (or the first item of a Collection), picks one of its asset hrefs, and
+     * the choice is written as the "assetSelector" JSON parameter of the STAC provider form.
+     * State is kept in wizardValues.step1.stac so that step1#hideField can filter the form fields.
+     */
+
+    /**
+     * @returns {boolean} true when the selected remote protocol is the STAC provider
+     */
+    self.isStac = function () {
+        return !!(self.remote && self.remote.protocol && self.remote.protocol.id === 'stac');
+    };
+
+    /**
+     * Returns the STAC selection state, creating it if needed:
+     * - result: preview response {type: 'ITEM'|'COLLECTION', itemId, candidates[]}
+     * - selected: the chosen candidate {asset, roles, type, href, uri, scheme}
+     * - criteria: which filters (asset key, role, media type) are kept in the rule
+     * - role: the role used as filter when the asset has several roles
+     */
+    function stacState() {
+        if (!self.wizardValues.step1.stac) {
+            self.wizardValues.step1.stac = {result: null, selected: null, criteria: {asset: true, role: true, type: true}, role: null};
+        }
+        return self.wizardValues.step1.stac;
+    }
+    self.stac = stacState;
+
+    /**
+     * @param {string} id parameter identifier
+     * @returns {object|null} the property of the provider form with this identifier
+     */
+    function formProperty(id) {
+        var props = self.formSchema && self.formSchema.schema && self.formSchema.schema.property
+            ? self.formSchema.schema.property.properties : [];
+        for (var i = 0; i < props.length; i++) {
+            if (props[i].id === id) return props[i];
+        }
+        return null;
+    }
+
+    /**
+     * @param {string} id parameter identifier
+     * @returns {*} the value of the provider form property, or null when unset
+     */
+    function formValue(id) {
+        var p = formProperty(id);
+        return p && p.value ? p.value : null;
+    }
+
+    /**
+     * Calls the preview endpoint on the remote URL (with the HTTP credentials of the form) and lists the
+     * candidate asset hrefs. Any previous selection is cleared.
+     */
+    self.analyseStac = function () {
+        var state = stacState();
+        state.result = null;
+        state.selected = null;
+        self.updateStacRule();
+        Examind.datas.previewStac(self.remote.url, formValue('httpLogin'), formValue('httpPassword'))
+            .then(function (response) {
+                state.result = response.data;
+            }, function (reason) {
+                var msg = reason && reason.data && (reason.data.user_message || reason.data.errorMessage) ? (reason.data.user_message || reason.data.errorMessage) : '';
+                Growl('error', 'Error', $translate.instant('wiz.data.import.step1.stac.preview.error') + ' ' + msg);
+            });
+    };
+
+    /**
+     * Selects a candidate href and initialises the filters: asset key always, role ("data" when present,
+     * else the first role) and media type when the asset declares them.
+     * @param {object} candidate one entry of the preview candidates
+     */
+    self.selectStacCandidate = function (candidate) {
+        var state = stacState();
+        state.selected = candidate;
+        var roles = candidate.roles || [];
+        state.role = roles.indexOf('data') !== -1 ? 'data' : (roles[0] || null);
+        state.criteria = {asset: true, role: !!state.role, type: !!candidate.type};
+        self.updateStacRule();
+    };
+
+    /**
+     * Drops the preview and the selection, and clears assetSelector. Called when the URL or protocol changes.
+     */
+    self.resetStac = function () {
+        self.wizardValues.step1.stac = null;
+        self.updateStacRule();
+    };
+
+    /**
+     * Writes the assetSelector JSON {asset, role, type, href} into the provider form from the current
+     * selection and criteria, or clears it when nothing is selected. Unticked criteria are written as null.
+     */
+    self.updateStacRule = function () {
+        var prop = formProperty('assetSelector');
+        if (!prop) return;
+        var state = stacState(), s = state.selected;
+        prop.value = !s ? null : JSON.stringify({
+            asset: state.criteria.asset ? s.asset : null,
+            role: state.criteria.role ? state.role : null,
+            type: state.criteria.type && s.type ? s.type : null,
+            href: s.href
+        });
+    };
 
     self.upDir = $scope.upDir();
 
@@ -185,6 +295,12 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             }
             if (!self.remote.protocol.isDefaultProtocol) {
                 self.formSchema.schema = self.storesSchemas[self.remote.protocol.id];
+            }
+            // the schema object is shared per protocol: drop any stale STAC selection and assetSelector value
+            self.resetStac();
+            if (self.isStac()) {
+                // the "remote reading" toggle drives the STAC provider remoteReading parameter (default: off)
+                self.remote.protocol.readFromRemote = !!formValue('remoteReading');
             }
             if (self.remote.fileSystemSuffix && self.remote.protocol.id !== 'file') {
                 delete self.remote.fileSystemSuffix;
@@ -387,6 +503,13 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
     };
 
     self.changeReadFromRemoteFlag = function () {
+        if (self.isStac()) {
+            // STAC assets are read by the provider itself: forward the choice as its remoteReading parameter
+            var prop = formProperty('remoteReading');
+            if (prop) {
+                prop.value = !!self.remote.protocol.readFromRemote;
+            }
+        }
         if (!self.getDataSource()) {
             return;
         }

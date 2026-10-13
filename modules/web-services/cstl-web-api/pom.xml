@@ -76,6 +76,11 @@
             <artifactId>cstl-store-data-datastore</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-store-data-stac</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- for sensor API -->
         <dependency>

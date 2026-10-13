@@ -420,6 +420,25 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
         if (angular.equals(property.id, "url")) {
             return true;
         }
+        // STAC: assetSelector is driven by the preview block and remoteReading by the "remote reading" toggle;
+        // other fields depend on the chosen href.
+        if (angular.equals(property.id, "assetSelector") || angular.equals(property.id, "remoteReading")) {
+            return true;
+        }
+        var stac = self.wizardValues.step1.stac;
+        // a single analysed STAC Item has nothing to limit: the item count fields only apply to Collections
+        if (stac && stac.result && stac.result.type === 'ITEM' &&
+            (angular.equals(property.id, "maxItems") || angular.equals(property.id, "unlimitedItems"))) {
+            return true;
+        }
+        if (stac && stac.selected) {
+            if (angular.equals(property.id, "downloadURIExtractor")) {
+                return true;
+            }
+            if (/^s3(AccessKey|SecretKey|Region)$/.test(property.id) && stac.selected.scheme !== 's3') {
+                return true;
+            }
+        }
         /* for database hide auto filled fields :
          * - host
          * - port
@@ -432,6 +451,28 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
             angular.equals(property.id, "user") ||
             angular.equals(property.id, "password");
 
+    };
+
+    /**
+     * function to override the label of some fields (read only)
+     * @param property
+     * @returns {string|null}
+     */
+    self.getLabel = function (property) {
+        switch (property.id) {
+            case 'httpLogin':
+                return 'wiz.data.import.step1.label.login';
+            case 'httpPassword':
+                return 'wiz.data.import.step1.label.password';
+            case 's3AccessKey':
+                return 'wiz.data.import.step1.label.access.key';
+            case 's3SecretKey':
+                return 'wiz.data.import.step1.label.secret.key';
+            case 's3Region':
+                return 'wiz.data.import.step1.label.region';
+            default:
+                return null;
+        }
     };
 
     /**

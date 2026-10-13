@@ -640,6 +640,10 @@ public final class DataProviders {
                 prop.setValue(defaut);
             }
             prop.setType(d.getValueClass().getSimpleName());
+            final Set<?> validValues = d.getValidValues();
+            if (validValues != null) {
+                prop.setValidValues(new ArrayList<>(validValues));
+            }
         }
 
         return prop;

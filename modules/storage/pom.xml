@@ -32,6 +32,7 @@
         <module>exa-store-data-sql</module>
         <module>exa-store-data-coveragesql</module>
         <module>exa-store-data-csvaggregate</module>
+        <module>cstl-store-data-stac</module>
     </modules>
 
 </project>

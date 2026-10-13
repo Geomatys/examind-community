@@ -1425,6 +1425,14 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
+        previewStac : function (url, httpLogin, httpPassword) {
+            return self.request({
+                method: 'POST',
+                url: 'internal/datas/stac/preview',
+                headers: {'Accept': 'application/json'},
+                data: {url: url, httpLogin: httpLogin, httpPassword: httpPassword}
+            });
+        },
         getAllDataStoreConfigurations : function (dataType) {
             return self.request({
                 method: 'GET',

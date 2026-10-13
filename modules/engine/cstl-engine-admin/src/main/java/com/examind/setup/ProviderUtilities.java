@@ -100,6 +100,8 @@ public class ProviderUtilities {
         if (COMPUTED_PROVIDER.equals(conf.getDataType())) return ProviderSourceType.COMPUTED;
         
         if (conf.getSource() != null && conf.getLocation() == null) return  ProviderSourceType.OTHER;
+        // remote provider (ex: stac) configured with an url advanced parameter instead of a file location
+        if (conf.getLocation() == null && conf.getAdvancedParameter("url", (String) null) != null) return  ProviderSourceType.OTHER;
         
         return ProviderSourceType.FILE; 
     }

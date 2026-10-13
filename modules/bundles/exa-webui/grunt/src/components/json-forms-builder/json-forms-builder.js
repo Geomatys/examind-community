@@ -14,7 +14,8 @@ function jsonFormsBuilderDirective() {
         templateUrl: 'components/json-forms-builder/json-forms-builder.html',
         scope: {
             formSchema: "=",
-            hideField: "&?"
+            hideField: "&?",
+            getLabel: "&?"
         }
     };
 }
@@ -30,6 +31,12 @@ function JsonFormsBuilderController($scope) {
     self.formSchema = $scope.formSchema;
 
     self.hideField = $scope.hideField() || angular.noop;
+
+    self.getLabel = $scope.getLabel() || angular.noop;
+
+    self.isSecretField = function (property) {
+        return /password|secret/i.test(property.id);
+    };
 
 }
 

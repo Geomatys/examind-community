@@ -170,6 +170,7 @@ public class DataCustomConfiguration {
         private String type;
         private Object value;
         private boolean optional;
+        private List<Object> validValues;
         @XmlElementWrapper(name="Properties")
         @XmlElement(name="Property")
         private List<Property> properties;
@@ -223,6 +224,14 @@ public class DataCustomConfiguration {
 
         public void setOptional(boolean optional) {
             this.optional = optional;
+        }
+
+        public List<Object> getValidValues() {
+            return validValues;
+        }
+
+        public void setValidValues(List<Object> validValues) {
+            this.validValues = validValues;
         }
 
         public synchronized List<Property> getProperties() {

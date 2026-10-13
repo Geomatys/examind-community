@@ -5,7 +5,7 @@
              ng-repeat="property in jsonFromsBuildCtrl.formSchema.schema.property.properties"
              ng-if="!jsonFromsBuildCtrl.hideField(property)">
             <div ng-if="!property.properties || property.properties.length == 0">
-                <label>{{property.id}} {{property.optional ? '' : '(*)'}}</label>
+                <label>{{ (jsonFromsBuildCtrl.getLabel(property) || property.id) | translate }} {{property.optional ? '' : '(*)'}}</label>
                 <input type="text"
                        ng-if="property.type == 'CoordinateReferenceSystem'"
                        typeahead="epsgCode.code as epsgCode.desc for epsgCode in options.epsgCodes | filter:$viewValue | limitTo:8"
@@ -13,8 +13,21 @@
                        placeholder="{{'layer.listing.data.upload.typeEPSG' | translate}}"
                        ng-model="property.value"
                        ng-required="!property.optional"/>
+                <select ng-if="property.type != 'Boolean' && property.validValues && property.validValues.length"
+                        ng-model="property.value"
+                        ng-options="v for v in property.validValues"
+                        class="form-control form-control-fix">
+                </select>
+                <input type="checkbox"
+                       ng-if="property.type == 'Boolean'"
+                       ng-model="property.value"/>
+                <input type="password"
+                       ng-if="property.type != 'CoordinateReferenceSystem' && property.type != 'Boolean' && !(property.validValues && property.validValues.length) && jsonFromsBuildCtrl.isSecretField(property)"
+                       class="form-control form-control-fix"
+                       ng-model="property.value"
+                       ng-required="!property.optional"/>
                 <input type="text"
-                       ng-if="property.type != 'CoordinateReferenceSystem'"
+                       ng-if="property.type != 'CoordinateReferenceSystem' && property.type != 'Boolean' && !(property.validValues && property.validValues.length) && !jsonFromsBuildCtrl.isSecretField(property)"
                        class="form-control form-control-fix"
                        ng-model="property.value"
                        ng-required="!property.optional"/>

@@ -20,16 +20,19 @@ package org.constellation.api.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import javax.xml.namespace.QName;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.base.StoreMetadata;
+import com.examind.community.storage.stac.StacPreview;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -52,6 +55,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -89,6 +93,23 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             return new ResponseEntity(type, OK);
         }
         return new ResponseEntity(NOT_FOUND);
+    }
+
+    /**
+     * Lists the candidate asset hrefs of a STAC Item, or of the first item of a STAC Collection,
+     * so the user can choose which one the STAC provider should open.
+     *
+     * @param body {@code url} (mandatory), {@code httpLogin} and {@code httpPassword} (optional)
+     * @return {@code StacPreview.Result}, or a 400 error if the URL is not a readable STAC Item/Collection
+     */
+    @RequestMapping(value="/internal/datas/stac/preview",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity previewStac(@RequestBody final Map<String, String> body) {
+        try {
+            return new ResponseEntity(StacPreview.preview(
+                    body.get("url"), body.get("httpLogin"), body.get("httpPassword")), OK);
+        } catch (DataStoreException ex) {
+            return new ErrorMessage(HttpStatus.BAD_REQUEST, ex.getMessage()).build();
+        }
     }
 
     /**

@@ -22,6 +22,7 @@
         <input type="text" class="form-control"
                placeholder="URL..."
                ng-model="remoteCtrl.remote.url"
+               ng-change="remoteCtrl.resetStac()"
                data-test-id="choose-path-file"/>
     </div>
 </form>
@@ -210,10 +211,67 @@
                 </button>
             </div>
         </div>
+        <div class="row form-block stac-asset-block" ng-if="remoteCtrl.isStac()">
+            <div class="col-xs-12">
+                <button type="button" class="btn btn-default" ng-disabled="!remoteCtrl.remote.url"
+                        ng-click="remoteCtrl.analyseStac()" translate="wiz.data.import.step1.stac.analyse"></button>
+                <p class="help-block" translate="wiz.data.import.step1.stac.help"></p>
+                <div ng-if="remoteCtrl.stac().result">
+                    <p>
+                        <span translate="wiz.data.import.step1.stac.analysed.item"></span>
+                        <code>{{remoteCtrl.stac().result.itemId}}</code>
+                        <span ng-if="remoteCtrl.stac().result.type === 'COLLECTION'"
+                              translate="wiz.data.import.step1.stac.first.item"></span>
+                    </p>
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th translate="wiz.data.import.step1.stac.col.asset"></th>
+                            <th translate="wiz.data.import.step1.stac.col.roles"></th>
+                            <th translate="wiz.data.import.step1.stac.col.type"></th>
+                            <th translate="wiz.data.import.step1.stac.col.source"></th>
+                            <th translate="wiz.data.import.step1.stac.col.uri"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="c in remoteCtrl.stac().result.candidates" ng-click="remoteCtrl.selectStacCandidate(c)"
+                            ng-class="{'info': remoteCtrl.stac().selected === c}" style="cursor:pointer">
+                            <td><input type="radio" name="stacCandidate" ng-checked="remoteCtrl.stac().selected === c"/></td>
+                            <td>{{c.asset}}</td>
+                            <td>{{c.roles.join(', ')}}</td>
+                            <td>{{c.type}}</td>
+                            <td>{{c.href || ('wiz.data.import.step1.stac.primary' | translate)}}</td>
+                            <td style="word-break:break-all">{{c.uri}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div ng-if="remoteCtrl.stac().selected">
+                        <p translate="wiz.data.import.step1.stac.criteria"></p>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" ng-model="remoteCtrl.stac().criteria.asset" ng-change="remoteCtrl.updateStacRule()"/>
+                            <span translate="wiz.data.import.step1.stac.criteria.asset"></span> = <code>{{remoteCtrl.stac().selected.asset}}</code>
+                        </label>
+                        <label class="checkbox-inline" ng-if="remoteCtrl.stac().selected.roles.length">
+                            <input type="checkbox" ng-model="remoteCtrl.stac().criteria.role" ng-change="remoteCtrl.updateStacRule()"/>
+                            <span translate="wiz.data.import.step1.stac.criteria.role"></span> =
+                            <select ng-model="remoteCtrl.stac().role" ng-options="r for r in remoteCtrl.stac().selected.roles"
+                                    ng-change="remoteCtrl.updateStacRule()"></select>
+                        </label>
+                        <label class="checkbox-inline" ng-if="remoteCtrl.stac().selected.type">
+                            <input type="checkbox" ng-model="remoteCtrl.stac().criteria.type" ng-change="remoteCtrl.updateStacRule()"/>
+                            <span translate="wiz.data.import.step1.stac.criteria.type"></span> = <code>{{remoteCtrl.stac().selected.type}}</code>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="json-form-builder-block" ng-if="remoteCtrl.showAdvancedConfigBlock()">
             <div class="row form-block" ng-if="remoteCtrl.formSchema.schema">
                 <json-forms-builder form-schema="remoteCtrl.formSchema"
-                                    hide-field="remoteCtrl.hideField">
+                                    hide-field="remoteCtrl.hideField"
+                                    get-label="remoteCtrl.getLabel">
                 </json-forms-builder>
             </div>
         </div>
