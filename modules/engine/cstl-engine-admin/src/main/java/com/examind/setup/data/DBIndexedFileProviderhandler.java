@@ -71,7 +71,7 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
      * so we hard code some behaviour waiting dor harmonization.
      */
     private boolean isSingleProvider() {
-        return pwp.provider.getProviderType().equals("csql");
+        return pwp.provider.getProviderType().equals("exa-coverage-sql");
     }
     
     private Integer resolveProviderId(Integer datasourceFileID) throws ConstellationException {

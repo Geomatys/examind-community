@@ -60,7 +60,7 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class ProviderUtilities {
     
-    public static final List<String> DB_INDEXED = List.of("csv-aggregate");
+    public static final List<String> DB_INDEXED = List.of("csv-aggregate", "exa-coverage-sql");
     public static final String COMPUTED_PROVIDER = "computed-resource";
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.setup");
@@ -196,7 +196,11 @@ public class ProviderUtilities {
         final ParameterValueGroup config = choice.addGroup(impl);
         
         if (datasourceId != null) {
-            config.parameter(datasourceParamName).setValue(datasourceId);
+            try {
+                config.parameter(datasourceParamName).setValue(datasourceId);
+            } catch (ParameterNotFoundException ex) {
+                throw new ConstellationException(ex);
+            }
         }
         
         for (Map.Entry<String, String> param : parameters.entrySet()) {
