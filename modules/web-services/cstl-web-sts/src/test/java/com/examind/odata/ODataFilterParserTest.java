@@ -524,4 +524,83 @@ public class ODataFilterParserTest {
         Literal lit = (Literal) like.getExpressions().get(1);
         Assert.assertEquals("Argel%", lit.getValue());
     }
+    
+    @Test
+    public void parseFilter2Test() throws Exception {
+        String filterStr = "properties/commune eq 'machin (truc)'";
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
+        
+        Assert.assertTrue(result instanceof BinaryComparisonOperator);
+        BinaryComparisonOperator comp = (BinaryComparisonOperator) result;
+        Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, comp.getOperatorType());
+        Assert.assertTrue(comp.getOperand1() instanceof ValueReference);
+        ValueReference pName = (ValueReference) comp.getOperand1();
+        Assert.assertEquals("properties/commune", pName.getXPath());
+        Assert.assertTrue(comp.getOperand2() instanceof Literal);
+        Literal lit = (Literal)comp.getOperand2();
+        Assert.assertTrue(lit.getValue() instanceof String);
+        String str = (String) lit.getValue();
+        Assert.assertEquals("machin (truc)", str);
+    }
+    
+    @Test
+    public void parseFilter3Test() throws Exception {
+        String filterStr = "properties/commune eq 'mac\\'hin'";
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
+        
+        Assert.assertTrue(result instanceof BinaryComparisonOperator);
+        BinaryComparisonOperator comp = (BinaryComparisonOperator) result;
+        Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, comp.getOperatorType());
+        Assert.assertTrue(comp.getOperand1() instanceof ValueReference);
+        ValueReference pName = (ValueReference) comp.getOperand1();
+        Assert.assertEquals("properties/commune", pName.getXPath());
+        Assert.assertTrue(comp.getOperand2() instanceof Literal);
+        Literal lit = (Literal)comp.getOperand2();
+        Assert.assertTrue(lit.getValue() instanceof String);
+        String str = (String) lit.getValue();
+        Assert.assertEquals("mac'hin", str);
+    }
+    
+    @Test
+    public void parseFilter4Test() throws Exception {
+        String filterStr = "(Thing/properties/structure eq 'CD27') and (Thing/properties/project-supervisor eq 'Syndicat d\\'eau du Roumois et du Plateau du Neubourg (SERPN)')";
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
+        
+        
+        Assert.assertTrue(result instanceof LogicalOperator);
+        LogicalOperator log = (LogicalOperator) result;
+        Assert.assertEquals(LogicalOperatorName.AND, log.getOperatorType());
+        Assert.assertEquals(2, log.getOperands().size());
+        
+        result = (Filter) log.getOperands().get(0);
+        
+        Assert.assertTrue(result instanceof BinaryComparisonOperator);
+        BinaryComparisonOperator comp = (BinaryComparisonOperator) result;
+        Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, comp.getOperatorType());
+        Assert.assertTrue(comp.getOperand1() instanceof ValueReference);
+        ValueReference pName = (ValueReference) comp.getOperand1();
+        Assert.assertEquals("procedure/properties/structure", pName.getXPath());
+        Assert.assertTrue(comp.getOperand2() instanceof Literal);
+        Literal lit = (Literal)comp.getOperand2();
+        Assert.assertTrue(lit.getValue() instanceof String);
+        String str = (String) lit.getValue();
+        Assert.assertEquals("CD27", str);
+        
+        result = (Filter) log.getOperands().get(1);
+        comp = (BinaryComparisonOperator) result;
+        Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, comp.getOperatorType());
+        Assert.assertTrue(comp.getOperand1() instanceof ValueReference);
+        pName = (ValueReference) comp.getOperand1();
+        Assert.assertEquals("procedure/properties/project-supervisor", pName.getXPath());
+        Assert.assertTrue(comp.getOperand2() instanceof Literal);
+        lit = (Literal)comp.getOperand2();
+        Assert.assertTrue(lit.getValue() instanceof String);
+        str = (String) lit.getValue();
+        Assert.assertEquals("Syndicat d'eau du Roumois et du Plateau du Neubourg (SERPN)", str);
+        
+        
+    }
+    
+    
+
 }
