@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.examind.community</groupId>
         <artifactId>modules</artifactId>
-        <version>1.2.9</version>
+        <version>1.2.9.1</version>
     </parent>
     <artifactId>exa-site</artifactId>
     <packaging>jar</packaging>
@@ -56,7 +56,7 @@
                     <plugin>
                         <groupId>ru.concerteza.buildnumber</groupId>
                         <artifactId>maven-jgit-buildnumber-plugin</artifactId>
-                        <version>1.2.9</version>
+                        <version>1.2.9.1</version>
                         <executions>
                             <execution>
                                 <id>git-buildnumber</id>

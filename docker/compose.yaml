@@ -19,7 +19,7 @@ services :
          interval: "2s"
 
     examind:
-       image: images.geomatys.com/examind/examind-community:1.2.9
+       image: images.geomatys.com/examind/examind-community:1.2.9.1
        restart: "no"
        volumes:
          - "./mount/examind/data/:/var/examind/:Z"
