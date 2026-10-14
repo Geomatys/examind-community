@@ -34,10 +34,10 @@
             "definition": "urn:ogc:def:phenomenon:GEOM:expiration",
             "description": "Expiration date",
             "properties": {},
-            "@iot.id": "expiration",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)",
-            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)/Datastreams",
-            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)/MultiDatastreams"
+            "@iot.id": "expiration:date",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration:date)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration:date)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration:date)/MultiDatastreams"
         }, {
             "name": "Hotness",
             "definition": "urn:ogc:def:phenomenon:GEOM:isHot",

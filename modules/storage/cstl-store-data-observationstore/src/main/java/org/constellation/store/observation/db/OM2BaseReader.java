@@ -50,6 +50,9 @@ import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.MISW_LAT;
+import static org.constellation.api.CommonConstants.MISW_LON;
+import static org.constellation.api.CommonConstants.TIME_DEF;
 import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.TIMESCALEDB_VERSION;
@@ -420,36 +423,30 @@ public class OM2BaseReader {
      * @return A phenomenon or {@code null} if it does not exist.
      */
     protected Phenomenon getPhenomenon(final String identifier, final Connection c) throws DataStoreException {
-        final String id;
-        // cleanup phenomenon id because of its XML ype (NCName)
-        if (identifier.startsWith(phenomenonIdBase)) {
-            id = identifier.substring(phenomenonIdBase.length()).replace(':', '-');
-        } else {
-            id = identifier.replace(':', '-');
+        if (cacheEnabled && cachedPhenomenon.containsKey(identifier)) {
+            return cachedPhenomenon.get(identifier);
         }
-        if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
-            return cachedPhenomenon.get(id);
-        }
+        final String id = (identifier.startsWith(phenomenonIdBase)) ?  identifier.substring(phenomenonIdBase.length()) : identifier;
         try {
             // look for composite phenomenon
             try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {//NOSONAR
-                stmt.setString(1, identifier);
+                stmt.setString(1, id);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     final List<Phenomenon> components = new ArrayList<>();
                     while (rs.next()) {
                         final String phenID = rs.getString(1);
                         components.add(getSinglePhenomenon(phenID, c));
                     }
-                    Phenomenon base = getSinglePhenomenon(id, c);
+                    Phenomenon base = getSinglePhenomenon(identifier, c);
                     Phenomenon result = null;
                     if (base != null) {
                         if (components.isEmpty()) {
                             result = base;
                         } else {
-                            result = new CompositePhenomenon(id, base.getName(), base.getDefinition(), base.getDescription(), base.getProperties(), components);
+                            result = new CompositePhenomenon(identifier, base.getName(), base.getDefinition(), base.getDescription(), base.getProperties(), components);
                         }
                         if (cacheEnabled) {
-                            cachedPhenomenon.put(id, result);
+                            cachedPhenomenon.put(identifier, result);
                         }
                     }
                     return result;
@@ -484,35 +481,29 @@ public class OM2BaseReader {
          return (result != null) ? getPhenomenon(result, c) : null;
      }
 
-    protected Phenomenon getSinglePhenomenon(final String id, final Connection c) throws DataStoreException {
-        if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
-            return cachedPhenomenon.get(id);
+    protected Phenomenon getSinglePhenomenon(final String identifier, final Connection c) throws DataStoreException {
+        if (cacheEnabled && cachedPhenomenon.containsKey(identifier)) {
+            return cachedPhenomenon.get(identifier);
         }
+        final String id = (identifier.startsWith(phenomenonIdBase)) ?  identifier.substring(phenomenonIdBase.length()) : identifier;
         try {
             final Map<String, Object> properties = readProperties("observed_properties_properties", "id_phenomenon", id, c);
             try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
                 stmt.setString(1, id);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        String phenID = rs.getString(1);
                         String name = rs.getString(3);
                         String definition = rs.getString(4);
                         final String description = rs.getString(5);
 
                         // hack for valid phenomenon ID in 1.0.0 static fields
-                        if (phenID != null) {
-                            if (phenID.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
-                                name = "latitude";
-                            } else if (phenID.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
-                                name = "longitude";
-                            } else if (phenID.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
-                                name = "samplingTime";
-                            }
-                            if (name == null) {
-                                name = phenID.startsWith(phenomenonIdBase) ? phenID.substring(phenomenonIdBase.length()) : phenID;
-                            }
+                        switch (identifier) {
+                            case MISW_LAT     -> name = "latitude";
+                            case MISW_LON     -> name = "longitude";
+                            case TIME_DEF     -> name = "samplingTime";
+                            default -> {      if (name == null) name = id;}
                         }
-                        return new Phenomenon(phenID, name, definition, description, properties);
+                        return new Phenomenon(identifier, name, definition, description, properties);
                     }
                 }
             }

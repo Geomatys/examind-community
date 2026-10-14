@@ -907,10 +907,10 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds.add("salinity");
         expectedIds.add("isHot");
         expectedIds.add("color");
-        expectedIds.add("expiration");
+        expectedIds.add("expiration:date");
         expectedIds.add("age");
         expectedIds.add("metadata");
-        expectedIds.add("multi-type-phenomenon");
+        expectedIds.add("multi:type:phenomenon");
         expectedIds.add("multi-type-phenprofile");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -927,7 +927,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds.add("salinity");
         expectedIds.add("isHot");
         expectedIds.add("color");
-        expectedIds.add("expiration");
+        expectedIds.add("expiration:date");
         expectedIds.add("age");
         expectedIds.add("metadata");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1196,11 +1196,11 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds.add("aggregatePhenomenon-2");
         expectedIds.add("color");
         expectedIds.add("depth");
-        expectedIds.add("expiration");
+        expectedIds.add("expiration:date");
         expectedIds.add("isHot");
         expectedIds.add("metadata");
-        expectedIds.add("multi-type-phenomenon");
         expectedIds.add("multi-type-phenprofile");
+        expectedIds.add("multi:type:phenomenon");
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1220,7 +1220,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds.add("age");
         expectedIds.add("color");
         expectedIds.add("depth");
-        expectedIds.add("expiration");
+        expectedIds.add("expiration:date");
         expectedIds.add("isHot");
         expectedIds.add("metadata");
         expectedIds.add("salinity");
@@ -1711,7 +1711,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds = new ArrayList<>();
         expectedIds.add("color");
         expectedIds.add("depth");
-        expectedIds.add("expiration");
+        expectedIds.add("expiration:date");
         Assert.assertEquals(expectedIds, resultIds);
 
         query.setLimit(3L);
@@ -1724,7 +1724,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds = new ArrayList<>();
         expectedIds.add("isHot");
         expectedIds.add("metadata");
-        expectedIds.add("multi-type-phenomenon");
+        expectedIds.add("multi-type-phenprofile");
         Assert.assertEquals(expectedIds, resultIds);
 
         query.setLimit(4L);
@@ -1735,7 +1735,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertEquals(3, resultIds.size());
 
         expectedIds = new ArrayList<>();
-        expectedIds.add("multi-type-phenprofile");
+        expectedIds.add("multi:type:phenomenon");
         expectedIds.add("salinity");
         expectedIds.add("temperature");
 
@@ -1765,7 +1765,7 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertEquals(3, resultIds.size());
 
         expectedIds = new ArrayList<>();
-        expectedIds.add("expiration");
+        expectedIds.add("expiration:date");
         expectedIds.add("isHot");
         expectedIds.add("metadata");
         Assert.assertEquals(expectedIds, resultIds);

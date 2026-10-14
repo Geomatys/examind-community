@@ -99,6 +99,10 @@ public class CommonConstants {
     public static final String CSV = "text/csv";
     public static final String CSV_FLAT = "text/csv-flat";
 
+    public static final String MISW_LAT = "http://mmisw.org/ont/cf/parameter/latitude";
+    public static final String MISW_LON = "http://mmisw.org/ont/cf/parameter/longitude";
+    public static final String TIME_DEF = "http://www.opengis.net/def/property/OGC/0/SamplingTime";
+
     public static final String OM_NAMESPACE = "http://www.opengis.net/om/1.0";
 
     /**
