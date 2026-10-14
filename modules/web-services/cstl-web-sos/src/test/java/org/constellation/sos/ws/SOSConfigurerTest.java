@@ -481,9 +481,9 @@ public abstract class SOSConfigurerTest extends AbstractSOSWorkerTest {
         expResults.add("aggregatePhenomenon-2");
         expResults.add("color");
         expResults.add("depth");
-        expResults.add("expiration");
+        expResults.add("expiration:date");
         expResults.add("isHot");
-        expResults.add("multi-type-phenomenon");
+        expResults.add("multi:type:phenomenon");
         expResults.add("temperature");
         expResults.add("salinity");
         expResults.add("multi-type-phenprofile");

@@ -420,15 +420,8 @@ public class OM2BaseReader {
      * @return A phenomenon or {@code null} if it does not exist.
      */
     protected Phenomenon getPhenomenon(final String identifier, final Connection c) throws DataStoreException {
-        final String id;
-        // cleanup phenomenon id because of its XML ype (NCName)
-        if (identifier.startsWith(phenomenonIdBase)) {
-            id = identifier.substring(phenomenonIdBase.length()).replace(':', '-');
-        } else {
-            id = identifier.replace(':', '-');
-        }
-        if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
-            return cachedPhenomenon.get(id);
+        if (cacheEnabled && cachedPhenomenon.containsKey(identifier)) {
+            return cachedPhenomenon.get(identifier);
         }
         try {
             // look for composite phenomenon
@@ -440,16 +433,16 @@ public class OM2BaseReader {
                         final String phenID = rs.getString(1);
                         components.add(getSinglePhenomenon(phenID, c));
                     }
-                    Phenomenon base = getSinglePhenomenon(id, c);
+                    Phenomenon base = getSinglePhenomenon(identifier, c);
                     Phenomenon result = null;
                     if (base != null) {
                         if (components.isEmpty()) {
                             result = base;
                         } else {
-                            result = new CompositePhenomenon(id, base.getName(), base.getDefinition(), base.getDescription(), base.getProperties(), components);
+                            result = new CompositePhenomenon(identifier, base.getName(), base.getDefinition(), base.getDescription(), base.getProperties(), components);
                         }
                         if (cacheEnabled) {
-                            cachedPhenomenon.put(id, result);
+                            cachedPhenomenon.put(identifier, result);
                         }
                     }
                     return result;
@@ -484,35 +477,28 @@ public class OM2BaseReader {
          return (result != null) ? getPhenomenon(result, c) : null;
      }
 
-    protected Phenomenon getSinglePhenomenon(final String id, final Connection c) throws DataStoreException {
-        if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
-            return cachedPhenomenon.get(id);
+    protected Phenomenon getSinglePhenomenon(final String identifier, final Connection c) throws DataStoreException {
+        if (cacheEnabled && cachedPhenomenon.containsKey(identifier)) {
+            return cachedPhenomenon.get(identifier);
         }
         try {
-            final Map<String, Object> properties = readProperties("observed_properties_properties", "id_phenomenon", id, c);
+            final Map<String, Object> properties = readProperties("observed_properties_properties", "id_phenomenon", identifier, c);
             try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
-                stmt.setString(1, id);
+                stmt.setString(1, identifier);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        String phenID = rs.getString(1);
                         String name = rs.getString(3);
                         String definition = rs.getString(4);
                         final String description = rs.getString(5);
 
                         // hack for valid phenomenon ID in 1.0.0 static fields
-                        if (phenID != null) {
-                            if (phenID.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
-                                name = "latitude";
-                            } else if (phenID.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
-                                name = "longitude";
-                            } else if (phenID.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
-                                name = "samplingTime";
-                            }
-                            if (name == null) {
-                                name = phenID.startsWith(phenomenonIdBase) ? phenID.substring(phenomenonIdBase.length()) : phenID;
-                            }
+                        switch (identifier) {
+                            case "http://mmisw.org/ont/cf/parameter/latitude"             -> name = "latitude";
+                            case "http://mmisw.org/ont/cf/parameter/longitude"            -> name = "longitude";
+                            case "http://www.opengis.net/def/property/OGC/0/SamplingTime" -> name = "samplingTime";
+                            default -> {}
                         }
-                        return new Phenomenon(phenID, name, definition, description, properties);
+                        return new Phenomenon(identifier, name, definition, description, properties);
                     }
                 }
             }

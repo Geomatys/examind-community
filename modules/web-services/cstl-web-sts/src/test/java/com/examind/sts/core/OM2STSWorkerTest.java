@@ -1133,7 +1133,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("isHot");
         expectedIds.add("metadata");
         expectedIds.add("age");
-        expectedIds.add("expiration");
+        expectedIds.add("expiration:date");
         Assert.assertEquals(expectedIds, resultIds);
     }
 

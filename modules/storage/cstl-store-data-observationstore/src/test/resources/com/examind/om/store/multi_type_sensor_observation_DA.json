@@ -34,7 +34,7 @@
         }
     },
     "observedProperty": {
-        "id": "multi-type-phenomenon",
+        "id": "multi:type:phenomenon",
         "name": "Multi type phenomenon",
         "description": "the aggregation of variable phenomenons type",
         "properties": {},
@@ -52,7 +52,7 @@
                 "properties": {},
                 "definition": "urn:ogc:def:phenomenon:GEOM:color"
             }, {
-                "id": "expiration",
+                "id": "expiration:date",
                 "name": "Expiration Date",
                 "description": "Expiration date",
                 "properties": {},
@@ -87,7 +87,7 @@
             }, {
                 "index": 4,
                 "dataType": "TIME",
-                "name": "expiration",
+                "name": "expiration:date",
                 "description": "urn:ogc:data:time:iso8601",
                 "qualityFields": []
             }, {

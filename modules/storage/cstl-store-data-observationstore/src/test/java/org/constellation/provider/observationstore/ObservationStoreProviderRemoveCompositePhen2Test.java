@@ -76,9 +76,9 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         Assert.assertEquals(nb_procedure, procedures.size());
 
         /*
-        * delete the phenomenon "multi-type-phenomenon"
+        * delete the phenomenon "multi:type:phenomenon"
         */
-        omPr.removePhenomenon("multi-type-phenomenon");
+        omPr.removePhenomenon("multi:type:phenomenon");
 
 
         // get the full content of the store to verify the deletion

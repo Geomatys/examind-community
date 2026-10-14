@@ -23,7 +23,7 @@
         }
     },
     "observedProperty": {
-        "id": "expiration",
+        "id": "expiration:date",
         "name": "Expiration Date",
         "description": "Expiration date",
         "definition": "urn:ogc:def:phenomenon:GEOM:expiration"
@@ -32,7 +32,7 @@
         "field": {
             "index": 4,
             "dataType": "TIME",
-            "name": "expiration",
+            "name": "expiration:date",
             "description": "urn:ogc:data:time:iso8601"
         }
     },
