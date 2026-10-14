@@ -20,10 +20,11 @@ package com.examind.setup;
 
 import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.Provider;
-import static com.examind.setup.FileSystemUtilities.getDataPathPath;
 import static com.examind.setup.ProviderUtilities.getProviderFileFilter;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.function.Predicate;
 import static org.constellation.api.CommonConstants.FILE_STORE;
 import org.constellation.business.IDatasourceBusiness;
@@ -43,29 +44,37 @@ public class DatasourceUtilities {
     
     public static int getOrCreateDatasourceForProviderFiles(IDatasourceBusiness dBusiness, FileSystemAnalysis.ProviderWithPath pwp, String storeId, boolean computeHash) throws ConstellationException {
         Predicate<Path> fileFilter = getProviderFileFilter(pwp.provider);
-        Path rootDir = getDataPathPath(pwp.ymlFile.getParent(), pwp.provider.getLocation());
+        URI dataUrl = getDataUri(pwp.ymlFile.getParent(), pwp.provider.getLocation());
         String dsIdentifier = pwp.provider.getIdentifier();
-                
-        return getOrCreateDatasource(dBusiness, dsIdentifier, rootDir, fileFilter, storeId, computeHash);
+
+        final var source = pwp.provider.getSource();
+        return getOrCreateDatasource(
+                dBusiness, dsIdentifier, dataUrl,
+                source == null ? null : source.getUserName(),
+                source == null ? null : source.getPassword(),
+                fileFilter, storeId, computeHash,
+                source == null ? null : source.getAdvancedParameters());
     }
     
     public static int getOrCreateDatasourceForConfigFiles(IDatasourceBusiness dBusiness, String dsIdentifier, Path rootDir, Predicate<Path> fileFilter) throws ConstellationException {
-        return getOrCreateDatasource(dBusiness, dsIdentifier, rootDir, fileFilter, FILE_STORE, true);
+        return getOrCreateDatasource(dBusiness, dsIdentifier, rootDir == null ? null : rootDir.toUri(), null, null, fileFilter, FILE_STORE, true, null);
     }
     
-    private static int getOrCreateDatasource(IDatasourceBusiness dBusiness, String dsIdentifier, Path rootDir, Predicate<Path> fileFilter, String storeId, boolean computeHash) throws ConstellationException {
+    private static int getOrCreateDatasource(IDatasourceBusiness dBusiness, String dsIdentifier, URI url, String userName, String password, Predicate<Path> fileFilter, String storeId, boolean computeHash, Map<String, String> datasourceProperties) throws ConstellationException {
         int dsId;
         DataSource candidate = dBusiness.getDatasource(dsIdentifier);
         if (candidate == null) {
             
-            URI rootDirUri = rootDir.toUri();
             DataSource ds = new DataSource();
             ds.setIdentifier(dsIdentifier);
-            ds.setType("file");
-            ds.setUrl(rootDirUri.toString());
+            if (userName != null) ds.setUsername(userName);
+            if (password != null) ds.setPwd(password);
+            ds.setType(url.getScheme() == null ? "file" : url.getScheme());
+            ds.setUrl(url.toString());
             ds.setPermanent(Boolean.TRUE);
             ds.setReadFromRemote(true);
             ds.setStoreId(storeId);
+            if (datasourceProperties != null) ds.setProperties(datasourceProperties);
             dsId = dBusiness.create(ds);
 
             dBusiness.computeDatasourceStores(dsId, false, storeId, true, false, computeHash, fileFilter);
@@ -90,5 +99,20 @@ public class DatasourceUtilities {
         String pwd = source.getPassword();
         DataSource ds = new DataSource(null, identifier, "database", location, userName, pwd, null, false, System.currentTimeMillis(), System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
         return dBusiness.getOrcreate(ds);
+    }
+
+    private static URI getDataUri(Path parentDir, String dataStr) {
+        Path result;
+        try {
+            URI parsed = new URI(dataStr);
+            if (parsed.getScheme() != null) {
+                return parsed;
+            } else {
+                result = parentDir.resolve(dataStr).normalize();
+            }
+        } catch (URISyntaxException e) {
+            result = parentDir.resolve(dataStr);
+        }
+        return result.toUri();
     }
 }
