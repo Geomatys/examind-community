@@ -1,0 +1,49 @@
+allInOne:
+  trustcerts: # <.>
+    - internal-services-ca
+  extraEnvVarsSecrets: # <.>
+    - my-s3-credentials
+
+immutable:
+  enabled: true
+  providers:
+    # Directly install a tif file
+    s3-direct-tiff:
+      dataType: data-store
+      providerType: GeoTIFF
+      location: "s3://my-bucket/prefix/data.tif" # <.>
+      dataset: S3
+      source:
+        # <.>
+        userName: "${my.s3.access.key.id}"
+        password: "${my.s3.secret.key}"
+        advancedParameters:
+          s3.host: https://my.s3.org
+          s3.port: 9000
+          aws.region: my-region
+    # Integrate all tif files in a specific directory
+    s3-folder-tiff:
+      dataType: data-store
+      providerType: GeoTIFF
+      location: "s3://my-bucket/prefix" # <.>
+      directoryFilter: ".*\\.tiff?$"
+      dataset: S3-Folder
+      source:
+        # <.>
+        userName: "${MY_S3_ACCESS_KEY_ID}"
+        password: "${MY_S3_SECRET_KEY}"
+        advancedParameters:
+          s3.host: https://my.s3.org
+          s3.port: 9000
+          aws.region: my-region
+
+  services:
+    wms:
+      name: "Example WMS"
+      identifier: example
+      type: wms
+      versions:
+        - 1.3.0
+      collections:
+        - dataSet: "S3"
+        - dataSet: "S3-Folder"

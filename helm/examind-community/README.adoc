@@ -295,6 +295,21 @@ include::../examples/immutable-configurations/values-load-from-nfs.yaml[]
 <.> Mounts the attached NFS volume in indicated directory
 <.> Configure providers publishing data from the NFS mount path
 
+.Stream data from an S3 storage
+
+In this case, no volume is required, only configurations:
+
+[source,yaml]
+----
+include::../examples/immutable-configurations/values-internal-s3.yaml[]
+----
+<.> If target S3 server uses untrusted (self-signed, etc.) certificates, you can force Examind to accept them by providing them through one or more secrets. See <<_manually_import_certificates>> for details.
+<.> To avoid passing S3 access keys in clear text, we inject an environment variable from a secret.
+<.> We can add a provider to import a single file
+<.> Check spring boot properties for the credentials, then fallback to the environment variables
+<.> We can import an entire folder (prefix path) using a location pointing to a prefix and a filter to fetch wanted files in it.
+<.> Directly check environment variables
+
 == Future improvements
 
 * EPSG database configuration (for now, it uses the same database as Examind)
