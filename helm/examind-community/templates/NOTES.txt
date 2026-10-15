@@ -1,1 +1,1 @@
-# TODO
+Connect to Examind: {{ include "examind.all-in-one.publicUrl" . | default "No ingress configured. Use port-forward" }}
