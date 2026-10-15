@@ -123,7 +123,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(1, insertedFiles.size());
-        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFiles.get(0));
+        Assert.assertEquals("argo-profiles-2902402-1.csv", insertedFiles.get(0));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -189,9 +189,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         Assert.assertEquals(1, nbAlreadyInserted);
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(1, insertedFiles.size());
-        Assert.assertEquals("/argo-profiles-2902402-2.csv", insertedFiles.get(0));
+        Assert.assertEquals("argo-profiles-2902402-2.csv", insertedFiles.get(0));
         Assert.assertEquals(1, alreadyInsertedFiles.size());
-        Assert.assertEquals("/argo-profiles-2902402-1.csv", alreadyInsertedFiles.get(0));
+        Assert.assertEquals("argo-profiles-2902402-1.csv", alreadyInsertedFiles.get(0));
 
         offp = getOffering(sosWorker, sensorId);
         Assert.assertNotNull(offp);
@@ -262,7 +262,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(1, insertedFiles.size());
-        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFiles.get(0));
+        Assert.assertEquals("argo-profiles-2902402-1.csv", insertedFiles.get(0));
 
         Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
 
@@ -600,9 +600,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(3, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/tsg-FMLW-1.csv"));
-        Assert.assertTrue(insertedFiles.contains("/tsg-FMLW-2.csv"));
-        Assert.assertTrue(insertedFiles.contains("/tsg-FMLW-3.csv"));
+        Assert.assertTrue(insertedFiles.contains("tsg-FMLW-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("tsg-FMLW-2.csv"));
+        Assert.assertTrue(insertedFiles.contains("tsg-FMLW-3.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -718,7 +718,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/mooring-buoys-time-series-62069.csv"));
+        Assert.assertTrue(insertedFiles.contains("mooring-buoys-time-series-62069.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -828,7 +828,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/mooring-buoys-time-series-62069.csv"));
+        Assert.assertTrue(insertedFiles.contains("mooring-buoys-time-series-62069.csv"));
 
 
         // verify that the dataset has been created
@@ -940,8 +940,8 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(2, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/LakeTile_001.dbf"));
-        Assert.assertTrue(insertedFiles.contains("/LakeTile_002.dbf"));
+        Assert.assertTrue(insertedFiles.contains("LakeTile_001.dbf"));
+        Assert.assertTrue(insertedFiles.contains("LakeTile_002.dbf"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1037,8 +1037,8 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(2, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/rivertile_001.dbf"));
-        Assert.assertTrue(insertedFiles.contains("/rivertile_002.dbf"));
+        Assert.assertTrue(insertedFiles.contains("rivertile_001.dbf"));
+        Assert.assertTrue(insertedFiles.contains("rivertile_002.dbf"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1140,8 +1140,8 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(2, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/multiplatform-1.csv"));
-        Assert.assertTrue(insertedFiles.contains("/multiplatform-2.csv"));
+        Assert.assertTrue(insertedFiles.contains("multiplatform-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("multiplatform-2.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1355,7 +1355,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("bigdata-1.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1480,7 +1480,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("bigdata-1.csv"));
 
 
         // verify that the dataset has been created
@@ -1654,7 +1654,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("bigdata-1.csv"));
 
 
         // verify that the dataset has been created
@@ -1887,7 +1887,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("bigdata-1.csv"));
 
 
         // verify that the dataset has been created
@@ -2229,7 +2229,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/surval-small.csv"));
+        Assert.assertTrue(insertedFiles.contains("surval-small.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2376,7 +2376,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/xdata.xlsx"));
+        Assert.assertTrue(insertedFiles.contains("xdata.xlsx"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2474,7 +2474,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/test-flat.xlsx"));
+        Assert.assertTrue(insertedFiles.contains("test-flat.xlsx"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2585,7 +2585,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/nohead.csv"));
+        Assert.assertTrue(insertedFiles.contains("nohead.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2685,7 +2685,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/disjoint-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("disjoint-1.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2749,8 +2749,8 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         Assert.assertEquals(1, nbAlreadyInserted);
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/disjoint-2.csv"));
-        Assert.assertTrue(alreadyInsertedFiles.contains("/disjoint-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("disjoint-2.csv"));
+        Assert.assertTrue(alreadyInsertedFiles.contains("disjoint-1.csv"));
 
         t = getThing(stsWorker, sensorID);
         Assert.assertNotNull(t);
@@ -2803,9 +2803,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         Assert.assertEquals(2, nbAlreadyInserted);
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/disjoint-3.csv"));
-        Assert.assertTrue(alreadyInsertedFiles.contains("/disjoint-2.csv"));
-        Assert.assertTrue(alreadyInsertedFiles.contains("/disjoint-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("disjoint-3.csv"));
+        Assert.assertTrue(alreadyInsertedFiles.contains("disjoint-2.csv"));
+        Assert.assertTrue(alreadyInsertedFiles.contains("disjoint-1.csv"));
 
         t = getThing(stsWorker, sensorID);
         Assert.assertNotNull(t);
@@ -2894,7 +2894,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/tabulation.tsv"));
+        Assert.assertTrue(insertedFiles.contains("tabulation.tsv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2992,7 +2992,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/tabulation-flat.tsv"));
+        Assert.assertTrue(insertedFiles.contains("tabulation-flat.tsv"));
         
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -3089,7 +3089,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/mooring-buoys-time-series-62069.csv"));
+        Assert.assertTrue(insertedFiles.contains("mooring-buoys-time-series-62069.csv"));
 
 
         // verify that the dataset has been created
@@ -3217,7 +3217,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/multi-fixed-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("multi-fixed-1.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -3340,7 +3340,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/properties.csv"));
+        Assert.assertTrue(insertedFiles.contains("properties.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -3456,7 +3456,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/properties-flat.csv"));
+        Assert.assertTrue(insertedFiles.contains("properties-flat.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -3568,7 +3568,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/single-csv-qual.csv"));
+        Assert.assertTrue(insertedFiles.contains("single-csv-qual.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -3699,7 +3699,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/multi-csv-qual.csv"));
+        Assert.assertTrue(insertedFiles.contains("multi-csv-qual.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -3831,7 +3831,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertTrue(insertedFiles.contains("/multi-csv-param.csv"));
+        Assert.assertTrue(insertedFiles.contains("multi-csv-param.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));

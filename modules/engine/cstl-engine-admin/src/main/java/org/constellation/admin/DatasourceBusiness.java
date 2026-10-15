@@ -55,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.crypto.SecretKey;
@@ -116,6 +117,9 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 public class DatasourceBusiness implements IDatasourceBusiness {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
+
+    static final Pattern END_PATH_SEPARATOR_REGEX = Pattern.compile("(?<=[^:/])/*$");
+    static final Pattern START_PATH_SEPARATOR_REGEX = Pattern.compile("^/+");
 
     /**
      * Injected datasource repository.
@@ -294,7 +298,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
             if ("local_files".equals(ds.getType())) {
                 try {
-                    Path p = getDataSourcePath(ds, "/");
+                    Path p = getDataSourcePath(ds, "");
                     IOUtilities.deleteRecursively(p);
                 } catch (IOException ex) {
                     throw new ConstellationException(ex);
@@ -571,7 +575,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                      * in other case (like SMB provider) we have no credential error,
                      * only Files.exist() return false.
                      */
-                    URI u = new URI(userUrl + "/");
+                    URI u = new URI(userUrl);
                     Path p = IOUtilities.toPath(u);
                     if (!Files.exists(p)) {
                         throw new ConstellationException("path does not exist");
@@ -588,7 +592,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                      return "You are not authorized to access this filesystem path";
                 }
                 try {
-                    final Path p = getDataSourcePath(ds, "/");
+                    final Path p = getDataSourcePath(ds, "");
                     if (!Files.exists(p)) {
                          return "path does not exist";
                     }
@@ -624,21 +628,16 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private Path getDataSourcePath(final DataSource ds, final String subPath) throws ConstellationException {
         final String url;
-        switch (ds.getType()) {
-            case "smb":
-            case "s3":
-                String userUrl = getFileSystem(ds, true).uri;
-                url = userUrl + subPath;
-                break;
-            case "ftp":
-                String ftpUserUrl = getFileSystem(ds, true).uri;
-                String mainPath = URI.create(ds.getUrl()).getPath();
-                url = ftpUserUrl + mainPath + subPath;
-                break;
-            default:
-                url = ds.getUrl() + subPath;
-                break;
-        }
+        final String datasourceUrl = switch (ds.getType()) {
+            case "smb", "s3" -> getFileSystem(ds, true).uri;
+            case "ftp" -> getFileSystem(ds, true).uri + URI.create(ds.getUrl()).getPath();
+            default -> ds.getUrl();
+        };
+
+        var subPathToAppend = subPath == null ? "" : START_PATH_SEPARATOR_REGEX.matcher(subPath).replaceFirst("");
+        url = subPathToAppend.isEmpty()
+                ? datasourceUrl
+                : END_PATH_SEPARATOR_REGEX.matcher(datasourceUrl).replaceFirst("/") + subPathToAppend;
         try {
             String encodedUrl = url.replace(" ", "%20");
             encodedUrl = encodedUrl.replace("[", "%5B");
@@ -662,30 +661,31 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (ds == null) throw new TargetNotFoundException("Unexisting datasource:" + dsId);
 
         final List<FileBean> listBean = new ArrayList<>();
-        if (!subPath.endsWith("/")) {
-            subPath = subPath + '/';
-        }
         final Path path = getDataSourcePath(ds, subPath);
 
         if (!Files.exists(path)) {
-            throw new ConstellationException("path does not exist:" + path.toString());
+            throw new ConstellationException("path does not exist:" + path);
+        } else if (!Files.isDirectory(path)) {
+            return List.of();
         }
 
         List<Path> children = new ArrayList<>();
         // do not keep opened the stream for too long
         // because it can induce problem withe pooled client FileSystem (like ftp for example).
-        if (Files.isDirectory(path)) {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(path,(Path entry) -> !Files.isHidden(entry))) {
-                for (Path child : stream) {
-                    children.add(child);
-                }
-            } catch (IOException e) {
-                throw new ConstellationException("Error occurs during directory browsing", e);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(path,(Path entry) -> !Files.isHidden(entry))) {
+            for (Path child : stream) {
+                children.add(child);
             }
+        } catch (IOException e) {
+            throw new ConstellationException("Error occurs during directory browsing", e);
         }
+        if (children.isEmpty()) return List.of();
+        // Append / at the end of the path if it does not already end with it.
+        // Also deduplicate end slashes if and only if the path is not prepended with a colon (meaning we're potentially on a root path like "file:///")
+        subPath = END_PATH_SEPARATOR_REGEX.matcher(subPath).replaceFirst("/");
         for (Path child : children) {
             String fileName = child.getFileName().toString();
-            String childPath = subPath + fileName;
+            String childPath = subPath +  fileName;
             DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(dsId, childPath);
             FileBean fb;
             if (dpc == null) {
@@ -945,7 +945,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         final Map<String, Set<String>> results = new HashMap<>();
         try {
             long start = System.nanoTime();
-            computeDatasourceStores(source, results, null, "/", true, deep, lookForS63, computeHash, storeId, fileFilter);
+            computeDatasourceStores(source, results, null, "", true, deep, lookForS63, computeHash, storeId, fileFilter);
             updateDatasourceAnalysisState(source.getId(), AnalysisState.COMPLETED);
             LOGGER.fine("Analysis complete in " + ((System.nanoTime() - start) / 1e6) + " ms");
         } catch (Exception ex) {
@@ -1041,16 +1041,16 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         String localPath;
         if (parentPath != null) {
             fileName = path.getFileName().toString();
-            localPath = parentPath + fileName;
+            localPath = END_PATH_SEPARATOR_REGEX.matcher(parentPath).replaceFirst("/") + fileName;
             if (isDir) {
                 localPath = localPath + '/';
             }
         } else {
-            localPath = "/";
+            localPath = "";
             if (path.getFileName() != null) {
                 fileName = path.getFileName().toString();
             } else {
-                fileName = "/";
+                fileName = "";
             }
         }
         long size = 0;
@@ -1175,19 +1175,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     public DataSourceSelectedPath getSelectedPath(Integer id, String path) throws ConstellationException {
-        if (id != null) {
-            DataSource ds = dsRepository.findById(id);
-            if (ds != null) {
-                if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
-                    return new DataSourceSelectedPath(id, null, AnalysisState.PENDING.name(), -1);
-                } else {
-                    return dsRepository.getSelectedPath(id, path);
-                }
-            } else {
-                throw new TargetNotFoundException("No datasource identified by:" + id);
-            }
+        if (id == null) return null;
+
+        DataSource ds = dsRepository.findById(id);
+        if (ds == null) {
+            throw new TargetNotFoundException("No datasource identified by:" + id);
         }
-        return null;
+
+        if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
+            return new DataSourceSelectedPath(id, null, AnalysisState.PENDING.name(), -1);
+        } else {
+            return dsRepository.getSelectedPath(id, path);
+        }
     }
 
     /**
@@ -1310,7 +1309,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (ds == null) throw new TargetNotFoundException("Unexisting datasource:" + dsId);
         List<String> fileList = new ArrayList<>();
         if ("file".equals(ds.getType())) {
-            scanForModification(ds, "/", null, fileFilter, fileList);
+            scanForModification(ds, "", null, fileFilter, fileList);
 
             // look for removed files
             List<DataSourceSelectedPath> selectedPaths = dsRepository.getSelectedPath(dsId, Integer.MAX_VALUE);

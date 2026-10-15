@@ -123,7 +123,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         Assert.assertNotNull(error);
         // i don't know why the message is prefixed with the type of the exception
         Assert.assertEquals("""
-                            /error-header.csv:
+                            error-header.csv:
                             Unable to find main column(s): [time]
                             KO.
                             
@@ -147,7 +147,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         Assert.assertNotNull(error);
         // i don't know why the message is prefixed with the type of the exception
         Assert.assertEquals("""
-                            /error-header.csv:
+                            error-header.csv:
                             Unable to find main column(s): [timeou]
                             KO.
                             
@@ -170,7 +170,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         Assert.assertNotNull(error);
         // i don't know why the message is prefixed with the type of the exception
         Assert.assertEquals("""
-                            /error-header.csv:
+                            error-header.csv:
                             Unable to find date column(s): [timeou]
                             KO.
                             
@@ -193,7 +193,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         Assert.assertNotNull(error);
         // i don't know why the message is prefixed with the type of the exception
         Assert.assertEquals("""
-                            /error-header.csv:
+                            error-header.csv:
                             Unable to find quality column(s): [qual]
                             KO.
                             
@@ -263,11 +263,11 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         Assert.assertNotNull(error);
         Assert.assertEquals("""
                             All the files insertion failed:
-                            /error-head-dir1/error-header.csv:
+                            error-head-dir1/error-header.csv:
                             Unable to find main column(s): [time]
                             KO.
 
-                            /error-head-dir2/error-header.csv:
+                            error-head-dir2/error-header.csv:
                             Unable to find main column(s): [time]
                             KO.
 
@@ -288,13 +288,13 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
 
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(1, nbError);
-        Assert.assertEquals("/error-header.csv", errorFile);
-        Assert.assertEquals("/error-header-2.csv", insertedFile);
+        Assert.assertEquals("error-header.csv", errorFile);
+        Assert.assertEquals("error-header-2.csv", insertedFile);
         Assert.assertEquals("""
-                           /error-header-2.csv:
+                           error-header-2.csv:
                            OK.
 
-                           /error-header.csv:
+                           error-header.csv:
                            Unable to find main column(s): [time]
                            KO.
                             
@@ -355,7 +355,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertEquals("/unit-convert-error-1.csv", insertedFile);
+        Assert.assertEquals("unit-convert-error-1.csv", insertedFile);
 
          // second file insertion will set try to insert in the field with unit 'm'
         in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(errorUnitConvertFile2.toUri().toString());
@@ -369,7 +369,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         }
         Assert.assertNotNull(error);
         Assert.assertEquals("""
-                            /unit-convert-error-2.csv:
+                            unit-convert-error-2.csv:
                             [ERROR] unconvertible Unit Of Measure:
                              - Sensor urn:sensor:bad-uom-convert
                             	 - m => °C for property: TEMPERATURE
@@ -432,7 +432,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertEquals("/unit-convert-error-1.csv", insertedFile);
+        Assert.assertEquals("unit-convert-error-1.csv", insertedFile);
 
         insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
         nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
@@ -442,14 +442,14 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
 
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(1, nbError);
-        Assert.assertEquals("/unit-convert-error-2.csv", errorFile);
-        Assert.assertEquals("/unit-convert-error-1.csv", insertedFile);
+        Assert.assertEquals("unit-convert-error-2.csv", errorFile);
+        Assert.assertEquals("unit-convert-error-1.csv", insertedFile);
 
         Assert.assertEquals("""
-                            /unit-convert-error-1.csv:
+                            unit-convert-error-1.csv:
                             OK.
 
-                            /unit-convert-error-2.csv:
+                            unit-convert-error-2.csv:
                             [ERROR] unconvertible Unit Of Measure:
                              - Sensor urn:sensor:bad-uom-convert2
                             	 - m => °C for property: TEMPERATURE
@@ -514,7 +514,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         }
         Assert.assertNotNull(error);
         Assert.assertEquals("""
-                           /unit-convert-error-1.csv:
+                           unit-convert-error-1.csv:
                            File headers is missing observed properties columns: BADCOL
                            KO.
                            
@@ -576,9 +576,9 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
 
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(0, nbError);
-        Assert.assertEquals("/warning-uom.csv", insertedFile);
+        Assert.assertEquals("warning-uom.csv", insertedFile);
         Assert.assertEquals("""
-                            /warning-uom.csv:
+                            warning-uom.csv:
                             [WARNING] unparseable Unit Of Measure:
                              - baduom
                             OK.
@@ -640,7 +640,7 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         }
         Assert.assertNotNull(error);
         Assert.assertEquals("""
-                           /no-valid-lines.csv:
+                           no-valid-lines.csv:
                            The data provider did not produce any observations.
                            KO.
                            

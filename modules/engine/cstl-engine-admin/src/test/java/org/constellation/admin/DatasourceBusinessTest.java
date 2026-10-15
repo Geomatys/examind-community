@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+
 import jakarta.annotation.PostConstruct;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.dto.DataCustomConfiguration;
@@ -34,6 +36,11 @@ import org.constellation.test.utils.Order;
 import org.geotoolkit.storage.DataStores;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.constellation.admin.DatasourceBusiness.END_PATH_SEPARATOR_REGEX;
+import static org.constellation.admin.DatasourceBusiness.START_PATH_SEPARATOR_REGEX;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -110,9 +117,10 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
         List<DataSource> dss = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
         Assert.assertEquals(1, dss.size());
         DataSource ds = dss.get(0);
-        Assert.assertNotNull(ds);
+        assertNotNull(ds);
+        assertNotNull(ds.getId());
 
-        DataSourceSelectedPath path = datasourceBusiness.getSelectedPath(ds.getId(), "/org/constellation/ws/embedded/wms111/shapefiles/BasicPolygons.shp");
+        DataSourceSelectedPath path = datasourceBusiness.getSelectedPath(ds.getId(), "org/constellation/ws/embedded/wms111/shapefiles/BasicPolygons.shp");
         Assert.assertNotNull(path);
 
         DataStoreProvider factory = DataStores.getProviderById("esri shapefile");
@@ -127,5 +135,56 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
         boolean hidden = true;
         ResourceStoreAnalysisV3 analysis = datasourceBusiness.treatDataPath(path, ds.getId(), provConfig, hidden, null, 1);
         Assert.assertEquals(1, analysis.getResources().size());
+    }
+
+    /**
+     * Verify that we properly set trailing path separator when using datasource business regex
+     */
+    @Test
+    public void endPathSeparatorTest() {
+        // empty path is the datasource root: it must stay empty, so that top-level entries are not prefixed with a slash
+        assertEndSeparator("", "");
+        assertEndSeparator("/", "/");
+        assertEndSeparator("foo", "foo/");
+        assertEndSeparator("foo/", "foo/");
+        assertEndSeparator("foo//", "foo/");
+        assertEndSeparator("foo/bar", "foo/bar/");
+        assertEndSeparator("s3://bucket", "s3://bucket/");
+        assertEndSeparator("s3://bucket/prefix/", "s3://bucket/prefix/");
+        // root URIs must not be altered
+        assertEndSeparator("file:///", "file:///");
+        assertEndSeparator("s3://", "s3://");
+    }
+
+    /**
+     * Verify that we properly remove leading path separator when using datasource business regex
+     */
+    @Test
+    public void startPathSeparatorTest() {
+        assertStartSeparator("", "");
+        assertStartSeparator("foo", "foo");
+        assertStartSeparator("/", "");
+        assertStartSeparator("///", "");
+        assertStartSeparator("/foo", "foo");
+        assertStartSeparator("//foo/bar/", "foo/bar/");
+        // only leading separators are affected
+        assertStartSeparator("foo//bar", "foo//bar");
+        assertStartSeparator("s3://bucket", "s3://bucket");
+    }
+
+    private static void assertStartSeparator(String input, String expected) {
+        assertReplaceFirst(input, expected, START_PATH_SEPARATOR_REGEX, "");
+    }
+
+    private static void assertEndSeparator(String input, String expected) {
+        assertReplaceFirst(input, expected, END_PATH_SEPARATOR_REGEX, "/");
+    }
+
+    private static void assertReplaceFirst(String input, String expected, Pattern regex, String replacement) {
+        assertEquals(
+                expected,
+                regex.matcher(input).replaceFirst(replacement),
+                () -> "Bad replacement for input \""+input+"\""
+        );
     }
 }
