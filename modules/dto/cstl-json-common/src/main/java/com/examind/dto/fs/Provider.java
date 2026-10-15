@@ -36,6 +36,7 @@ public class Provider {
     private String directoryFilter;
     
     private Datasource source;
+    private Datasource target;
 
     private Map<String, String> advancedParameters;
     
@@ -180,6 +181,20 @@ public class Provider {
     }
 
     /**
+     * A data source that act as the target to index or copy the data into.
+     * For example, if you want to copy a CSV file into a PostGIS database,
+     * you can set this target datasource with the configuration of the target PostGIS database.
+     * @return Datasource properties for the destination storage, or null if no copy/indexing is involved.
+     */
+    public Datasource getTarget() {
+        return target;
+    }
+
+    public void setTarget(Datasource target) {
+        this.target = target;
+    }
+
+    /**
      * @return the directoryFilter
      */
     public String getDirectoryFilter() {
@@ -223,7 +238,7 @@ public class Provider {
         this.priority = priority;
     }
 
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -237,6 +252,7 @@ public class Provider {
         sb.append("  pollingInterval='").append(pollingInterval).append("'\n");
         sb.append("  priority='").append(priority).append("'\n");
         sb.append("  source=").append(source).append("\n");
+        sb.append("  target=").append(target).append("\n");
 
         sb.append("  advancedParameters={\n");
         if (advancedParameters != null) {

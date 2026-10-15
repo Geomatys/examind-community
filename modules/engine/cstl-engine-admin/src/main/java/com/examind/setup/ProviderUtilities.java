@@ -149,7 +149,8 @@ public class ProviderUtilities {
         ProviderSourceType type = getProviderSourceType(provider);
         switch(type) {
             case DB_INDEXED -> {
-                if (provider.getSource()   == null) throw new ConfigurationException("Source is missing for database indexed provider.");
+                if (provider.getSource()   == null
+                   && provider.getTarget() == null) throw new ConfigurationException("Missing source or target for database indexed provider.");
                 if (provider.getLocation() == null) throw new ConfigurationException("Location is missing for database indexed provider.");
             }
             case COMPUTED -> {
@@ -287,7 +288,11 @@ public class ProviderUtilities {
         String pathParamName = getPathParamName(conf);
         
         if (pathParamName != null) {
-            config.config.parameter(pathParamName).setValue(pathUri);
+            try {
+                config.config.parameter(pathParamName).setValue(pathUri);
+            } catch (ParameterNotFoundException e) {
+                LOGGER.log(Level.WARNING, "Tried setting location parameter '" + pathParamName+"' on a configuration that does not support it (provider type '"+conf.getProviderType()+"')", e);
+            }
         }
         return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, factoryName, config.source);
     }
@@ -451,8 +456,13 @@ public class ProviderUtilities {
      * @return the specific parameter name.
      */
     public static String getPathParamName(Provider providerConf) {
-        if (providerConf.getSource() != null) return null;
-        if ("coverage-xml-pyramid".equals(providerConf.getProviderType())) {
+        // Special case: we're indexing/copying a source data into a target datasource (indexeddb, coverage-sql, etc.).
+        // In such cases, the provider configuration is the target database configuration, and does not require location.
+        if (providerConf.getTarget() != null) return null;
+        final var pType = providerConf.getProviderType();
+        // We do not want location to be set on indexed database providers
+        if (DB_INDEXED.contains(pType)) return null;
+        if ("coverage-xml-pyramid".equals(pType)) {
             return "path";
         // default case for file provider    
         } else if (providerConf.getLocation() != null) {
