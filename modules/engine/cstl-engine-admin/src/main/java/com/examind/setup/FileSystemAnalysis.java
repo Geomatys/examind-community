@@ -1,6 +1,7 @@
 
 package com.examind.setup;
 
+import com.examind.dto.fs.Datasource;
 import com.examind.dto.fs.Provider;
 import com.examind.dto.fs.Service;
 import com.examind.dto.fs.Collection;
@@ -99,8 +100,14 @@ public class FileSystemAnalysis {
      * Asynchroneous mode.
      */
     public final boolean async;
-    
-    
+
+    /**
+     * Evaluates an arbitrary text to  resolve placeholders of sensible information.
+     * This lets developers customize how to fetch passwords without having to directly write them in confguration.
+     * For example, we can ask spring to resolve environment configuration (application.yaml, environment variables, jvm system properties, etc.)
+     */
+    private final Function<String, String> credentialsEvaluator;
+
    /**
     * Orders providers by ascending priority. Providers without a priority (null)
     * are placed last. Ties are broken on the file path to keep the resulting
@@ -121,13 +128,16 @@ public class FileSystemAnalysis {
      * @param provDir Provider root directory.
      * @param parseStyle A method to parse style.
      * @param async Asynchroneous mode.
+     * @param credentialsEvaluator A function that will receive a datasource password as written in the user-provided file, and that will return evaluated/decrypted password, for internal use.
+     *                          The aim is to allow user to pass an expression instead of the password directly in clear text, for example by using Spring properties: "${internal.s3.password}".
      */
-    public FileSystemAnalysis(Path styleDir, Path servDir, Path provDir, Function<Path, MutableStyle> parseStyle, boolean async) {
+    public FileSystemAnalysis(Path styleDir, Path servDir, Path provDir, Function<Path, MutableStyle> parseStyle, boolean async, Function<String, String> credentialsEvaluator) {
         asyncInfos = async ? new HashMap<>() : null;
         this.styleDir = styleDir;
         this.serviceDir = servDir;
         this.providerDir = provDir;
         this.async = async;
+        this.credentialsEvaluator = credentialsEvaluator;
         analyseFileSystem(parseStyle);
     }
 
@@ -182,9 +192,10 @@ public class FileSystemAnalysis {
                 Service s = parseYaml(path, Service.class);
                 if (s != null) {
                     try {
+                        evaluateCredentials(s);
                         validateService(s);
                         this.servicesWithData.put(path.toString(), s);
-                    } catch (ConfigurationException ex) {
+                    } catch (ConfigurationException | RuntimeException ex) {
                         LOGGER.log(Level.WARNING, "Error while importing service: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
                     }
                 }
@@ -199,9 +210,10 @@ public class FileSystemAnalysis {
                 Service s = parseYaml(path, Service.class);
                 if (s != null) {
                     try {
+                        evaluateCredentials(s);
                         validateService(s);
                         this.services.put(path.toString(), s);
-                    } catch (ConfigurationException ex) {
+                    } catch (ConfigurationException | RuntimeException ex) {
                         LOGGER.log(Level.WARNING, "Error while importing service: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
                     }
                 }
@@ -217,9 +229,10 @@ public class FileSystemAnalysis {
                 Provider pr = parseYaml(path, Provider.class);
                 if (pr != null) {
                     try {
+                        evaluateCredentials(pr);
                         ProviderUtilities.validateProviderFile(pr);
                         loaded.add(new ProviderWithPath(pr, path));
-                    } catch (ConfigurationException ex) {
+                    } catch (ConfigurationException | RuntimeException ex) {
                         LOGGER.log(Level.WARNING, "Error while importing provider: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
                     }
                 }
@@ -298,6 +311,28 @@ public class FileSystemAnalysis {
                     }
                 }
             }
+        }
+    }
+
+    private void evaluateCredentials(Service service) {
+        evaluateCredentials(service.getSource());
+    }
+
+    private void evaluateCredentials(Provider provider) {
+        evaluateCredentials(provider.getSource());
+        evaluateCredentials(provider.getTarget());
+    }
+
+    private void evaluateCredentials(Datasource source) {
+        if (source == null) return;
+
+        var user = source.getUserName();
+        if (user != null) {
+            source.setUserName(credentialsEvaluator.apply(user));
+        }
+        var pwd = source.getPassword();
+        if (pwd != null) {
+            source.setPassword(credentialsEvaluator.apply(pwd));
         }
     }
 }

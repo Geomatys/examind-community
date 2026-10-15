@@ -38,6 +38,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.ISensorServiceBusiness;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -127,7 +128,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     @Autowired
     private IProcessBusiness processBusiness;
-    
+
+    @Autowired
+    private Environment env;
+
     private static final List<String> CSW_SERVICE_CONFIGURATION_PARAMETERS = List.of("collection", "onlyPublished", "partial", "es-url", "transactional");
 
     // advancedParameters key: when set on an OPENEO service, skip local WCS creation (STAC catalog is external)
@@ -151,7 +155,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         Path styleDir = configBusiness.getStylesDirectory();
         Path servDir  = configBusiness.getServicesDirectory();
         Path provDir  = configBusiness.getProvidersDirectory();
-        return new FileSystemAnalysis(styleDir, servDir, provDir, this::parseStyle, async);
+        return new FileSystemAnalysis(styleDir, servDir, provDir, this::parseStyle, async, input -> env.resolvePlaceholders(input));
     }
     
     /**
