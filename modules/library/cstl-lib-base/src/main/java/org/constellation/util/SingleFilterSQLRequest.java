@@ -622,18 +622,53 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         return this;
     }
 
+    private static String escapeSQL(String sql) {
+        return sql.replace("'", "''");
+    }
+    
+    private static String formatParam(Param p) {
+        if (p.value == null) {
+            return "NULL";
+        }
+        if (p.type == String.class) {
+            return "'" + escapeSQL(p.value.toString()) + "'";
+        }
+        if (p.type == Double.class || p.type == Integer.class || p.type == Long.class || p.type == Boolean.class) {
+            return p.value.toString();
+        }
+        if (p.type == Timestamp.class) {
+            return "'" + getTimeValue((Timestamp) p.value) + "'";
+        }
+        // Unknown type: the original code left the '?' untouched, so do the same
+        return "?";
+    }
+    
     @Override
     public String toString() {
-        String s = sqlRequest.toString();
-        for (Param p : params) {
-            if (p.type == String.class) {
-                s = StringUtils.replaceOnce(s, "?", "'" + p.value.toString() + "'");
-            } else if (p.type == Double.class || p.type == Integer.class || p.type == Long.class || p.type == Boolean.class) {
-                s = StringUtils.replaceOnce(s, "?", p.value.toString());
-            } else if (p.type == Timestamp.class) {
-                s = StringUtils.replaceOnce(s, "?", "'" + getTimeValue((Timestamp)p.value) + "'");
+        String template = sqlRequest.toString();
+        StringBuilder result = new StringBuilder(template.length() + 16 * params.size());
+
+        int paramIndex = 0;
+        int cursor = 0;
+        int placeholder;
+
+        // Single left-to-right pass: injected values are never rescanned,
+        // so a '?' inside a parameter value cannot be mistaken for a placeholder.
+        while ((placeholder = template.indexOf('?', cursor)) != -1) {
+            result.append(template, cursor, placeholder);
+
+            if (paramIndex < params.size()) {
+                result.append(formatParam(params.get(paramIndex)));
+                paramIndex++;
+            } else {
+                // More placeholders than parameters: keep the '?' as is
+                result.append('?');
             }
+            cursor = placeholder + 1;
         }
+        result.append(template, cursor, template.length());
+    
+        /* do we have to take in count conditional request ?
         StringBuilder cs = new StringBuilder();
         if (!conditionalRequests.isEmpty()) {
             cs.append("\n conditional:\n");
@@ -641,11 +676,11 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
                 cs.append(entry.getKey()).append(":\n");
                 cs.append(entry.getValue().toString()).append("\n");
             }
-        }
+        }*/
         
-        return s;
+        return result.toString();
     }
-
+    
     @Override
     public void appendCondition(Integer queryIndex, String condition) {
         if (queryIndex > 0) {
