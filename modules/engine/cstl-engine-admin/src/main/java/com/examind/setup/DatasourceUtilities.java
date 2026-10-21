@@ -101,7 +101,7 @@ public class DatasourceUtilities {
         return dBusiness.getOrcreate(ds);
     }
 
-    private static URI getDataUri(Path parentDir, String dataStr) {
+    public static URI getDataUri(Path parentDir, String dataStr) {
         Path result;
         try {
             URI parsed = new URI(dataStr);

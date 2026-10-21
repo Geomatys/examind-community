@@ -22,7 +22,7 @@ import com.examind.dto.fs.Service;
 import static com.examind.setup.DatasourceUtilities.getOrCreateDatasourceForProviderFiles;
 import static com.examind.setup.DatasourceUtilities.getOrCreateSQLDatasource;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
-import static com.examind.setup.FileSystemUtilities.getDataPathPath;
+import static com.examind.setup.DatasourceUtilities.getDataUri;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,6 +31,7 @@ import static com.examind.setup.ProviderUtilities.createCSQLProvider;
 import static com.examind.setup.ProviderUtilities.createProvider;
 import static com.examind.setup.ProviderUtilities.getProviderFileFilter;
 import com.examind.storage.DatabaseIndexedStore;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -139,8 +140,8 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
                     prId = createCSQLProvider(providerBusiness, providerIdentifier, datasourceId);
                 }
             } else {
-                Path rootDir = getDataPathPath(pwp.ymlFile.getParent(), pwp.provider.getLocation());
-                prId = createProvider(pwp.provider, providerBusiness, datasourceId, rootDir.toUri());
+                URI dataUri = getDataUri(pwp.ymlFile.getParent(), pwp.provider.getLocation());
+                prId = createProvider(pwp.provider, providerBusiness, datasourceId, dataUri);
             }
         
             DataProvider provider = DataProviders.getProvider(prId);

@@ -24,11 +24,8 @@ import static com.examind.setup.ProviderUtilities.COMPUTED_PROVIDER;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -120,29 +117,7 @@ public class FileSystemUtilities {
     public static boolean regexFileFilter(Path path, Pattern dirPattern) {
         return !Files.isDirectory(path) && dirPattern.matcher(path.getFileName().toString()).matches();
     }
-    
-    /**
-     * Get the file Path object.
-     * 
-     * @param parentDir root directory.
-     * @param dataStr path to the file in the root directory.
-     * @return 
-     */
-    public static Path getDataPathPath(Path parentDir, String dataStr) {
-        Path result;
-        try {
-            URI parsed = new URI(dataStr);
-            if (parsed.getScheme() != null) {
-                result = Paths.get(parsed);
-            } else {
-                result = parentDir.resolve(dataStr).normalize();
-            }
-        } catch (URISyntaxException e) {
-            result = parentDir.resolve(dataStr);
-        }
-        return result;
-    }
-    
+
     /**
      * File filter based on yaml extension and its content for regular provider.
      * 
