@@ -144,3 +144,8 @@ Get deployed postgresql full name. Useful to find PostgreSQL internal host name.
     {{- $key := . -}}
     {{- ternary $key (printf "%s.yaml" $key) (regexMatch "(?i).+\\.ya?ml$" $key) -}}
 {{- end -}}
+
+{{- define "examind.forceSldExt" -}}
+    {{- $key := . -}}
+    {{- ternary $key (printf "%s.sld" $key) (regexMatch "(?i).+\\.(xml|sld)$" $key) -}}
+{{- end -}}

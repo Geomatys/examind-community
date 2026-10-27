@@ -28,7 +28,7 @@ metadata:
   name: "{{- include "common.names.fullname" . }}-immutable-styles"
 data:
   {{- range $key, $content := .Values.immutable.styles}}
-  {{ include "examind.forceYamlExt" $key | quote }}: |{{- include "common.tplvalues.render" ( dict "value" $content "context" $ ) | nindent 4 }}
+  {{ include "examind.forceSldExt" $key | quote }}: |{{- include "common.tplvalues.render" ( dict "value" $content "context" $ ) | nindent 4 }}
   {{- end }}
 {{ end }}
 {{ end }}
