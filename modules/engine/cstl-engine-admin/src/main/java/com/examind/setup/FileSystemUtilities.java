@@ -40,7 +40,7 @@ import org.constellation.dto.service.config.wps.Processes;
  * 
  * @author Guilhem Legal (Geomatys)
  */
-public class FileSystemUtilities {
+final class FileSystemUtilities {
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.setup");
     
@@ -70,7 +70,7 @@ public class FileSystemUtilities {
      * @param subDataType The data sub type.
      * @return {@code true} if the specified data type/subtype can be published on this service type.
      */
-    public static boolean isAllowedDataTypeForService(String serviceType, String dataType, String subDataType) {
+    static boolean isAllowedDataTypeForService(String serviceType, String dataType, String subDataType) {
         return switch (dataType.toLowerCase()) {
             case "vector"     -> VECTOR_ALLOWED.contains(serviceType.toLowerCase());
             case "coverage"   -> ("pyramid".equals(subDataType.toLowerCase()) && "wmts".equals(serviceType.toLowerCase())) ||
@@ -83,20 +83,11 @@ public class FileSystemUtilities {
     }
     
     /**
-     * file filter on yaml file (based on extension).
-     * 
-     * @param path A file.
-     */
-    public static boolean ymlFileFilter(Path path) {
-        return fileFilter(path, List.of("yaml", "yml"));
-    }
-    
-    /**
      * file filter on SLD file (based on extension).
      * 
      * @param path A file.
      */
-    public static boolean sldFileFilter(Path path) {
+    static boolean sldFileFilter(Path path) {
         return fileFilter(path, List.of("sld", "xml"));
     }
     
@@ -105,7 +96,7 @@ public class FileSystemUtilities {
      * 
      * @param path A file.
      */
-    public static boolean fileFilter(Path path, List<String> allowedExt) {
+    static boolean fileFilter(Path path, List<String> allowedExt) {
         return !Files.isDirectory(path) && allowedExt.contains(FileNameUtils.getExtension(path));
     }
     
@@ -114,7 +105,7 @@ public class FileSystemUtilities {
      * 
      * @param path A file.
      */
-    public static boolean regexFileFilter(Path path, Pattern dirPattern) {
+    static boolean regexFileFilter(Path path, Pattern dirPattern) {
         return !Files.isDirectory(path) && dirPattern.matcher(path.getFileName().toString()).matches();
     }
 
@@ -123,7 +114,7 @@ public class FileSystemUtilities {
      * 
      * @param path A file.
      */
-    public static boolean regularProviderFileFilter(Path path) {
+    static boolean regularProviderFileFilter(Path path) {
         return providerFileFilter(path, Boolean.FALSE);
     }
     
@@ -132,7 +123,7 @@ public class FileSystemUtilities {
      * 
      * @param path A file.
      */
-    public static boolean computedProviderFileFilter(Path path) {
+    static boolean computedProviderFileFilter(Path path) {
         return providerFileFilter(path, Boolean.TRUE);
     }
     
@@ -142,7 +133,7 @@ public class FileSystemUtilities {
      * @param path A file.
      * @param computedResource a flag to determine if the provider file contains or not a computed provider.
      */
-    public static boolean providerFileFilter(Path path, boolean computedResource) {
+    static boolean providerFileFilter(Path path, boolean computedResource) {
         if (!fileFilter(path, List.of("yaml", "yml"))) return false;
         try {
             Provider providerConf = FS_MAPPER.readValue(path.toFile(), Provider.class);
@@ -158,7 +149,7 @@ public class FileSystemUtilities {
      * 
      * @param path A file.
      */
-    public static boolean serviceWithDataFileFilter(Path path) {
+    static boolean serviceWithDataFileFilter(Path path) {
         return serviceFileFilter(path, Boolean.TRUE);
     }
     
@@ -167,7 +158,7 @@ public class FileSystemUtilities {
      * 
      * @param path A file.
      */
-    public static boolean serviceNoDataFileFilter(Path path) {
+    static boolean serviceNoDataFileFilter(Path path) {
         return serviceFileFilter(path, Boolean.FALSE);
     }
     
@@ -177,7 +168,7 @@ public class FileSystemUtilities {
      * @param path A file.
      * @param creatingData a flag to determine if the service file contains or not a service that may create data (can be {@code null}).
      */
-    public static boolean serviceFileFilter(Path path, Boolean creatingData) {
+    static boolean serviceFileFilter(Path path, Boolean creatingData) {
         if (!fileFilter(path, List.of("yaml", "yml"))) return false;
         try {
             Service serviceConf = FS_MAPPER.readValue(path.toFile(), Service.class);
@@ -186,13 +177,17 @@ public class FileSystemUtilities {
             return false;
         }
     }
+
+    static boolean isDataCreatingService(Service svc) {
+        return svc != null && svc.getType() != null && DATA_CREATING_SERVICE.contains(svc.getType());
+    }
     
     /**
      * Transform a WPS Service configuration into the examind model wps configuration.
      * 
      * @param instance A service configuration.
      */
-    public static Processes toWPSConfig(Service instance) {
+    static Processes toWPSConfig(Service instance) {
         List<ProcessFactory> factories = new ArrayList<>();
         for (com.examind.dto.fs.ProcessFactory factory : instance.getProcessFactories()) {
             ProcessFactory processFactory;
@@ -218,7 +213,7 @@ public class FileSystemUtilities {
      * @param type Expected mapping type.
      * @return An instance of type or {@code null}.
      */
-    public static <A> A parseYaml(Path path, Class<A> type) {
+    static <A> A parseYaml(Path path, Class<A> type) {
         try {
             return FS_MAPPER.readValue(path.toFile(), type);
         } catch (IOException ex) {

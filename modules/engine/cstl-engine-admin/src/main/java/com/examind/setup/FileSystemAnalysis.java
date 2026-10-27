@@ -13,17 +13,13 @@ import static com.examind.setup.ProviderUtilities.getProviderSourceType;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+
+import org.apache.sis.io.stream.IOUtilities;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConfigurationException;
 import org.geotoolkit.style.MutableStyle;
@@ -165,8 +161,23 @@ public class FileSystemAnalysis {
      * @param dir A directory to walk through.
      * @return A stream of distinct real file paths.
      */
-    private static Stream<Path> walk(Path dir) throws IOException {
-        return Files.walk(dir).map(FileSystemAnalysis::resolveLink).distinct();
+    private static Stream<Path> walkFiles(Path dir, String... acceptedExtensions) throws IOException {
+        var dataStream = Files.walk(dir)
+                              .filter(Files::isRegularFile);
+        try {
+            if (acceptedExtensions != null && acceptedExtensions.length > 0) {
+                var tmpExts = Arrays.asList(acceptedExtensions);
+                dataStream = dataStream.filter(f -> tmpExts.contains(IOUtilities.extension(f)));
+            }
+            return dataStream.map(FileSystemAnalysis::resolveLink).distinct();
+        } catch (Exception e) {
+            try {
+                dataStream.close();
+            } catch (Exception bis) {
+                e.addSuppressed(bis);
+            }
+            throw e;
+        }
     }
 
     /**
@@ -176,9 +187,8 @@ public class FileSystemAnalysis {
      */
     private void analyseFileSystem(Function<Path, MutableStyle> parseStyle) {
         // 1. styles
-        try (Stream<Path> stream = walk(styleDir)) {
-            stream.filter(FileSystemUtilities::sldFileFilter).forEach(path -> {
-                
+        try (Stream<Path> stream = walkFiles(styleDir, "sld", "xml")) {
+            stream.forEach(path -> {
                 MutableStyle style = parseStyle.apply(path);
                 if (style != null)  this.styles.put(path.toString(), style);
             });
@@ -186,44 +196,27 @@ public class FileSystemAnalysis {
             LOGGER.log(Level.WARNING, "Error while accessing the style directory", ex);
         }
 
-        // 2. services with data
-        try (Stream<Path> stream = walk(serviceDir)) {
-            stream.filter(p -> serviceFileFilter(p, true)).forEach(path -> {
-                Service s = parseYaml(path, Service.class);
-                if (s != null) {
-                    try {
-                        evaluateCredentials(s);
-                        validateService(s);
-                        this.servicesWithData.put(path.toString(), s);
-                    } catch (ConfigurationException | RuntimeException ex) {
-                        LOGGER.log(Level.WARNING, "Error while importing service: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
-                    }
-                }
-            });
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "Error while accessing the service directory", ex);
-        }
-        
-        // 3. services
-        try (Stream<Path> stream = walk(serviceDir)) {
-            stream.filter(p -> serviceFileFilter(p, false)).forEach(path -> {
-                Service s = parseYaml(path, Service.class);
-                if (s != null) {
-                    try {
-                        evaluateCredentials(s);
-                        validateService(s);
-                        this.services.put(path.toString(), s);
-                    } catch (ConfigurationException | RuntimeException ex) {
-                        LOGGER.log(Level.WARNING, "Error while importing service: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
-                    }
+        // 2. services
+        try (Stream<Path> stream = walkFiles(serviceDir, "yml", "yaml")) {
+            stream.forEach(path -> {
+                var svc = parseYaml(path, Service.class);
+                if (svc == null) return;
+                try {
+                    evaluateCredentials(svc);
+                    validateService(svc);
+                    var targetMap = FileSystemUtilities.isDataCreatingService(svc) ? servicesWithData : services;
+                    targetMap.put(path.toString(), svc);
+                } catch (ConfigurationException | RuntimeException ex) {
+                    LOGGER.log(Level.WARNING, "Error while importing service from file {0}\nCause: {1}\n", new Object[]{path, ex.getMessage()});
+                    LOGGER.log(Level.FINE, "Cause of service import failure", ex);
                 }
             });
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "Error while accessing the service directory", ex);
         }
 
-        // 4. regular providers
-        try (Stream<Path> stream = walk(providerDir)) {
+        // 3. regular providers
+        try (Stream<Path> stream = walkFiles(providerDir, "yml", "yaml")) {
             final List<ProviderWithPath> loaded = new ArrayList<>();
             stream.filter(p -> providerFileFilter(p, false)).forEach(path -> {
                 Provider pr = parseYaml(path, Provider.class);
@@ -234,6 +227,7 @@ public class FileSystemAnalysis {
                         loaded.add(new ProviderWithPath(pr, path));
                     } catch (ConfigurationException | RuntimeException ex) {
                         LOGGER.log(Level.WARNING, "Error while importing provider: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
+                        LOGGER.log(Level.FINE, "Cause of provider import failure", ex);
                     }
                 }
             });
@@ -246,8 +240,8 @@ public class FileSystemAnalysis {
             LOGGER.log(Level.WARNING, "Error while accessing the provider directory", ex);
         }
 
-        // 5. computed providers
-        try (Stream<Path> stream = walk(providerDir)) {
+        // 4. computed providers
+        try (Stream<Path> stream = walkFiles(providerDir, "yml", "yaml")) {
             final List<ProviderWithPath> loaded = new ArrayList<>();
             stream.filter(p -> providerFileFilter(p, true)).forEach(path -> {
                 Provider pr = parseYaml(path, Provider.class);
@@ -257,6 +251,7 @@ public class FileSystemAnalysis {
                         loaded.add(new ProviderWithPath(pr, path));
                     } catch (ConfigurationException ex) {
                         LOGGER.log(Level.WARNING, "Error while importing provider: {0}\n{1}\n", new Object[]{path, ex.getMessage()});
+                        LOGGER.log(Level.FINE, "Cause of computed provider import failure", ex);
                     }
                 }
             });
