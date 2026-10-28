@@ -1468,6 +1468,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 identifiers.add(identifier);
             }
         }
+        public void addToCount(int val) {
+            if (forCount) {
+                count = count + val;
+            } else {
+                throw new IllegalArgumentException("can no be call in a non count mode");
+            }
+        }
+        
         
         public void addAll(Collection<String> identifiers) {
             if (forCount) {
@@ -1483,7 +1491,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 identifiers = postPaginationFct.apply(identifiers);
             }
         }
+        
+        @Override
+        public String toString() {
+            return "Count: " + forCount + " count = " + count + "  identifiers:" + identifiers.toString();
+        }
     }
+    
+    public record ObservationInfo(String procedure, int fieldIndex, long oid, String name) {}
 
     private CountOrIdentifiers filterObservation(boolean forCount) throws DataStoreException {
         final CountOrIdentifiers results  = new CountOrIdentifiers(forCount);
@@ -1535,12 +1550,38 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         sqlRequest.cleanupWhere();
         LOGGER.fine(sqlRequest.toString());
-        try (final Connection c = source.getConnection();
-             final SQLResult rs = sqlRequest.execute(c)) {
+        
+        try (final Connection c = source.getConnection()) {
+            
+           /*
+            * perform a first round to identify the observation to filter
+            */
+           List<ObservationInfo> obsInfos = new ArrayList<>();
+           try (final SQLResult rs = sqlRequest.execute(c)) {
+                while (rs.next()) {
+                    String procedure = rs.getString("procedure");
+                    int fieldIndex   = -1;
+                    long oid         = -1L;
+                    String name      = null;
+                    if (template) {
+                        if (MEASUREMENT_QNAME.equals(resultModel)) {
+                            fieldIndex = rs.getInt("order");
+                        }
+                    } else {
+                        oid  = rs.getLong("id");
+                        name = rs.getString("identifier");
+                    }
+                    obsInfos.add(new ObservationInfo(procedure, fieldIndex, oid, name));
+                }
+           }
+        
+            /*
+             * second round filtering the measure for each observation
+             */
             final Map<String, ProcedureInfo> ptiMap = new HashMap<>();
             final Map<String, List<SelectionField>> fieldMap = new HashMap<>();
-            while (rs.next()) {
-                final String procedure = rs.getString("procedure");
+            for (ObservationInfo obsInfo : obsInfos) {
+                final String procedure = obsInfo.procedure;
                 final String procedureID;
                 if (procedure.startsWith(sensorIdBase)) {
                     procedureID = procedure.substring(sensorIdBase.length());
@@ -1549,7 +1590,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 }
                 if (template) {
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
-                        final int fieldIndex = rs.getInt("order");
+                        final int fieldIndex = obsInfo.fieldIndex;
                         if (hasMeasureFilter) {
                             final SelectionField field = new SelectionField(getFieldByIndex(procedure, fieldIndex, true, c), true);
                             final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
@@ -1582,19 +1623,23 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         results.add(name);
                     }
                 } else {
-                    final long oid           = rs.getLong("id");
-                    final String name        = rs.getString("identifier");
+                    final long oid           = obsInfo.oid;
+                    final String name        = obsInfo.name;
                     final ProcedureInfo pti  = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
-                    final List<SelectionField> fields = fieldMap.computeIfAbsent(procedure,  p -> 
-                            readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true).stream().map(f -> new SelectionField(f, true)).toList());
+                    final List<SelectionField> fields = fieldMap.computeIfAbsent(procedure,  p ->  readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true).stream().map(f -> new SelectionField(f, true)).toList());
                     
-                    final MesureRequestMode mode = MEASUREMENT_QNAME.equals(resultModel) ? MEASURE : ID;
+                    final MesureRequestMode mode = getRequestModeForMeasureListing(forCount);
                     final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
                     final FilterSQLRequest mesureRequest      = buildMesureRequests(pti, fields, measureFilter, oid, false, mode);
                     LOGGER.fine(mesureRequest.toString());
 
                     try (final SQLResult rs2 = mesureRequest.execute(c)) {
-                        extractObservationIds(rs2, getMeasureFields(fields, pti), results, name);
+                        if (mode == COUNT) {
+                            rs2.next(); // for a count there is always a result.
+                            results.addToCount(rs2.getInt(1));
+                        } else {
+                            extractObservationIds(rs2, getMeasureFields(fields, pti), results, name);
+                        }
                     } catch (SQLException ex) {
                         LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", mesureRequest.toString() + '\n' + ex.getMessage());
                         throw new DataStoreException("the service has throw a SQL Exception.");
@@ -1610,6 +1655,20 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
         }
         return results;
+    }
+    
+    /**
+     * return the measure request mode.
+     * MEASURE if we are in MEASUREMENT model, because we must eliminate empty column.
+     * ID in OBSERVATION MODEL. we add the id of each line (be aware of multi-table case).
+     * 
+     * todo:  this method may be optimized for xount query at the condition that we arenot in multi table mode.
+     * 
+     * @param forCount
+     * @return 
+     */
+    protected MesureRequestMode getRequestModeForMeasureListing(boolean forCount) {
+        return MEASUREMENT_QNAME.equals(resultModel) ? MEASURE : ID;
     }
     
     protected void extractObservationIds(SQLResult rs2, List<? extends DbField> fields, final CountOrIdentifiers results, String name) throws SQLException {

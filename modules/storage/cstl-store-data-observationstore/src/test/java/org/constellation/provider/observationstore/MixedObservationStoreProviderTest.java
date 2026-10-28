@@ -499,6 +499,12 @@ public class MixedObservationStoreProviderTest extends AbstractMixedObservationS
         super.getObservationsFilter5Test();
     }
     
+    @Test
+    @Override
+    public void getObservationsFilter6Test() throws Exception {
+        super.getObservationsFilter6Test();
+    }
+    
     @Override
     public void getObservationSelectOperationAvgTestTS() throws Exception {
         super.getObservationSelectOperationAvgTestTS();

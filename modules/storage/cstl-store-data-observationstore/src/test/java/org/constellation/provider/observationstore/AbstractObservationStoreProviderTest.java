@@ -5157,6 +5157,15 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
 
         MeasureResult mresult = (MeasureResult) results.get(0).getResult();
         assertEquals(mresult.getValue(),  6.56);
+        
+        // identifiers
+        Collection<String> resultIds = omPr.getIdentifiers(query);
+        assertEquals(1, resultIds.size());
+        
+        // count
+        long resultC = omPr.getCount(query);
+        assertEquals(resultC, 1L);
+
     }
     
     protected void getMeasurements4Test() throws Exception {
@@ -5658,6 +5667,14 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds.add("urn:ogc:object:observation:GEOM:8003-1-3");
         
         assertEquals(expectedIds, resultIds);
+        
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        
+        assertEquals(expectedIds, resultIds);
+        
+        long nbResult = omPr.getCount(query);
+        
+        assertEquals(9L, nbResult);
     }
     
     protected void getObservationsFilter3Test() throws Exception {
@@ -5734,6 +5751,91 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         query.setSelection(filter);
         List<Observation> results = omPr.getObservations(query);
 
+        int count = 0;
+        Set<String> resultIds = new HashSet<>();
+        for (Observation result : results) {
+            assertTrue(result.getResult() instanceof ComplexResult);
+            ComplexResult cr = (ComplexResult) result.getResult();
+            count = count + cr.getNbValues();
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getObservedProperty());
+            List props = getEntityProperties(result.getObservedProperty(), "phen-category");
+            assertTrue("missing property biological for phen-category on observed property", props.contains("biological"));
+        }
+        assertEquals(24, resultIds.size());
+        assertEquals(132, count);
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(132, resultIds.size());
+        
+        // count
+        long resultC = omPr.getCount(query);
+        assertEquals(resultC, 132L);
+        
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        count = 0;
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            assertTrue(result.getResult() instanceof ComplexResult);
+            ComplexResult cr = (ComplexResult) result.getResult();
+            count = count + cr.getNbValues();
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getFeatureOfInterest());
+            List props = getEntityProperties(result.getFeatureOfInterest(), "commune");
+            assertTrue("missing property Beziers for commune on observed property", props.contains("Beziers"));
+        }
+        assertEquals(12, resultIds.size());
+        assertEquals(73, count);
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(73, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 73L);
+        
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        count = 0;
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            assertTrue(result.getResult() instanceof ComplexResult);
+            ComplexResult cr = (ComplexResult) result.getResult();
+            count = count + cr.getNbValues();
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getProcedure());
+            List props = getEntityProperties(result.getProcedure(), "bss-code");
+            assertTrue("missing property 10972X0137/SER for commune on procedure", props.contains("10972X0137/SER"));
+        }
+        assertEquals(1, resultIds.size());
+        assertEquals(15, count);
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(15, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 15L);
+    }
+    
+    protected void getObservationsFilter6Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
         Set<String> resultIds = new HashSet<>();
         for (Observation result : results) {
             resultIds.add(result.getName().getCode());
@@ -5741,8 +5843,17 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
             List props = getEntityProperties(result.getObservedProperty(), "phen-category");
             assertTrue("missing property biological for phen-category on observed property", props.contains("biological"));
         }
+        assertEquals(193, resultIds.size());
         
-        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(193, resultIds.size());
+        
+        // count
+        long resultC = omPr.getCount(query);
+        assertEquals(resultC, 193L);
+        
+        query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
         query.setSelection(filter);
         results = omPr.getObservations(query);
@@ -5754,8 +5865,17 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
             List props = getEntityProperties(result.getFeatureOfInterest(), "commune");
             assertTrue("missing property Beziers for commune on observed property", props.contains("Beziers"));
         }
+        assertEquals(144, resultIds.size());
         
-        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(144, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 144L);
+        
+        query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
         query.setSelection(filter);
         results = omPr.getObservations(query);
@@ -5767,6 +5887,15 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
             List props = getEntityProperties(result.getProcedure(), "bss-code");
             assertTrue("missing property 10972X0137/SER for commune on procedure", props.contains("10972X0137/SER"));
         }
+        assertEquals(15, resultIds.size());
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(15, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 15L);
     }
     
     /**

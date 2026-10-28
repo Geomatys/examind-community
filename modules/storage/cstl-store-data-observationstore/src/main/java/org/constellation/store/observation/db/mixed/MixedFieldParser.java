@@ -148,7 +148,7 @@ public class MixedFieldParser extends FieldParser {
         for (Object value : blocValues.values()) {
             values.appendValue(value, true, null); // null field is an issue?
         }
-        values.endBlock();
+        nbParsed = nbParsed + values.endBlock();
     }
     
     private Observation endBlock(Map<String, Object> blocValues, long oid, long measureID, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, final Map<String, Object> properties) {
@@ -294,7 +294,7 @@ public class MixedFieldParser extends FieldParser {
         // reset
         firstTime = null;
         lastTime  = null;
-        values.clear();
+        clear();
         
         Observation observation = new Observation(obsID,
                                                   obsName,

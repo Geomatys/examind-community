@@ -36,6 +36,7 @@ import static org.constellation.provider.observationstore.ObservationTestUtils.a
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertPeriodEquals;
 import static org.constellation.provider.observationstore.ObservationTestUtils.buildInstant;
 import static org.constellation.provider.observationstore.ObservationTestUtils.buildPeriod;
+import static org.constellation.provider.observationstore.ObservationTestUtils.getEntityProperties;
 import static org.constellation.provider.observationstore.ObservationTestUtils.getFOIId;
 import static org.constellation.provider.observationstore.ObservationTestUtils.getPhenomenonId;
 import static org.constellation.provider.observationstore.ObservationTestUtils.getPhenomenonIds;
@@ -1738,7 +1739,7 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
         assertEquals(result, 14L);
     }
 
-    
+    @Override
     public void getObservationNames3Test() throws Exception {
 
         // get all the complex observations that have at ALL its field value less or equals to 5.0
@@ -1956,6 +1957,15 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
 
         MeasureResult mresult = (MeasureResult) results.get(0).getResult();
         assertEquals(mresult.getValue(),  6.56);
+        
+        // identifiers
+        Collection<String> resultIds = omPr.getIdentifiers(query);
+        assertEquals(1, resultIds.size());
+        
+        // count
+        long resultC = omPr.getCount(query);
+        assertEquals(resultC, 1L);
+
     }
 
     
@@ -2479,6 +2489,186 @@ public abstract class AbstractMixedObservationStoreProviderTest  extends Abstrac
         
         assertEquals(expectedIds, resultIds);
         
+    }
+    
+    public static int countOccurrences(String text, String pattern) {
+        if (text == null || pattern == null || pattern.isEmpty()) {
+            // An empty pattern would match at every position and loop forever
+            return 0;
+        }
+        int count = 0;
+        int index = 0;
+        while ((index = text.indexOf(pattern, index)) != -1) {
+            count++;
+            // Skip the match to count non-overlapping occurrences
+            index += pattern.length();
+        }
+        return count;
+    }
+    
+    /**
+     * overriden because the number ob observations is not the same
+     * @throws Exception 
+     */
+    @Override
+    protected void getObservationsFilter5Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        int count = 0;
+        Set<String> resultIds = new HashSet<>();
+        for (Observation result : results) {
+            assertTrue(result.getResult() instanceof ComplexResult);
+            ComplexResult cr = (ComplexResult) result.getResult();
+            count = count + cr.getNbValues();
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getObservedProperty());
+            List props = getEntityProperties(result.getObservedProperty(), "phen-category");
+            assertTrue("missing property biological for phen-category on observed property", props.contains("biological"));
+        }
+        assertEquals(16, resultIds.size());
+        assertEquals(123, count);
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(123, resultIds.size());
+        
+        // count
+        long resultC = omPr.getCount(query);
+        assertEquals(resultC, 123L);
+        
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        count = 0;
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            assertTrue(result.getResult() instanceof ComplexResult);
+            ComplexResult cr = (ComplexResult) result.getResult();
+            count = count + cr.getNbValues();
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getFeatureOfInterest());
+            List props = getEntityProperties(result.getFeatureOfInterest(), "commune");
+            assertTrue("missing property Beziers for commune on observed property", props.contains("Beziers"));
+        }
+        assertEquals(6, resultIds.size());
+        assertEquals(69, count);
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(69, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 69L);
+        
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        count = 0;
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            assertTrue(result.getResult() instanceof ComplexResult);
+            ComplexResult cr = (ComplexResult) result.getResult();
+            count = count + cr.getNbValues();
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getProcedure());
+            List props = getEntityProperties(result.getProcedure(), "bss-code");
+            assertTrue("missing property 10972X0137/SER for commune on procedure", props.contains("10972X0137/SER"));
+        }
+        assertEquals(1, resultIds.size());
+        assertEquals(15, count);
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(15, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 15L);
+    }
+    
+    /**
+     * overriden because the number ob observations is not the same
+     * @throws Exception 
+     */
+    @Override
+    protected void getObservationsFilter6Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getObservedProperty());
+            List props = getEntityProperties(result.getObservedProperty(), "phen-category");
+            assertTrue("missing property biological for phen-category on observed property", props.contains("biological"));
+        }
+        assertEquals(184, resultIds.size());
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(184, resultIds.size());
+        
+        // count
+        long resultC = omPr.getCount(query);
+        assertEquals(resultC, 184L);
+        
+        query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getFeatureOfInterest());
+            List props = getEntityProperties(result.getFeatureOfInterest(), "commune");
+            assertTrue("missing property Beziers for commune on observed property", props.contains("Beziers"));
+        }
+        assertEquals(140, resultIds.size());
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(140, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 140L);
+        
+        query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getProcedure());
+            List props = getEntityProperties(result.getProcedure(), "bss-code");
+            assertTrue("missing property 10972X0137/SER for commune on procedure", props.contains("10972X0137/SER"));
+        }
+        assertEquals(15, resultIds.size());
+        
+        // identifiers
+        resultIds = new HashSet<>(omPr.getIdentifiers(query));
+        assertEquals(15, resultIds.size());
+        
+        // count
+        resultC = omPr.getCount(query);
+        assertEquals(resultC, 15L);
     }
     
     @Override

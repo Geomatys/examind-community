@@ -148,6 +148,18 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
+    protected MesureRequestMode getRequestModeForMeasureListing(boolean forCount) {
+        // no measure id filter and measurement model => we can count
+        if (measureIdFilters.isEmpty() && MEASUREMENT_QNAME.equals(resultModel) && forCount) {
+            return COUNT;
+        }
+        
+        // MEASURE if we are in MEASUREMENT model, because we need to extract the obsprop_id for index computation
+        // ID in OBSERVATION MODEL. we add the id of each line (will contains doublons).
+        return MEASUREMENT_QNAME.equals(resultModel) ? MEASURE : ID;
+    }
+    
+    @Override
     protected void extractObservationIds(SQLResult rs2, List<? extends DbField> fields, final CountOrIdentifiers results, String name) throws SQLException {
         int tNum = rs2.getFirstTableNumber();
         if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -162,7 +174,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 }
             }
         } else {
-            // in this implementation wehave multiple line for the same observation. so we trim the results using a set (TODO, change the query ?)
+            // in this implementation we have multiple line for the same observation. so we trim the results using a set (TODO, change the query ?)
             Set<String> uniqueResults = new LinkedHashSet<>();
             while (rs2.nextOnField("id")) {
                 final Long rid = rs2.getLong("id", tNum);
@@ -270,6 +282,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             } else {
                 select = "\"" + schemaPrefix + "mesures\".getmesureidts(\"time\") as \"id\"";
             }
+        } else if (mode == COUNT){
+            select = "*";
         } else {
             if (mode != AGGREGATE) {
                 if (nonTimeseries) {
@@ -289,24 +303,23 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                     select = select + ", \"" + schemaPrefix + "mesures\".getmesureidts(m.\"time\") as \"id\" ";
                 }
             }
-            // we skip special case for mainfield only request (profile case)
-            if (!onlyMain) {
-                where = where + " AND ( ";
-                boolean first = true;
-                for (Field df : queryFields) {
-                    if (!df.getName().equals(mainFieldName)) {
-                        if (!first) where = where + " OR ";
-                        where = where + "m.\"obsprop_id\" = '" + df.getName() + "' ";
-                        first = false;
-                    }
-                }
-                where = where + " ) ";
-            }
         }
+        // we skip special case for mainfield only request (profile case)
+        if (!onlyMain) {
+            where = where + " AND ( ";
+            boolean first = true;
+            for (Field df : queryFields) {
+                if (!df.getName().equals(mainFieldName)) {
+                    if (!first) where = where + " OR ";
+                    where = where + "m.\"obsprop_id\" = '" + df.getName() + "' ";
+                    first = false;
+                }
+            }
+            where = where + " ) ";
+        }
+        
         final SingleFilterSQLRequest measureRequest = new SingleFilterSQLRequest("SELECT ");
         if (mode == COUNT) {
-            // the "as id" throw an error when present
-            select = select.replace("as \"id\"", "");
             measureRequest.append("COUNT(").append(select).append(")");
         } else {
             measureRequest.append(select);
