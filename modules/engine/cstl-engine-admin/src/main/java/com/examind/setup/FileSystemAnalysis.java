@@ -7,7 +7,6 @@ import com.examind.dto.fs.Service;
 import com.examind.dto.fs.Collection;
 import static com.examind.setup.FileSystemUtilities.parseYaml;
 import static com.examind.setup.FileSystemUtilities.providerFileFilter;
-import static com.examind.setup.FileSystemUtilities.serviceFileFilter;
 import com.examind.setup.ProviderUtilities.ProviderSourceType;
 import static com.examind.setup.ProviderUtilities.getProviderSourceType;
 import java.io.IOException;

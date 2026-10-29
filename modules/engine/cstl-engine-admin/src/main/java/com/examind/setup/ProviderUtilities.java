@@ -138,7 +138,10 @@ public class ProviderUtilities {
     public static void validateProviderFile(Provider provider) throws ConfigurationException {
         if (provider.getProviderType() == null) throw new ConfigurationException("Provider type is missing.");
         if (provider.getDataset()      == null) throw new ConfigurationException("Dataset is missing.");
-        if (DataStores.getProviderById(provider.getProviderType()) == null) {
+        if (provider.getDataType()     == null) throw new ConfigurationException("Datatype is missing.");
+        
+        if (!COMPUTED_PROVIDER.equals(provider.getDataType()) &&
+            DataStores.getProviderById(provider.getProviderType()) == null) {
             final String acceptedProviderNames = org.apache.sis.storage.DataStores.providers().stream()
                     .map(ProviderUtilities::getName)
                     .filter(Objects::nonNull)
