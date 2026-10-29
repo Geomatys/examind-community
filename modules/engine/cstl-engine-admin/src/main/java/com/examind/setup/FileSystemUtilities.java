@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -56,11 +57,13 @@ final class FileSystemUtilities {
      * service that allow vector data.
      */
     private static final List<String> VECTOR_ALLOWED        = List.of("wfs", "wms");
-    
+
+    private static final List<String> COVERAGE_PYRAMID_ONLY = List.of("wmts", "tms");
+
     /**
      * Service that allow coverage data.
      */
-    private static final List<String> COVERAGE_ALLOWED      = List.of("wcs", "wms");
+    private static final List<String> COVERAGE_ALLOWED      = List.of("wcs", "wms", "tms");
     
     /**
      * Return true if the specified data type/subtype can be published on this service type.
@@ -71,12 +74,12 @@ final class FileSystemUtilities {
      * @return {@code true} if the specified data type/subtype can be published on this service type.
      */
     static boolean isAllowedDataTypeForService(String serviceType, String dataType, String subDataType) {
+        serviceType = serviceType.toLowerCase(Locale.ROOT);
         return switch (dataType.toLowerCase()) {
-            case "vector"     -> VECTOR_ALLOWED.contains(serviceType.toLowerCase());
-            case "coverage"   -> ("pyramid".equals(subDataType.toLowerCase()) && "wmts".equals(serviceType.toLowerCase())) ||
-                                 (!"pyramid".equals(subDataType.toLowerCase()) && COVERAGE_ALLOWED.contains(serviceType.toLowerCase()));
-                
-            case "observation" -> ("VECTOR".equals(subDataType) && VECTOR_ALLOWED.contains(serviceType.toLowerCase())); 
+            case "vector"     -> VECTOR_ALLOWED.contains(serviceType);
+            case "coverage"   -> COVERAGE_ALLOWED.contains(serviceType)
+                                 && (!COVERAGE_PYRAMID_ONLY.contains(serviceType) || "pyramid".equalsIgnoreCase(subDataType));
+            case "observation" -> ("VECTOR".equals(subDataType) && VECTOR_ALLOWED.contains(serviceType));
             
             default -> false;
         };
