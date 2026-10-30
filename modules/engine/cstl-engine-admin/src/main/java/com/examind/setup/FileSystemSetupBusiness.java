@@ -246,7 +246,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 handleServiceYamlFile(path, analysis, true);
             }
             
-            // 3. install services with data
+            // 3. install services
             dsId = getOrCreateDatasourceForConfigFiles(datasourceBusiness, "serviceFS", analysis.serviceDir, FileSystemUtilities::serviceNoDataFileFilter);
             paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
@@ -466,7 +466,21 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 case INTEGRATED -> {
                     Integer datasourceFileId = path.getProviderId();
                     if (datasourceFileId != null && datasourceFileId != -1) {
-                        handler.handleProviderFileChanges(path.getProviderId());
+                        if (datasourceBusiness.exist(datasourceFileId)) {
+                            handler.handleProviderFileChanges(datasourceFileId);
+                            
+                        // I don't know how but if a yaml provider point to an unexisting datasource, we must recover from that point.
+                        // so we perform an "update"
+                        } else {
+                            LOGGER.warning("A missing file datasource as been found in an integrated provider. recovering...");
+                            Integer newDsFileId = handler.updateProviders(null, true);
+                            if (newDsFileId != null) {
+                                datasourceBusiness.updatePathProvider(path.getDatasourceId(), path.getPath(), newDsFileId);
+                            } else {
+                                LOGGER.warning("recovering fail.");
+                                datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), PathStatus.ERROR);
+                            }
+                        }
                     }
                 }
                 
@@ -543,7 +557,12 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         FileSystemAnalysis analysis = analyze(true);
         ProviderWithPath pwp = analysis.providers.get(providerFilePath.toString());
         FSProviderHandler handler = getHandler(pwp, analysis);
-        handler.handleProviderFileChanges(datasourceFileId);
+        if (datasourceBusiness.exist(datasourceFileId)) {
+            handler.handleProviderFileChanges(datasourceFileId);
+        } else {
+            // at this point we can't recover because the datasource id is set in the task
+            LOGGER.warning("Unable to handle provider changes: Unexisting datasource" );
+        }
     }
     
     /**
@@ -753,7 +772,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 providerBusiness.removeProvider(pid);
             }
         }
-        datasourceBusiness.delete(dsFileId);
+        deleteDatasource(datasourceBusiness, dsFileId);
     }
 
     /**

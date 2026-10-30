@@ -335,9 +335,11 @@ public class ProviderUtilities {
      * @return
      * @throws ConstellationException 
      */
-    public static Integer createCSQLProvider(IProviderBusiness pBusiness, String providerIdentifier, Integer datasourceId) throws ConstellationException {
+    public static Integer getOrCreateCSQLProvider(IProviderBusiness pBusiness, String providerIdentifier, Integer datasourceId) throws ConstellationException {
+        Integer prId = pBusiness.getIDFromIdentifier(providerIdentifier);
+        if (prId != null) return prId;
+        
         Config config = createProviderConfig("data-store", providerIdentifier, "exa-coverage-sql", datasourceId, "datasourceId");
-
         config.config.parameter("rootDirectory").setValue(Path.of("/"));
         return pBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", config.source);
     }

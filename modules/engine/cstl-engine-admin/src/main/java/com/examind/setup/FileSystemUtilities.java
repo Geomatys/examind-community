@@ -142,6 +142,7 @@ final class FileSystemUtilities {
             Provider providerConf = FS_MAPPER.readValue(path.toFile(), Provider.class);
             return providerConf.getDataType()!= null && COMPUTED_PROVIDER.equals(providerConf.getDataType()) == computedResource;
         } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, path.getFileName() + "Invalid provider file:");
             LOGGER.log(Level.FINE, "Invalid provider file", ex);
             return false;
         }

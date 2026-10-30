@@ -19,6 +19,7 @@
 package com.examind.setup.data;
 
 import com.examind.dto.fs.Service;
+import static com.examind.setup.DatasourceUtilities.deleteDatasource;
 import static com.examind.setup.DatasourceUtilities.getOrCreateDatasourceForProviderFiles;
 import static com.examind.setup.DatasourceUtilities.getOrCreateSQLDatasource;
 import com.examind.setup.FileSystemAnalysis.ProviderWithPath;
@@ -27,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.constellation.dto.DataSourceSelectedPath;
-import static com.examind.setup.ProviderUtilities.createCSQLProvider;
+import static com.examind.setup.ProviderUtilities.getOrCreateCSQLProvider;
 import static com.examind.setup.ProviderUtilities.createProvider;
 import static com.examind.setup.ProviderUtilities.getProviderFileFilter;
 import com.examind.storage.DatabaseIndexedStore;
@@ -52,6 +53,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.geotoolkit.coverage.sql.NoSuchRecordException;
 
 /**
  * Provider handler for coverage-SQL.
@@ -75,13 +77,35 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
         return pwp.provider.getProviderType().equals("exa-coverage-sql");
     }
     
-    private Integer resolveProviderId(Integer datasourceFileID) throws ConstellationException {
+    /**
+     * Search for the db indexed provider by looking in the already integrated files.
+     * 
+     * @param datasourceFileID The datasource id indexing the files in this provider.
+     * @return
+     * @throws ConstellationException 
+     */
+    private int resolveDBIndexedProviderId(Integer datasourceFileID) throws ConstellationException {
         Set<Integer> prIds = new HashSet<>();
-        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceFileID, Integer.MAX_VALUE);
-        for (DataSourceSelectedPath path : paths) {
-            Integer pid = path.getProviderId();
-            if (pid != null && pid != -1) {
-                prIds.add(pid);
+        
+        /**
+         * we want to handle the case where the provider was created but no files were found.
+         */
+        if (isSingleProvider()) {
+            Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
+            final String providerIdentifier = "csql-" + datasourceId;
+            prIds.add(getOrCreateCSQLProvider(providerBusiness, providerIdentifier, datasourceId));
+            
+        } else {
+            if (datasourceBusiness.exist(datasourceFileID)) {
+                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceFileID, Integer.MAX_VALUE);
+                for (DataSourceSelectedPath path : paths) {
+                    Integer pid = path.getProviderId();
+                    if (pid != null && pid != -1) {
+                        prIds.add(pid);
+                    }
+                }
+            } else {
+                LOGGER.warning("Erronated datasource file id for indexed indexed.");
             }
         }
         
@@ -89,18 +113,19 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
             LOGGER.warning("Multiple provider id found for database indexed");
         } else if (prIds.isEmpty()) {
             LOGGER.warning("No provider id found for database indexed");
-            return null;
+            return -1;
         }
         return prIds.iterator().next();
     }
 
     @Override
-    protected void removeProviders(Integer datasourceFileID) throws ConstellationException {
+    protected void removeProviders(int datasourceFileID) throws ConstellationException {
+
+        int prId = resolveDBIndexedProviderId(datasourceFileID);
         
-        Integer prId = resolveProviderId(datasourceFileID);
-        datasourceBusiness.delete(datasourceFileID);
+        deleteDatasource(datasourceBusiness, datasourceFileID);
         
-        if (prId == null) return;
+        if (prId == -1) return;
         
         if (isSingleProvider()) {
             
@@ -110,9 +135,13 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
             DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();
             try {
                 store.removeResource(parameters);
+            } catch (NoSuchRecordException ex) {
+                LOGGER.info("No product to remove found.");
             } catch (DataStoreException ex) {
                 throw new ConstellationException("Error while trying to remove csql data. ", ex);
             }
+            // update removed data
+            providerBusiness.reload(prId);
         } else {
             providerBusiness.removeProvider(prId);
         }
@@ -124,29 +153,38 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
     public Integer createProviders(boolean diffMode) {
         try {
 
-            Integer datasourceId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
-
+            /*
+             * 1) analyse the pointed files. 
+             */
             int dsrcId = getOrCreateDatasourceForProviderFiles(datasourceBusiness, pwp, null, diffMode);
             List<DataSourceSelectedPath> files = datasourceBusiness.getSelectedPath(dsrcId, Integer.MAX_VALUE);
-
-            Integer datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
-        
+            
+            // we do not create the provider if there is no file (its an issue for non single providers as we can not retrive the provider id after)
+            if (files.isEmpty()) {
+                LOGGER.warning("No files found for database file indexed provider");
+                return dsrcId;
+            }
+            
+            /*
+            * 2) create the provider.
+            */
+            Integer sqlSrcId = getOrCreateSQLDatasource(datasourceBusiness, pwp.provider);
             Integer prId;
             if (isSingleProvider()) {
                 // we keep only one provider by datasource
-                final String providerIdentifier = "csql-" + datasourceId;
-                prId = providerBusiness.getIDFromIdentifier(providerIdentifier);
-                if (prId == null) {
-                    prId = createCSQLProvider(providerBusiness, providerIdentifier, datasourceId);
-                }
+                final String providerIdentifier = "csql-" + sqlSrcId;
+                prId = getOrCreateCSQLProvider(providerBusiness, providerIdentifier, sqlSrcId);
             } else {
                 URI dataUri = getDataUri(pwp.ymlFile.getParent(), pwp.provider.getLocation());
-                prId = createProvider(pwp.provider, providerBusiness, datasourceId, dataUri);
+                prId = createProvider(pwp.provider, providerBusiness, sqlSrcId, dataUri);
             }
         
             DataProvider provider = DataProviders.getProvider(prId);
             DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();
-        
+            
+            /*
+             * 3) insert files into it. 
+             */
             for (DataSourceSelectedPath dsp : files) {
                 // as we are in creation mode, we assume that all the files are in pending status
                 try {
@@ -160,6 +198,11 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
                 }
             }
             provider.reload();
+            
+            /*
+            * generate data.
+            */
+            Integer datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
             generateDatas(prId, datasetId, asyncInfos, true);
             return dsrcId;
         } catch (Exception ex) {
@@ -171,8 +214,8 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
     @Override
     public void handleProviderFileChanges(Integer datasourceFileID) throws ConstellationException {
         
-        Integer prId = resolveProviderId(datasourceFileID);
-        if (prId == null) throw new ConfigurationException("Database indexed Provider not found.");
+        Integer prId = resolveDBIndexedProviderId(datasourceFileID);
+        if (prId == -1) throw new ConfigurationException("Database indexed Provider not found.");
         
         DataProvider provider = DataProviders.getProvider(prId);
         DatabaseIndexedStore store = (DatabaseIndexedStore) provider.getMainStore();
@@ -180,8 +223,6 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
         Predicate<Path> fileFilter = getProviderFileFilter(pwp.provider);
         datasourceBusiness.scanForModification(datasourceFileID, fileFilter);
         datasourceBusiness.recordSelectedPath(datasourceFileID, true);
-        
-        int datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
         
         boolean hasChanges = false;
         
@@ -238,12 +279,12 @@ public class DBIndexedFileProviderhandler extends FSProviderHandler {
                 }
             }
         }
-        
+
+        // Generate data.        
         if (hasChanges) {
-            // Generate data.
+            int datasetId = datasetBusiness.getOrCreateDataset(dataset, null);
             provider.reload();
             generateDatas(prId, datasetId, asyncInfos, false);
-
         }
     }
 

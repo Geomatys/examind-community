@@ -35,6 +35,8 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.repository.DataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static com.examind.setup.DatasourceUtilities.deleteDatasource;
+
 /**
  * Abstract class to handle providers updates.
  * 
@@ -108,7 +110,7 @@ public abstract class FSProviderHandler {
         // for now we do an simple remove/create 
         // TODO update metadata
         // TODO linked files?
-        if (dsFileId != -1) {
+        if (dsFileId != null && dsFileId != -1) {
             removeProviders(dsFileId);
         }
         return createProviders(diffMode);
@@ -120,15 +122,19 @@ public abstract class FSProviderHandler {
      * @param dsFileId The datasource identifier of the providers files.
      * @throws ConstellationException 
      */
-    protected void removeProviders(Integer dsFileId) throws ConstellationException {
-        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
-        for (DataSourceSelectedPath path : paths) {
-            Integer pid = path.getProviderId();
-            if (pid != null && pid != -1) {
-                providerBusiness.removeProvider(pid);
+    protected void removeProviders(int dsFileId) throws ConstellationException {
+        if (dsFileId != -1) {
+            if (datasourceBusiness.exist(dsFileId)) {
+                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsFileId, Integer.MAX_VALUE);
+                for (DataSourceSelectedPath path : paths) {
+                    Integer pid = path.getProviderId();
+                    if (pid != null && pid != -1) {
+                        providerBusiness.removeProvider(pid);
+                    }
+                }
             }
+            deleteDatasource(datasourceBusiness, dsFileId);
         }
-        datasourceBusiness.delete(dsFileId);
     }
     
     /**

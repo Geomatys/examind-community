@@ -26,16 +26,21 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.constellation.api.CommonConstants.FILE_STORE;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.dto.DataSource;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 
 /**
  *
  * @author glegal
  */
 public class DatasourceUtilities {
+    
+    private static final Logger LOGGER = Logger.getLogger("com.examind.setup");
     
     public static int getOrCreateDatasourceForProviderFiles(IDatasourceBusiness dBusiness, FileSystemAnalysis.ProviderWithPath pwp, boolean computeHash) throws ConstellationException {
         String storeId = pwp.provider.getProviderType();
@@ -114,5 +119,23 @@ public class DatasourceUtilities {
             result = parentDir.resolve(dataStr);
         }
         return result.toUri();
+    }
+    
+    /**
+     * Safely delete a datasource without throwing exception if the datasource does not exist.
+     * 
+     * @param dBusiness Datasource business.
+     * @param datasourceId Datasource Identifier.
+     */
+    public static void deleteDatasource(IDatasourceBusiness dBusiness, int datasourceId) {
+        if (datasourceId != -1) {
+            try {
+                dBusiness.delete(datasourceId);
+            } catch (TargetNotFoundException ex) {
+                LOGGER.log(Level.WARNING, "No datasource found to remove: {0}", datasourceId);
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, "Error while removing datasource: " + datasourceId , ex);
+            }
+        }
     }
 }
