@@ -968,7 +968,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
      * @param style A {@link MutableStyle}.
      * @return The assigned style id.
      */
-    private Integer importStyle(MutableStyle style) {
+    private int importStyle(MutableStyle style) {
         try {
             String type = "sld";
             final boolean exists = styleBusiness.existsStyle(type, style.getName());
@@ -980,6 +980,6 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while importing style: " + style.getName(), ex);
         }
-        return null;
+        return -1;
     }
 }

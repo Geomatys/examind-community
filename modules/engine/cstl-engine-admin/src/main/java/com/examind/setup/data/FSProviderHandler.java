@@ -108,7 +108,9 @@ public abstract class FSProviderHandler {
         // for now we do an simple remove/create 
         // TODO update metadata
         // TODO linked files?
-        removeProviders(dsFileId);
+        if (dsFileId != -1) {
+            removeProviders(dsFileId);
+        }
         return createProviders(diffMode);
     }
     
