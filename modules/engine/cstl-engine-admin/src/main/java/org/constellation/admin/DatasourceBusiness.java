@@ -248,7 +248,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     public void delete(int id) throws ConstellationException {
         final DataSource datasource = dsRepository.findById(id);
         if (datasource == null || datasource.getId() == null) {
-            throw new ConstellationException("No datasource found for id " + id);
+            throw new TargetNotFoundException("No datasource found for id " + id);
         }
         close(datasource, true);
     }
@@ -341,6 +341,14 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Override
     public List<DataSource> search(String url, String storeId, String format, String userName) {
         return dsRepository.search(url, storeId, format, userName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean exist(int id) {
+        return dsRepository.existsById(id);
     }
 
     /**
@@ -623,7 +631,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (ds != null) {
             return getDataSourcePath(ds, subPath);
         }
-        throw new TargetNotFoundException("Unexisting datasource with id:" + id);
+        throw new TargetNotFoundException("No datasource identified by:" + id);
     }
 
     private Path getDataSourcePath(final DataSource ds, final String subPath) throws ConstellationException {
@@ -658,7 +666,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Transactional
     public List<FileBean> exploreDatasource(final Integer dsId, String subPath) throws ConstellationException {
         final DataSource ds = getDatasource(dsId);
-        if (ds == null) throw new TargetNotFoundException("Unexisting datasource:" + dsId);
+        if (ds == null) throw new TargetNotFoundException("No datasource identified by:" + dsId);
 
         final List<FileBean> listBean = new ArrayList<>();
         final Path path = getDataSourcePath(ds, subPath);
@@ -734,7 +742,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
             return new DatasourceAnalysisV3(results);
         } else {
-            throw new TargetNotFoundException("Unexisting datasource:" + dsId);
+            throw new TargetNotFoundException("No datasource identified by:" + dsId);
         }
     }
 
@@ -920,7 +928,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63, boolean computeHash, Predicate<Path> fileFilter) throws ConstellationException {
         final DataSource ds = getDatasource(id);
         if (ds == null) {
-            throw new TargetNotFoundException("Unexisting datasource:" + id);
+            throw new TargetNotFoundException("No datasource identified by:" + id);
         }
         synchronized (datasourceLocks.computeIfAbsent(id, key -> key)) {
             String datasourceState = dsRepository.getAnalysisState(ds.getId());
@@ -1306,7 +1314,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Transactional
     public void scanForModification(int dsId, Predicate<Path> fileFilter) throws ConstellationException {
         final DataSource ds = getDatasource(dsId);
-        if (ds == null) throw new TargetNotFoundException("Unexisting datasource:" + dsId);
+        if (ds == null) throw new TargetNotFoundException("No datasource identified by:" + dsId);
         List<String> fileList = new ArrayList<>();
         if ("file".equals(ds.getType())) {
             scanForModification(ds, "", null, fileFilter, fileList);
@@ -1319,7 +1327,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 }
             }
         } else {
-            LOGGER.warning("No scan for modification implemented for: " + ds.getType() + " datasource");
+            LOGGER.log(Level.WARNING, "No scan for modification implemented for: {0} datasource", ds.getType());
         }
     }
     

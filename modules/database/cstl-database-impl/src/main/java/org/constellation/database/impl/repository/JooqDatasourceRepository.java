@@ -345,7 +345,8 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                 .set(DATASOURCE_PATH.CONTENT_HASH, contentHash)
                 .set(DATASOURCE_PATH.HASH_ALGO, hashAlgo)
                 .where(DATASOURCE_PATH.DATASOURCE_ID.eq(dsId)
-                .and(DATASOURCE_PATH.PATH.eq(dsPath)));
+                .and(DATASOURCE_PATH.PATH.eq(dsPath)))
+                .execute();
     }
 
     @Override

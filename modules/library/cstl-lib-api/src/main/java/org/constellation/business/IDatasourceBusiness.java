@@ -69,6 +69,13 @@ public interface IDatasourceBusiness {
     void update(DataSource ds) throws ConstellationException;
 
     /**
+     * Return {@code true} if the datasource exist.
+     *
+     * @param id the datasource identifier.
+     */
+    boolean exist(int id);
+    
+    /**
      * Close a datasource, identified by its id.
      *  - Close the current analysis, if its still going on.
      *  - if the datasource is of type local_files , the files are removed.
