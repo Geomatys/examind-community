@@ -426,6 +426,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             PathStatus status = PathStatus.valueOf(path.getStatus());
             
             if (status == REMOVED) {
+                LOGGER.log(Level.INFO, "Provider file {0} has been removed. Removing correspounding datas.", p.getFileName().toString());
                 removePollingTask(p);
                 removeProviders(path.getProviderId());
                 datasourceBusiness.removePath(path.getDatasourceId(), path.getPath());
@@ -442,12 +443,14 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             FSProviderHandler handler = getHandler(pwp, analysis);
             switch (status) {
                 case PENDING -> {
+                    LOGGER.log(Level.INFO, "Integrating new provider file {0}.", p.getFileName().toString());
                     Integer dsFileId = handler.createProviders(true);
                     PathStatus newStatus = dsFileId != null ? PathStatus.INTEGRATED : PathStatus.ERROR; // NO DATA?
                     datasourceBusiness.updatePathStatusAndProvider(path.getDatasourceId(), path.getPath(), newStatus, dsFileId);
                     addPollingTask(pwp, dsFileId);
                 }
                 case MODIFIED -> {
+                    LOGGER.log(Level.INFO, "Provider file {0} has been modified. updating correspounding datas.", p.getFileName().toString());
                     removePollingTask(p);
                     
                     PathStatus newStatus;
@@ -464,6 +467,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     datasourceBusiness.updatePathStatus(path.getDatasourceId(), path.getPath(), newStatus);
                 }
                 case INTEGRATED -> {
+                    LOGGER.log(Level.INFO, "No changes in provider file {0}. checking changes in files", p.getFileName().toString());
                     Integer datasourceFileId = path.getProviderId();
                     if (datasourceFileId != null && datasourceFileId != -1) {
                         if (datasourceBusiness.exist(datasourceFileId)) {
@@ -484,7 +488,10 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     }
                 }
                 
-                case ERROR, NO_DATA -> {} // ???
+                case ERROR, NO_DATA -> {
+                     // what can we do at this point?
+                    LOGGER.log(Level.INFO, "Provider file {0} in error (or produce no data).", p.getFileName().toString());
+                }
             }
             
         }  catch (ConfigurationException ex) {

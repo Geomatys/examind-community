@@ -26,6 +26,10 @@ import java.util.Objects;
  */
 public class Datasource {
     
+    /**
+     * for informations only.
+     */
+    private String identifier;
     private String userName;
     private String password;
     private String location;
@@ -89,9 +93,20 @@ public class Datasource {
         this.advancedParameters = advancedParameters;
     }
     
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
+    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        if (identifier != null) {
+            sb.append("identifier:").append(identifier).append("\n");
+        }
         if (userName != null) {
             sb.append("userName:").append(userName).append("\n");
         }

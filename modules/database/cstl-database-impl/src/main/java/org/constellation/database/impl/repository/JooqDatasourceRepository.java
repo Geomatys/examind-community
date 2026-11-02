@@ -74,6 +74,14 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     }
 
     @Override
+    public String getIdentifier(int id) {
+        return dsl.select(DATASOURCE.IDENTIFIER)
+                  .from(DATASOURCE)
+                  .where(DATASOURCE.ID.eq(id))
+                  .fetchOneInto(String.class);
+    }
+    
+    @Override
     public boolean existsById(Integer id) {
         return dsl.fetchExists(
             dsl.selectOne()

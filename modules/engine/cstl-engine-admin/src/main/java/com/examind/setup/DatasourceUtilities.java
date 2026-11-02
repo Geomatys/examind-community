@@ -94,7 +94,8 @@ public class DatasourceUtilities {
     }
     
     public static Integer getOrCreateSQLDatasource(IDatasourceBusiness dBusiness, Provider conf) throws ConstellationException {
-        return getOrCreateSQLDatasource(dBusiness, conf.getGeneratedIdentifier(), conf.getTarget() != null ? conf.getTarget() : conf.getSource());
+        Datasource ds = conf.getTarget() != null ? conf.getTarget() : conf.getSource();
+        return getOrCreateSQLDatasource(dBusiness, ds.getIdentifier(), ds);
     }
     
     public static Integer getOrCreateSQLDatasource(IDatasourceBusiness dBusiness, String identifier, Datasource source) throws ConstellationException {

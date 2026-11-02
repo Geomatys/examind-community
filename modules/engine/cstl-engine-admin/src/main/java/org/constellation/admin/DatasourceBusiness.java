@@ -326,6 +326,14 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     public DataSource getDatasource(String identifier) {
         return dsRepository.findByIdentifier(identifier);
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getDatasourceIdentifier(int id) {
+        return dsRepository.getIdentifier(id);
+    }
 
     /**
      * {@inheritDoc}

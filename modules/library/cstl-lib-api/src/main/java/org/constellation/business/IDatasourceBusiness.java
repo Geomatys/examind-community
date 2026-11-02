@@ -119,6 +119,16 @@ public interface IDatasourceBusiness {
      * @return A Datasource or {@code null}
      */
     DataSource getDatasource(String identifier);
+    
+    /**
+     * Retrieve a datasource identifier, if set.
+     *
+     * @param id the datasource id.
+     *
+     * @return A Datasource identifier or {@code null} if the datasource does
+     * not exist or if the identifier is {@code null}
+     */
+    String getDatasourceIdentifier(int id);
 
     /**
      * Search permanent datasources by its url.
